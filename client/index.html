@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/modules/bootstrap-icons/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="assets/css/index.css">
+</head>
+<body>
+  <div class="container mt-3">
+    <div class="calculator-container"></div>
+    <table class="payslip form-floating">
+      <tr>
+          <th colspan="4">Payroll Sample</th>
+      </tr>
+      <tr>
+        <td class="bg-color-secondary">
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <label class="input-group-text">Total Hours</label>
+            </div>
+            <input type="number" class="form-control" id="totalHours">
+          </div>
+        </td>
+        <td colspan="2" class="bg-color-secondary">
+          <div class="input-group ">
+            <div class="input-group-prepend">
+              <label class="input-group-text" for="employeeName">Employee: </label>
+            </div>
+            <select class="custom-select form-control" id="employeeName">
+              <option value="">Choose...</option>
+            </select>
+          </div>
+        </td>
+        
+        
+        <td>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <label class="input-group-text" for="divisionName">Division: </label>
+            </div>
+            <input type="text" class="form-control" id="divisionName" placeholder="" readonly>
+          </div>
+        </td>
+      </tr>
+      <tr>
+          <td>
+            <div class="input-group mb-0">
+              <div class="input-group-prepend">
+                <label class="input-group-text" for="employeeId">ID Number: </label>
+              </div>
+              <input type="text" class="form-control" id="employeeId" placeholder="" readonly>
+            </div>
+          </td>
+          <td>
+            <div class="input-group mb-0">
+              <div class="input-group-prepend">
+                <label class="input-group-text" for="bankDetails">Bank Details: </label>
+              </div>
+              <input type="text" class="form-control" id="bankDetails" placeholder="" readonly>
+            </div>
+          </td>
+          <td>
+            <div class="input-group mb-0">
+              <div class="input-group-prepend">
+                <label class="input-group-text" for="payCycle">Pay Cycle: </label>
+              </div>
+              <input type="text" class="form-control" id="payCycle" placeholder="" readonly>
+            </div>
+          </td>
+          <td>
+            <div class="input-group mb-0">
+              <div class="input-group-prepend">
+                <label class="input-group-text" for="taxNumber">Tax Number: </label>
+              </div>
+              <input type="text" class="form-control" id="taxNumber" placeholder="" readonly>
+            </div>
+          </td>
+      </tr>
+      <tr>
+          <th>Earnings</th>
+          <th>Amount</th>
+          <th>Deductions</th>
+          <th>Amount</th>
+      </tr>
+      <tr>
+          <td>Basic Salary</td>
+          <td>
+            <div class="input-group mb-0 text-right">
+              <input type="text" class="form-control" id="basicSalary" placeholder="" readonly>
+            </div>
+          </td>
+          <td>Taxation</td>
+          <td>
+            <div class="input-group mb-0 text-right">
+              <input type="text" class="form-control" id="taxation" placeholder="" readonly>
+            </div>
+          </td>
+      </tr>
+      <tr>
+          <td>Overtime</td>
+          <td>
+            <div class="input-group mb-0 text-right">
+              <input type="text" class="form-control" id="overtime" placeholder="" readonly>
+            </div>
+          </td>
+          <td id="absencesContainer">
+            <div class="d-flex justify-content-between">
+              Absences <span class="badge text-bg-dark">0</span>
+            </div>
+          </td>
+          <td>
+            <div class="input-group mb-0 text-right">
+              <input type="text" class="form-control" id="uif" placeholder="" readonly>
+            </div>
+          </td>
+      </tr>
+      <tr>
+          <td>Premium</td>
+          <td>
+            <div class="input-group mb-0 text-right">
+              <input type="text" class="form-control" id="tips" placeholder="" readonly>
+            </div>
+          </td>
+          <td>Other Deductions <em>(SSS, PhilHealth, etc.)</em></td>
+          <td>
+            <div class="input-group mb-0 text-right">
+              <input type="text" class="form-control" id="otherDeductions" placeholder="" readonly>
+            </div>
+          </td>
+      </tr>
+      <tr>
+          <th>Gross Earnings</th>
+          <th>
+            <div class="input-group mb-0 text-right">
+              <input type="text" class="form-control" id="grossEarnings" placeholder="" readonly>
+            </div>
+          </th>
+          <th>Total Deductions</th>
+          <th>
+            <div class="input-group mb-0 text-right">
+              <input type="text" class="form-control" id="totalDeductions" placeholder="" readonly>
+            </div>
+          </th>
+      </tr>
+      <tr>
+          <td>Net Salary Transferred</td>
+          <td>
+            <div class="input-group mb-0 text-right">
+              <input type="text" class="form-control" id="netSalaryTransferred" placeholder="" readonly>
+            </div>
+          </td>
+          <td>
+            <div class="d-flex justify-content-between">
+              per Day rate <i class="bi bi-question-circle-fill" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="asd"></i>
+            </div>
+          </td>
+          <td>
+            <div class="input-group mb-0 text-right">
+              <input type="text" class="form-control" id="perDayrate" placeholder="" readonly>
+            </div>
+          </td>
+      </tr>
+  </table>
+  <figure>
+    <blockquote class="blockquote">
+      <p>Legend(s): </p>
+    </blockquote>
+    <figcaption class="blockquote-footer">
+      <cite title="Source Title">Gross Earnings</cite> ***Basic Salary + Premium
+    </figcaption>
+    <figcaption class="blockquote-footer">
+      <cite title="Source Title">Total Deductions</cite> ***Taxation + Absences + Other Deductions
+    </figcaption>
+    <figcaption class="blockquote-footer">
+      <cite title="Source Title">Net Salary</cite> ***Gross Earnings - Total Deductions
+    </figcaption>
+    <figcaption class="blockquote-footer">
+      <cite title="Source Title">per day rate</cite> ***(Monthly Salary * 12 Months) / Total Working days
+    </figcaption>
+  </figure>
+
+  </div>
+  <script src="/modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- <link rel="stylesheet" href="/modules/bootstrap/dist/css/bootstrap.min.css"> -->
+
+  <script type="module" src="assets/js/index.js"></script>
+  <script>
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+  </script>
+</body>
+</html>

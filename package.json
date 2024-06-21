@@ -1,0 +1,30 @@
+{
+    "name": "justprojects",
+    "version": "0.0.1",
+    "description": "A just project list for dev",
+    "main": "app.js",
+    "scripts": {
+        "dev": "nodemon app.js",
+        "start": "node app.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "Multiplayer",
+        "Game",
+        "Socket.IO"
+    ],
+    "repository": {
+        "type": "git"
+    },
+    "author": "Wrongramer <red.mrjhon8@gmail.com>",
+    "license": "ISC",
+    "dependencies": {
+        "bootstrap": "^5.3.3",
+        "bootstrap-icons": "^1.11.3",
+        "express": "^4.17.1",
+        "socket.io": "^2.3.0"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.4"
+    }
+}

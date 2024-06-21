@@ -1,0 +1,60 @@
+.badge {
+  /* --bs-badge-font-weight: 500 !important; */
+  line-height: 1.2rem;
+  text-transform: uppercase;
+  font-size: 0.6em;;
+  &.text-bg-danger {
+    background-color: #f1aeb5 !important;
+  }
+}
+.payslip {
+  font-family: Arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+
+  input:read-only {
+    /* border: none; */
+    /* outline: none; */
+  }
+  & td, & th {
+    border: 1px solid #ddd;
+    /* border: 0; */
+    padding: 8px;
+  }
+  .input-group {
+    display: flex;
+    label {
+      margin-right: 5px;
+      background-color: inherit;
+      border: 0;
+    }
+    select {
+      border: 0;
+    }
+    input {
+      /* border: 0; */
+      /* width: 100%; */
+      /* font-size: inherit; */
+
+      &[type="date"] {
+        font-family: inherit;
+        text-align: right;
+      }
+    }
+  }
+}
+
+.bg-color-secondary {
+  background-color: #ededed;
+  * {
+    background-color: #ededed;
+  }
+}
+
+.text-right {
+  text-align: right;
+
+  * {
+    text-align: right;
+  }
+}
