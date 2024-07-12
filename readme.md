@@ -11,9 +11,11 @@ npm run dev
 - New transaction, using ejs, templates, tables and dialogs are added
 - Upload the SQL code the MYSQL Workbench
 - Connected to the MYSQL Workbench
+
 07012024
 - Using templates from ThemeKita
 - Analyzed the template how it will be going to use
 - Checked how the component are used
+
 06102024
 - Add absences Basic Salary minus times 12 divided by 444 (total working days in year)
