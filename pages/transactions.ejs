@@ -1,0 +1,142 @@
+<!-- Header Template -->
+<%- include('../views/header.html') -%>
+
+<div class="wrapper">
+    <%- include('../views/sidebar') -%>
+
+    <div class="main-panel">
+      <%- include('../views/main-header') -%>
+
+
+      <div class="container" data-asd="">
+          <div class="page-inner">
+            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+              <div>
+                  <h3 class="fw-bold mb-3">List of <%- title -%></h3>
+                  <h6 class="op-7 mb-2">Purchase Request</h6>
+              </div>
+              <div class="ms-md-auto py-2 py-md-0">
+                  <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
+                  <a href="#" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Add New</a>
+              </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                      <div class="card-header">
+                        <h4 class="card-title"><%- title -%></h4>
+                      </div>
+                      <div class="card-body">
+                        <div class="table-responsive">
+                          <table
+                            id="basic-datatables"
+                            class="display table table-striped table-hover"
+                          >
+                            <thead>
+                              <tr>
+                                <th>ID</th>
+                                <th>Notice Title</th>
+                                <th>Requistioner</th>
+                                <th>Division</th>
+                                <th>Date</th>
+                                <th>Budget</th>
+                                <th>Action</th>
+                              </tr>
+                            </thead>
+                            <tfoot>
+                              <tr>
+                                <th>ID</th>
+                                <th>Notice Title</th>
+                                <th>Requistioner</th>
+                                <th>Division</th>
+                                <th>Date</th>
+                                <th>Budget</th>
+                                <th>Action</th>
+                              </tr>
+                            </tfoot>
+                            <tbody>
+                              <% 
+                                for(var i=0; i < transactions.length; i++) { 
+                                  var date = transactions[i].pr_date
+                                      date = moment(date).format('MMM Do YYYY');
+                                 
+                                  var budget = transactions[i].approved_budget
+                                      budget = budget.includes(",") ? budget.replace(/[\s,]+/g, "") : budget
+                              %>
+                               
+                                <tr>
+                                  <td><%= transactions[i].product_id %></td>
+                                  <td>
+                                    <p class="mb-0"><%= transactions[i].bid_notice_title %></p>
+                                    <div>
+                                      <span class="badge badge-count"><%= transactions[i].pr_classification %></span>
+                                      <span class="badge badge-secondary"><%= transactions[i].banner_program %></span>
+                                    </div>
+                                  </td>
+                                  <td><%= transactions[i].requisitioner %></td>
+                                  <td><%= transactions[i].division %></td>
+                                  <td><%= date %></td>
+                                  <td data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>"><%= budget %></td>
+                                  <td>
+                                    <div class="form-button-action" data-transid="<%= transactions[i].product_id %>" data-transaction="<%= JSON.stringify(transactions[i]) %>">
+                                      <button data-transid="<%= transactions[i].product_id %>" type="button" class="btn btn-link  btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="<%= transactions[i].product_id %>" data-original-title="Edit Task">
+                                        <i class="fa fa-eye"></i>
+                                      </button>
+                                      <button data-transid="<%= transactions[i].product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task">
+                                        <i class="fa fa-edit"></i>
+                                      </button>
+                                      <button data-transid="<%= transactions[i].product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_demo_<%= transactions[i].product_id %>">
+                                        <i class="fa fa-times"></i>
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              <% } %>
+                             </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+            </div>
+          </div>
+      </div>
+
+    </div>
+</div>
+
+<!-- Transaction Modal -->
+<div class="modal modal-lg fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">New message</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex justify-content-between">
+          <div  class="left text-uppercase">
+            <span class="badge badge-count">Classification</span>
+            <span class="badge badge-danger">Bac Unit</span>
+            <span class="badge badge-info"> Banner Program</span>
+          </div>
+          <div class="right">
+            <span class="badge badge-black">2024-03-12T16:00:00.000Z</span>
+          </div>
+        </div>
+        <h3>Sample Text</h3>
+        <h5 class="text-muted mb-4">Requestioner </h5>
+        <button class="btn btn-primary btn-round">₱12,143.69</button>
+        <button class="btn btn-primary btn-border btn-round"><i class="fas fa-solid fa-coins"></i> <span>Fund Source</span></button>
+
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Send message</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Header Template -->
+<%- include('../views/footer.html') -%>

@@ -68,26 +68,26 @@ employeeNames: document.getElementById('employeeName'),
         },
         {
           "companyName": "XYZ Ltd.",
-          "employeeName": "Jane Smith",
+          "employeeName": "Just Joe",
           "employeeId": "EMP789",
           "bankDetails": "National Bank",
           "payPeriod": "June 2024",
           "payCycle": "Biweekly",
           "taxNumber": "TAX987",
           "earnings": {
-            "basicSalary": 4500,
-            "overtime": 200,
-            "tips": 30
+            "basicSalary": 25232,
+            "overtime": 0,
+            "tips": 5046.40
           },
           "deductions": {
-            "taxation": 700,
-            "uif": 40,
-            "otherDeductions": 15,
-            "absences": 3
+            "taxation": 0,
+            "uif": 0,
+            "otherDeductions": 0,
+            "absences": 0
           },
-          "grossEarnings": 4730,
-          "totalDeductions": 755,
-          "netSalaryTransferred": 3975
+          "grossEarnings": 0,
+          "totalDeductions": 0,
+          "netSalaryTransferred": 0
         },
         {
           "companyName": "Tech Innovators",

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV</title>
+    <link rel="stylesheet" href="/modules/bootstrap/dist/css/bootstrap.min.css">
+    <style> .align-center { text-align: center; } </style>
+</head>
+<body>
+    
+    <form>
+        Upload some files?
+        <br/>
+        <input type="file" id="uploaded_data"/>
+    </form>
+    <div id="csvData"></div>
+    <script>
+        let csvDataDiv = document.getElementById('csvData')
+        function readSingleFile(evt) {
+            var f = evt.target.files[0]; 
+            if (f) {
+            var r = new FileReader();
+            console.log(r)
+            r.onload = function(e) { 
+                var contents = e.target.result;
+                // document.write("File Uploaded! <br />" + "name: " + f.name + "<br />" + "content: " + contents + "<br />" + "type: " + f.type + "<br />" + "size: " + f.size + " bytes <br />");
+        
+                var lines = contents.split("\n"), output = [];
+                for (var i=0; i<lines.length; i++){
+                //   output.push("<tr><td>" + lines[i].split(",").join("</td><td>") + "</td></tr>");
+                    
+                    output.push(`<tr class="row-${i}"><${i==0?'th':'td'}  class="align-center">${lines[i].split(",").join(`</${i==0?'th':'td'}><${i==0?'th':'td'} class="align-center">`)}</${i==0?'th':'td'}></tr>`);
+                
+                }
+                output = "<table class='table'>" + output.join("") + "</table>";
+                // document.write(output);
+                csvDataDiv.innerHTML = output
+            }
+            r.readAsText(f);
+            // document.write(output);
+            } else { 
+            alert("Failed to load file");
+            }
+        }
+        document.getElementById('uploaded_data').addEventListener('change', readSingleFile);
+        console.log(navigator)
+        console.log(navigator.login)
+    </script>
+</body>
+</html>

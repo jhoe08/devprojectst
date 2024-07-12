@@ -1,22 +1,220 @@
+// import { firebase } from 'firebase';
+
 const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
+const path = require("path");
+const connection = require("./admin/database");
+const misc = require("./admin/misc")
+const { connect } = require('http2');
+const moment = require('moment');
+
+// const { log } = require('console');
+// const firebase = require('firebase');
+
+// const preDefaultData = require('./assets/js/const');
+
+const locale = 'en';
+const options = {style: 'currency', currency: 'php', minimumFractionDigits: 2, maximumFractionDigits: 2};
+let formatter = new Intl.NumberFormat(locale, options);
+// How to use
+// var amount = 5000.25;
+// console.log(formatter.format(amount));
+
+const _preDefaultData = {
+    blood_type: ['N/A','O+','O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
+    civil_status: ['Single', 'Married', 'Widowed', 'Separated', 'Other\'s'],
+    citizenship: ['Filipino', 'Other\'s'],
+    gender: ['N/A', 'Male', 'Female', 'Other\'s']
+}
 
 // const _express = require('./server/express');
+
+// let transactions = db.getConnection(
+//   'SELECT * FROM transid WHERE product_id=17102'
+// );
+
+// pool.getConnection()
+//   .then(conn => {
+//     const res = conn.query('SELECT * FROM transid');
+//     conn.release();
+//     return res;
+//   }).then(results => {
+//     console.log('Connected to MySQL DB');
+//     // console.log(results)
+//     return results;
+//   }).catch(err => {
+//     console.log(err); 
+//   });
+
+// console.log(JSON.stringify(transactions))
+
+
+// let dataListsTrans = pool.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
+//   if (error) throw error;
+//   console.log('The solution is: ', results[0].solution);
+// });
+
+// console.log(dataListsTrans)
+
+// let transactions = db.query('SELECT * FROM transid WHERE product_id=17195');
+// transactions = JSON.stringify(transactions)
+
+// console.log(transactions)
+
+let transid = []
+
+// let yawa = connection.query('SELECT * FROM transid WHERE product_id=17102', function (error, results, fields) {
+//       if (error) throw error;
+//       // console.log('The solution is: ', JSON.stringify(results[0]));
+//       transid = results[0]
+//       return JSON.stringify(results[0])
+//     });
+
+// let yawa = connection.query('SELECT * FROM transid WHERE product_id=17102', (error, results, fields) => {
+//   if (error) throw error;
+//       // console.log('The solution is: ', JSON.stringify(results[0]));
+//       transid = JSON.stringify(results[0])
+
+//       console.log(transid)
+
+//       return transid 
+// })
+
+// console.log(yawa._results)
+  // let yawa = connection.query('SELECT * FROM transid WHERE product_id=17102');
 
 const app = express();
 const router = express.Router();
 
 const clientPath = `${__dirname}/client/`;
 const modulesPath = `${__dirname}/node_modules/`;
+const csvPath = `${__dirname}/pages/`;
+const adminPath = `${__dirname}/demo/`;
+const viewsAssets = `${__dirname}/assets/`;
+
+// const transPath = `${__dirname}/pages/transactions.ejs`;
+
 const SERVER_PORT = 4000;
 
-router.get('/', function(req, res, next) {
-  res.end()
+
+
+// router.get('/', function(req, res, next) {
+//   res.end()
+// })
+
+app.set("view engine", "ejs")
+app.set("views", path.join(__dirname), "views")
+
+app.use('/', require('./routes/root'))
+
+
+//pages
+app.use('/pages', express.static(csvPath))
+app.use('/salary', express.static(clientPath));
+app.use('/demo', express.static(adminPath))
+//paths
+app.use('/modules', express.static(modulesPath))
+app.use('/assets', express.static(viewsAssets))
+app.use('/employees', express.static(viewsAssets))
+app.use('/employees', express.static(path.join(__dirname, '/assets')))
+// Dummy users
+// let logonUsers = [
+//   { name: 'tobi', email: 'tobi@learnboost.com' },
+//   { name: 'loki', email: 'loki@learnboost.com' },
+//   { name: 'jane', email: 'jane@learnboost.com' }
+// ];
+let user = {
+  firstName: 'Just',
+  lastName: 'Joe',
+  fullname: 'Just Joe',
+  email: 'justjoe@gmail.com',
+  type: 8,
+}
+
+console.log(transid)
+
+// app.get("/", (req, res) => {
+//   res.render('index', { title: 'Hey', message: 'Hello there!' })
+// });
+
+app.get('/', function(req, res){
+  res.render('index', {
+    // users: users,
+    logonUser: user,
+    title: "EJS example",
+    header: "Some users"
+  });
+});
+
+app.get('/transactions', async (req, res) => {
+  try {
+    const transactions = await connection.getTransactions();
+      res.render('pages/transactions', { 
+        logonUser: user,
+        title: 'Transactions',
+        transactions: transactions, 
+        moment: moment,
+        connection: connection,
+        formatter: formatter
+      }); // Pass the data to the template
+  } catch (error) {
+      console.error('Error fetching products:', error);
+      res.status(500).send('Internal Server Error');
+  }
 })
 
-app.use('/', express.static(clientPath));
-app.use('/modules', express.static(modulesPath))
+app.get('/transactions/:id', async (req, res) => {
+  try {
+    const transid = req.params.id;
+
+    const transactions = await connection.getTransactionById(transid);
+      res.render('pages/transactions', { 
+        logonUser: user,
+        title: 'Transactions',
+        transactions: transactions, 
+        moment: moment,
+      }); // Pass the data to the template
+  } catch (error) {
+      console.error('Error deleting transaction:', error);
+      res.status(500).send('Internal Server Error');
+  }
+})
+
+app.delete('/transactions/:id', async (req, res) => {
+  try {
+    const transid = req.params.id;
+
+    await connection.updateTransactionsDisplay('transactions', transid);
+    res.status(204).send(); // No content (successful deletion)
+  } catch (error) {
+      console.error('Error fetching products:', error);
+      res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/employees', function(req, res){
+  res.render('pages/employees', {
+    logonUser: user,
+    title: 'Employees'
+  })
+})
+
+app.get('/employees/new', function(req, res){
+  // res.send(req.params)
+  let {path} = req.params
+  let {blood_type, civil_status} = _preDefaultData
+
+  res.render('pages/employees-new', {
+    logonUser: user,
+    defaultData: _preDefaultData,
+    title: 'Add Employee'
+  })
+})
+
+app.get('/forms/forms.html', function (req, res) {
+  res.redirect('/demo/forms/forms.html');
+});
 
 
 const server = http.createServer(app);

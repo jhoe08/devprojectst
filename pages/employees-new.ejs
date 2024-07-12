@@ -1,0 +1,1189 @@
+<!-- Header Template -->
+<%- include('../views/header.html') -%>
+
+<% 
+  var predata = defaultData;
+  var blood_type = predata.blood_type
+  var civil_status = predata.civil_status
+  var citizenship = predata.citizenship
+  var gender = predata.gender
+
+  <!-- var { blood_type, civil_status } = defaultData  -->
+%>
+
+<div class="wrapper">
+    <%- include('../views/sidebar') -%>
+
+    <div class="main-panel">
+        <%- include('../views/main-header') -%>
+
+        <div class="container">
+            <div class="page-inner">
+                <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+                    <div>
+                        <h3 class="fw-bold mb-3"><%- title -%></h3>
+                        <h6 class="op-7 mb-2">Lists of individuals working on the Department</h6>
+                    </div>
+                    <div class="ms-md-auto py-2 py-md-0">
+                        <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
+                        <a href="#" class="btn btn-primary btn-round"><i class="fas fa-save"></i> Save Employee</a>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                      <div class="card" id="personalInformation">
+                        <div class="card-header">
+                          <div class="card-title d-flex justify-content-between">Personal Information <span class="text-muted">(1 / 8)</span></div>
+                        </div>
+                        <div class="card-body">
+                          <div class="row">
+                            <div class="col-md-6 col-lg-4">
+                              <div class="form-group">
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>First Name</label>
+                                      <input
+                                        id="firstname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Juan"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Last Name</label>
+                                      <input
+                                        id="lastname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Tamad"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Middle Name</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Cruz"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Date of Birth</label>
+                                      <input
+                                        id="dob"
+                                        type="date"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <label class="form-label">Name Extension</label>
+                                <div class="selectgroup w-100">
+                                  <label class="selectgroup-item">
+                                    <input
+                                    type="radio"
+                                    name="nameExtension"
+                                    value=""
+                                    class="selectgroup-input"
+                                    checked="true"
+                                    />
+                                    <span class="selectgroup-button">N/A</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="JR"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">JR</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="Sr"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">SR</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="I"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">I</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="II"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">II</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="III"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">III</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="IV"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">IV</span>
+                                  </label>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group-default">
+                                      <label>Gender</label>
+                                      <select
+                                          class="form-select"
+                                          id="formGroupDefaultSelect"
+                                        >
+                                        <% gender.forEach(status=> { %>
+                                          <option value="<%= status %>"><%= status %></option>
+                                          <% }); %>
+                                      </select>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group-default">
+                                      <label>Civil Status</label>
+                                      <select
+                                        class="form-select"
+                                        id="formGroupDefaultSelect"
+                                      >
+                                      <% civil_status.forEach(status=> { %>
+                                        <option value="<%= status %>"><%= status %></option>
+                                        <% }); %>
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Height (m)</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Cruz"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Weight (kg)</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Place of Birth</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Lapu-Lapu City, Cebu"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Blood Type</label>
+                                      <select
+                                          class="form-select"
+                                          id="bloodtype"
+                                        >
+                                        <% blood_type.forEach(type=> { %>
+                                          <option value="<%= type %>"><%= type %></option>
+                                          <% }); %>
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>TELEPHONE NO.</label>
+                                      <input
+                                        id="lastname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>MOBILE NO.</label>
+                                      <input
+                                        id="lastname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-12">
+                                    <div class="form-group form-group-default">
+                                      <label>E-MAIL ADDRESS</label>
+                                      <input
+                                        id="lastname"
+                                        type="email"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                              <div class="form-group">
+                                
+                                <label class="form-label">Residential Address</label>
+                                <div class="row">
+                                  <div class="col-md-12">
+                                    <div class="form-group form-group-default">
+                                      <label>House/Block/Lot No.</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Street</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group-default">
+                                      <label>Subdivision/Village</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group-default">
+                                      <label>Barangay</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>City/Municipality</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Province</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>ZIP Code</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="row header">
+                                  <div class="col-md-6">
+                                    <label class="form-label">Permanent Address</label>
+                                
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-check" style="display: flex; padding-top: 0;">
+                                      <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                                      <label class="form-check-label fs-6" for="flexCheckDefault">
+                                        Same as Residential Address
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-12">
+                                    <div class="form-group form-group-default">
+                                      <label>House/Block/Lot No.</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Street</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group-default">
+                                      <label>Subdivision/Village</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group-default">
+                                      <label>Barangay</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>City/Municipality</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Province</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>ZIP Code</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                              <div class="form-group">
+                                <label class="form-label">Government Details</label>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>GSIS ID NO.</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>PAG-IBIG ID NO.</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>PHILHEALTH NO.</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>SSS NO.</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>TIN NO.</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>AGENCY EMPLOYEE NO.</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>CITIZENSHIP</label>
+                                      <select
+                                        class="form-select"
+                                        id="formGroupDefaultSelect"
+                                      >
+                                      <% citizenship.forEach(nationality=> { %>
+                                        <option value="<%= nationality %>"><%= nationality %></option>
+                                        <% }); %>
+                                      </select>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default" >
+                                      <label>DUAL CITIZENSHIP</label>
+                                      <input
+                                        id="lastname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Please indicate the Country"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                          </div>
+                        </div>
+                      </div>
+                      <div class="card" id="familyBackground">
+                        <div class="card-header">
+                          <div class="card-title d-flex justify-content-between">Family Background <span class="text-muted">(2 / 8)</span></div>
+                        </div>
+                        <div class="card-body">
+                          <div class="row">
+                            <div class="col-md-6 col-lg-4">
+                              <div class="form-group">
+                                <label class="form-label">Spouse's Details</label>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>First Name</label>
+                                      <input
+                                        id="firstname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Juan"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Last Name</label>
+                                      <input
+                                        id="lastname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Tamad"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Middle Name</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Cruz"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <label class="form-label">Name Extension</label>
+                                <div class="selectgroup w-100">
+                                  <label class="selectgroup-item">
+                                    <input
+                                    type="radio"
+                                    name="nameExtension"
+                                    value=""
+                                    class="selectgroup-input"
+                                    checked="true"
+                                    />
+                                    <span class="selectgroup-button">N/A</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="JR"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">JR</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="Sr"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">SR</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="I"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">I</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="II"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">II</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="III"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">III</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="IV"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">IV</span>
+                                  </label>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group-default">
+                                      <label>Occupation</label>
+                                      <input
+                                        id="spouseOccupation"
+                                        name="spouse[occupation]"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group-default">
+                                      <label>Contact No.</label>
+                                      <input
+                                        id="spouseEmployerBusiness"
+                                        name="spouse[occupation]"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div class="row">
+                                  <div class="col-md-12">
+                                    <label class="form-label">Business/Employer Details</label>
+                                    <div class="form-group form-group-default">
+                                      <label>Business/Employer Name</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Street</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group-default">
+                                      <label>Subdivision/Village</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group-default">
+                                      <label>Barangay</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>City/Municipality</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Province</label>
+                                      <input
+                                        id="dob"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>ZIP Code</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                              <div class="form-group">
+                                <label class="form-label">Father's Details</label>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>First Name</label>
+                                      <input
+                                        id="firstname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Juan"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Last Name</label>
+                                      <input
+                                        id="lastname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Tamad"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Middle Name</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Cruz"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <label class="form-label">Name Extension</label>
+                                <div class="selectgroup w-100">
+                                  <label class="selectgroup-item">
+                                    <input
+                                    type="radio"
+                                    name="nameExtension"
+                                    value=""
+                                    class="selectgroup-input"
+                                    checked="true"
+                                    />
+                                    <span class="selectgroup-button">N/A</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="JR"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">JR</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="Sr"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">SR</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="I"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">I</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="II"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">II</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="III"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">III</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="IV"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">IV</span>
+                                  </label>
+                                </div>
+                              </div>
+                              <div class="form-group">
+                                <label class="form-label">Mother's Details</label>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>First Name</label>
+                                      <input
+                                        id="firstname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Juan"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Last Name</label>
+                                      <input
+                                        id="lastname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Tamad"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Middle Name</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Cruz"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                              <div class="form-group">
+                                <label class="form-label">Name of Children</label>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>First Name</label>
+                                      <input
+                                        id="firstname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Juan"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Last Name</label>
+                                      <input
+                                        id="lastname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Tamad"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Middle Name</label>
+                                      <input
+                                        id="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Cruz"
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                      <label>Date of Birth</label>
+                                      <input
+                                        id="dob"
+                                        name="children[dob]"
+                                        type="date"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <label class="form-label">Name Extension</label>
+                                <div class="selectgroup w-100">
+                                  <label class="selectgroup-item">
+                                    <input
+                                    type="radio"
+                                    name="nameExtension"
+                                    value=""
+                                    class="selectgroup-input"
+                                    checked="true"
+                                    />
+                                    <span class="selectgroup-button">N/A</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="JR"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">JR</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="Sr"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">SR</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="I"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">I</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="II"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">II</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="III"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">III</span>
+                                  </label>
+                                  <label class="selectgroup-item">
+                                      <input
+                                      type="radio"
+                                      name="nameExtension"
+                                      value="IV"
+                                      class="selectgroup-input"
+                                      />
+                                      <span class="selectgroup-button">IV</span>
+                                  </label>
+                                </div>
+                                <div class="text-right">
+                                  <button class="btn btn-primary btn-round">Add More</button>
+                                </div>
+                                <table class="table table-hover">
+                                  <thead>
+                                    <tr>
+                                      <th scope="col">Name</th>
+                                      <th scope="col">Action</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>
+                                        Jaila Nadelle Elouize G. Wagwag
+                                        04/21/2016
+                                      </td>
+                                      <td>
+                                        <div class="form-button-action">
+                                          <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task">
+                                            <i class="fa fa-edit"></i>
+                                          </button>
+                                          <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove">
+                                            <i class="fa fa-times"></i>
+                                          </button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="card" id="educationalBackground">
+                        <div class="card-header">
+                          <div class="card-title d-flex justify-content-between">Educational Background <span class="text-muted">(3 / 8)</span></div>
+                        </div>
+                        <div class="card-body">
+                          <div class="row form-group">
+                            
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="card-action">
+                        <button class="btn btn-success" data-current="personalInformation" data-next="familyBackground">Next</button>
+                        <button class="btn btn-danger">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+            </div>
+            
+        </div>
+
+    </div>
+</div>
+
+<!-- Header Template -->
+<%- include('../views/footer.html') -%>

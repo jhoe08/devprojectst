@@ -1,0 +1,186 @@
+{
+    "personal_information" : {
+        "firstname" : "Just",
+        "lastname" : "Joe'",
+        "middlename" : "The",
+        "name_ext": "",
+        "dob": "10/08/1993",
+        "pob": "Lapu-Lapu City",
+        "sex": "Male",
+        "civil_status": "Married",
+        "height": 5.5,
+        "weight": 89.1,
+        "blood_type": "O+",
+        "gsis_no": "",
+        "pagibig_no": "123456789012",
+        "sss_no": "01234567890",
+        "tin_no": "012-345-678-90123",
+        "agency_employee_no": "",
+        "citizenship": {
+            "filipino": true,
+            "dual": {
+                "birth": false,
+                "natural": false,
+                "country": ""
+            }
+        },
+        "address": {
+            "residential_address": {
+                "street": "M.L Quenzon Highway",
+                "barangay": "Mactan",
+                "city": "Lapu-Lapu City",
+                "province": "Cebu",
+                "postal_code": "12345"
+            },
+            "permanent_address": {
+                "street": "M.L Quenzon Highway",
+                "barangay": "Mactan",
+                "city": "Lapu-Lapu City",
+                "province": "Cebu",
+                "postal_code": "12345"
+            }
+        },
+        "telephone_no":"",
+        "mobile_no":"",
+        "email_address": ""
+    },
+    "family_background" : {
+        "spouse_details": {
+            "firstname": "",
+            "lastname": "",
+            "middlename": "",
+            "name_ext": "",
+            "occupation": "",
+            "employer_business_name": "",
+            "business_address": "",
+            "telephone_no": ""
+        },
+        "childrens": [
+            { "name": "asdasdasdsa", "dob": "10/08/2016" },
+            { "name": "asdadasdass", "dob": "10/08/1993" }
+        ],
+        "parents": {
+            "father": {
+                "firstname":"",
+                "lastname":"",
+                "middlename":"",
+                "name_ext":""
+            },
+            "mother": {
+                "firstname":"",
+                "lastname":"",
+                "middlename":"",
+                "name_ext":""
+            }
+        }
+    },
+    "educational_background" : {
+        "elementary" : {
+            "name" : "",
+            "course" : "",
+            "exclusive_years": {
+                "from" : "",
+                "to" : ""
+            },
+            "units_earned":"",
+            "year_graduated": 2010,
+            "honors": "" 
+        },
+        "secondary" : {
+            "name" : "",
+            "course" : "",
+            "exclusive_years": {
+                "from" : "",
+                "to" : ""
+            },
+            "units_earned":"",
+            "year_graduated": 2010,
+            "honors": "" 
+        },
+        "vocational" : {
+            "name" : "",
+            "course" : "",
+            "exclusive_years": {
+                "from" : "",
+                "to" : ""
+            },
+            "units_earned":"",
+            "year_graduated": 2010,
+            "honors": "" 
+        },
+        "college" : {
+            "name" : "",
+            "course" : "",
+            "exclusive_years": {
+                "from" : "",
+                "to" : ""
+            },
+            "units_earned":"",
+            "year_graduated": 2010,
+            "honors": "" 
+        },
+        "post_studies" : {
+            "name" : "",
+            "course" : "",
+            "exclusive_years": {
+                "from" : "",
+                "to" : ""
+            },
+            "units_earned":"",
+            "year_graduated": 2010,
+            "honors": "" 
+        }
+    },
+    "civil_service_eligibility": [
+        {"service" : "", "rating" : "", "date_of_exam" : "", "place_of_exam" : "", "license" : { "number" : "", "validity" : "" }},
+        {"service" : "", "rating" : "", "date_of_exam" : "", "place_of_exam" : "", "license" : { "number" : "", "validity" : "" }},
+        {"service" : "", "rating" : "", "date_of_exam" : "", "place_of_exam" : "", "license" : { "number" : "", "validity" : "" }}
+    ],
+    "work_experience" : [
+        {
+            "inclusive_years" : {
+                "from" : "",
+                "to" : ""
+            },
+            "position_title" : "",
+            "employers_name" : "",
+            "salary" : "",
+            "grade" : "",
+            "status_of_appointment" : "",
+            "isgovernment": false 
+        }
+    ],
+    "voluntary" : [
+        { "name" : "", "inclusive_years" : { "from" : "", "to" : "" }, "hours" : 124, "position" : "" },
+        { "name" : "", "inclusive_years" : { "from" : "", "to" : "" }, "hours" : 124, "position" : "" }
+    ],
+    "trainings" : [
+        { "title" : "", "inclusive_years" : { "from" : "", "to" : "" }, "hours" : "", "type" : "Managerial", "conducted_by" : "" },
+        { "title" : "", "inclusive_years" : { "from" : "", "to" : "" }, "hours" : "", "type" : "Managerial", "conducted_by" : "" }
+    ],
+    "other_information" : {
+        "skills" : ["Sleeping", "Cycling", "Driving"],
+        "recognation" : ["Perfect Attendance", "Coorporate Awardee", "Bug Fixer"],
+        "organization" : ["The Mercenary", "Assassin Class", "Porter"],
+        "authority" : { "quest1": false, "quest2" : false, "details" : ""},
+        "guilty" : [{ "quest1" : false, "details":"" },{ "quest2": false, "details" : "" }],
+        "convicted" : { "quest1": false, "details" : "" },
+        "separated" : { "quest1": false, "details" : "" },
+        "government_employee" : [{ "quest1" : false, "details":"" },{ "quest2": false, "details" : "" }],
+        "immigrant" : { "quest1": false, "details" : "" },
+        "pursuant": [{ "quest1" : false, "details":"" },{ "quest2": false, "details" : ""},{ "quest3": false, "details" : "" }],
+        "references": [
+            { "name": "", "address" : "", "contact_no":"" },
+            { "name": "", "address" : "", "contact_no":"" },
+            { "name": "", "address" : "", "contact_no":"" }
+        ],
+        "government_issued_id": {
+            "id" : "",
+            "license" : "",
+            "date_of_issuance" : "",
+            "place_of_issuance" : ""
+        }
+    }
+
+        
+}
