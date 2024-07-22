@@ -1,0 +1,250 @@
+<!-- Header Template -->
+<%- include('../views/header') -%>
+
+<div class="wrapper">
+    <%- include('../views/sidebar') -%>
+
+    <div class="main-panel">
+      <%- include('../views/main-header') -%>
+      
+      <div class="container" >
+          <div class="page-inner">
+            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+              <div class="col-md-1 mr-4">
+                <div id="transid-<%- transactions.product_id -%>" class="qrcode"></div>
+              </div>
+              <div class="col-md-8">
+                  <h3 class="fw-bold mb-3"><%- transactions.bid_notice_title -%></h3>
+              </div>
+              <div class="ms-md-auto py-2 py-md-0">
+                  <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
+                  <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="fas fa-plus"></i> Add Remarks</a>
+              </div>
+            </div>
+            <div class="row">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                          <div class="card-header">
+                            <div class="card-head-row">
+                              <div class="card-title">Details</div>
+                              <div class="card-tools">
+                                <ul class="nav nav-pills nav-secondary nav-pills-no-bd nav-sm" id="pills-tab" role="tablist">
+                                  <li class="nav-item submenu" role="presentation">
+                                    <span class="nav-link active" id="pills-today" data-bs-toggle="pill" href="#pills-today" role="tab" aria-selected="false" tabindex="-1" aria-labelledby="pills-today"><%- transactions.pr_classification -%></span>
+                                  </li>
+                                  <li class="nav-item" role="presentation">
+                                    <span class="nav-link" id="pills-week" data-bs-toggle="pill" href="#pills-week" role="tab" aria-selected="false" aria-labelledby="pills-week" tabindex="-1"><%- transactions.banner_program -%></span>
+                                  </li>
+                                  <li class="nav-item submenu" role="presentation">
+                                    <span class="nav-link" id="pills-month" data-bs-toggle="pill" href="#pills-month" role="tab" aria-selected="false" tabindex="-1" aria-labelledby="pills-month"><%- transactions.bac_unit -%></span>
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="card-body">
+                            <div class="d-flex">
+                              <div class="avatar">
+                                <span class="avatar-title rounded-circle border border-white bg-secondary"><i class="fas fa-user-circle"></i></span>
+                              </div>
+                              <div class="flex-1 ms-3 pt-1">
+                                <h6 class="text-uppercase fw-bold mb-1">
+                                  <%- transactions.requisitioner -%>
+                                  <span class="badge badge-success"><%- transactions.division -%></span>
+                                </h6>
+                                <span class="text-muted">Requisitioner</span>
+                              </div>
+                              <div class="float-end pt-1">
+                              </div>
+                            </div>
+                            <div class="separator-dashed"></div>
+                            <div class="d-flex">
+                              <div class="avatar">
+                                <span class="avatar-title rounded-circle border border-white bg-secondary"><i class="fas fa-calendar-alt"></i></span>
+                              </div>
+                              <div class="flex-1 ms-3 pt-1">
+                                <h6 class="text-uppercase fw-bold mb-1">
+                                  
+                                  <span><%- moment(transactions.pr_date).format('LL') -%></span>
+                                </h6>
+                                <span class="text-muted">Created Date</span>
+                              </div>
+                              <div class="float-end pt-1">
+                              </div>
+                            </div>
+                            <div class="separator-dashed"></div>
+                            <div class="d-flex">
+                              <div class="avatar">
+                                <span class="avatar-title rounded-circle border border-white bg-info">₱</span>
+                              </div>
+                              <div class="flex-1 ms-3 pt-1">
+                                <h6 class="text-uppercase fw-bold mb-1">
+                                  <%- transactions.approved_budget -%>
+                                  <span class="text-warning ps-3"><%- transactions.fund_source -%></span>
+                                </h6>
+                                <span class="text-muted">Approved Budget</span>
+                              </div>
+                              <div class="float-end pt-1">
+                                <small class="text-muted"></small>
+                              </div>
+                            </div>
+                            <div class="separator-dashed"></div>
+                            <div class="d-flex">
+                              <div class="avatar">
+                                <span class="avatar-title rounded-circle border border-white bg-secondary"><i class="fas fa-hashtag"></i></span>
+                              </div>
+                              <div class="flex-1 ms-3 pt-1">
+                                <h6 class="text-uppercase fw-bold mb-1">
+                                  <%- transactions.trans_code -%>
+                                </h6>
+                                <span class="text-muted">Transaction Codes</span>
+                              </div>
+                              <div class="float-end pt-1">
+                                <button id="transcode" class="btn btn-icon btn-link op-8 me-1">
+                                  <i class="fas fa-plus-circle"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    <div class="col-md-6">
+                      <div class="card">
+                        <div class="card-header">
+                          <div class="card-head-row card-tools-still-right">
+                            <div class="card-title">Recent Activity</div>
+                            <div class="card-tools">
+                              <div class="dropdown">
+                                <button class="btn btn-icon btn-clean" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                  <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                  <a class="dropdown-item" href="#">Action</a>
+                                  <a class="dropdown-item" href="#">Another action</a>
+                                  <a class="dropdown-item" href="#">Something else here</a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="card-body">
+                          <ol class="activity-feed mb-0">
+                            <li class="feed-item feed-item-secondary">
+                              <time class="date" datetime="9-25">Sep 25</time>
+                              <span class="text">Responded to need
+                                <a href="#">"Volunteer opportunity"</a></span>
+                            </li>
+                            <li class="feed-item feed-item-success">
+                              <time class="date" datetime="9-24">Sep 24</time>
+                              <span class="text">Added an interest
+                                <a href="#">"Volunteer Activities"</a></span>
+                            </li>
+                            <li class="feed-item feed-item-info">
+                              <time class="date" datetime="9-23">Sep 23</time>
+                              <span class="text">Joined the group
+                                <a href="single-group.php">"Boardsmanship Forum"</a></span>
+                            </li>
+                            <li class="feed-item feed-item-warning">
+                              <time class="date" datetime="9-21">Sep 21</time>
+                              <span class="text">Waiting for Approval</span>
+                            </li>
+                            <li class="feed-item feed-item-danger">
+                              <time class="date" datetime="<%- moment('', 'MM-DD-YYYY') -%>">Sep 18</time>
+                              <span class="text">Return</span>
+                            </li>
+                            <li class="feed-item pb-0">
+                              <time class="date" datetime="<%- moment(transactions.pr_date).format('MMM DD YYYY') -%>"><%- moment(transactions.pr_date).format('MMM DD YYYY') -%> (<%- moment(transactions.pr_date, "YYYYMMDD").fromNow() -%>)</time>
+                              <span class="text">Purchase Request Published</span>
+                            </li>
+                          </ol>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+            </div>
+          </div>
+      </div>
+
+    </div>
+
+    <%- include('../views/settings') -%>
+</div>
+
+<!-- Transaction: Remarks -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">New Remarks</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3 mt-3">
+          <div class="form-group">
+            <label class="form-label">Select Status</label>
+            <div class="row gutters-xs">
+              <div class="col-auto">
+                <label class="colorinput">
+                  <input name="color" type="radio" value="dark" class="colorinput-input">
+                  <span class="colorinput-color bg-black"></span>
+                </label>
+              </div>
+              <div class="col-auto">
+                <label class="colorinput">
+                  <input name="color" type="radio" value="primary" class="colorinput-input">
+                  <span class="colorinput-color bg-primary"></span>
+                </label>
+              </div>
+              <div class="col-auto">
+                <label class="colorinput">
+                  <input name="color" type="radio" value="secondary" class="colorinput-input">
+                  <span class="colorinput-color bg-secondary"></span>
+                </label>
+              </div>
+              <div class="col-auto">
+                <label class="colorinput">
+                  <input name="color" type="radio" value="info" class="colorinput-input">
+                  <span class="colorinput-color bg-info"></span>
+                </label>
+              </div>
+              <div class="col-auto">
+                <label class="colorinput">
+                  <input name="color" type="radio" value="success" class="colorinput-input">
+                  <span class="colorinput-color bg-success"></span>
+                </label>
+              </div>
+              <div class="col-auto">
+                <label class="colorinput">
+                  <input name="color" type="radio" value="warning" class="colorinput-input">
+                  <span class="colorinput-color bg-warning"></span>
+                </label>
+              </div>
+              <div class="col-auto">
+                <label class="colorinput">
+                  <input name="color" type="radio" value="danger" class="colorinput-input">
+                  <span class="colorinput-color bg-danger"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="comment">Comment</label>
+            <textarea class="form-control" id="comment" rows="5"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal">Close</button>
+        <a href="#" type="button" class="btn button btn-primary">Save Remarks</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script> 
+  new QRCode(`transid-<%- transactions.product_id %>`, `<%- transactions.product_id %>`); 
+</script>
+
+<!-- Footer Template -->
+<%- include('../views/footer.html') -%>

@@ -38,7 +38,18 @@
     <script src="/assets/js/demo.js"></script>
     <script src="/assets/js/misc.js"></script>
     <script>
-      $("#basic-datatables").DataTable({
+      let table = $("#basic-datatables").DataTable({
+        // "aoColumnDefs": [{
+        //     "aTargets": [ 1 ],
+        //     "mDataProp": function ( data, type, val ) {
+        //       if(type === 'display') {
+        //         let classification = ''
+        //         return `<span class="badge badge-count">${data[1]}</span>`
+        //       }
+        //       return data;
+        //     }
+        // }],
+        
         initComplete: function () {
           this.api()
           .columns()
@@ -86,6 +97,26 @@
 
       // target: 5,
       // render: $.fn.dataTable.render.number(null, null, 0, '₱')
+
+    document.querySelectorAll('.toggle-vis').forEach((el) => {
+      // // el.prepend('<i class="fas fa-check-square"></i>')
+
+      // let icon = document.createElement('i')
+      // icon.classList.add('far')
+      // icon.classList.add('fa-square')
+
+      // el.prepend(icon)
+
+    el.addEventListener('click', function (e) {
+        // e.preventDefault();
+
+        let columnIdx = e.target.getAttribute('data-column');
+        let column = table.column(columnIdx);
+
+        // Toggle the visibility
+        column.visible(!column.visible());
+      });
+    });
 
       $("#lineChart").sparkline([102, 109, 120, 99, 110, 105, 115], {
         type: "line",

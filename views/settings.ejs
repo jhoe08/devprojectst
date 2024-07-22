@@ -1,8 +1,24 @@
 
   <!-- Custom template | don't include it in your project! -->
+  
   <div class="custom-template">
-    <div class="title"> asdas Settings</div>
+    <div class="title"><%= title  %> Settings</div>
     <div class="custom-content">
+    <% if (path == '/transactions') { %> 
+      <div class="settings">
+        <h6>Hide Columns</h6>
+        <div class="form-group">
+
+          <!-- <div class="form-check">
+            <input name="columHeader[]" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+            <label class="form-check-label" for="flexCheckDefault">
+              Default checkbox
+            </label>
+          </div> -->
+
+        </div>
+      </div>
+    <% } else { %>
       <div class="switcher">
         <div class="switch-block">
           <h4>Logo Header</h4>
@@ -187,8 +203,39 @@
           </div>
         </div>
       </div>
+    <% } %>
     </div>
     <div class="custom-toggle">
       <i class="icon-settings"></i>
     </div>
   </div>
+  
+<script>
+  function toLowerCase(string, removeSpace=false) {
+    string = string.toLowerCase()
+    if(removeSpace) {
+     string = string.replace(/\s/g,'')
+    }
+    return string
+  }
+
+  let columnHeads = document.querySelector('#basic-datatables')
+  if(columnHeads) {
+    columnHeads = columnHeads.querySelectorAll('thead th')
+    let container = document.querySelector('.settings .form-group')
+    let html = '<div class="selectgroup selectgroup-pills">'
+
+    columnHeads.forEach((head, index)=>{
+      let heads = head.textContent
+
+      html += `<label class="selectgroup-item">
+                <input type="checkbox" name="value" value="${heads}" class="selectgroup-input toggle-vis" data-column="${index}">
+                <span class="selectgroup-button">${heads}</span>
+              </label>`
+    })
+    html += '</div>'
+    container.innerHTML = html
+  }
+
+</script>
+  

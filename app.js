@@ -8,6 +8,8 @@ const connection = require("./admin/database");
 const misc = require("./admin/misc")
 const { connect } = require('http2');
 const moment = require('moment');
+const bodyParser = require('body-parser');
+
 
 // const { log } = require('console');
 // const firebase = require('firebase');
@@ -26,6 +28,14 @@ const _preDefaultData = {
     civil_status: ['Single', 'Married', 'Widowed', 'Separated', 'Other\'s'],
     citizenship: ['Filipino', 'Other\'s'],
     gender: ['N/A', 'Male', 'Female', 'Other\'s']
+}
+
+const _preTransactionsData = {
+  classification: ['Catering Services','Consumables','Food & Accommodation','Freight & Handling','Goods','Infrastructure','Machineries & Equipment','Motor Vehicle','Repair & Maintenance','Services(JO/COS)','Training','Training & Representation', 'Others'],
+  banner_program: ['Corn','GASS','HVCDP','Livestock','NUPAP','Organic','Rice','SAAD','STO', 'Others'],
+  bac_unit : ['BAC 1', 'BAC 2', 'Others'],
+  
+
 }
 
 // const _express = require('./server/express');
@@ -107,6 +117,7 @@ app.set("view engine", "ejs")
 app.set("views", path.join(__dirname), "views")
 
 app.use('/', require('./routes/root'))
+app.use(bodyParser.json());
 
 
 //pages
@@ -117,7 +128,7 @@ app.use('/demo', express.static(adminPath))
 app.use('/modules', express.static(modulesPath))
 app.use('/assets', express.static(viewsAssets))
 app.use('/employees', express.static(viewsAssets))
-app.use('/employees', express.static(path.join(__dirname, '/assets')))
+// app.use('/employees', express.static(path.join(__dirname, '/assets')))
 // Dummy users
 // let logonUsers = [
 //   { name: 'tobi', email: 'tobi@learnboost.com' },
@@ -132,22 +143,26 @@ let user = {
   type: 8,
 }
 
-console.log(transid)
+// console.log(transid)
 
 // app.get("/", (req, res) => {
 //   res.render('index', { title: 'Hey', message: 'Hello there!' })
 // });
-
+// app.all('*', function(req, res){
+//   console.log('wildcard')
+// })
 app.get('/', function(req, res){
   res.render('index', {
     // users: users,
     logonUser: user,
-    title: "EJS example",
-    header: "Some users"
+    title: "Dashboard",
+    header: "Some users", 
+    path: res.url
   });
 });
 
 app.get('/transactions', async (req, res) => {
+  console.log(req.url)
   try {
     const transactions = await connection.getTransactions();
       res.render('pages/transactions', { 
@@ -156,11 +171,41 @@ app.get('/transactions', async (req, res) => {
         transactions: transactions, 
         moment: moment,
         connection: connection,
-        formatter: formatter
+        formatter: formatter,
+        path: '/transactions'
       }); // Pass the data to the template
   } catch (error) {
       console.error('Error fetching products:', error);
       res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/transactions/new', async (req, res) => {
+  try {
+      res.render('pages/transactions-new', { 
+        logonUser: user,
+        title: 'Create a new Transactions',
+        moment: moment,
+        formatter: formatter,
+        predata: _preTransactionsData,
+        path: '/transactions/new'
+      }); // Pass the data to the template
+  } catch (error) {
+      console.error('Error fetching products:', error);
+      res.status(500).send('Internal Server Error');
+  }
+})
+
+app.post('/transactions/new', async (req, res) => {
+  try {
+
+    const transactions = await connection.postTransactions( JSON.stringify(req.body) );
+
+    res.status(201).json({ message: 'Transaction created successfully', data: JSON.stringify(transactions) });
+      
+  } catch (error) {
+    console.error('Error addding transaction:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 
@@ -174,6 +219,28 @@ app.get('/transactions/:id', async (req, res) => {
         title: 'Transactions',
         transactions: transactions, 
         moment: moment,
+        path: res.url
+      }); // Pass the data to the template
+  } catch (error) {
+      console.error('Error deleting transaction:', error);
+      res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/transactions/:id/remarks', async (req, res) => {
+  try {
+    const transid = req.params.id;
+    const { qrcode } = misc
+
+    const transactions = await connection.getTransactionById(transid);
+
+    console.log(transactions[0])
+      res.render('pages/transactions-remarks', { 
+        logonUser: user,
+        title: 'Transactions ${} - Remarks',
+        transactions: transactions[0], 
+        moment: moment,
+        path: res.url,
       }); // Pass the data to the template
   } catch (error) {
       console.error('Error deleting transaction:', error);
@@ -185,7 +252,7 @@ app.delete('/transactions/:id', async (req, res) => {
   try {
     const transid = req.params.id;
 
-    await connection.updateTransactionsDisplay('transactions', transid);
+    await connection.updateTransactionsDisplay('employees', transid);
     res.status(204).send(); // No content (successful deletion)
   } catch (error) {
       console.error('Error fetching products:', error);

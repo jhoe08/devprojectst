@@ -1,14 +1,8 @@
 <!-- Header Template -->
-<%- include('../views/header.html') -%>
+<%- include('../views/header') -%>
 
 <% 
-  var predata = defaultData;
-  var blood_type = predata.blood_type
-  var civil_status = predata.civil_status
-  var citizenship = predata.citizenship
-  var gender = predata.gender
-
-  <!-- var { blood_type, civil_status } = defaultData  -->
+  var {blood_type, civil_status, citizenship, gender } = defaultData
 %>
 
 <div class="wrapper">

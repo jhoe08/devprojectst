@@ -230,11 +230,11 @@ employeeNames: document.getElementById('employeeName'),
         // Handle the error appropriately, e.g., show an error message to the user
     }
 },
-  peso(huh) {
+  peso(amount) {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'PHP',
-    }).format(huh); 
+    }).format(amount); 
   }
 }
 

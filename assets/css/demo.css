@@ -1,9 +1,32 @@
+.hidden {
+  display: none !important;
+}
+
 .mr-3 {
   margin-right: .5em !important;
+}
+.mr-4 {
+  margin-right: 1.5rem!important;
+}
+.dataTable {
+  width: 100% !important;
 }
 .swal-text {
   text-align: center;
 }
+.toggle-vis {
+  margin-right: 5px;
+  i {
+    margin-right: 5px;
+  }
+}
+
+.qrcode {
+  img {
+    width: 100%;
+  }
+}
+
 .gg-check {
   box-sizing: border-box;
   position: relative;
