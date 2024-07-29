@@ -7,6 +7,10 @@ npm install
 npm run dev
 - Run this code to see your localhost
 
+Activity
+07242024
+- Fully functional remarks post
+
 07082024
 - New transaction, using ejs, templates, tables and dialogs are added
 - Upload the SQL code the MYSQL Workbench

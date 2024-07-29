@@ -60,7 +60,12 @@
                                       date = moment(date).format('MMM Do YYYY')
                                  
                                   var budget = transactions[i].approved_budget
-                                 
+                                  var cleanBudget = budget.replace(/,/g, '');
+
+
+
+
+                                  budget = parseFloat(cleanBudget)
                               %>
                                
                                 <tr>
@@ -146,4 +151,4 @@
   </div>
 </div>
 <!-- Footer Template -->
-<%- include('../views/footer.html') -%>
+<%- include('../views/footer') -%>

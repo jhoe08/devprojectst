@@ -1,5 +1,3 @@
-// import { firebase } from 'firebase';
-
 const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
@@ -9,12 +7,11 @@ const misc = require("./admin/misc")
 const { connect } = require('http2');
 const moment = require('moment');
 const bodyParser = require('body-parser');
-
-
-// const { log } = require('console');
-// const firebase = require('firebase');
-
-// const preDefaultData = require('./assets/js/const');
+const ejs = require('ejs')
+const session = require('express-session');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const hash = require('pbkdf2-password')()
 
 const locale = 'en';
 const options = {style: 'currency', currency: 'php', minimumFractionDigits: 2, maximumFractionDigits: 2};
@@ -34,65 +31,12 @@ const _preTransactionsData = {
   classification: ['Catering Services','Consumables','Food & Accommodation','Freight & Handling','Goods','Infrastructure','Machineries & Equipment','Motor Vehicle','Repair & Maintenance','Services(JO/COS)','Training','Training & Representation', 'Others'],
   banner_program: ['Corn','GASS','HVCDP','Livestock','NUPAP','Organic','Rice','SAAD','STO', 'Others'],
   bac_unit : ['BAC 1', 'BAC 2', 'Others'],
+  divisions: ["ADMIN", "AMAD", "FOD", "Field Operations", "ILD", "PMED", "RAED", "REGULATORY", "RESEARCH","Others"]
   
 
 }
 
-// const _express = require('./server/express');
-
-// let transactions = db.getConnection(
-//   'SELECT * FROM transid WHERE product_id=17102'
-// );
-
-// pool.getConnection()
-//   .then(conn => {
-//     const res = conn.query('SELECT * FROM transid');
-//     conn.release();
-//     return res;
-//   }).then(results => {
-//     console.log('Connected to MySQL DB');
-//     // console.log(results)
-//     return results;
-//   }).catch(err => {
-//     console.log(err); 
-//   });
-
-// console.log(JSON.stringify(transactions))
-
-
-// let dataListsTrans = pool.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
-//   if (error) throw error;
-//   console.log('The solution is: ', results[0].solution);
-// });
-
-// console.log(dataListsTrans)
-
-// let transactions = db.query('SELECT * FROM transid WHERE product_id=17195');
-// transactions = JSON.stringify(transactions)
-
-// console.log(transactions)
-
 let transid = []
-
-// let yawa = connection.query('SELECT * FROM transid WHERE product_id=17102', function (error, results, fields) {
-//       if (error) throw error;
-//       // console.log('The solution is: ', JSON.stringify(results[0]));
-//       transid = results[0]
-//       return JSON.stringify(results[0])
-//     });
-
-// let yawa = connection.query('SELECT * FROM transid WHERE product_id=17102', (error, results, fields) => {
-//   if (error) throw error;
-//       // console.log('The solution is: ', JSON.stringify(results[0]));
-//       transid = JSON.stringify(results[0])
-
-//       console.log(transid)
-
-//       return transid 
-// })
-
-// console.log(yawa._results)
-  // let yawa = connection.query('SELECT * FROM transid WHERE product_id=17102');
 
 const app = express();
 const router = express.Router();
@@ -128,13 +72,41 @@ app.use('/demo', express.static(adminPath))
 app.use('/modules', express.static(modulesPath))
 app.use('/assets', express.static(viewsAssets))
 app.use('/employees', express.static(viewsAssets))
-// app.use('/employees', express.static(path.join(__dirname, '/assets')))
-// Dummy users
-// let logonUsers = [
-//   { name: 'tobi', email: 'tobi@learnboost.com' },
-//   { name: 'loki', email: 'loki@learnboost.com' },
-//   { name: 'jane', email: 'jane@learnboost.com' }
-// ];
+// ============================================
+// login
+// ============================================
+app.use(express.urlencoded({ extended: false }))
+app.use(session({
+  secret: 'ayti an angbu',
+  resave: false,
+  saveUninitialized: false
+}));
+
+app.use(function(req, res, next){
+  var err = req.session.error;
+  var msg = req.session.success;
+  delete req.session.error;
+  delete req.session.success;
+  res.locals.message = '';
+  if (err) res.locals.message = '<p class="text-danger">' + err + '</p>';
+  if (msg) res.locals.message = '<p class="text-success">' + msg + '</p>';
+  next();
+});
+
+
+let defaultUsers = {
+  tj: { name: 'tj' }
+}
+
+hash({ password: 'asdfg' }, function (err, pass, salt, hash) {
+
+  if (err) throw err;
+  // store the salt & hash in the "db"
+  defaultUsers.tj.salt = salt;
+  defaultUsers.tj.hash = hash;
+});
+
+
 let user = {
   firstName: 'Just',
   lastName: 'Joe',
@@ -143,25 +115,87 @@ let user = {
   type: 8,
 }
 
-// console.log(transid)
 
-// app.get("/", (req, res) => {
-//   res.render('index', { title: 'Hey', message: 'Hello there!' })
-// });
-// app.all('*', function(req, res){
-//   console.log('wildcard')
-// })
-app.get('/', function(req, res){
-  res.render('index', {
-    // users: users,
-    logonUser: user,
-    title: "Dashboard",
-    header: "Some users", 
-    path: res.url
+function authenticate(name, pass, fn) {
+  if (!module) console.log('authenticating %s:%s', name, pass);
+  var user = defaultUsers[name];
+  // query the db for the given username
+  if (!user) return fn(null, null)
+  // apply the same algorithm to the POSTed password, applying
+  // the hash against the pass / salt, if there is a match we
+  // found the user
+  hash({ password: pass, salt: user.salt }, function (err, pass, salt, hash) {
+    if (err) return fn(err);
+    if (hash === user.hash) return fn(null, user)
+    fn(null, null)
+  });
+}
+
+function restrict(req, res, next) {
+  if (req.session.user) {
+    next();
+  } else {
+    req.session.error = 'Access denied!';
+    res.redirect('/login');
+  }
+}
+
+app.get('/', restrict, function(req, res){
+  
+    res.render('index', {
+      logonUser: user,
+      title: "Dashboard",
+      header: "Some users", 
+      path: res.url
+    });
+  
+});
+
+app.get('/login', (req, res) => {
+  res.render('pages/login', {
+    title: 'Login'
+  })
+});
+
+// app.post('/login', passport.authenticate('local', {
+//   successRedirect: '/ambot',
+//   failureRedirect: '/login',
+//   failureFlash: false
+// }) );
+
+app.post('/login', (req, res) => {
+  authenticate(req.body.username, req.body.password, function(err, user){
+    if (err) return next(err)
+    if (user) {
+      // Regenerate session when signing in
+      // to prevent fixation
+      req.session.regenerate(function(){
+        // Store the user's primary key
+        // in the session store to be retrieved,
+        // or in this case the entire user object
+        req.session.user = user;
+        req.session.success = 'Authenticated as ' + user.name
+          + ' click to <a href="/logout">logout</a>. '
+          + ' You may now access <a href="/restricted">/restricted</a>.';
+        res.redirect('/');
+      });
+    } else {
+      req.session.error = 'Authentication failed, please check your '
+        + ' username and password.';
+      res.redirect('/login');
+    }
+  });
+})
+
+app.get('/logout', function(req, res){
+  // destroy the user's session to log them out
+  // will be re-created next request
+  req.session.destroy(function(){
+    res.redirect('/');
   });
 });
 
-app.get('/transactions', async (req, res) => {
+app.get('/transactions', restrict, async (req, res) => {
   console.log(req.url)
   try {
     const transactions = await connection.getTransactions();
@@ -172,13 +206,14 @@ app.get('/transactions', async (req, res) => {
         moment: moment,
         connection: connection,
         formatter: formatter,
-        path: '/transactions'
+        path: req.url
       }); // Pass the data to the template
   } catch (error) {
       console.error('Error fetching products:', error);
       res.status(500).send('Internal Server Error');
   }
 })
+
 
 app.get('/transactions/new', async (req, res) => {
   try {
@@ -188,7 +223,8 @@ app.get('/transactions/new', async (req, res) => {
         moment: moment,
         formatter: formatter,
         predata: _preTransactionsData,
-        path: '/transactions/new'
+        path: req.url, 
+        transactions: null,
       }); // Pass the data to the template
   } catch (error) {
       console.error('Error fetching products:', error);
@@ -198,14 +234,22 @@ app.get('/transactions/new', async (req, res) => {
 
 app.post('/transactions/new', async (req, res) => {
   try {
-
     const transactions = await connection.postTransactions( JSON.stringify(req.body) );
-
-    res.status(201).json({ message: 'Transaction created successfully', data: JSON.stringify(transactions) });
-      
+    res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
   } catch (error) {
     console.error('Error addding transaction:', error);
     res.status(500).send('Internal Server Error');
+  }
+})
+
+
+
+app.put('/transactions/:id', async (req, res) => {
+  try {
+   
+  } catch (error) {
+      console.error('Error deleting transaction:', error);
+      res.status(500).send('Internal Server Error');
   }
 })
 
@@ -227,18 +271,40 @@ app.get('/transactions/:id', async (req, res) => {
   }
 })
 
+app.get('/transactions/:id/update', async (req, res) => {
+  try {
+    const transid = req.params.id;
+
+    const transactions = await connection.getTransactionById(transid);
+      res.render('pages/transactions-new', { 
+        predata: _preTransactionsData,
+
+        logonUser: user,
+        title: 'Transactions',
+        transactions: transactions[0], 
+        moment: moment,
+        path: res.url
+      }); // Pass the data to the template
+  } catch (error) {
+      console.error('Error deleting transaction:', error);
+      res.status(500).send('Internal Server Error');
+  }
+})
+
 app.get('/transactions/:id/remarks', async (req, res) => {
   try {
     const transid = req.params.id;
-    const { qrcode } = misc
 
     const transactions = await connection.getTransactionById(transid);
+    const remarks = await connection.getRemarksByRefid(transid)
 
-    console.log(transactions[0])
+    // console.log(transactions[0])
+    // console.log(remarks)
       res.render('pages/transactions-remarks', { 
         logonUser: user,
         title: 'Transactions ${} - Remarks',
-        transactions: transactions[0], 
+        transactions: transactions[0],
+        remarks: remarks,
         moment: moment,
         path: res.url,
       }); // Pass the data to the template
@@ -260,10 +326,38 @@ app.delete('/transactions/:id', async (req, res) => {
   }
 })
 
-app.get('/employees', function(req, res){
+app.get('/remarks/:id', async (req, res) => {
+  try {
+    const transid = req.params.id;
+    const remarks = await connection.getRemarksByRefid(transid); console.log(remarks)
+    const transactions = await connection.getTransactionById(transid)
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'partials', 'activity-feed.ejs'), { remarks, moment:moment, transactions, path: req.url});
+    res.send(renderedHtml)
+  } catch (error) {
+    console.error('Error rendering EJS part:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+
+})
+
+app.post('/remarks/new', async (req, res) => {
+  try {
+    const remarks = await connection.postRemarks( JSON.stringify(req.body) );
+    res.status(201).json({ message: 'New remarks is added successfully!', response: remarks });
+  } catch (error) {
+    console.error('Error addding transaction:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/employees', async (req, res) => {
+  const employees = await connection.retrieveData('employees');
+
   res.render('pages/employees', {
     logonUser: user,
-    title: 'Employees'
+    title: 'Employees',
+    employees: employees,
+    moment: moment
   })
 })
 
@@ -283,6 +377,40 @@ app.get('/forms/forms.html', function (req, res) {
   res.redirect('/demo/forms/forms.html');
 });
 
+// Passport configuration
+// passport.use(new LocalStrategy( function (username, password, done) {
+//   console.log('Attempting to authenticate user:', username);
+
+//   const user = defaultUsers.find(user => user.username === username);
+//   // if (!user) {
+//   //   return done(null, false, { message: 'Incorrect username.' });
+//   // }
+//   // if (user.password !== password) {
+//   //   return done(null, false, { message: 'Incorrect password.' });
+//   // }
+//   // return done(null, user);
+
+//   crypto.pbkdf2(password, user.salt, 310000, 32, 'sha256', function(err, hashedPassword) {
+//     if (err) { return cb(err); }
+//     if (!crypto.timingSafeEqual(user.hashed_password, hashedPassword)) {
+//       return done(null, false, { message: 'Incorrect username or password.' });
+//     }
+//     return done(null, user);
+//   });
+// }
+// ));
+
+// passport.serializeUser((user, done) => {
+//   done(null, user.id);
+// });
+
+// passport.deserializeUser((id, done) => {
+//   const user = defaultUsers.find(user => user.id === id);
+//   done(null, user);
+// });
+// ============================================
+// endof login
+// ============================================
 
 const server = http.createServer(app);
 const io = socketio(server);

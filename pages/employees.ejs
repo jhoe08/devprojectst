@@ -53,6 +53,35 @@
                                   </tr>
                                 </tfoot>
                                 <tbody>
+                                  <% 
+                                    var _office, _salary, _age, _startdate, _position;
+                                    
+                                    for(var i=0; i < employees.length; i++) { 
+                                    var {firstname, middlename, lastname, birthdate} = employees[i]
+                                    var experiences = employees[i].experience
+                                    var {list} = JSON.parse(experiences)
+
+                                    _age = moment().diff(moment(birthdate), 'years');
+
+                                    list.forEach(function(exp){
+                                      var {office, salary, status, enddate, position, startdate, employment, arrangements} = exp
+                                      if(status) {
+                                        _office = office
+                                        _startdate = startdate
+                                        _salary = salary
+                                        _position = position
+                                      }
+                                    })
+                                    %>
+                                    <tr>
+                                      <td data-column="name"><%- `${firstname} ${lastname} ` %></td>
+                                      <td data-column="position"><%- _position %></td>
+                                      <td data-column="office"><%- _office %></td>
+                                      <td data-column="age"><%- _age %></td>
+                                      <td data-column="startdate"><%- _startdate %></td>
+                                      <td data-column="salary"><%- _salary %></td>
+                                    </tr>
+                                  <% } %>
                                   <tr>
                                     <td>Tiger Nixon</td>
                                     <td>System Architect</td>
@@ -527,4 +556,4 @@
 </script>
 
 <!-- Header Template -->
-<%- include('../views/footer.html') -%>
+<%- include('../views/footer') -%>

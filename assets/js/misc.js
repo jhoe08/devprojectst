@@ -1,7 +1,10 @@
 let dangers = document.querySelectorAll('#basic-datatables .form-button-action .btn-danger');
 let views = document.querySelectorAll('#basic-datatables .form-button-action .btn-primary');
 let transcode = document.getElementById('#transcode')
-let createTrans = document.getElementById('createTransactions')
+let createTransactions = document.getElementById('createTransactions')
+let createRemarks = document.getElementById('createRemarks')
+let refreshActivity = document.getElementById('refreshActivity')
+let notifyIcon = ['check', 'close', 'exclamation', 'bell']
 
 const exampleModal = document.getElementById('exampleModal')
 if (exampleModal) {
@@ -117,11 +120,11 @@ if (transcode) {
   })
 }
 
-if (createTrans) {
+if (createTransactions) {
   let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
   let prClassification = document.querySelector('#prClassification')
   let requisitioner = document.querySelector('#requisitioner')
-  let division = document.querySelector('#division')
+  let division = document.querySelector('#divisions')
   let budget = document.querySelector('#budget')
   let fundSource = document.querySelector('#fundSource')
   let bannerProgram = document.querySelector('#bannerProgram')
@@ -131,7 +134,7 @@ if (createTrans) {
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
 
-  createTrans.addEventListener('click', async () => {
+  createTransactions.addEventListener('click', async () => {
 
     let bidNoticeTitleValue = bidNoticeTitle.value
     let prClassificationValue = prClassification.value
@@ -143,7 +146,7 @@ if (createTrans) {
     let bacUnitValue = bacUnit.value
     let remarksValue = remarks.value
 
-    const apiUrl = 'http://localhost:4000/transactions/new';
+    const apiUrl = '/transactions/new';
     let data = { 
       bid_notice_title: bidNoticeTitleValue, 
       pr_classification: prClassificationValue, 
@@ -171,26 +174,189 @@ if (createTrans) {
     fetch(apiUrl, requestOptions)
     .then(response => {
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        // throw new Error('Network response was not ok');
+        $.notify({
+          icon: 'icon-bell',
+          title: `Hello, ${greetings} Joe!`,
+          message: 'Network response was not ok!',
+        },{
+          type: 'danger',
+          placement: {
+            from: "top",
+            align: "right"
+          },
+          time: 1000,
+        });
       }
       return response.json();
     })
     .then(data => {
-      console.log('YAWA')
-      console.log(JSON.stringify(data, null, 2))
+      if(!data) {
+        $.notify({ icon: 'icon-bell', title: `Error`, message: `Failed to create the Transaction` },
+                 { type: 'danger', placement: { from: "top", align: "right" },
+                 time: 1000});
+      }
+
+      let {message, response } = data
+      let {insertId} = response
+      
+      $.notify({
+        icon: 'icon-bell',
+        title: `${message}`,
+        message: `Transaction ID#${insertId}`,
+      },{
+        type: 'success',
+        placement: {
+          from: "top",
+          align: "right"
+        },
+        time: 1000,
+      });
+      // Clearing the fields
+      bidNoticeTitle.value = ''
+      prClassification.value = ''
+      requisitioner.value = ''
+      division.value = ''
+      budget.value = ''
+      fundSource.value = ''
+      bannerProgram.value = ''
+      bacUnit.value = ''
+      remarks.value = ''
+
     })
     .catch(error => {
-      console.error('Error:', error);
+      $.notify({ icon: 'icon-bell', title: `There was an error on the system!`, message: `Please contact the I.T Guys` },
+        { type: 'danger', placement: { from: "top", align: "right" },
+        time: 1000});
     });
-  
-    // console.log(response.body )
-
-    // if (response.ok) {
-    //     console.log("Data sent successfully");
-    // } else {
-    //     console.error("Failed to send data");
-    // }
   });
+}
+
+if (createRemarks) {
+
+  let comment = document.querySelector('#comment')
+
+  const myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+
+  createRemarks.addEventListener('click', async () => {
+    try {
+      let selectedStatus = document.querySelector('input[name="color"]:checked');
+      let {transid} = createRemarks.dataset
+      let selectedStatusValue = selectedStatus.value
+      let data = { 
+          comment: comment.value, 
+          refid: transid, 
+          status: selectedStatusValue,
+          user:'justjoe' 
+      }
+  
+      const apiUrl = '/remarks/new'
+  
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      };
+  
+      fetch(apiUrl, requestOptions)
+      .then(response => {
+        if (!response.ok) {
+          // throw new Error('Network response was not ok');
+          $.notify({
+            icon: 'icon-bell',
+            title: `Hello, ${greetings} Joe!`,
+            message: 'Network response was not ok!',
+          },{
+            type: 'danger',
+            placement: {
+              from: "top",
+              align: "right"
+            },
+            time: 1000,
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if(!data) {
+          $.notify({ icon: 'icon-bell', title: `Error`, message: `Failed to create new remarks` },
+                   { type: 'danger', placement: { from: "top", align: "right" },
+                   time: 1000});
+        }
+  
+        let {message, response} = data
+        // console.log(response)
+        
+        refreshActivity.click()
+        // clearing fields
+        selectedStatus.checked = false
+        comment.value = ''
+        // return notifications
+        $.notify({
+          icon: 'icon-check',
+          title: `${message}`,
+          message: `Successfully added the remarks on the transactions!`,
+        },{
+          type: 'success',
+          placement: {
+            from: "top",
+            align: "right"
+          },
+          time: 1000,
+        });
+
+     
+      })
+      .catch(error => {
+        $.notify({ icon: 'icon-exclamation', title: `There was an error on the system!`, message: `${error} adsdsa` },
+          { type: 'danger', placement: { from: "top", align: "right" },
+          time: 1000});
+      });
+
+      
+    } catch (error) {
+      $.notify({ icon: 'icon-exclamation', title: `Field is empty please check!`, message: `${error}` },
+        { type: 'danger', placement: { from: "top", align: "right" },
+        time: 1000});
+    }
+    /// AHAAHHAHAHAHAHHAHA
+  
+  })
+
+  
+}
+
+if (refreshActivity) {
+  refreshActivity.addEventListener('click', async () =>{
+
+    let {transid} =  refreshActivity.dataset
+
+    // const response = await fetch(`/remarks/${transid}`);
+    // const remarks = await response.json();
+    // return remarks
+
+    fetch(`/remarks/${transid}`)
+    .then(response => response.text())
+    .then(html => {
+      document.querySelector('.activity-feed').innerHTML = html;
+    })
+    .catch(error => console.error('Error fetching HTML:', error));
+
+    // let feeds = document.querySelector('.activity-feed')
+    // let html = ''
+    // for(let i=0; i < remarks.length; i++) {
+    //     html += `<li class="feed-item feed-item-<%- remarks[i].status -%>">
+    //       <time class="date" datetime="<%- moment(remarks[i].date).format('MMM-DD-YYYY') -%>"><%- moment(remarks[i].date).format('MMM DD YYYY') -%> (<%- moment(remarks[i].date, "YYYYMMDD").fromNow() -%>)</time>
+    //       <span class="text"><span class="badge badge-<%- (i % 2 == 1) ? 'count' : 'info' -%> mr-3"><%- (i % 2 == 1) ? 'In' : 'Out' -%></span><%- remarks[i].comment -%></span>
+    //     </li>`
+    // }
+
+    // feeds.innerHTML = html
+
+  })
 }
 
 function numberFormat ( data ) {
@@ -219,5 +385,3 @@ function pr_date() {
     
   })
 }
-
-pr_date()

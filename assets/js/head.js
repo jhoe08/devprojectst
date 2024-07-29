@@ -8,4 +8,5 @@ const prejs = {
     }
 }
 
-let { currency } = prejs
+// let { currency } = prejs
+export default prejs

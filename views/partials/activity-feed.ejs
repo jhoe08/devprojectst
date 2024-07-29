@@ -1,0 +1,14 @@
+<% for(var i=remarks.length; i >= 0; i--) { %>
+  <% if(remarks[i]?.status) { %>
+  <li class="feed-item feed-item-<%- remarks[i]?.status -%>" data-index="<%- i -%>">
+    <time class="date" datetime=""><%- moment(remarks[i]?.date).format('MMM DD YYYY hh:mm:ss') -%></time>
+    <span class="text"><span class="badge badge-<%- (i % 2 == 0) ? 'count' : 'info' -%> mr-3"><%- (i % 2 == 0) ? 'In' : 'Out' -%></span><%- remarks[i]?.comment -%></span>
+  </li>
+  <% } %>
+<% } %>
+
+<!-- Remarks from published -->
+<li class="feed-item pb-0" data-order="first">
+    <time class="date" datetime="<%- moment(transactions.pr_date).format('MMM DD YYYY') -%>"><%- moment(transactions.pr_date).format('MMM DD YYYY') -%> (<%- moment(transactions.pr_date, "YYYYMMDD").fromNow() -%>)</time>
+    <span class="text"><span class="badge badge-black mr-3">Out</span>Purchase request created date</span>
+</li>

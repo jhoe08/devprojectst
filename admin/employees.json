@@ -1,0 +1,53 @@
+{
+    "employees": [
+        {
+            "firstname": "Joegie",
+            "lastname": "Wagwag",
+            "birthdate": "10/08/1993",
+            "experience": [{
+                "position": "Data Controller IV",
+                "office": "DA RFO7",
+                "startdate": "05/01/2024",
+                "enddate": "present",
+                "salary": 25232.61,
+                "status": true,
+                "employment": "Contract of Service",
+                "arrangements": "On-site",
+                "division": "Field Operations"
+            },{
+                "position": "Front-end Developer",
+                "office": "Crescendo Digital Marketing Services",
+                "startdate": "01/03/2022",
+                "enddate": "12/29/2024",
+                "salary": 25232.61,
+                "status": false,
+                "employment": "Work from Home",
+                "division": "I.T"
+            }]
+        },{
+          "firstname": "Just Joe",
+          "lastname": "Wagwag",
+          "birthdate": "10/08/1993",
+          "experience": [{
+              "position": "Data Controller IV",
+              "office": "DA RFO7",
+              "startdate": "05/01/2024",
+              "enddate": "present",
+              "salary": 25232.61,
+              "status": true,
+              "employment": "Contract",
+              "arrangements": "On-site"
+          },{
+              "position": "Front-end Developer",
+              "office": "Crescendo Digital Marketing Services",
+              "startdate": "01/03/2022",
+              "enddate": "12/29/2024",
+              "salary": 45000,
+              "status": false,
+              "employment": "Fulltime",
+              "arrangements": "Work from Home"
+          }]
+        }
+    ]
+    
+}

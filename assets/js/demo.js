@@ -194,18 +194,20 @@ Circles.create({
 let today = new Date()
 let greetings = today.getHours() < 12 ? "Good Morning" : (today.getHours() < 18 ? "Good Afternoon" : "Good Evening")
 
-$.notify({
-	icon: 'icon-bell',
-	title: `Hello, ${greetings} Joe!`,
-	message: 'Highlights and reports are now generated.',
-},{
-	type: 'primary',
-	placement: {
-		from: "top",
-		align: "right"
-	},
-	time: 1000,
-});
+if(window.location.pathname == '/') {
+	$.notify({
+		icon: 'icon-bell',
+		title: `Hello, ${greetings} Joe!`,
+		message: 'Highlights and reports are now generated.',
+	},{
+		type: 'primary',
+		placement: {
+			from: "top",
+			align: "right"
+		},
+		time: 1000,
+	});	
+}
 
 // Jsvectormap
 var world_map = new jsVectorMap({
