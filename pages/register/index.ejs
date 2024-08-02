@@ -1,0 +1,281 @@
+<!-- Header Template -->
+<%- include('../../views/header') -%>
+<link rel="stylesheet" href="./assets/css/login.css">
+<div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6 col-md-7 intro-section">
+        <div class="brand-wrapper">
+          <img src="./assets/img/da-logo.png" alt="Department of Agriculture" />
+          <h1 class="text-success">Department of Agriculture</h1>
+          <h2 class="text-black">Regional Field Office 7</h2>
+        </div>
+        <div class="intro-content-wrapper">
+          <h1 class="intro-title">"Masaganang Agrikultura, Maunlad na Ekonomiya"</h1>
+          <div>
+            <p class="intro-text">We hope to attract a new generation of farmers, researchers, and innovators who will ensure the country's food security in the years to come. Together, let us fulfill our shared dream of a strong, prosperous, and food secure Philippines.</p>
+            <div class="d-flex align-items-center mb-4">
+              <div class="avatar avatar-xl mr-3">
+                <img src="./assets/img/secretary.jpg" alt="..." class="avatar-img rounded-circle">
+              </div>
+              <p class="mb-0">Francisco Tiu Laurel Jr.<br><em>Secretary</em></p>
+            </div>
+            
+          </div>
+          
+          <a href="#!" class="btn btn-read-more">Read more</a>
+        </div>
+        <div class="intro-section-footer">
+          <na class="footer-nav">
+            <a href="#!">Facebook</a>
+            <a href="#!">Twitter</a>
+            <a href="#!">Gmail</a>
+          </na>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-5 form-section">
+        <div class="login-wrapper">
+          <h2 class="login-title">Sign up</h2>
+          <form id="verifyForm" action="/verify" method="post">
+            <div class="form-floating form-floating-custom mb-3">
+                <input type="number" class="form-control" name="employeeid" id="floatingEmployeeIDInput" >
+                <label for="floatingUsernameInput">Employee ID</label>
+            </div>
+            <div class="form-floating form-floating-custom mb-3">
+                <input type="text" class="form-control" name="firstname" id="floatingFirstnameDInput" >
+                <label for="floatingFirstnameDInput">First Name</label>
+            </div>
+            <div class="form-floating form-floating-custom mb-3">
+                <input type="text" class="form-control" name="lastname" id="floatingLastnameDInput" >
+                <label for="floatingLastnameDInput">Last Name</label>
+            </div>
+            <div class="form-floating form-floating-custom mb-3">
+                <input type="text" class="form-control" name="middlename" id="floatingMiddlenameDInput">
+                <label for="floatingMiddlenameDInput">Middle Name</label>
+            </div>
+            <div class="form-floating form-floating-custom mb-3">
+              <input type="date" class="form-control" name="birthdate" id="floatingBirthdateeDInput" >
+              <label for="floatingBirthdateeDInput">Birthdate</label>
+            </div>
+            <%- message %>
+            <div class="d-flex justify-content-between align-items-center mb-5">
+              <input id="verify" class="btn login-btn" type="submit" value="Verify">
+              <input id="predata" class="btn text-danger" type="button" value="Predata">
+            </div>
+          </form>    
+          <form id="registerForm" action="/register" method="post" class="hidden">
+            <!-- <h4 class="">Log In</h4> -->
+            <div class="form-floating form-floating-custom mb-3">
+              <input type="text" class="form-control" name="username" id="floatingUsernameInput">
+              <label for="floatingUsernameInput">Username</label>
+            </div>
+            <div class="form-floating form-floating-custom mb-3">
+              <input type="password" class="form-control" name="password"  id="floatingPasswordInput">
+              <label for="floatingPasswordInput">Password</label>
+            </div>
+            <div class="form-floating form-floating-custom mb-3">
+              <input type="password" class="form-control" name="confirmPassword"  id="floatingRePasswordInput">
+              <label for="floatingRePasswordInput">Re-enter Password</label>
+            </div>
+            <input type="hidden" class="form-control" name="referenceid"  id="referenceIDHidden">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+              <input id="register" class="btn login-btn" type="submit" value="Register">
+            </div>
+          </form>       
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<!-- Core Scripts -->
+<%- include('../../views/scripts') -%>
+
+<script>
+    function checkFields(fields) {
+      // Check if all fields are empty
+      const allEmpty = fields.every(field => field == null || field === "");
+
+      // Check if at least one field is empty
+      const anyEmpty = fields.some(field => field == null || field === "");
+
+      if (allEmpty) {
+        console.log("Error: All fields are empty.");
+        return false
+      } else if (anyEmpty) {
+        console.log("Error: One or more fields are empty.");
+        return false
+      } else {
+        console.log("Success: All fields are filled.");
+        return true 
+      }
+    }
+
+    let verifyForm = document.getElementById('verifyForm')
+    let registerForm = document.getElementById('registerForm')
+    let predata = document.getElementById('predata')
+    let referenceid = document.querySelector('#referenceIDHidden')
+
+    if (verifyForm) {
+      verifyForm.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        const employeeid = document.getElementById('floatingEmployeeIDInput').value
+        const firstname = document.getElementById('floatingFirstnameDInput').value
+        const lastname = document.getElementById('floatingLastnameDInput').value
+        const middlename = document.getElementById('floatingMiddlenameDInput').value
+        const birthdate = document.getElementById('floatingBirthdateeDInput').value
+
+
+        let fields = checkFields([employeeid, firstname, lastname, middlename, birthdate])
+        console.log(fields)
+        if (!fields) {
+          $.notify({ icon: 'icon-close', title: `Error`, message: `Field is empty please check!` },
+            { type: 'danger', placement: { from: "top", align: "right" },
+            time: 1000});
+            return
+        }
+        let data = {
+          employeeid: employeeid,
+          firstname: firstname,
+          lastname: lastname,
+          middlename: middlename,
+          birthdate: birthdate
+        }
+
+        let apiUrl = `/verify`
+        const requestOptions = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        };
+
+        fetch(apiUrl, requestOptions)
+        .then(response => {
+          if (!response.ok) {
+            // throw new Error('Network response was not ok');
+            $.notify({ icon: 'icon-bell', title: `Hello, ${greetings} Joe!`, message: 'Network response was not ok!', },
+              { type: 'danger', placement: { from: "top", align: "right" },
+                time: 1000, });
+          }
+            return response.json();
+          })
+        .then(data => {
+          let {message, response} = data
+          if(response.length == 0) {
+            $.notify({ icon: 'icon-bell', title: `Error`, message },
+                    { type: 'danger', placement: { from: "top", align: "right" },
+                    time: 1000});
+            return
+          }
+          
+          $.notify({ icon: 'icon-check', title: `Verification Success`, message: `Thank you, you may fill up your account to use to login on this website` },
+                    { type: 'success', placement: { from: "top", align: "right" },
+                    time: 1000});
+
+          verifyForm.classList.add('hidden')
+          referenceid.value = employeeid
+          registerForm.classList.remove('hidden')
+
+        })
+        .catch(error => {
+            $.notify({ icon: 'icon-exclamation', title: `There was an error on the system!`, message: `${error}` },
+              { type: 'danger', placement: { from: "top", align: "right" },
+              time: 1000});
+        });
+      });
+    }
+    if (registerForm) {
+      registerForm.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        const username = document.getElementById('floatingUsernameInput').value
+        const password = document.getElementById('floatingPasswordInput').value;
+        const confirmPassword = document.getElementById('floatingRePasswordInput').value;
+
+        let fields = checkFields([username, password, confirmPassword])
+        if (!fields) {
+          $.notify({ icon: 'icon-close', title: `Error`, message: `Field is empty please check!` },
+            { type: 'danger', placement: { from: "top", align: "right" },
+            time: 1000});
+            return
+        }
+        
+        let data = {
+          set: {
+            username,
+            password,
+            confirmPassword,
+          },
+          where : {
+            employeeid: referenceid.value
+          }
+        } 
+       
+        let apiUrl = `/register`
+        const requestOptions = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        };
+
+        fetch(apiUrl, requestOptions)
+        .then(response => {
+          if (!response.ok) {
+            // throw new Error('Network response was not ok');
+            $.notify({ icon: 'icon-bell', title: `Hello, ${greetings} Joe!`, message: 'Network response was not ok!', },
+              { type: 'danger', placement: { from: "top", align: "right" },
+                time: 1000, });
+          }
+            return response.json();
+          })
+        .then(data => {
+          let {message, response} = data
+          if(response.length == 0) {
+            $.notify({ icon: 'icon-bell', title: `Error`, message },
+                    { type: 'danger', placement: { from: "top", align: "right" },
+                    time: 1000});
+            return
+          }
+          
+          $.notify({ icon: 'icon-check', title: `Verification Success`, message: `You may now access your registered account` },
+                    { type: 'success', placement: { from: "top", align: "right" },
+                    time: 1000});
+        })
+        .catch(error => {
+            $.notify({ icon: 'icon-exclamation', title: `There was an error on the system!`, message: `${error}` },
+              { type: 'danger', placement: { from: "top", align: "right" },
+              time: 1000});
+        });
+
+      })
+    }
+    if (predata) {
+      predata.addEventListener('click', function(){
+        // Get the password and confirmPassword values
+        let employeeid = document.getElementById('floatingEmployeeIDInput')
+        let firstname = document.getElementById('floatingFirstnameDInput')
+        let lastname = document.getElementById('floatingLastnameDInput')
+        let middlename = document.getElementById('floatingMiddlenameDInput')
+        let birthdate = document.getElementById('floatingBirthdateeDInput')
+
+        let username = document.getElementById('floatingUsernameInput')
+        let password = document.getElementById('floatingPasswordInput');
+        let confirmPassword = document.getElementById('floatingRePasswordInput');
+
+        employeeid.value = 984
+        firstname.value = 'Joegie'
+        lastname.value = 'Wagwag'
+        middlename.value = 'Paquibot'
+        birthdate.value = '1993-10-08'
+
+        // username.value = 'justjoe'
+        // password.value = 'asdf'
+        // confirmPassword.value = 'asdf'
+      })
+    }
+</script>
+
+<!-- Footer Template -->
+<%- include('../../views/footer') -%>

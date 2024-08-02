@@ -12,6 +12,9 @@ const session = require('express-session');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const hash = require('pbkdf2-password')()
+const bcrypt = require('bcrypt')
+const saltRounds = 10
+ 
 
 const locale = 'en';
 const options = {style: 'currency', currency: 'php', minimumFractionDigits: 2, maximumFractionDigits: 2};
@@ -93,20 +96,6 @@ app.use(function(req, res, next){
   next();
 });
 
-
-let defaultUsers = {
-  tj: { name: 'tj' }
-}
-
-hash({ password: 'asdfg' }, function (err, pass, salt, hash) {
-
-  if (err) throw err;
-  // store the salt & hash in the "db"
-  defaultUsers.tj.salt = salt;
-  defaultUsers.tj.hash = hash;
-});
-
-
 let user = {
   firstName: 'Just',
   lastName: 'Joe',
@@ -115,29 +104,45 @@ let user = {
   type: 8,
 }
 
+let defaultUsers = {
+  justtest: { name: 'justtest' }
+}
 
-function authenticate(name, pass, fn) {
+// hash({ password: 'asdfg' }, function (err, pass, salt, hash) {
+
+//   if (err) throw err;
+//   defaultUsers.justtest.salt = salt;
+//   defaultUsers.justtest.hash = hash;
+//   defaultUsers.justtest.pass = pass;
+  
+//   // console.log(defaultUsers.justtest)
+// });
+
+
+function authenticate(name, pass, done) {
+  console.log('module')
   if (!module) console.log('authenticating %s:%s', name, pass);
   var user = defaultUsers[name];
   // query the db for the given username
-  if (!user) return fn(null, null)
+  if (!user) return done(null, null)
   // apply the same algorithm to the POSTed password, applying
   // the hash against the pass / salt, if there is a match we
   // found the user
-  hash({ password: pass, salt: user.salt }, function (err, pass, salt, hash) {
-    if (err) return fn(err);
-    if (hash === user.hash) return fn(null, user)
-    fn(null, null)
+  hash({ password: user.pass, salt: user.salt }, function (err, pass, salt, hash) {
+    if (err) return done(err);
+    if (hash === user.hash) return done(null, user)
+    done(null, null)
   });
 }
 
 function restrict(req, res, next) {
-  if (req.session.user) {
-    next();
-  } else {
-    req.session.error = 'Access denied!';
-    res.redirect('/login');
-  }
+  next()
+  // if (req.session.user) {
+  //   next();
+  // } else {
+  //   req.session.error = 'Access denied!';
+  //   res.redirect('/login');
+  // }
 }
 
 app.get('/', restrict, function(req, res){
@@ -157,12 +162,6 @@ app.get('/login', (req, res) => {
   })
 });
 
-// app.post('/login', passport.authenticate('local', {
-//   successRedirect: '/ambot',
-//   failureRedirect: '/login',
-//   failureFlash: false
-// }) );
-
 app.post('/login', (req, res) => {
   authenticate(req.body.username, req.body.password, function(err, user){
     if (err) return next(err)
@@ -174,9 +173,6 @@ app.post('/login', (req, res) => {
         // in the session store to be retrieved,
         // or in this case the entire user object
         req.session.user = user;
-        req.session.success = 'Authenticated as ' + user.name
-          + ' click to <a href="/logout">logout</a>. '
-          + ' You may now access <a href="/restricted">/restricted</a>.';
         res.redirect('/');
       });
     } else {
@@ -185,6 +181,50 @@ app.post('/login', (req, res) => {
       res.redirect('/login');
     }
   });
+})
+
+app.get('/register', restrict, function(req, res){
+  // res.send(req.params)
+  let {username} = req.params
+  let {blood_type, civil_status} = _preDefaultData
+
+  res.render('pages/register', {
+    title: 'Register User',
+    logonUser: user
+  })
+})
+
+app.post('/verify', async (req, res) => {
+  try {
+    const data = JSON.stringify(req.body)
+    const employees = await connection.retrieveData( 'employees', data );
+    if (employees.length != 0) {
+      res.status(200).json({ message: 'Account found!',  response: employees });
+    } else {
+      res.status(200).json({ message: 'Account not found!',  response: employees });
+    }
+    
+  } catch (error) {
+    console.error('Unable to load data', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.post('/register', async (req, res) => {
+  try {
+    let data = JSON.stringify(req.body)
+   
+    const register = await connection.amendData( 'employees', data);
+
+    if(register.length != 0) {
+      res.status(200).json({ message: 'Account is successfully register', response: register})
+    } else {
+      res.status(200).json({ message: 'Failed to register the account',  response: register });
+    }
+  } catch (error) {
+    console.error('There\'s issue on the System right now:', error);
+    res.status(500).send('Internal Server Error');
+  }
 })
 
 app.get('/logout', function(req, res){
@@ -215,7 +255,7 @@ app.get('/transactions', restrict, async (req, res) => {
 })
 
 
-app.get('/transactions/new', async (req, res) => {
+app.get('/transactions/new', restrict, async (req, res) => {
   try {
       res.render('pages/transactions-new', { 
         logonUser: user,
@@ -232,7 +272,7 @@ app.get('/transactions/new', async (req, res) => {
   }
 })
 
-app.post('/transactions/new', async (req, res) => {
+app.post('/transactions/new', restrict, async (req, res) => {
   try {
     const transactions = await connection.postTransactions( JSON.stringify(req.body) );
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
@@ -242,9 +282,7 @@ app.post('/transactions/new', async (req, res) => {
   }
 })
 
-
-
-app.put('/transactions/:id', async (req, res) => {
+app.put('/transactions/:id', restrict, async (req, res) => {
   try {
    
   } catch (error) {
@@ -253,7 +291,7 @@ app.put('/transactions/:id', async (req, res) => {
   }
 })
 
-app.get('/transactions/:id', async (req, res) => {
+app.get('/transactions/:id', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
 
@@ -271,7 +309,7 @@ app.get('/transactions/:id', async (req, res) => {
   }
 })
 
-app.get('/transactions/:id/update', async (req, res) => {
+app.get('/transactions/:id/edit', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
 
@@ -291,7 +329,7 @@ app.get('/transactions/:id/update', async (req, res) => {
   }
 })
 
-app.get('/transactions/:id/remarks', async (req, res) => {
+app.get('/transactions/:id/remarks', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
 
@@ -314,7 +352,7 @@ app.get('/transactions/:id/remarks', async (req, res) => {
   }
 })
 
-app.delete('/transactions/:id', async (req, res) => {
+app.delete('/transactions/:id', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
 
@@ -326,7 +364,7 @@ app.delete('/transactions/:id', async (req, res) => {
   }
 })
 
-app.get('/remarks/:id', async (req, res) => {
+app.get('/remarks/:id', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
     const remarks = await connection.getRemarksByRefid(transid); console.log(remarks)
@@ -340,7 +378,7 @@ app.get('/remarks/:id', async (req, res) => {
 
 })
 
-app.post('/remarks/new', async (req, res) => {
+app.post('/remarks/new', restrict, async (req, res) => {
   try {
     const remarks = await connection.postRemarks( JSON.stringify(req.body) );
     res.status(201).json({ message: 'New remarks is added successfully!', response: remarks });
@@ -350,7 +388,7 @@ app.post('/remarks/new', async (req, res) => {
   }
 })
 
-app.get('/employees', async (req, res) => {
+app.get('/employees', restrict, async (req, res) => {
   const employees = await connection.retrieveData('employees');
 
   res.render('pages/employees', {
@@ -361,7 +399,7 @@ app.get('/employees', async (req, res) => {
   })
 })
 
-app.get('/employees/new', function(req, res){
+app.get('/employees/new', restrict, function(req, res){
   // res.send(req.params)
   let {path} = req.params
   let {blood_type, civil_status} = _preDefaultData
@@ -373,7 +411,10 @@ app.get('/employees/new', function(req, res){
   })
 })
 
-app.get('/forms/forms.html', function (req, res) {
+
+
+
+app.get('/forms/forms.html', restrict, function (req, res) {
   res.redirect('/demo/forms/forms.html');
 });
 

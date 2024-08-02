@@ -28,7 +28,7 @@
                 <div class="col-md-6">
                   <div class="form-group">
                     <label for="bidNoticeTitle">Bid Notice Title</label>
-                    <textarea id="bidNoticeTitle" name="bidNoticeTitle" class="form-control" rows="3"><%- transactions?.bid_notice_title %></textarea>
+                    <textarea id="bidNoticeTitle" name="bidNoticeTitle" class="form-control" rows="3" <%- transactions?.bid_notice_title??"required" %>><%- transactions?.bid_notice_title %></textarea>
                   </div>
                   <div class="form-group">
                     <label for="prClassification">Classification</label>  
@@ -45,7 +45,7 @@
                       <span class="input-icon-addon">
                         <i class="fa fa-user"></i>
                       </span>
-                      <input type="text" class="form-control" placeholder="Juan Tamad" value="<%- transactions?.requisitioner %>">
+                      <input id="requisitioner" name="requisitioner" type="text" class="form-control" placeholder="Juan Tamad" value="<%- transactions?.requisitioner %>">
                   </div>
                   </div>
                   <div class="form-group">
@@ -58,12 +58,16 @@
                     </select>
                   </div>
                 </div>
-                <% if (transactions) { %>
+                
                 <div class="col-md-6">
                   <% 
-                    var budget = transactions?.approved_budget
-                    var cleanBudget = budget.replace(/,/g, '');
-                    budget = parseFloat(cleanBudget)
+                    var budget = 0
+                    var cleanBudget = 0
+                    if (transactions) {
+                      budget = transactions?.approved_budget
+                      cleanBudget = budget.replace(/,/g, '');
+                      budget = parseFloat(cleanBudget)
+                    }
                    %>
                   <div class="form-group" data-budget="<%-budget%>">
                     <label for="budget">Budget</label>
@@ -102,7 +106,7 @@
                     <textarea id="remarks" name="remarks" class="form-control" rows="3"></textarea>
                   </div>
                 </div>
-                <% } %>
+               
               <!-- </form> -->
             </div>
           </div>

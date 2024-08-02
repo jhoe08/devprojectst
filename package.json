@@ -19,6 +19,7 @@
     "author": "Wrongramer <red.mrjhon8@gmail.com>",
     "license": "ISC",
     "dependencies": {
+        "bcrypt": "^5.1.1",
         "bootstrap": "^5.3.3",
         "bootstrap-icons": "^1.11.3",
         "ejs": "^3.1.10",

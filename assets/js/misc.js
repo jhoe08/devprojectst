@@ -6,6 +6,14 @@ let createRemarks = document.getElementById('createRemarks')
 let refreshActivity = document.getElementById('refreshActivity')
 let notifyIcon = ['check', 'close', 'exclamation', 'bell']
 
+function isEmpty(value) {
+  if (value === undefined || value === null) return true;
+  if (typeof value === 'string' && value.trim() === '') return true;
+  if (Array.isArray(value) && value.length === 0) return true;
+  if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return true;
+  return false;
+}
+
 const exampleModal = document.getElementById('exampleModal')
 if (exampleModal) {
   exampleModal.addEventListener('show.bs.modal', event => {
@@ -135,100 +143,104 @@ if (createTransactions) {
   myHeaders.append("Content-Type", "application/json");
 
   createTransactions.addEventListener('click', async () => {
+    try {
+      let bidNoticeTitleValue = bidNoticeTitle.value
+      let prClassificationValue = prClassification.value
+      let requisitionerValue = requisitioner.value
+      let divisionValue = division.value
+      let budgetValue = budget.value
+      let fundSourceValue = fundSource.value
+      let bannerProgramValue = bannerProgram.value
+      let bacUnitValue = bacUnit.value
+      let remarksValue = remarks.value
 
-    let bidNoticeTitleValue = bidNoticeTitle.value
-    let prClassificationValue = prClassification.value
-    let requisitionerValue = requisitioner.value
-    let divisionValue = division.value
-    let budgetValue = budget.value
-    let fundSourceValue = fundSource.value
-    let bannerProgramValue = bannerProgram.value
-    let bacUnitValue = bacUnit.value
-    let remarksValue = remarks.value
+      const apiUrl = '/transactions/new';
+      let data = { 
+        bid_notice_title: bidNoticeTitleValue, 
+        pr_classification: prClassificationValue, 
+        requisitioner: requisitionerValue, 
+        division: divisionValue,
+        approved_budget: budgetValue,
+        fund_source: fundSourceValue,
+        banner_program: bannerProgramValue, 
+        bac_unit: bacUnitValue,
+        remarks: {
+            createby: 'JustJoe',
+            message: remarksValue
+        } 
+      };
 
-    const apiUrl = '/transactions/new';
-    let data = { 
-      bid_notice_title: bidNoticeTitleValue, 
-      pr_classification: prClassificationValue, 
-      requisitioner: requisitionerValue, 
-      division: divisionValue,
-      approved_budget: budgetValue,
-      fund_source: fundSourceValue,
-      banner_program: bannerProgramValue, 
-      bac_unit: bacUnitValue,
-      fund_source: 'asd',
-      remarks: {
-          createby: 'JustJoe',
-          message: remarksValue
-      } 
-  };
-    
-    const requestOptions = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data)
-    };
-    
-    fetch(apiUrl, requestOptions)
-    .then(response => {
-      if (!response.ok) {
-        // throw new Error('Network response was not ok');
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      };
+
+      fetch(apiUrl, requestOptions)
+      .then(response => {
+        if (!response.ok) {
+          // throw new Error('Network response was not ok');
+          $.notify({
+            icon: 'icon-bell',
+            title: `Hello, ${greetings} Joe!`,
+            message: 'Network response was not ok!',
+          },{
+            type: 'danger',
+            placement: {
+              from: "top",
+              align: "right"
+            },
+            time: 1000,
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if(!data) {
+          $.notify({ icon: 'icon-bell', title: `Error`, message: `Failed to create the Transaction` },
+                  { type: 'danger', placement: { from: "top", align: "right" },
+                  time: 1000});
+        }
+
+        let {message, response } = data
+        let {insertId} = response
+        
         $.notify({
           icon: 'icon-bell',
-          title: `Hello, ${greetings} Joe!`,
-          message: 'Network response was not ok!',
+          title: `${message}`,
+          message: `Transaction ID#${insertId}`,
         },{
-          type: 'danger',
+          type: 'success',
           placement: {
             from: "top",
             align: "right"
           },
           time: 1000,
         });
-      }
-      return response.json();
-    })
-    .then(data => {
-      if(!data) {
-        $.notify({ icon: 'icon-bell', title: `Error`, message: `Failed to create the Transaction` },
-                 { type: 'danger', placement: { from: "top", align: "right" },
-                 time: 1000});
-      }
+        // Clearing the fields
+        bidNoticeTitle.value = ''
+        prClassification.value = ''
+        requisitioner.value = ''
+        division.value = ''
+        budget.value = ''
+        fundSource.value = ''
+        bannerProgram.value = ''
+        bacUnit.value = ''
+        remarks.value = ''
 
-      let {message, response } = data
-      let {insertId} = response
-      
-      $.notify({
-        icon: 'icon-bell',
-        title: `${message}`,
-        message: `Transaction ID#${insertId}`,
-      },{
-        type: 'success',
-        placement: {
-          from: "top",
-          align: "right"
-        },
-        time: 1000,
+      })
+      .catch(error => {
+        $.notify({ icon: 'icon-bell', title: `There was an error on the system!`, message: error },
+          { type: 'danger', placement: { from: "top", align: "right" },
+          time: 1000});
       });
-      // Clearing the fields
-      bidNoticeTitle.value = ''
-      prClassification.value = ''
-      requisitioner.value = ''
-      division.value = ''
-      budget.value = ''
-      fundSource.value = ''
-      bannerProgram.value = ''
-      bacUnit.value = ''
-      remarks.value = ''
-
-    })
-    .catch(error => {
-      $.notify({ icon: 'icon-bell', title: `There was an error on the system!`, message: `Please contact the I.T Guys` },
+    } catch (error) {
+      $.notify({ icon: 'icon-close', title: 'Field is empty please check!', message: error },
         { type: 'danger', placement: { from: "top", align: "right" },
         time: 1000});
-    });
+    }
   });
 }
 

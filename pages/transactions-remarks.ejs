@@ -95,7 +95,7 @@
                           </div>
                           <div class="flex-1 ms-3 pt-1">
                             <h6 class="text-uppercase fw-bold mb-1">
-                              <%- transactions.trans_code -%>
+                              <%- transactions?.trans_code ?? '...'; -%>
                             </h6>
                             <span class="text-muted">Transaction Codes</span>
                           </div>

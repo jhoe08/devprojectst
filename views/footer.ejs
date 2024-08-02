@@ -1,42 +1,5 @@
-    <!--   Core JS Files   -->
-    <script src="/assets/js/core/jquery-3.7.1.min.js"></script>
-    <script src="/assets/js/core/popper.min.js"></script>
-    <script src="/assets/js/core/bootstrap.min.js"></script>
-
-    <!-- jQuery Scrollbar -->
-    <script src="/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-
-    <!-- Chart JS -->
-    <script src="/assets/js/plugin/chart.js/chart.min.js"></script>
-
-    <!-- jQuery Sparkline -->
-    <script src="/assets/js/plugin/jquery.sparkline/jquery.sparkline.min.js"></script>
-
-    <!-- Chart Circle -->
-    <script src="/assets/js/plugin/chart-circle/circles.min.js"></script>
-
-    <!-- Datatables -->
-    <script src="/assets/js/plugin/datatables/datatables.min.js"></script>
-
-    <!-- Bootstrap Notify -->
-    <script src="/assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
-
-    <!-- jQuery Vector Maps -->
-    <script src="/assets/js/plugin/jsvectormap/jsvectormap.min.js"></script>
-    <script src="/assets/js/plugin/jsvectormap/world.js"></script>
-    <script src="/assets/js/plugin/jsvectormap/world-merc.js"></script>
-    <!-- <script src="/assets/js/plugin/jsvectormap/country-ph-r07.js"></script> -->
-
-    <!-- Sweet Alert -->
-    <script src="/assets/js/plugin/sweetalert/sweetalert.min.js"></script>
-
-    <!-- Kaiadmin JS -->
-    <script src="/assets/js/kaiadmin.min.js"></script>
-
-    <!-- Kaiadmin DEMO methods, don't include it in your project! -->
-    <script src="/assets/js/setting-demo.js"></script>
-    <script src="/assets/js/demo.js"></script>
-    <script src="/assets/js/misc.js"></script>
+    <%# include('scripts') %>
+    
     <script>
       let table = $("#basic-datatables").DataTable({
         // "aoColumnDefs": [{
@@ -50,6 +13,7 @@
         //     }
         // }],
         "order": [[0, 'desc']],
+        responsive: true,
         initComplete: function () {
           this.api()
           .columns()
@@ -91,12 +55,51 @@
         //   },
         // },]
         
-      });
+      })
 
       // target: 5,
       // render: $.fn.dataTable.render.number(null, null, 0, '₱')
 
-    document.querySelectorAll('.toggle-vis').forEach((el) => {
+      let employees = $("#employees").DataTable({
+        layout: {
+          topStart: {
+            buttons: ['colvis']
+          }
+        },  
+        "order": [[0, 'asc']],
+        columnDefs: [{ visible: false, targets: [6,7] }],
+        responsive: true,
+        initComplete: function () {
+          this.api()
+          .columns()
+          .every(function () {
+            var column = this;
+            var select = $('<select class="form-select"><option value=""></option></select>')
+              .appendTo($(column.footer()).empty())
+              .on("change", function () {
+                var val = $.fn.dataTable.util.escapeRegex($(this).val());
+
+                column
+                  .search(val ? "^" + val + "$" : "", true, false)
+                  .draw();
+              });
+
+            column
+              .data()
+              .unique()
+              .sort()
+              .each(function (d, j) {
+                select.append(
+                  '<option value="' + d + '">' + d + "</option>"
+                );
+              });
+          });
+        },
+      })
+
+      employees
+
+      document.querySelectorAll('.toggle-vis').forEach((el) => {
       // // el.prepend('<i class="fas fa-check-square"></i>')
 
       // let icon = document.createElement('i')
@@ -105,16 +108,16 @@
 
       // el.prepend(icon)
 
-    el.addEventListener('click', function (e) {
-        // e.preventDefault();
+      el.addEventListener('click', function (e) {
+          // e.preventDefault();
 
-        let columnIdx = e.target.getAttribute('data-column');
-        let column = table.column(columnIdx);
+          let columnIdx = e.target.getAttribute('data-column');
+          let column = table.column(columnIdx);
 
-        // Toggle the visibility
-        column.visible(!column.visible());
+          // Toggle the visibility
+          column.visible(!column.visible());
+        });
       });
-    });
 
       $("#lineChart").sparkline([102, 109, 120, 99, 110, 105, 115], {
         type: "line",
