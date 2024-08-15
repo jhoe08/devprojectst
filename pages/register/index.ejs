@@ -79,6 +79,7 @@
             <input type="hidden" class="form-control" name="referenceid"  id="referenceIDHidden">
             <div class="d-flex justify-content-between align-items-center mb-5">
               <input id="register" class="btn login-btn" type="submit" value="Register">
+              <input id="predataRegister" class="btn text-danger" type="button" value="Predata">
             </div>
           </form>       
         </div>
@@ -113,6 +114,7 @@
     let verifyForm = document.getElementById('verifyForm')
     let registerForm = document.getElementById('registerForm')
     let predata = document.getElementById('predata')
+    let predataRegister = document.getElementById('predataRegister')
     let referenceid = document.querySelector('#referenceIDHidden')
 
     if (verifyForm) {
@@ -242,6 +244,8 @@
           $.notify({ icon: 'icon-check', title: `Verification Success`, message: `You may now access your registered account` },
                     { type: 'success', placement: { from: "top", align: "right" },
                     time: 1000});
+          setTimeout(()=>{
+          }, 2000)
         })
         .catch(error => {
             $.notify({ icon: 'icon-exclamation', title: `There was an error on the system!`, message: `${error}` },
@@ -273,6 +277,17 @@
         // username.value = 'justjoe'
         // password.value = 'asdf'
         // confirmPassword.value = 'asdf'
+      })
+    }
+    if (predataRegister) {
+      let username = document.getElementById('floatingUsernameInput')
+      let password = document.getElementById('floatingPasswordInput');
+      let confirmPassword = document.getElementById('floatingRePasswordInput');
+
+      predataRegister.addEventListener('click', function() {
+        username.value = 'justtest'
+        password.value = 'hay1122'
+        confirmPassword.value = 'hay1122'
       })
     }
 </script>

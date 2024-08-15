@@ -28,8 +28,8 @@
     </div>
     <div class="sidebar-wrapper scrollbar scrollbar-inner">
       <div class="sidebar-content">
-        <ul class="nav nav-secondary">
-          <li class="nav-item active">
+        <ul class="nav nav-secondary" data-current-url="<%- path -%>">
+          <li class="nav-item <%- (path == '') ? 'active' : '' -%>">
             <a
               href="/"
               aria-expanded="false"
@@ -44,42 +44,41 @@
             </span>
             <h4 class="text-section">Transactions</h4>
           </li>
-          <li class="nav-item">
+          <li class="nav-item <%- (path == '/transactions') ? 'active' : '' -%>">
             <a href="/transactions">
               <i class="fas fa-clipboard-list"></i>
               <p>Lists</p>
               <!-- <span class="caret"></span> -->
             </a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item <%- (path == '/transactions/new') ? 'active' : '' -%>">
             <a href="/transactions/new">
               <i class="fas fa-plus"></i>
               <p>Add New</p>
               <!-- <span class="caret"></span> -->
             </a>
           </li>
-
           <li class="nav-section">
             <span class="sidebar-mini-icon">
               <i class="fa fa-ellipsis-h"></i>
             </span>
             <h4 class="text-section">Employees</h4>
           </li>
-          <li class="nav-item">
+          <li class="nav-item <%- (path == '/employees') ? 'active' : '' -%>">
             <a href="/employees">
               <i class="fas fa-user-friends"></i>
               <p>Lists</p>
               <!-- <span class="caret"></span> -->
             </a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item <%- (path == '/employees/new') ? 'active' : '' -%>">
             <a href="/employees/new">
               <i class="fas fa-user-plus"></i>
               <p>Add New</p>
               <!-- <span class="caret"></span> -->
             </a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item <%- (path == '/employees/register') ? 'active' : '' -%>">
             <a href="/employees/register">
               <i class="fas fa-user"></i>
               <p>Register</p>

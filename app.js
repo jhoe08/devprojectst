@@ -4,6 +4,7 @@ const socketio = require('socket.io');
 const path = require("path");
 const connection = require("./admin/database");
 const misc = require("./admin/misc")
+const utils = require("./admin/utils")
 const { connect } = require('http2');
 const moment = require('moment');
 const bodyParser = require('body-parser');
@@ -14,7 +15,15 @@ const LocalStrategy = require('passport-local');
 const hash = require('pbkdf2-password')()
 const bcrypt = require('bcrypt')
 const saltRounds = 10
+
+const sampleEmployee = require('./admin/employees.json')
+
+const bcryptjs = require('bcryptjs');
+const jwt = require('jsonwebtoken')
  
+
+const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
+const {hashPasswordUtils, authenticateUserUtils} = utils
 
 const locale = 'en';
 const options = {style: 'currency', currency: 'php', minimumFractionDigits: 2, maximumFractionDigits: 2};
@@ -80,9 +89,10 @@ app.use('/employees', express.static(viewsAssets))
 // ============================================
 app.use(express.urlencoded({ extended: false }))
 app.use(session({
-  secret: 'ayti an angbu',
+  secret: 'unsamansecret-ani-oi',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: { secure: false }  // Set to `true` in production with HTTPS
 }));
 
 app.use(function(req, res, next){
@@ -96,17 +106,10 @@ app.use(function(req, res, next){
   next();
 });
 
-let user = {
-  firstName: 'Just',
-  lastName: 'Joe',
-  fullname: 'Just Joe',
-  email: 'justjoe@gmail.com',
-  type: 8,
-}
 
-let defaultUsers = {
-  justtest: { name: 'justtest' }
-}
+// let defaultUsers = {
+//   justtest: { name: 'justtest' }
+// }
 
 // hash({ password: 'asdfg' }, function (err, pass, salt, hash) {
 
@@ -117,87 +120,106 @@ let defaultUsers = {
   
 //   // console.log(defaultUsers.justtest)
 // });
-
-
-function authenticate(name, pass, done) {
-  console.log('module')
-  if (!module) console.log('authenticating %s:%s', name, pass);
-  var user = defaultUsers[name];
-  // query the db for the given username
-  if (!user) return done(null, null)
-  // apply the same algorithm to the POSTed password, applying
-  // the hash against the pass / salt, if there is a match we
-  // found the user
-  hash({ password: user.pass, salt: user.salt }, function (err, pass, salt, hash) {
-    if (err) return done(err);
-    if (hash === user.hash) return done(null, user)
-    done(null, null)
-  });
-}
+// Verify the password
 
 function restrict(req, res, next) {
-  next()
-  // if (req.session.user) {
-  //   next();
-  // } else {
-  //   req.session.error = 'Access denied!';
-  //   res.redirect('/login');
-  // }
+  if (!req.session.isAuthenticated) {
+    return res.redirect('/login'); // Redirect to login if not authenticated
+  }
+  return next()
 }
 
 app.get('/', restrict, function(req, res){
-  
     res.render('index', {
-      logonUser: user,
+      logonUser: req.session.user,
       title: "Dashboard",
       header: "Some users", 
       path: res.url
     });
-  
 });
 
 app.get('/login', (req, res) => {
-  res.render('pages/login', {
-    title: 'Login'
-  })
+  if (req.session.isAuthenticated) {
+    return res.redirect(302, '/');
+  } else {
+    return res.render('pages/login', {
+      title: 'Login',
+      path: res.url
+    })
+  }
+ 
 });
+// STILL FIXING
+app.post('/login', async (req, res, next) => {
+  try {
+    const {username, password} = req.body
+    let userDetails = await connection.retrieveEmployeeByUsername( username )
 
-app.post('/login', (req, res) => {
-  authenticate(req.body.username, req.body.password, function(err, user){
-    if (err) return next(err)
-    if (user) {
-      // Regenerate session when signing in
-      // to prevent fixation
-      req.session.regenerate(function(){
-        // Store the user's primary key
-        // in the session store to be retrieved,
-        // or in this case the entire user object
-        req.session.user = user;
-        res.redirect('/');
-      });
-    } else {
-      req.session.error = 'Authentication failed, please check your '
-        + ' username and password.';
-      res.redirect('/login');
+    console.log(userDetails)
+
+    if(!userDetails) return res.status(404).json({message:'Account Not Found', response:{}})
+  
+    userDetails = userDetails[0] ? JSON.stringify(userDetails[0]) : JSON.stringify({message: 'Account Not Found'})
+    let user = JSON.parse(userDetails)
+
+    if(!bcrypt.compareSync(password, user.password)) {
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
-  });
+    const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
+    // console.log('token', token)
+
+    req.session.user = user
+    req.session.isAuthenticated = true
+    req.session.token = token
+
+
+    // console.log('req.session')
+    // console.log(req.session)
+
+    res.status(200).redirect('/'); // Only send one response
+
+  } catch (error) {
+    console.error(error);
+    res.status(200).json({ message: 'Internal server error' });
+  }
 })
 
-app.get('/register', restrict, function(req, res){
-  // res.send(req.params)
-  let {username} = req.params
-  let {blood_type, civil_status} = _preDefaultData
+app.post('/login-HUH', async (req, res) => {
+  const {username, password} = req.body
+  let userDetails = await connection.retrieveEmployeeByUsername( username );
+  
+  if(!userDetails) return res.status(200).json({message:'Username wala ni exists', response:{}})
 
-  res.render('pages/register', {
-    title: 'Register User',
-    logonUser: user
+    userDetails = JSON.stringify(userDetails[0])
+    let user = JSON.parse(userDetails)
+    
+    let {hash, salt} = JSON.parse(user.password)
+    console.log(user)
+    console.log('hash', hash)
+    console.log('salt', salt)
+    console.log('pass', password)
+
+    const asdf = await hashPasswordUtils(password)
+    console.log(asdf)
+  
+  let isxMatch =  verifyPasswordCrypto(password, salt, hash, (err, isCorrect) => {
+    if (err) throw err;
+    console.log(`Password is correct: ${isCorrect}`);
+    return isCorrect ? res.redirect('/') : res.redirect('/login')
   })
+
+  return userDetails
+
 })
 
 app.post('/verify', async (req, res) => {
   try {
-    const data = JSON.stringify(req.body)
-    const employees = await connection.retrieveData( 'employees', data );
+    // Convert request body into JSON
+    let data = JSON.stringify(req.body)
+    // Retrieve data accessing the database
+    // console.log(data)
+    const employees = await connection.retrieveEmployee( data );
+    // console.log(employees)
     if (employees.length != 0) {
       res.status(200).json({ message: 'Account found!',  response: employees });
     } else {
@@ -210,19 +232,78 @@ app.post('/verify', async (req, res) => {
   }
 })
 
+app.get('/register', restrict, function(req, res){
+  // res.send(req.params)
+  let {username} = req.params
+  let {blood_type, civil_status} = _preDefaultData
+
+  res.render('pages/register', {
+    title: 'Sign Up',
+    path: res.url
+    // logonUser: user
+  })
+})
+
 app.post('/register', async (req, res) => {
   try {
     let data = JSON.stringify(req.body)
-   
-    const register = await connection.amendData( 'employees', data);
+    let {set, where} = JSON.parse(data)
+
+    delete set.confirmPassword
+
+    // set.password = await hashPasswordUtils(set.password)
+    // set.password = JSON.stringify(set.password)
+
+    set.password = bcrypt.hashSync(set.password, 8);
+
+
+    data = {set, where}
+
+    console.log(data)
+    const register = await connection.amendEmployee(JSON.stringify(data));
 
     if(register.length != 0) {
       res.status(200).json({ message: 'Account is successfully register', response: register})
     } else {
       res.status(200).json({ message: 'Failed to register the account',  response: register });
     }
+    next()
   } catch (error) {
-    console.error('There\'s issue on the System right now:', error);
+    console.error('There\'s issue on the REGISTRATION right now:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.post('/register-HUH', async (req, res) => {
+  try {
+    let data = JSON.stringify(req.body)
+    let {set, where} = JSON.parse(data)
+    let status = false
+    
+    registerUserCrypto(set.password, status = async (err, salt, passwordHash) => {
+      if (err) throw err;
+      console.log(`Stored Salt: ${salt}`);
+      console.log(`Stored PasswordHash: ${passwordHash}`);
+
+      set.password = JSON.stringify({hash:passwordHash, salt})
+      delete set.confirmPassword
+
+      data = { set, where }
+      console.log(data)
+      register = await connection.amendEmployee(JSON.stringify(data));
+
+      // console.log(register)
+      if(register.length != 0) {
+        res.status(200).json({ message: 'Account is successfully register', response: register})
+        return true
+      } else {
+        
+        res.status(200).json({ message: 'Failed to register the account',  response: register });
+        return false
+      }
+    });
+} catch (error) {
+    console.error('There\'s issue on the REGISTRATION right now:', error);
     res.status(500).send('Internal Server Error');
   }
 })
@@ -231,7 +312,7 @@ app.get('/logout', function(req, res){
   // destroy the user's session to log them out
   // will be re-created next request
   req.session.destroy(function(){
-    res.redirect('/');
+    res.redirect('/login');
   });
 });
 
@@ -240,7 +321,7 @@ app.get('/transactions', restrict, async (req, res) => {
   try {
     const transactions = await connection.getTransactions();
       res.render('pages/transactions', { 
-        logonUser: user,
+        logonUser: req.session.user,
         title: 'Transactions',
         transactions: transactions, 
         moment: moment,
@@ -254,11 +335,10 @@ app.get('/transactions', restrict, async (req, res) => {
   }
 })
 
-
 app.get('/transactions/new', restrict, async (req, res) => {
   try {
       res.render('pages/transactions-new', { 
-        logonUser: user,
+        logonUser: req.session.user,
         title: 'Create a new Transactions',
         moment: moment,
         formatter: formatter,
@@ -297,7 +377,7 @@ app.get('/transactions/:id', restrict, async (req, res) => {
 
     const transactions = await connection.getTransactionById(transid);
       res.render('pages/transactions', { 
-        logonUser: user,
+        logonUser: req.session.user,
         title: 'Transactions',
         transactions: transactions, 
         moment: moment,
@@ -317,7 +397,7 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
       res.render('pages/transactions-new', { 
         predata: _preTransactionsData,
 
-        logonUser: user,
+        logonUser: req.session.user,
         title: 'Transactions',
         transactions: transactions[0], 
         moment: moment,
@@ -339,7 +419,7 @@ app.get('/transactions/:id/remarks', restrict, async (req, res) => {
     // console.log(transactions[0])
     // console.log(remarks)
       res.render('pages/transactions-remarks', { 
-        logonUser: user,
+        logonUser: req.session.user,
         title: 'Transactions ${} - Remarks',
         transactions: transactions[0],
         remarks: remarks,
@@ -389,13 +469,15 @@ app.post('/remarks/new', restrict, async (req, res) => {
 })
 
 app.get('/employees', restrict, async (req, res) => {
-  const employees = await connection.retrieveData('employees');
-
+  const employees = await connection.retrieveEmployee();
+  console.log(employees)
   res.render('pages/employees', {
-    logonUser: user,
+    logonUser: req.session.user,
+    sampleEmployee,
     title: 'Employees',
     employees: employees,
-    moment: moment
+    moment: moment,
+    path: res.url
   })
 })
 
@@ -405,16 +487,22 @@ app.get('/employees/new', restrict, function(req, res){
   let {blood_type, civil_status} = _preDefaultData
 
   res.render('pages/employees-new', {
-    logonUser: user,
+    logonUser: req.session.user,
     defaultData: _preDefaultData,
-    title: 'Add Employee'
+    title: 'Add Employee', 
+    path: res.url
   })
 })
 
+app.get('/employees/register', restrict, function(req, res){
+  res.render('pages/employees/register', {
+    logonUser: req.session.user,
+    title: 'Register Employee', 
+    path: res.url
+  })
+})
 
-
-
-app.get('/forms/forms.html', restrict, function (req, res) {
+  app.get('/forms/forms.html', restrict, function (req, res) {
   res.redirect('/demo/forms/forms.html');
 });
 

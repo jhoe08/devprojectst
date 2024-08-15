@@ -1,10 +1,4 @@
-let dangers = document.querySelectorAll('#basic-datatables .form-button-action .btn-danger');
-let views = document.querySelectorAll('#basic-datatables .form-button-action .btn-primary');
-let transcode = document.getElementById('#transcode')
-let createTransactions = document.getElementById('createTransactions')
-let createRemarks = document.getElementById('createRemarks')
-let refreshActivity = document.getElementById('refreshActivity')
-let notifyIcon = ['check', 'close', 'exclamation', 'bell']
+// let notifyIcon = ['check', 'close', 'exclamation', 'bell'];
 
 function isEmpty(value) {
   if (value === undefined || value === null) return true;
@@ -69,6 +63,7 @@ if (exampleModal) {
     // modalBodyInput.value = recipient
   })
 }
+let views = document.querySelectorAll('#basic-datatables .form-button-action .btn-primary');
 
 if (views) {
   views.forEach(view=>{
@@ -81,7 +76,7 @@ if (views) {
     })
 })
 }
-
+let dangers = document.querySelectorAll('#basic-datatables .form-button-action .btn-danger');
 if (dangers) {
   dangers.forEach(danger=>{
     danger.addEventListener('click', ()=>{
@@ -121,13 +116,13 @@ if (dangers) {
   })
   
 }
-
+let transcode = document.getElementById('#transcode')
 if (transcode) {
   transcode.addEventListener('click', function(){
 
   })
 }
-
+let createTransactions = document.getElementById('createTransactions')
 if (createTransactions) {
   let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
   let prClassification = document.querySelector('#prClassification')
@@ -243,7 +238,7 @@ if (createTransactions) {
     }
   });
 }
-
+let createRemarks = document.getElementById('createRemarks')
 if (createRemarks) {
 
   let comment = document.querySelector('#comment')
@@ -340,7 +335,7 @@ if (createRemarks) {
 
   
 }
-
+let refreshActivity = document.getElementById('refreshActivity')
 if (refreshActivity) {
   refreshActivity.addEventListener('click', async () =>{
 

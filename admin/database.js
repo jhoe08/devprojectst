@@ -1,7 +1,9 @@
 // Mysql connection configuration
 let mysql = require('mysql');
 let moment = require('moment')
-const hash = require('pbkdf2-password')()
+const misc = require("./misc")
+
+const { hashPassword, registerUser, loginUser } = misc
 
 let prefix = 'transto'
 
@@ -27,7 +29,7 @@ function isEmpty(value) {
     return false;
   }
 
-module.exports = {
+const databaseUtils = {
     getTransactions: () => new Promise((resolve, reject) => {
         connection.query('SELECT * FROM transid', (error, results) => {
             if (error) {
@@ -133,26 +135,20 @@ module.exports = {
     }),
     // Trapping Injectors
     // { id: 1234 } or { refid: 1234 }
-    retrieveData: (table, filter) => new Promise((resolve, reject) => {
-
-        let query = `SELECT * FROM ${prefix}.${table}`
-        if(filter) {
-            filter = JSON.parse(filter)
-            // let {password} = filter
-
-            // const allSame = password.every(value => value === password[0]);
-            // if(!allSame) {
-            //     return reject('Password is not same')
-            // }
-            // delete filter.username
-            // delete filter.password
-                 
+    retrieveData: (table, filter, where) => new Promise((resolve, reject) => {
+        if(!filter) { filter = '*';}
+        let query = `SELECT ${filter} FROM ${prefix}.${table}`
+        console.log({table, where})
+        if(where) {
             query += " WHERE"
-            query += Object.entries(filter)
-            .map(([key, value]) => ` ${key}='${value}'`)
+            query += Object.entries(where)
+            .map(([key, value]) => {
+                if (value === '' || value === null) return ` ${key} IS NULL`;
+                return ` ${key}='${value}'`
+            })
             .join(' AND');
         }
-
+        console.log(query)
         connection.query(query, (error, results) => {
             if (error) {
                 reject(error)
@@ -161,6 +157,17 @@ module.exports = {
             }
         })
     }),
+    retrieveEmployee: async (data, username) => {
+        if (data) {
+            data = JSON.parse(data)
+            return await databaseUtils.retrieveData('employees', '*', data)
+        }
+        
+        return await databaseUtils.retrieveData('employees')
+    },
+    retrieveEmployeeByUsername: async (username) => {
+        return await databaseUtils.retrieveData('employees', '*', {username})
+    },
     storeData: (table, data) => new Promise((resolve, reject) => {
         
         data = JSON.parse(data )
@@ -178,35 +185,28 @@ module.exports = {
     }),
     amendData: async (table, data) => {
         try {
+            // console.log(table)
+            // console.log(data)
             let { set, where } = JSON.parse(data);
-            delete set.confirmPassword;
-    
-            // Function to handle password hashing
-            const hashPassword = (password) => {
-                return new Promise((resolve, reject) => {
-                    hash({ password }, (err, pass, salt, hash) => {
-                        if (err) reject(err);
-                        else resolve(hash);
-                    });
-                });
-            };
-    
-            // Hash the password and update set object
-            if (set.password) {
-                set.password = await hashPassword(set.password);
-            }
+            // console.log(set)
+            // console.log(where)
+            // delete set.confirmPassword;
+            // let {hash, salt} = set.password
     
             // Construct SQL query
             let query = `UPDATE ${prefix}.${table} SET `;
-            query += Object.entries(set)
-                .map(([key, value]) => `${key}='${value}'`)
-                .join(', ');
-            query += ' WHERE ';
-            query += Object.entries(where)
-                .map(([key, value]) => `${key}='${value}'`)
-                .join(' AND ');
+                query += Object.entries(set)
+                    .map(([key, value]) => `${key}='${value}'`)
+                    .join(', ');
+                query += ' WHERE ';
+                query += Object.entries(where)
+                    .map(([key, value]) => `${key}='${value}'`)
+                    .join(' AND ');
     
-            // Execute the query
+            // console.log('Update')
+            // console.log(query)
+
+            // // Execute the query
             return new Promise((resolve, reject) => {
                 connection.query(query, (error, results) => {
                     if (error) reject(error);
@@ -215,9 +215,56 @@ module.exports = {
             });
     
         } catch (error) {
+            console.log('amendData', error)
             return Promise.reject(error);
         }
     
+    },
+    amendEmployeeError: async (data) => {
+        try {
+            const table = 'employees'
+            let { set, where } = JSON.parse(data);
+            delete set.confirmPassword;
+            
+            data.set.password = JSON.parse({password: set.password})
+
+            console.log(table, data)
+            let query = `SELECT * FROM ${table} `
+            // Execute the query
+            return new Promise((resolve, reject) => {
+                connection.query(query, (error, results) => {
+                    if (error) reject(error);
+                    else resolve(results);
+                });
+            });
+
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    },
+    amendEmployeePending: (data) => new Promise((resolve, reject) => {
+        // console.log(query)
+        data = JSON.parse(data)
+        let {set, where} = data
+        set.password = hashPassword(set.password)
+        console.log(set)
+    }),
+    amendEmployeeObjectObject: async (data) => {
+        data = JSON.parse(data)
+        let {set, where} = data
+        set.password = await hashPassword(set.username, set.password)
+        set.password = JSON.stringify(set.password)
+        // delete set.confirmPassword
+        data = { set, where }
+        
+        
+        const amend = databaseUtils.amendData('employees', set)
+        console.log("amending", set)
+        console.log(amend)
+    },
+    amendEmployee: async (data) =>{
+        console.log(data)
+       return await databaseUtils.amendData('employees', data)
     },
     // Sample
     divisions: (division) => {
@@ -228,5 +275,7 @@ module.exports = {
 
         return colors[color];
     }, 
+}
 
-};
+
+module.exports = databaseUtils
