@@ -1,5 +1,6 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
+<% var {blood_type, civil_status, citizenship, gender } = defaultData %>
 
 <div class="wrapper">
     <%- include('../../views/sidebar') -%>
@@ -16,20 +17,260 @@
                     </div>
                     <div class="ms-md-auto py-2 py-md-0">
                         <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
-                        <a href="#" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Register New Employee</a>
+                        <!-- <a href="#" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Register New Employee</a> -->
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <div class="card">
                           <div class="card-header">
                             <h4 class="card-title">Employee Information</h4>
                           </div>
                           <div class="card-body">
-                            
+                            <div class="form-group">
+                                <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                    <label>First Name</label>
+                                    <input
+                                        id="firstname"
+                                        name="firstname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Juan"
+                                        autocomplete="none"
+                                    />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                    <label>Last Name</label>
+                                    <input
+                                        id="lastname"
+                                        name="lastname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Tamad"
+                                        autocomplete="none"
+                                    />
+                                    </div>
+                                </div>
+                                </div>
+                                <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                    <label>Middle Name</label>
+                                    <input
+                                        id="middlename"
+                                        name="middlename"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Cruz"
+                                        autocomplete="none"
+                                    />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                    <label>Date of Birth</label>
+                                    <input
+                                        id="dob"
+                                        name="dob"
+                                        type="date"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                    />
+                                    </div>
+                                </div>
+                                </div>
+                                
+                                <label class="form-label">Name Extension</label>
+                                <div class="selectgroup w-100">
+                                <label class="selectgroup-item">
+                                    <input
+                                    type="radio"
+                                    name="nameExtension[]"
+                                    value=""
+                                    class="selectgroup-input"
+                                    checked="true"
+                                    />
+                                    <span class="selectgroup-button">N/A</span>
+                                </label>
+                                <label class="selectgroup-item">
+                                    <input
+                                    type="radio"
+                                    name="nameExtension[]"
+                                    value="JR"
+                                    class="selectgroup-input"
+                                    />
+                                    <span class="selectgroup-button">JR</span>
+                                </label>
+                                <label class="selectgroup-item">
+                                    <input
+                                    type="radio"
+                                    name="nameExtension[]"
+                                    value="Sr"
+                                    class="selectgroup-input"
+                                    />
+                                    <span class="selectgroup-button">SR</span>
+                                </label>
+                                <label class="selectgroup-item">
+                                    <input
+                                    type="radio"
+                                    name="nameExtension[]"
+                                    value="I"
+                                    class="selectgroup-input"
+                                    />
+                                    <span class="selectgroup-button">I</span>
+                                </label>
+                                <label class="selectgroup-item">
+                                    <input
+                                    type="radio"
+                                    name="nameExtension[]"
+                                    value="II"
+                                    class="selectgroup-input"
+                                    />
+                                    <span class="selectgroup-button">II</span>
+                                </label>
+                                <label class="selectgroup-item">
+                                    <input
+                                    type="radio"
+                                    name="nameExtension[]"
+                                    value="III"
+                                    class="selectgroup-input"
+                                    />
+                                    <span class="selectgroup-button">III</span>
+                                </label>
+                                <label class="selectgroup-item">
+                                    <input
+                                    type="radio"
+                                    name="nameExtension[]"
+                                    value="IV"
+                                    class="selectgroup-input"
+                                    />
+                                    <span class="selectgroup-button">IV</span>
+                                </label>
+                                </div>
+                                <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group-default">
+                                    <label>Gender</label>
+                                    <select
+                                        class="form-select"
+                                        id="gender"
+                                        name="gender"
+                                        >
+                                        <% gender.forEach(status=> { %><option value="<%= status %>"><%= status %></option><% }); %>
+                                    </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-default">
+                                    <label>Civil Status</label>
+                                    <select
+                                        class="form-select"
+                                        id="civilstatus"
+                                        name="civilstatus"
+                                    >
+                                    <% civil_status.forEach(status=> { %>
+                                        <option value="<%= status %>"><%= status %></option>
+                                        <% }); %>
+                                    </select>
+                                    </div>
+                                </div>
+                                </div>
+                    
+                                <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group form-group-default">
+                                    <label>Office</label>
+                                    <input
+                                        id="companyname"
+                                        name="companyname"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="DA RFO7"
+                                        autocomplete="none"
+                                    />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                    <label>Position</label>
+                                    <input
+                                        id="position"
+                                        name="position"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                    />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                    <label>Employment</label>
+                                    <select
+                                        class="form-select"
+                                        id="employment"
+                                        name="employment"
+                                        >
+                                        <% var {appointments} = defaultData
+                                        appointments.forEach(appointment=> { %>
+                                        <option value="<%= appointment.type %>"><%= appointment.type %></option>
+                                        <% }); %>
+                                    </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                    <label>Salary</label>
+                                    <input
+                                        id="salary"
+                                        name="salary"
+                                        type="number"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                    />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group form-group-default">
+                                    <label>Date Started</label>
+                                    <input
+                                        id="startdate"
+                                        type="date"
+                                        class="form-control"
+                                        placeholder=""
+                                        autocomplete="none"
+                                    />
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                          </div>
+                          <div class="card-action">
+                            <button id="btnSubmit" class="btn btn-success">Submit</button>
+                            <button class="btn btn-danger">Cancel</button>
                           </div>
                         </div>
-                      </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="d-flex align-items-center">
+                                    <h4 class="card-title">Employees List</h4>
+                                </div>
+                            </div>
+                          <div class="card-body">
+                            <div class="col-md-12">
+                                
+                            </div>
+                          </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -37,5 +278,8 @@
     </div>
 </div>
 
+<!-- Script -->
+<script>
+</script>
 <!-- Header Template -->
 <%- include('../../views/footer') -%>

@@ -77,9 +77,6 @@ const databaseUtils = {
             }
         })
     }),
-    postEmployees: (data) => new Promise((resolve, reject) => {
-
-    }),
     putTransactions: (data) => new Promise((resolve, reject) => {
         
     }),
@@ -178,11 +175,20 @@ const databaseUtils = {
         let query = `INSERT INTO ${table} (`
         query += (keys.join(', ', keys));
         query += ") VALUES (";
-        query += '"' + (values.join('", "', values)) +'"';
+        // query += '"' + (values.join('", "', values)) +'"';
+        query += `'${values.join("', '", values)}'`
         query += ");";
 
         console.log(query)
+        connection.query(query, (error, results) => {
+            if (error) {
+                reject(error)
+            } else {
+                resolve(results)
+            }
+        })
     }),
+    // Update data
     amendData: async (table, data) => {
         try {
             // console.log(table)
@@ -263,8 +269,12 @@ const databaseUtils = {
         console.log(amend)
     },
     amendEmployee: async (data) =>{
-        console.log(data)
+        // console.log(data)
        return await databaseUtils.amendData('employees', data)
+    },
+    postEmployees: async (data) => {
+        return await databaseUtils.storeData('employees', data)
+        // return await databaseUtils.amendData('employees', data)
     },
     // Sample
     divisions: (division) => {

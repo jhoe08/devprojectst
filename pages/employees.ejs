@@ -1,6 +1,6 @@
 <!-- Header Template -->
 <%- include('../views/header') -%>
-
+<% var {blood_type, civil_status, citizenship, gender} = defaultData %>
 <div class="wrapper">
     <%- include('../views/sidebar') -%>
 
@@ -16,7 +16,7 @@
                     </div>
                     <div class="ms-md-auto py-2 py-md-0">
                         <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
-                        <a href="#" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Add New</a>
+                        <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#addEmployeeModal"><i class="fas fa-plus"></i> Add New</a>
                     </div>
                 </div>
                 <div class="row">
@@ -62,23 +62,21 @@
                                       let preUsers = employees
                                       preUsers.forEach(function(user){ 
                                       var {firstname, lastname, middlename, birthdate, experience, username, password} = user 
-                                      var { list } = experience ? JSON.parse(experience) : {}
+                                      var { lists } = experience ? JSON.parse(experience) : {}
                                       
-                                      if (list) {
-                                        var { office, salary, status, enddate, position, startdate, employment, arrangements } = list[0];
+                                      if (lists) {
+                                        var { office, salary, status, enddate, position, startdate, employment, arrangements } = lists[0];
                                       }
                                       
                                       var today = moment()
                                       var age = today.diff(birthdate, 'years')
-
-                                      console.log(list)
                                   %>
                                     <tr>
                                       <td data-column="name"><%= [firstname, lastname].filter(Boolean).join(' ') %></td>
                                       <td data-column="position"><%= position || '-' %></td>
                                       <td data-column="office"><%= office || '-' %></td>
                                       <td data-column="age"><%- age %></td>
-                                      <td data-column="startdate"><%= startdate || '-' %></td>
+                                      <td data-column="startdate"><%= moment(startdate).format('LL') || '-' %></td>
                                       <td data-column="salary"><%= salary || '-' %></td>
                                       <td data-column="username">username</td>
                                       <td data-column="password">password</td>
@@ -100,6 +98,400 @@
 
     </div>
 </div>
+<!-- Transaction Modal -->
+<div class="modal modal-lg fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+      <div class="modal-header">
+          <h1 class="modal-title fs-5" id="addEmployeeLabel">Employee Details</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group form-group-default">
+                <label>First Name</label>
+                <input
+                  id="firstname"
+                  name="firstname"
+                  type="text"
+                  class="form-control"
+                  placeholder="Juan"
+                  autocomplete="none"
+                />
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group form-group-default">
+                <label>Last Name</label>
+                <input
+                  id="lastname"
+                  name="lastname"
+                  type="text"
+                  class="form-control"
+                  placeholder="Tamad"
+                  autocomplete="none"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group form-group-default">
+                <label>Middle Name</label>
+                <input
+                  id="middlename"
+                  name="middlename"
+                  type="text"
+                  class="form-control"
+                  placeholder="Cruz"
+                  autocomplete="none"
+                />
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group form-group-default">
+                <label>Date of Birth</label>
+                <input
+                  id="dob"
+                  name="dob"
+                  type="date"
+                  class="form-control"
+                  placeholder=""
+                  autocomplete="none"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <label class="form-label">Name Extension</label>
+          <div class="selectgroup w-100">
+            <label class="selectgroup-item">
+              <input
+              type="radio"
+              name="nameExtension[]"
+              value=""
+              class="selectgroup-input"
+              checked="true"
+              />
+              <span class="selectgroup-button">N/A</span>
+            </label>
+            <label class="selectgroup-item">
+                <input
+                type="radio"
+                name="nameExtension[]"
+                value="JR"
+                class="selectgroup-input"
+                />
+                <span class="selectgroup-button">JR</span>
+            </label>
+            <label class="selectgroup-item">
+                <input
+                type="radio"
+                name="nameExtension[]"
+                value="Sr"
+                class="selectgroup-input"
+                />
+                <span class="selectgroup-button">SR</span>
+            </label>
+            <label class="selectgroup-item">
+                <input
+                type="radio"
+                name="nameExtension[]"
+                value="I"
+                class="selectgroup-input"
+                />
+                <span class="selectgroup-button">I</span>
+            </label>
+            <label class="selectgroup-item">
+                <input
+                type="radio"
+                name="nameExtension[]"
+                value="II"
+                class="selectgroup-input"
+                />
+                <span class="selectgroup-button">II</span>
+            </label>
+            <label class="selectgroup-item">
+                <input
+                type="radio"
+                name="nameExtension[]"
+                value="III"
+                class="selectgroup-input"
+                />
+                <span class="selectgroup-button">III</span>
+            </label>
+            <label class="selectgroup-item">
+                <input
+                type="radio"
+                name="nameExtension[]"
+                value="IV"
+                class="selectgroup-input"
+                />
+                <span class="selectgroup-button">IV</span>
+            </label>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group-default">
+                <label>Gender</label>
+                <select
+                    class="form-select"
+                    id="gender"
+                    name="gender"
+                  >
+                  <% gender.forEach(status=> { %><option value="<%= status %>"><%= status %></option><% }); %>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group-default">
+                <label>Civil Status</label>
+                <select
+                  class="form-select"
+                  id="civilstatus"
+                  name="civilstatus"
+                >
+                <% civil_status.forEach(status=> { %>
+                  <option value="<%= status %>"><%= status %></option>
+                  <% }); %>
+                </select>
+              </div>
+            </div>
+          </div>
 
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group form-group-default">
+                <label>Office</label>
+                <input
+                  id="companyname"
+                  name="companyname"
+                  type="text"
+                  class="form-control"
+                  placeholder="DA RFO7"
+                  autocomplete="none"
+                />
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group form-group-default">
+                <label>Employee ID</label>
+                <input
+                  id="employeeid"
+                  name="employeeid"
+                  type="number"
+                  class="form-control"
+                  placeholder=""
+                  autocomplete="none"
+                />
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group form-group-default">
+                <label>Division</label>
+                <input
+                  id="division"
+                  name="division"
+                  type="text"
+                  class="form-control"
+                  placeholder=""
+                  autocomplete="none"
+                />
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group form-group-default">
+                <label>Position</label>
+                <input
+                  id="position"
+                  name="position"
+                  type="text"
+                  class="form-control"
+                  placeholder=""
+                  autocomplete="none"
+                />
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group form-group-default">
+                <label>Employment</label>
+                <select
+                    class="form-select"
+                    id="employment"
+                    name="employment"
+                  >
+                  <% var {appointments} = defaultData
+                  appointments.forEach(appointment=> { %>
+                  <option value="<%= appointment.type %>"><%= appointment.type %></option>
+                  <% }); %>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group form-group-default">
+                <label>Salary</label>
+                <input
+                  id="salary"
+                  name="salary"
+                  type="number"
+                  class="form-control"
+                  placeholder=""
+                  autocomplete="none"
+                />
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group form-group-default">
+                <label>Date Started</label>
+                <input
+                  id="startdate"
+                  type="date"
+                  class="form-control"
+                  placeholder=""
+                  autocomplete="none"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+          <a href="#" type="button" class="btn button btn-link" id="predataRegisterEmployee"><i class="icon-user-follow"></i> Register</a>
+          <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal"><i class="icon-close"></i> Close</button>
+          <a href="#" type="submit" class="btn button btn-primary" id="registerEmployee"><i class="icon-user-follow"></i> Register</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Script -->
+<script>
+  const registerEmployee = document.querySelector('#addEmployeeModal #registerEmployee')
+  const fields = document.querySelectorAll('#addEmployeeModal input, #addEmployeeModal select')
+  const predataRegisterEmployee = document.querySelector('#addEmployeeModal #predataRegisterEmployee')
+
+  let fieldsValue = []
+
+  if (predataRegisterEmployee) {
+    predataRegisterEmployee.addEventListener('click', function(){
+      fields.forEach(field =>{
+        // console.dir(field)
+        if(field.localName == 'input' && field.type == 'text') {
+          field.value = field.id
+        } 
+        if(field.localName == 'input' && field.type == 'number') {
+          field.value = 888
+        } 
+        if(field.localName == 'input' && field.type == 'date') {
+          field.value = '1993/10/08'
+        } 
+        if(field.localName == 'input' && field.type == 'radio' && field.value == 'III') {
+          field.checked = true
+        } 
+        if (field.localName == 'select') {
+          field.value = "Other's" || "Contract of Service (COS)"
+        }
+      })
+    })
+  }
+  if (registerEmployee) {
+    const apiUrl = '/register/new';
+
+    const employeeid = document.getElementById('employeeid')
+    const firstname = document.getElementById('firstname')
+    const lastname = document.getElementById('lastname')
+    const middlename = document.getElementById('middlename')
+    const dob = document.getElementById('dob')
+    const gender = document.getElementById('gender')
+    const civilstatus = document.getElementById('civilstatus')
+    const companyname = document.getElementById('companyname')
+    const position = document.getElementById('position')
+    const salary = document.getElementById('salary')
+    const employment = document.getElementById('employment')
+    const startdate = document.getElementById('startdate')
+
+    registerEmployee.addEventListener('click', function(){
+      const data = {
+        employeeid: employeeid.value,
+        firstname: firstname.value,
+        middlename: middlename.value,
+        lastname: lastname.value,
+        birthdate: dob.value,
+        experience: {
+          lists: [{
+            office: companyname.value,
+            salary: salary.value,
+            status: true,
+            enddate: 'present',
+            position: position.value,
+            startdate: startdate.value,
+            employment: employment.value,
+            arrangements: 'On-site'
+          }],
+        }
+      }
+
+      let {experience} = data
+      experience = JSON.stringify(experience)
+      data.experience = experience
+
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      };
+      fetch(apiUrl, requestOptions)
+      .then(response => {
+        if (!response.ok) {
+          // throw new Error('Network response was not ok');
+          $.notify({
+            icon: 'icon-bell',
+            title: `Hello, ${greetings} Joe!`,
+            message: 'Network response was not ok!',
+          },{
+            type: 'danger',
+            placement: {
+              from: "top",
+              align: "right"
+            },
+            time: 1000,
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if(!data) {
+          $.notify({ icon: 'icon-bell', title: `Error`, message: `Failed to create the Transaction` },
+                  { type: 'danger', placement: { from: "top", align: "right" },
+                  time: 1000});
+        }
+
+        let {message, response } = data
+        let {insertId} = response
+        
+        $.notify({
+          icon: 'icon-bell',
+          title: `${message}`,
+          message: `Transaction ID#${insertId}`,
+        },{
+          type: 'success',
+          placement: {
+            from: "top",
+            align: "right"
+          },
+          time: 1000,
+        });
+      })
+      .catch(error => {
+        $.notify({ icon: 'icon-bell', title: `There was an error on the system!`, message: error },
+          { type: 'danger', placement: { from: "top", align: "right" },
+          time: 1000});
+      });
+    })
+  }
+</script>
 <!-- Header Template -->
 <%- include('../views/footer') -%>

@@ -36,7 +36,51 @@ const _preDefaultData = {
     blood_type: ['N/A','O+','O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
     civil_status: ['Single', 'Married', 'Widowed', 'Separated', 'Other\'s'],
     citizenship: ['Filipino', 'Other\'s'],
-    gender: ['N/A', 'Male', 'Female', 'Other\'s']
+    gender: ['N/A', 'Male', 'Female', 'Other\'s'],
+    appointments: [
+        {
+            type: "Permanent",
+            description: "A permanent appointment provides job security and stability, typically granted after a competitive selection process. Requires civil service eligibility.",
+            benefits: "Includes tenure security, eligibility for promotion, and various benefits and allowances.",
+            requirements: "Must have passed civil service examinations or have other required qualifications."
+        },
+        {
+            type: "Temporary",
+            description: "Issued for a limited period to address immediate needs or fill in for regular employees who are absent. Does not offer the same level of job security as permanent appointments.",
+            benefits: "Limited benefits compared to permanent positions.",
+            requirements: "Less stringent than permanent appointments, but must meet basic qualifications and competencies."
+        },
+        {
+            type: "Casual",
+            description: "Used for short-term employment to address specific needs or projects. Typically for positions that do not require regular, long-term staffing.",
+            benefits: "Minimal benefits and less job security.",
+            requirements: "Often does not require civil service eligibility; qualifications may be less stringent."
+        },
+        {
+            type: "Contractual",
+            description: "Used for specific projects or time-bound tasks based on a contract that outlines the terms of employment, including duration, duties, and compensation.",
+            benefits: "Benefits and security are determined by contract terms, often with limited benefits compared to permanent positions.",
+            requirements: "Must fulfill contract terms and may vary depending on the project or task."
+        },
+        {
+            type: "Exempt",
+            description: "Positions exempt from certain civil service regulations or examinations due to the specialized nature of the work or the level of the position.",
+            benefits: "Varies depending on the position; can include higher compensation but potentially less job security.",
+            requirements: "Specific to the position, involving specialized skills or qualifications not covered by standard civil service rules."
+        },
+        {
+            type: "Job Order (JO)",
+            description: "Employs individuals on a 'per-job' or 'per-task' basis, often for routine or support functions. Employment is typically short-term or based on specific needs.",
+            benefits: "Usually minimal benefits and compensation based on completed jobs or tasks.",
+            requirements: "Qualifications are outlined in the job order itself; often does not require civil service eligibility."
+        },
+        {
+            type: "Contract of Service (COS)",
+            description: "Engages individuals to perform specific tasks or projects under a defined contract. Often used for specialized, temporary, or project-based roles.",
+            benefits: "Compensation and benefits are specified in the contract, typically with fewer benefits compared to permanent positions.",
+            requirements: "Specific to the tasks or projects and may not require civil service eligibility."
+        }    
+    ]
 }
 
 const _preTransactionsData = {
@@ -44,8 +88,6 @@ const _preTransactionsData = {
   banner_program: ['Corn','GASS','HVCDP','Livestock','NUPAP','Organic','Rice','SAAD','STO', 'Others'],
   bac_unit : ['BAC 1', 'BAC 2', 'Others'],
   divisions: ["ADMIN", "AMAD", "FOD", "Field Operations", "ILD", "PMED", "RAED", "REGULATORY", "RESEARCH","Others"]
-  
-
 }
 
 let transid = []
@@ -124,10 +166,22 @@ app.use(function(req, res, next){
 
 function restrict(req, res, next) {
   if (!req.session.isAuthenticated) {
-    return res.redirect('/login'); // Redirect to login if not authenticated
+    // return res.redirect('/login'); // Redirect to login if not authenticated
   }
   return next()
 }
+
+// app.route('/')
+//   .all(restrict)
+//   .get(async (req, res) =>{
+//     res.render('index', {
+//       logonUser: req.session.user,
+//       predata:  _preDefaultData,
+//       title: "Dashboard",
+//       header: "Some users", 
+//       path: res.url
+//     });
+//   })
 
 app.get('/', restrict, function(req, res){
     res.render('index', {
@@ -274,36 +328,17 @@ app.post('/register', async (req, res) => {
   }
 })
 
-app.post('/register-HUH', async (req, res) => {
+app.post('/register/new', async (req, res) => {
   try {
     let data = JSON.stringify(req.body)
-    let {set, where} = JSON.parse(data)
-    let status = false
-    
-    registerUserCrypto(set.password, status = async (err, salt, passwordHash) => {
-      if (err) throw err;
-      console.log(`Stored Salt: ${salt}`);
-      console.log(`Stored PasswordHash: ${passwordHash}`);
-
-      set.password = JSON.stringify({hash:passwordHash, salt})
-      delete set.confirmPassword
-
-      data = { set, where }
-      console.log(data)
-      register = await connection.amendEmployee(JSON.stringify(data));
-
-      // console.log(register)
-      if(register.length != 0) {
-        res.status(200).json({ message: 'Account is successfully register', response: register})
-        return true
-      } else {
-        
-        res.status(200).json({ message: 'Failed to register the account',  response: register });
-        return false
-      }
-    });
-} catch (error) {
-    console.error('There\'s issue on the REGISTRATION right now:', error);
+    const register = await connection.postEmployees(data)
+    if(register.length != 0) {
+      res.status(200).json({ message: 'Account is successfully register', response: register})
+    } else {
+      res.status(200).json({ message: 'Failed to register the account',  response: register });
+    }
+  } catch (error) {
+    console.error('There\'s issue on the system right now:', error);
     res.status(500).send('Internal Server Error');
   }
 })
@@ -473,6 +508,7 @@ app.get('/employees', restrict, async (req, res) => {
   console.log(employees)
   res.render('pages/employees', {
     logonUser: req.session.user,
+    defaultData: _preDefaultData,
     sampleEmployee,
     title: 'Employees',
     employees: employees,
@@ -482,10 +518,6 @@ app.get('/employees', restrict, async (req, res) => {
 })
 
 app.get('/employees/new', restrict, function(req, res){
-  // res.send(req.params)
-  let {path} = req.params
-  let {blood_type, civil_status} = _preDefaultData
-
   res.render('pages/employees-new', {
     logonUser: req.session.user,
     defaultData: _preDefaultData,
@@ -496,50 +528,23 @@ app.get('/employees/new', restrict, function(req, res){
 
 app.get('/employees/register', restrict, function(req, res){
   res.render('pages/employees/register', {
+    defaultData: _preDefaultData,
     logonUser: req.session.user,
-    title: 'Register Employee', 
+    title: 'Register Employee',
     path: res.url
   })
 })
 
+  app.route('/api/employees')
+  .all(restrict)
+  .get(async (req, res) =>{
+    const employees = await connection.retrieveEmployee();
+    if(employees) return  res.status(200).json({response: employees})
+    return res.status(400).json({response: 'No Record is Found!'})
+  })
   app.get('/forms/forms.html', restrict, function (req, res) {
   res.redirect('/demo/forms/forms.html');
 });
-
-// Passport configuration
-// passport.use(new LocalStrategy( function (username, password, done) {
-//   console.log('Attempting to authenticate user:', username);
-
-//   const user = defaultUsers.find(user => user.username === username);
-//   // if (!user) {
-//   //   return done(null, false, { message: 'Incorrect username.' });
-//   // }
-//   // if (user.password !== password) {
-//   //   return done(null, false, { message: 'Incorrect password.' });
-//   // }
-//   // return done(null, user);
-
-//   crypto.pbkdf2(password, user.salt, 310000, 32, 'sha256', function(err, hashedPassword) {
-//     if (err) { return cb(err); }
-//     if (!crypto.timingSafeEqual(user.hashed_password, hashedPassword)) {
-//       return done(null, false, { message: 'Incorrect username or password.' });
-//     }
-//     return done(null, user);
-//   });
-// }
-// ));
-
-// passport.serializeUser((user, done) => {
-//   done(null, user.id);
-// });
-
-// passport.deserializeUser((id, done) => {
-//   const user = defaultUsers.find(user => user.id === id);
-//   done(null, user);
-// });
-// ============================================
-// endof login
-// ============================================
 
 const server = http.createServer(app);
 const io = socketio(server);
