@@ -1,11 +1,11 @@
 <!-- Header Template -->
-<%- include('../views/header') -%>
+<%- include('../../views/header') -%>
 
 <div class="wrapper">
-    <%- include('../views/sidebar') -%>
+    <%- include('../../views/sidebar') -%>
 
     <div class="main-panel">
-      <%- include('../views/main-header') -%>
+      <%- include('../../views/main-header') -%>
 
       <div class="container" >
           <div class="page-inner">
@@ -32,33 +32,45 @@
                             class="display table table-striped table-hover"
                           >
                             <thead>
-                              <tr>
+                              <tr class="text-uppercase">
                                 <th>ID</th>
                                 <th>Notice Title</th>
                                 <th>Requistioner</th>
                                 <th>Division</th>
                                 <th>Date</th>
                                 <th>Budget</th>
+                                <th>Fund Sources</th>
+                                <th>Codes</th>
+                                <th>Banner</th>
+                                <th>Classification</th>
+                                <th>Unit</th>
                                 <th>Action</th>
                               </tr>
                             </thead>
                             <tfoot>
-                              <tr>
+                              <tr class="text-uppercase">
                                 <th>ID</th>
                                 <th>Notice Title</th>
                                 <th>Requistioner</th>
                                 <th>Division</th>
                                 <th>Date</th>
                                 <th>Budget</th>
+                                <th>Fund Sources</th>
+                                <th>Codes</th>
+                                <th>Banner</th>
+                                <th>Classification</th>
+                                <th>Unit</th>
                                 <th>Action</th>
                               </tr>
                             </tfoot>
                             <tbody>
                               <% 
                                 for(var i=0; i < transactions.length; i++) { 
-                                  var {pr_date, approved_budget, product_id, pr_classification, banner_program, bid_notice_title, requisitioner, division } = transactions[i]
+                                  var {pr_date, approved_budget, product_id, pr_classification, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code } = transactions[i]
                                   
-                                  date = moment(pr_date).format('MMM Do YYYY')
+                                  <!-- date = moment(pr_date).format('Do MMM YYYY') -->
+                                  <!-- date = moment(pr_date).format('x') -->
+                                  date = moment(pr_date).format('L')
                                  
                                   var budget = approved_budget
                                   var cleanBudget = budget.replace(/,/g, '');
@@ -67,19 +79,18 @@
                               %>
                                
                                 <tr>
-                                  <td><%= product_id %></td>
-                                  <td>
-                                    <div>
-                                      <span class="badge badge-count"><%= pr_classification %></span>
-                                      <span class="badge badge-secondary"><%= banner_program %></span>
-                                    </div>
-                                    <div class="mb-0"><%= bid_notice_title %></div>
-                                  </td>
-                                  <td><%= requisitioner %></td>
-                                  <td><%= division %></td>
-                                  <td><%= date %></td>
-                                  <td data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>"><%= budget %></td>
-                                  <td>
+                                  <td data-head="Product ID"><%= product_id %></td>
+                                  <td data-head="Notice Title"><%= bid_notice_title %></td>
+                                  <td data-head="Requistioner"><%= requisitioner %></td>
+                                  <td data-head="Division"><%= division %></td>
+                                  <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>"><%= date %></td>
+                                  <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>"><%= budget %></td>
+                                  <td data-head="Fund Sources"><%= fund_source %></td>
+                                  <td data-head="Codes"><%= trans_code %></td>
+                                  <td data-head="Banner"><%= banner_program %></td>
+                                  <td data-head="Classification"><%= pr_classification %></th>
+                                  <td data-head="BAC"><%= bac_unit %></td>
+                                  <td data-head="Actions">
                                     <div class="form-button-action" data-transid="<%= product_id %>" data-transaction="<%= JSON.stringify(transactions[i]) %>">
                                       <button data-transid="<%= product_id %>" type="button" class="btn btn-link  btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="<%= product_id %>" data-original-title="Edit Task">
                                         <i class="fa fa-eye"></i>
@@ -105,9 +116,8 @@
       </div>
 
     </div>
-    <%- include('../views/settings') -%>
+    <%- include('../../views/settings') -%>
 </div>
-
 <!-- Transaction Modal -->
 <div class="modal modal-lg fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -149,4 +159,4 @@
   </div>
 </div>
 <!-- Footer Template -->
-<%- include('../views/footer') -%>
+<%- include('../../views/footer') -%>

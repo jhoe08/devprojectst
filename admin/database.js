@@ -48,6 +48,11 @@ const databaseUtils = {
             }
         });
     }),
+    getEmployeeById: (id) => new Promise((resolve, reject) => {
+        connection.query(`SELECT * FROM employees WHERE employeeid=${id}`, (error, results) => {
+            error ? reject(error) : resolve(results);
+        })
+    }),
     postTransactions: (data) => new Promise((resolve, reject) => {
         // console.log(data)
         let {bid_notice_title, pr_classification, requisitioner, division, approved_budget, banner_program, bac_unit, fund_source, remarks} = JSON.parse(data)
@@ -191,14 +196,7 @@ const databaseUtils = {
     // Update data
     amendData: async (table, data) => {
         try {
-            // console.log(table)
-            // console.log(data)
             let { set, where } = JSON.parse(data);
-            // console.log(set)
-            // console.log(where)
-            // delete set.confirmPassword;
-            // let {hash, salt} = set.password
-    
             // Construct SQL query
             let query = `UPDATE ${prefix}.${table} SET `;
                 query += Object.entries(set)
@@ -209,10 +207,7 @@ const databaseUtils = {
                     .map(([key, value]) => `${key}='${value}'`)
                     .join(' AND ');
     
-            // console.log('Update')
-            // console.log(query)
-
-            // // Execute the query
+            // Execute the query
             return new Promise((resolve, reject) => {
                 connection.query(query, (error, results) => {
                     if (error) reject(error);
@@ -226,55 +221,54 @@ const databaseUtils = {
         }
     
     },
-    amendEmployeeError: async (data) => {
-        try {
-            const table = 'employees'
-            let { set, where } = JSON.parse(data);
-            delete set.confirmPassword;
+    // amendEmployeeError: async (data) => {
+    //     try {
+    //         const table = 'employees'
+    //         let { set, where } = JSON.parse(data);
+    //         delete set.confirmPassword;
             
-            data.set.password = JSON.parse({password: set.password})
+    //         data.set.password = JSON.parse({password: set.password})
 
-            console.log(table, data)
-            let query = `SELECT * FROM ${table} `
-            // Execute the query
-            return new Promise((resolve, reject) => {
-                connection.query(query, (error, results) => {
-                    if (error) reject(error);
-                    else resolve(results);
-                });
-            });
+    //         console.log(table, data)
+    //         let query = `SELECT * FROM ${table} `
+    //         // Execute the query
+    //         return new Promise((resolve, reject) => {
+    //             connection.query(query, (error, results) => {
+    //                 if (error) reject(error);
+    //                 else resolve(results);
+    //             });
+    //         });
 
-        } catch (error) {
-            return Promise.reject(error);
-        }
-    },
-    amendEmployeePending: (data) => new Promise((resolve, reject) => {
-        // console.log(query)
-        data = JSON.parse(data)
-        let {set, where} = data
-        set.password = hashPassword(set.password)
-        console.log(set)
-    }),
-    amendEmployeeObjectObject: async (data) => {
-        data = JSON.parse(data)
-        let {set, where} = data
-        set.password = await hashPassword(set.username, set.password)
-        set.password = JSON.stringify(set.password)
-        // delete set.confirmPassword
-        data = { set, where }
+    //     } catch (error) {
+    //         return Promise.reject(error);
+    //     }
+    // },
+    // amendEmployeePending: (data) => new Promise((resolve, reject) => {
+    //     // console.log(query)
+    //     data = JSON.parse(data)
+    //     let {set, where} = data
+    //     set.password = hashPassword(set.password)
+    //     console.log(set)
+    // }),
+    // amendEmployeeObjectObject: async (data) => {
+    //     data = JSON.parse(data)
+    //     let {set, where} = data
+    //     set.password = await hashPassword(set.username, set.password)
+    //     set.password = JSON.stringify(set.password)
+    //     // delete set.confirmPassword
+    //     data = { set, where }
         
         
-        const amend = databaseUtils.amendData('employees', set)
-        console.log("amending", set)
-        console.log(amend)
-    },
+    //     const amend = databaseUtils.amendData('employees', set)
+    //     console.log("amending", set)
+    //     console.log(amend)
+    // },
     amendEmployee: async (data) =>{
-        // console.log(data)
-       return await databaseUtils.amendData('employees', data)
+        return await databaseUtils.amendData('employees', data)
     },
+    // store
     postEmployees: async (data) => {
         return await databaseUtils.storeData('employees', data)
-        // return await databaseUtils.amendData('employees', data)
     },
     // Sample
     divisions: (division) => {

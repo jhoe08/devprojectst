@@ -2,6 +2,7 @@ const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
 const path = require("path");
+const fetch = require('node-fetch');
 const connection = require("./admin/database");
 const misc = require("./admin/misc")
 const utils = require("./admin/utils")
@@ -170,7 +171,9 @@ function restrict(req, res, next) {
   }
   return next()
 }
+function pageStatus(req, res, next) {
 
+}
 // app.route('/')
 //   .all(restrict)
 //   .get(async (req, res) =>{
@@ -190,6 +193,10 @@ app.get('/', restrict, function(req, res){
       header: "Some users", 
       path: res.url
     });
+});
+
+app.get('/404', (req, res) => {
+  res.status(404).render('pages/404');
 });
 
 app.get('/login', (req, res) => {
@@ -298,7 +305,7 @@ app.get('/register', restrict, function(req, res){
   })
 })
 
-app.post('/register', async (req, res) => {
+app.post('/register', async (req, res, next) => {
   try {
     let data = JSON.stringify(req.body)
     let {set, where} = JSON.parse(data)
@@ -355,7 +362,7 @@ app.get('/transactions', restrict, async (req, res) => {
   console.log(req.url)
   try {
     const transactions = await connection.getTransactions();
-      res.render('pages/transactions', { 
+      res.render('pages/transactions/index', { 
         logonUser: req.session.user,
         title: 'Transactions',
         transactions: transactions, 
@@ -450,20 +457,25 @@ app.get('/transactions/:id/remarks', restrict, async (req, res) => {
 
     const transactions = await connection.getTransactionById(transid);
     const remarks = await connection.getRemarksByRefid(transid)
-
-    // console.log(transactions[0])
-    // console.log(remarks)
+    if(transactions[0]) {
       res.render('pages/transactions-remarks', { 
         logonUser: req.session.user,
-        title: 'Transactions ${} - Remarks',
+        title: 'Transactions: Remarks',
         transactions: transactions[0],
         remarks: remarks,
         moment: moment,
         path: res.url,
       }); // Pass the data to the template
+    } else {
+      res.render('pages/404', {
+        title: '404 Page Not Found',
+        referer: req.referer
+      });
+    }
   } catch (error) {
       console.error('Error deleting transaction:', error);
-      res.status(500).send('Internal Server Error');
+      // res.status(500).send('Internal Server Error');
+      res.status(404).render('pages/404');
   }
 })
 
@@ -524,6 +536,23 @@ app.get('/employees/new', restrict, function(req, res){
     title: 'Add Employee', 
     path: res.url
   })
+})
+
+app.get('/employees/:id', restrict, async function(req, res){
+  try {
+    const employee = await connection.getEmployeeById(req.params.id);
+      res.render('pages/employees/profile', {
+        logonUser: req.session.user,
+        employee: employee[0],
+        moment: moment,
+        title: 'Profile', 
+        path: res.url
+      })
+  } catch (error) {
+      console.error('Error retrieving employee:', error);
+      res.status(500).send('Internal Server Error');
+  }
+  
 })
 
 app.get('/employees/register', restrict, function(req, res){

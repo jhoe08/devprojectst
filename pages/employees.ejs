@@ -377,20 +377,25 @@
     predataRegisterEmployee.addEventListener('click', function(){
       fields.forEach(field =>{
         // console.dir(field)
-        if(field.localName == 'input' && field.type == 'text') {
-          field.value = field.id
-        } 
-        if(field.localName == 'input' && field.type == 'number') {
-          field.value = 888
-        } 
-        if(field.localName == 'input' && field.type == 'date') {
-          field.value = '1993/10/08'
-        } 
-        if(field.localName == 'input' && field.type == 'radio' && field.value == 'III') {
-          field.checked = true
-        } 
+        if(field.localName == 'input') {
+          switch(field.type){
+            case 'text':
+              field.value = field.id
+              break;
+            case 'number':
+              field.value = 888
+              break;
+            case 'date':
+              field.value = '1993-10-08'
+              break;
+            case 'radio':
+              field.value = 'III'
+              field.checked = true
+          }
+        }
+        
         if (field.localName == 'select') {
-          field.value = "Other's" || "Contract of Service (COS)"
+          field.value = "Other's" ?? "Permanent"
         }
       })
     })

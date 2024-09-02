@@ -1,6 +1,6 @@
 <!-- Header Template -->
 <%- include('../views/header') -%>
-
+<% if(transactions) { %>
 <div class="wrapper">
     <%- include('../views/sidebar') -%>
 
@@ -130,11 +130,11 @@
             </div>
           </div>
       </div>
-
+      
     </div>
-
-    <%- include('../views/settings') -%>
 </div>
+
+
 
 <!-- Transaction: Remarks -->
 <div class="modal fade" id="remarksModal" tabindex="-1" aria-labelledby="remarksModalLabel" aria-hidden="true">
@@ -210,6 +210,6 @@
 <script> 
   new QRCode(`transid-<%- transactions.product_id %>`, `<%- transactions.product_id %>`); 
 </script>
-
+<% } %>
 <!-- Footer Template -->
 <%- include('../views/footer') -%>

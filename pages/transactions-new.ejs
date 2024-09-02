@@ -1,6 +1,5 @@
 <!-- Header Template -->
 <%- include('../views/header') -%>
-
 <div class="wrapper">
     <%- include('../views/sidebar') -%>
 
@@ -39,13 +38,13 @@
                       <% } %>
                     </select>
                   </div>
-                  <div class="form-group">
+                  <div class="form-group" data-user="<%= JSON.stringify(logonUser) %>">
                     <label for="bidNoticeTitle">Requisitioner</label>
                     <div class="input-icon">
                       <span class="input-icon-addon">
                         <i class="fa fa-user"></i>
                       </span>
-                      <input id="requisitioner" name="requisitioner" type="text" class="form-control" placeholder="Juan Tamad" value="<%- transactions?.requisitioner %>">
+                      <input id="requisitioner" name="requisitioner" type="text" class="form-control" placeholder="Juan Tamad" value="<%- transactions?.requisitioner || (logonUser?.firstname+' '+logonUser?.lastname) %>">
                   </div>
                   </div>
                   <div class="form-group">
