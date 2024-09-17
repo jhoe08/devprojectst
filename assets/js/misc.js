@@ -1,14 +1,6 @@
+
 // let notifyIcon = ['check', 'close', 'exclamation', 'bell'];
-
-function isEmpty(value) {
-  if (value === undefined || value === null) return true;
-  if (typeof value === 'string' && value.trim() === '') return true;
-  if (Array.isArray(value) && value.length === 0) return true;
-  if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return true;
-  return false;
-}
-
-const exampleModal = document.getElementById('exampleModal')
+const exampleModal = document.getElementById('viewTransactionModal')
 if (exampleModal) {
   exampleModal.addEventListener('show.bs.modal', event => {
     // Button that triggered the modal
@@ -49,9 +41,9 @@ if (exampleModal) {
     modalClassification.textContent = pr_classification
     modalBACUnit.textContent = bac_unit
     modalBannerProgram.textContent = banner_program
-    modalPRDate.textContent = pr_date
+    modalPRDate.textContent = dateFormat(pr_date)
     modalBodyTitle.textContent = bid_notice_title
-    modalBudget.textContent = `${approved_budget}`
+    modalBudget.textContent = peso(approved_budget)
     modalFundSource.textContent =  fund_source
     modalRequisitioner.innerHTML = `<i class="fas fa-user-circle"></i> ${requisitioner} — <span class="badge badge-warning">${division}</span> `
 
@@ -64,7 +56,6 @@ if (exampleModal) {
   })
 }
 let views = document.querySelectorAll('#basic-datatables .form-button-action .btn-primary');
-
 if (views) {
   views.forEach(view=>{
     view.addEventListener('click', ()=>{
@@ -78,40 +69,49 @@ if (views) {
 }
 let dangers = document.querySelectorAll('#basic-datatables .form-button-action .btn-danger');
 if (dangers) {
+  // const table = new DataTable('#basic-datatables')
+
+
   dangers.forEach(danger=>{
-    danger.addEventListener('click', ()=>{
-          let transactions = danger
-          // transid = danger.target
-          let {transid} = transactions.dataset
-          console.dir(transid)
-  
-          title = `Are you sure to delete ${transid}?`
-          message = "Once deleted, you will not be able to recover this imaginary file!"
+    
+    danger.addEventListener('click', (event)=>{
+      let transactions = danger
+      // transid = danger.target
+      let {transid} = transactions.dataset
+      // Removed existing 'selected' class on the <row> tag
+      document.querySelectorAll('#basic-datatables tr').forEach(row => row.classList.remove('selected'));
+      // Add 'selected' class on the <row> tag
+      event.target.closest('tr').classList.add('selected')
+      // console.dir(event.target.closest('tr'))
+
+      title = `Are you sure to delete ${transid}?`
+      message = "Once deleted, you will not be able to recover this imaginary file!"
+
       swal({
-        // title: "Are you sure to delete Transaction ID ${transid}?",
-              title,
+        title,
         text: "Once deleted, you will not be able to recover this transaction file!",
         icon: "warning",
         buttons: ["Cancel", "Delete it!"],
-        dangerMode: true,
-        })
-        .then((willDelete) => {
-         if (willDelete) {
-         
-                let url = `/transactions/${transid}`
-  
-                fetch(url, {
-                  method: 'DELETE'
-                })
-                .then(res => {
-                  return res.text()}) // or res.json()
-                .then(data => {
-                  swal("Poof! Transaction file has been deleted!", {
-                      icon: "success",
-                    });
-                  })
-          } 
-        });
+        dangerMode: true, })
+      .then((willDelete) => {
+        if (willDelete) {
+        
+          let url = `/transactions/${transid}`
+
+          fetch(url, {
+            method: 'DELETE' })
+          .then(res => {
+            return res.text()}) // or res.json()
+          .then(data => {
+            swal("Poof! Transaction file has been deleted!", {
+              icon: "success", });
+            // if Yes
+            document.querySelector('tr.selected').remove().draw(false)
+          }) // endof fetch()
+        } else {
+          document.querySelectorAll('#basic-datatables tr').forEach(row => row.classList.remove('selected'));
+        }
+      });
     })
   })
   
@@ -147,7 +147,9 @@ if (createTransactions) {
       let fundSourceValue = fundSource.value
       let bannerProgramValue = bannerProgram.value
       let bacUnitValue = bacUnit.value
-      let remarksValue = remarks.value
+      // let remarksValue = remarks.value
+
+      if(bidNoticeTitleValue === '' || budgetValue > 0 || requisitionerValue === '') return;
 
       const apiUrl = '/transactions/new';
       let data = { 
@@ -161,7 +163,7 @@ if (createTransactions) {
         bac_unit: bacUnitValue,
         remarks: {
             createby: 'JustJoe',
-            message: remarksValue
+            message: 'remarksValue'
         } 
       };
 
@@ -173,13 +175,15 @@ if (createTransactions) {
         body: JSON.stringify(data)
       };
 
+      console.log(requestOptions.body)
+
       fetch(apiUrl, requestOptions)
       .then(response => {
         if (!response.ok) {
           // throw new Error('Network response was not ok');
           $.notify({
             icon: 'icon-bell',
-            title: `Hello, ${greetings} Joe!`,
+            title: `System Issue`,
             message: 'Network response was not ok!',
           },{
             type: 'danger',
@@ -223,7 +227,6 @@ if (createTransactions) {
         fundSource.value = ''
         bannerProgram.value = ''
         bacUnit.value = ''
-        remarks.value = ''
 
       })
       .catch(error => {
@@ -391,4 +394,19 @@ function pr_date() {
     child.innerHTML = dateFormat(pr)
     
   })
+}
+
+function isEmpty(value) {
+  if (value === undefined || value === null) return true;
+  if (typeof value === 'string' && value.trim() === '') return true;
+  if (Array.isArray(value) && value.length === 0) return true;
+  if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return true;
+  return false;
+}
+
+function peso(amount) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'PHP',
+  }).format(amount); 
 }

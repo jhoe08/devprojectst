@@ -15,7 +15,7 @@
                     <img src="https://bootdey.com/img/Content/avatar/avatar7.png" class="rounded-circle avatar-xl img-thumbnail" alt="profile-image">
         
                     <h4 class="mb-0"><%= firstname +" "+ lastname %></h4>
-                    <p class="text-muted">@<%= username %></p>
+                    <p class="text-muted">@<%= username??'no username' %></p>
         
                     <button type="button" class="btn btn-success btn-xs waves-effect mb-2 waves-light">Follow</button>
                     <button type="button" class="btn btn-danger btn-xs waves-effect mb-2 waves-light">Message</button>
@@ -126,12 +126,13 @@
         
                             <h5 class="mb-4 text-uppercase"><i class="mdi mdi-briefcase mr-1"></i>
                                 Experience</h5>
-        
+
                             <ul class="list-unstyled timeline-sm">
-                            <% var { lists } = JSON.parse(experience)
-                                for(var i=0; i < lists.length; i++) { 
-                                var { office, salary, startdate, enddate, position, office } = lists[i]
-                                    %>
+                            <% if(experience) { %> 
+                                <% var { lists } = JSON.parse(experience)
+                                    for(var i=0; i < lists.length; i++) { 
+                                    var { office, salary, startdate, enddate, position, office } = lists[i]
+                                        %>
                                 <li class="timeline-sm-item" data-exclusive="<%= enddate %>">
                                     <span class="timeline-sm-date"><%= moment(startdate).format('YYYY') %> - <%= (enddate == 'present') ? enddate :  moment(enddate).format('YY') %></span>
                                     <h5 class="mt-0 mb-1"><%= position %> <%= salary %></h5>
@@ -142,6 +143,9 @@
                                         pronunciation and more common words.</p>
         
                                 </li>
+                                <% } %>
+                            <% } else { %>
+                                <li>No Records found!</li>
                             <% } %>
                             </ul>
         

@@ -229,7 +229,7 @@ employeeNames: document.getElementById('employeeName'),
         console.error("Error filling employee fields:", error);
         // Handle the error appropriately, e.g., show an error message to the user
     }
-},
+  },
   peso(amount) {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',

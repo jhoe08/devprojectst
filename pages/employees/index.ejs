@@ -1,11 +1,11 @@
 <!-- Header Template -->
-<%- include('../views/header') -%>
+<%- include('../../views/header') -%>
 <% var {blood_type, civil_status, citizenship, gender} = defaultData %>
 <div class="wrapper">
-    <%- include('../views/sidebar') -%>
+    <%- include('../../views/sidebar') -%>
 
     <div class="main-panel">
-        <%- include('../views/main-header') -%>
+        <%- include('../../views/main-header') -%>
 
         <div class="container">
             <div class="page-inner">
@@ -15,7 +15,7 @@
                         <h6 class="op-7 mb-2">Lists of individuals working on the Department</h6>
                     </div>
                     <div class="ms-md-auto py-2 py-md-0">
-                        <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
+                        <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="employees" data-column="8">Manage</a>
                         <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#addEmployeeModal"><i class="fas fa-plus"></i> Add New</a>
                     </div>
                 </div>
@@ -23,7 +23,15 @@
                     <div class="col-md-12">
                         <div class="card">
                           <div class="card-header">
-                            <h4 class="card-title">List of Employees</h4>
+                            <!-- <h4 class="card-title">List of Employees</h4> -->
+                            <div class="card-head-row card-tools-still-right">
+                              <div class="card-title">List of <%=title%></div>
+                              <div class="card-tools">
+                                <button id="refreshEmployees" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card" data-component="employees">
+                                  <span class="fa fa-sync-alt"></span>
+                                </button>
+                              </div>
+                            </div>
                           </div>
                           <div class="card-body">
                             <div class="table-responsive">
@@ -41,11 +49,11 @@
                                     <th>Salary</th>
                                     <th>Username</th>
                                     <th>Password</th>
-                                    <!-- <th>Action</th> -->
+                                    <th>Action</th>
                                   </tr>
                                 </thead>
                                 <tfoot>
-                                  <tr>
+                                  <tr class="text-uppercase">
                                     <th>Name</th>
                                     <th>Position</th>
                                     <th>Office</th>
@@ -54,6 +62,7 @@
                                     <th>Salary</th>
                                     <th>Username</th>
                                     <th>Password</th>
+                                    <th>Action</th>
                                   </tr>
                                 </tfoot>
                                 <tbody>
@@ -61,7 +70,7 @@
                                     if (employees) { 
                                       let preUsers = employees
                                       preUsers.forEach(function(user){ 
-                                      var {firstname, lastname, middlename, birthdate, experience, username, password} = user 
+                                      var {firstname, lastname, middlename, birthdate, experience, username, password, employeeid} = user 
                                       var { lists } = experience ? JSON.parse(experience) : {}
                                       
                                       if (lists) {
@@ -71,15 +80,25 @@
                                       var today = moment()
                                       var age = today.diff(birthdate, 'years')
                                   %>
-                                    <tr>
+                                    <tr data-employeeid="<%=employeeid%>">
                                       <td data-column="name"><%= [firstname, lastname].filter(Boolean).join(' ') %></td>
                                       <td data-column="position"><%= position || '-' %></td>
                                       <td data-column="office"><%= office || '-' %></td>
                                       <td data-column="age"><%- age %></td>
                                       <td data-column="startdate"><%= moment(startdate).format('LL') || '-' %></td>
-                                      <td data-column="salary"><%= salary || '-' %></td>
+                                      <td data-column="salary"><%= peso(salary) || '-' %></td>
                                       <td data-column="username">username</td>
                                       <td data-column="password">password</td>
+                                      <td>
+                                        <div class="form-button-action" data-employeeid="<%= employeeid %>" data-transaction="<%= JSON.stringify(user) %>">
+                                          <a href="/employees/<%= employeeid %>" data-transid="<%= employeeid %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task">
+                                            <i class="fa fa-eye"></i>
+                                          </a>
+                                          <!-- <button data-transid="<%= employeeid %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_demo_<%= employeeid %>">
+                                            <i class="fa fa-times"></i>
+                                          </button> -->
+                                        </div>
+                                      </td>
                                     </tr>
                                   <% }) } else { %>
                                     <tr>
@@ -366,6 +385,7 @@
   </div>
 </div>
 <!-- Script -->
+
 <script>
   const registerEmployee = document.querySelector('#addEmployeeModal #registerEmployee')
   const fields = document.querySelectorAll('#addEmployeeModal input, #addEmployeeModal select')
@@ -454,7 +474,7 @@
           // throw new Error('Network response was not ok');
           $.notify({
             icon: 'icon-bell',
-            title: `Hello, ${greetings} Joe!`,
+            title: `Hello, Joe!`,
             message: 'Network response was not ok!',
           },{
             type: 'danger',
@@ -499,4 +519,4 @@
   }
 </script>
 <!-- Header Template -->
-<%- include('../views/footer') -%>
+<%- include('../../views/footer') -%>

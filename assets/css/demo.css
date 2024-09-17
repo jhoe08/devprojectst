@@ -1,7 +1,9 @@
 .hidden {
   display: none !important;
 }
-
+.align-right {
+  text-align: right;
+}
 .mr-3 {
   margin-right: .5em !important;
 }
@@ -12,8 +14,20 @@
     margin-right: 0!important;
   }
 }
+
+.form-group-default {
+  .input-group-text {
+    background: transparent;
+    border: none;
+  }
+}
+
 .dataTable {
   width: 100% !important;
+
+  tr.selected > * {
+    background-color: #dddddd;
+ }
 }
 .swal-text {
   text-align: center;

@@ -31,7 +31,7 @@ function isEmpty(value) {
 
 const databaseUtils = {
     getTransactions: () => new Promise((resolve, reject) => {
-        connection.query('SELECT * FROM transid', (error, results) => {
+        connection.query(`SELECT * FROM ${prefix}.transid`, (error, results) => {
             if (error) {
                 reject(error);
             } else {
@@ -40,7 +40,7 @@ const databaseUtils = {
         });
     }),
     getTransactionById: (id) => new Promise((resolve, reject) => {
-        connection.query(`SELECT * FROM transid WHERE product_id=${id}`, (error, results) => {
+        connection.query(`SELECT * FROM ${prefix}.transid WHERE product_id=${id}`, (error, results) => {
             if (error) {
                 reject(error);
             } else {
@@ -49,7 +49,7 @@ const databaseUtils = {
         });
     }),
     getEmployeeById: (id) => new Promise((resolve, reject) => {
-        connection.query(`SELECT * FROM employees WHERE employeeid=${id}`, (error, results) => {
+        connection.query(`SELECT * FROM ${prefix}.employees WHERE employeeid=${id}`, (error, results) => {
             error ? reject(error) : resolve(results);
         })
     }),
@@ -82,34 +82,56 @@ const databaseUtils = {
             }
         })
     }),
-    putTransactions: (data) => new Promise((resolve, reject) => {
-        
+    putTransactions: (data) => new Promise((resolve, reject) => {    
     }),
-    updateTransactionsDisplay: (component, data) => new Promise((resolve, reject) => {
-        // UPDATE table_name
-        // SET column1 = value1, column2 = value2, ...
-        // WHERE condition;
-        connection.query(`SELECT * FROM discarding WHERE component='${component}'`, (error, results) => {
-
-        // connection.query(`INSERT INTO discarding (component, data) VALUES ('${component}', ${data})`, (error, results) => {
-        // connection.query(`UPDATE discarding SET data = ${data} WHERE component='${component}'`, (error, results) => {
-            if (error) {
-                reject(error);
-                console.log('rejected')
+    hideToDisplay: async (component, id) => {
+        try {
+            // Fetch the existing list for the given component
+            // let [rows] = connection.query(`SELECT * FROM ${prefix}.discarding WHERE component = ?`, [component]);
+            
+            let rows = await databaseUtils.getListOfDiscarded(component)
+            if (rows.length > 0) {
+                // List exists, update it
+                let data = JSON.parse(rows[0].data);
+    
+                // Add new ID if it does not already exist
+                if (!data.includes(id)) {
+                    data.push(id);
+                }
+    
+                // Update the existing record with the new data
+                // connection.query(`UPDATE ${prefix}.discarding SET data = ? WHERE component = ?`, [JSON.stringify(data), component]);
+                new Promise((resolve, reject) => {
+                    connection.query(`UPDATE ${prefix}.discarding SET data = ? WHERE component = ?`, [JSON.stringify(data), component], (error, results) => {
+                        if (error) reject(error);
+                        else resolve(results);
+                    });
+                });
             } else {
-                resolve(results);
-                console.log('resolved')
-                console.log(resolve(results))
+                // List does not exist, create a new one
+                let newData = [id];
+                // connection.query(`INSERT INTO ${prefix}.discarding (component, data) VALUES (?, ?)`, [component, JSON.stringify(newData)]);
+                new Promise((resolve, reject) => {
+                    connection.query(`INSERT INTO ${prefix}.discarding (component, data) VALUES (?, ?)`, [component, JSON.stringify(newData)], (error, results) => {
+                        if (error) reject(error);
+                        else resolve(results);
+                    });
+                });
             }
-        });
-    }),
-    getListOfDiscarded: () => new Promise((resolve, reject) => {
-        connection.query('SELECT * FROM discarding', (error, results) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(results);
-            }
+    
+            console.log('Operation successful');
+            return 'Operation successful'; // Return a success message or data if needed
+        } catch (error) {
+            console.error('Error occurred:', error);
+            throw error; // Propagate the error for further handling if necessary
+        }
+    },
+    getListOfDiscarded: (component=NULL) => new Promise((resolve, reject) => {
+        let query = `SELECT * FROM ${prefix}.discarding`
+        if (component) query += ` WHERE component = '${component}'`
+        connection.query(query, (error, results) => {
+            if (error) reject(error);
+            else resolve(results);
         });
     }),
     getRemarksByRefid: (id) => new Promise((resolve, reject) => {
@@ -121,7 +143,6 @@ const databaseUtils = {
             }
         })
     }),
-
     createRemarks: (message, user) => new Promise((resolve, reject) => {
         connection.query(`INSERT INTO remarks (message, user) values ('${message}', '${user}')`, (error, results) => {
             if (error) {
@@ -131,16 +152,14 @@ const databaseUtils = {
             }
         })
     }),
-
     putRemarks: (id) => new Promise((resolve, reject) => {
-
     }),
     // Trapping Injectors
     // { id: 1234 } or { refid: 1234 }
     retrieveData: (table, filter, where) => new Promise((resolve, reject) => {
         if(!filter) { filter = '*';}
         let query = `SELECT ${filter} FROM ${prefix}.${table}`
-        console.log({table, where})
+        // console.log({table, where})
         if(where) {
             query += " WHERE"
             query += Object.entries(where)
@@ -150,7 +169,7 @@ const databaseUtils = {
             })
             .join(' AND');
         }
-        console.log(query)
+        // console.log(query)
         connection.query(query, (error, results) => {
             if (error) {
                 reject(error)
@@ -169,6 +188,14 @@ const databaseUtils = {
     },
     retrieveEmployeeByUsername: async (username) => {
         return await databaseUtils.retrieveData('employees', '*', {username})
+    },
+    retrieveTransactions: async (data) => {
+        if (data) {
+            data = JSON.parse(data)
+            return await databaseUtils.retrieveData('transid', '*', data)
+        }
+
+        return await databaseUtils.retrieveData('transid')
     },
     storeData: (table, data) => new Promise((resolve, reject) => {
         
@@ -269,6 +296,21 @@ const databaseUtils = {
     // store
     postEmployees: async (data) => {
         return await databaseUtils.storeData('employees', data)
+    },
+    // NOTIFICATIONS
+    retrieveNotifications: async (data) => {
+        if (data) {
+            data = JSON.parse(data)
+            return await databaseUtils.retrieveData('notifications', '*', data)
+        }
+        
+        return await databaseUtils.retrieveData('notifications')
+    },
+    changeNotificationStatus: async (data) => {
+        return await databaseUtils.amendData('notifications', data)
+    },
+    postNotifications: async (data) => {
+        return await databaseUtils.storeData('notifications', data)
     },
     // Sample
     divisions: (division) => {

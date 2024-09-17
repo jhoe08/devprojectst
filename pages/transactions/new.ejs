@@ -1,0 +1,141 @@
+<!-- Header Template -->
+<%- include('../../views/header') -%>
+<div class="wrapper">
+    <%- include('../../views/sidebar') -%>
+
+    <div class="main-panel">
+      <%- include('../../views/main-header') -%>
+      
+      <div class="container" >
+          <div class="page-inner">
+            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+              <div>
+                  <h3 class="fw-bold mb-3"><%- title -%></h3>
+                  <h6 class="op-7 mb-2"></h6>
+              </div>
+              <div class="ms-md-auto py-2 py-md-0">
+                  <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
+                <% if (transactions) { %>
+                  <a id="updateTransactions" href="#" class="btn btn-primary btn-round"><i class="fas fa-save"></i> Update</a>
+                <% } else { %>
+                  <a id="createTransactions" href="#" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Create</a>
+                <% } %>
+                </div>
+            </div>
+            <!-- <form id="createTransactionForm" method="post"> -->
+
+            <div class="col-md-12 col-lg-12 col-xl-6"">
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title">Transaction Details</h4>
+    </div>
+    <div class="card-body">
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group form-group-default">
+                        <label for="bidNoticeTitle">Bid Notice Title</label>
+                        <textarea id="bidNoticeTitle" name="bidNoticeTitle" class="form-control" rows="3" <%- transactions?.bid_notice_title??"required" %>><%- transactions?.bid_notice_title %></textarea>
+                    </div>
+                    <div class="form-group form-group-default">
+                        <label for="prClassification">Classification</label>  
+                        <% var classification = predata.classification %>
+                        <select id="prClassification" name="prClassification" class="form-select form-control">
+                            <% for(var i=0; i < classification.length; i++) { %>
+                            <option value="<%= classification[i] %>" <%- (transactions?.pr_classification == classification[i]) ?'selected':''  %>><%= classification[i] %></option>
+                            <% } %>
+                        </select>
+                    </div>
+                    
+                </div>
+                <div class="col-md-6">
+                  <% 
+                      var budget = 0
+                      var cleanBudget = 0
+                      if (transactions) {
+                      budget = transactions?.approved_budget
+                      cleanBudget = budget.replace(/,/g, '');
+                      budget = parseFloat(cleanBudget)
+                      }
+                  %>
+                  <div class="form-group form-group-default" data-budget="<%-budget%>">
+                      <label for="budget">Suggested Budget</label>
+                      <div class="input-group">
+                      <span class="input-group-text">₱</span>
+                      
+                      <input id="budget" name="budget" type="number" class="form-control mt-0" value="<%-budget%>">
+                      </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group form-group-default">
+                        <label for="fundSource">Fund Source</label>
+                        <div class="input-group">
+                            <input id="fundSource" name="fundSource" class="form-control" value="<%- transactions?.fund_source %>">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group form-group-default" data-user="<%= JSON.stringify(logonUser) %>">
+                        <label for="bidNoticeTitle">Requisitioner</label>
+                        <div class="input-icon">
+                            <span class="input-icon-addon">
+                                <i class="fa fa-user"></i>
+                            </span>
+                            <input id="requisitioner" name="requisitioner" type="text" class="form-control" placeholder="Juan Tamad" <% if (transactions || logonUser) {%>value="<%- transactions?.requisitioner || (logonUser?.firstname+' '+logonUser?.lastname) %>"<% } %>>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group form-group-default">
+                        <label for="divisions">Division</label>
+                        <% var divisions = predata.divisions %>
+                        <select id="divisions" name="divisions" class="form-select form-control" data-value="">
+                            <% for(var i=0; i < divisions.length; i++) { %>
+                            <option value="<%= divisions[i] %>" <%- (transactions?.division == divisions[i]) ?'selected':'' %>><%= divisions[i] %></option>
+                            <% } %>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group form-group-default">
+                        <label for="bannerProgram">Banner Program</label>  
+                        <% var bannerProgram = predata.banner_program %>
+                        <select id="bannerProgram" name="bannerProgram" class="form-select form-control">
+                            <% for(var i=0; i < bannerProgram.length; i++) { %>
+                            <option value="<%= bannerProgram[i] %>" <%- (transactions?.banner_program == bannerProgram[i]) ?'selected':'' %>><%= bannerProgram[i] %></option>
+                            <% } %>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group form-group-default">
+                        <label for="bacUnit">BAC Unit</label>  
+                        <% var bacUnit = predata.bac_unit %>
+                        <select id="bacUnit" name="bacUnit" class="form-select form-control">
+                            <% for(var i=0; i < bacUnit.length; i++) { %>
+                            <option value="<%= bacUnit[i] %>" <%- (transactions?.bac_unit == bacUnit[i]) ?'selected':'' %>><%= bacUnit[i] %></option>
+                            <% } %>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="card-action">
+            <button id="btnSubmit" class="btn btn-success">Submit</button>
+            <button class="btn btn-danger">Cancel</button>
+        </div> -->
+    </div>
+</div>
+          </div>
+      </div>
+
+    </div>
+
+    <%- include('../../views/settings') -%>
+</div>
+
+
+
+<!-- Footer Template -->
+<%- include('../../views/footer') -%>

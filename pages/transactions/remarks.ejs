@@ -1,11 +1,11 @@
 <!-- Header Template -->
-<%- include('../views/header') -%>
+<%- include('../../views/header') -%>
 <% if(transactions) { %>
 <div class="wrapper">
-    <%- include('../views/sidebar') -%>
+    <%- include('../../views/sidebar') -%>
 
     <div class="main-panel">
-      <%- include('../views/main-header') -%>
+      <%- include('../../views/main-header') -%>
       
       <div class="container" data-transaction-id="<%- transactions.product_id -%>">
           <div class="page-inner">
@@ -29,13 +29,13 @@
                           <div class="card-title">Details</div>
                           <div class="card-tools">
                             <ul class="nav nav-pills nav-secondary nav-pills-no-bd nav-sm" id="pills-tab" role="tablist">
-                              <li class="nav-item submenu" role="presentation">
+                              <li class="nav-item submenu" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="PR Classification">
                                 <span class="nav-link active" id="pills-today" data-bs-toggle="pill" href="#pills-today" role="tab" aria-selected="false" tabindex="-1" aria-labelledby="pills-today"><%- transactions.pr_classification -%></span>
                               </li>
-                              <li class="nav-item" role="presentation">
+                              <li class="nav-item" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Banner Program">
                                 <span class="nav-link" id="pills-week" data-bs-toggle="pill" href="#pills-week" role="tab" aria-selected="false" aria-labelledby="pills-week" tabindex="-1"><%- transactions.banner_program -%></span>
                               </li>
-                              <li class="nav-item submenu" role="presentation">
+                              <li class="nav-item submenu" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="BAC Unit">
                                 <span class="nav-link" id="pills-month" data-bs-toggle="pill" href="#pills-month" role="tab" aria-selected="false" tabindex="-1" aria-labelledby="pills-month"><%- transactions.bac_unit -%></span>
                               </li>
                             </ul>
@@ -79,7 +79,7 @@
                           </div>
                           <div class="flex-1 ms-3 pt-1">
                             <h6 class="text-uppercase fw-bold mb-1">
-                              <%- transactions.approved_budget -%>
+                              <%- peso(transactions?.approved_budget) -%>
                               <span class="text-warning ps-3"><%- transactions.fund_source -%></span>
                             </h6>
                             <span class="text-muted">Approved Budget</span>
@@ -114,7 +114,7 @@
                       <div class="card-head-row card-tools-still-right">
                         <div class="card-title">Recent Activity</div>
                         <div class="card-tools">
-                          <button id="refreshActivity" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card" data-transid="<%- transactions.product_id -%>">
+                          <button id="refreshActivity" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card" data-transid="<%- transactions.product_id -%>" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Refresh">
                             <span class="fa fa-sync-alt"></span>
                           </button>
                         </div>
@@ -122,7 +122,7 @@
                     </div>
                     <div class="card-body">
                       <ol class="activity-feed mb-0">
-                        <%- include('../views/partials/activity-feed') -%>
+                        <%- include('../../views/partials/activity-feed') -%>
                       </ol>
                     </div>
                   </div>
@@ -212,4 +212,4 @@
 </script>
 <% } %>
 <!-- Footer Template -->
-<%- include('../views/footer') -%>
+<%- include('../../views/footer') -%>

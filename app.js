@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
@@ -24,14 +26,7 @@ const jwt = require('jsonwebtoken')
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
-const {hashPasswordUtils, authenticateUserUtils} = utils
-
-const locale = 'en';
-const options = {style: 'currency', currency: 'php', minimumFractionDigits: 2, maximumFractionDigits: 2};
-let formatter = new Intl.NumberFormat(locale, options);
-// How to use
-// var amount = 5000.25;
-// console.log(formatter.format(amount));
+const {hashPasswordUtils, authenticateUserUtils, peso} = utils
 
 const _preDefaultData = {
     blood_type: ['N/A','O+','O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
@@ -138,7 +133,7 @@ app.use(session({
   cookie: { secure: false }  // Set to `true` in production with HTTPS
 }));
 
-app.use(function(req, res, next){
+app.use(async function(req, res, next){
   var err = req.session.error;
   var msg = req.session.success;
   delete req.session.error;
@@ -146,52 +141,34 @@ app.use(function(req, res, next){
   res.locals.message = '';
   if (err) res.locals.message = '<p class="text-danger">' + err + '</p>';
   if (msg) res.locals.message = '<p class="text-success">' + msg + '</p>';
+
+  res.locals.environment = process.env.NODE_ENV
+  res.locals.userLoginDetails = req.session.user
+  
+  const transactions = await connection.retrieveNotifications()
+  res.locals.notifications = JSON.stringify(transactions)
+
   next();
 });
 
-
-// let defaultUsers = {
-//   justtest: { name: 'justtest' }
-// }
-
-// hash({ password: 'asdfg' }, function (err, pass, salt, hash) {
-
-//   if (err) throw err;
-//   defaultUsers.justtest.salt = salt;
-//   defaultUsers.justtest.hash = hash;
-//   defaultUsers.justtest.pass = pass;
-  
-//   // console.log(defaultUsers.justtest)
-// });
-// Verify the password
-
 function restrict(req, res, next) {
+  // Check if the user is authenticated
   if (!req.session.isAuthenticated) {
-    // return res.redirect('/login'); // Redirect to login if not authenticated
+    // Redirect to login page if not authenticated
+    return (res.locals.environment === 'production') ? res.redirect('/login') : next() ; // Perform the redirect
   }
-  return next()
+  
+  // If authenticated, proceed to the next middleware
+  return next();
 }
-function pageStatus(req, res, next) {
-
-}
-// app.route('/')
-//   .all(restrict)
-//   .get(async (req, res) =>{
-//     res.render('index', {
-//       logonUser: req.session.user,
-//       predata:  _preDefaultData,
-//       title: "Dashboard",
-//       header: "Some users", 
-//       path: res.url
-//     });
-//   })
 
 app.get('/', restrict, function(req, res){
+  // console.log(res.locals)
     res.render('index', {
       logonUser: req.session.user,
       title: "Dashboard",
       header: "Some users", 
-      path: res.url
+      path: res.url,
     });
 });
 
@@ -216,7 +193,7 @@ app.post('/login', async (req, res, next) => {
     const {username, password} = req.body
     let userDetails = await connection.retrieveEmployeeByUsername( username )
 
-    console.log(userDetails)
+    // console.log(userDetails)
 
     if(!userDetails) return res.status(404).json({message:'Account Not Found', response:{}})
   
@@ -227,15 +204,10 @@ app.post('/login', async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
-    // console.log('token', token)
 
     req.session.user = user
     req.session.isAuthenticated = true
     req.session.token = token
-
-
-    // console.log('req.session')
-    // console.log(req.session)
 
     res.status(200).redirect('/'); // Only send one response
 
@@ -255,17 +227,17 @@ app.post('/login-HUH', async (req, res) => {
     let user = JSON.parse(userDetails)
     
     let {hash, salt} = JSON.parse(user.password)
-    console.log(user)
-    console.log('hash', hash)
-    console.log('salt', salt)
-    console.log('pass', password)
+    // console.log(user)
+    // console.log('hash', hash)
+    // console.log('salt', salt)
+    // console.log('pass', password)
 
     const asdf = await hashPasswordUtils(password)
-    console.log(asdf)
+    // console.log(asdf)
   
   let isxMatch =  verifyPasswordCrypto(password, salt, hash, (err, isCorrect) => {
     if (err) throw err;
-    console.log(`Password is correct: ${isCorrect}`);
+    // console.log(`Password is correct: ${isCorrect}`);
     return isCorrect ? res.redirect('/') : res.redirect('/login')
   })
 
@@ -320,7 +292,7 @@ app.post('/register', async (req, res, next) => {
 
     data = {set, where}
 
-    console.log(data)
+    // console.log(data)
     const register = await connection.amendEmployee(JSON.stringify(data));
 
     if(register.length != 0) {
@@ -359,31 +331,38 @@ app.get('/logout', function(req, res){
 });
 
 app.get('/transactions', restrict, async (req, res) => {
-  console.log(req.url)
   try {
-    const transactions = await connection.getTransactions();
-      res.render('pages/transactions/index', { 
-        logonUser: req.session.user,
-        title: 'Transactions',
-        transactions: transactions, 
-        moment: moment,
-        connection: connection,
-        formatter: formatter,
-        path: req.url
-      }); // Pass the data to the template
+    const transactions = await connection.retrieveTransactions();
+    const discardedTransaction = await connection.getListOfDiscarded('transactions');
+    const {data} = discardedTransaction[0]
+    const discardedTransactionIds = data
+    // Filter out the discarded transactions from the original transactions
+    const filteredTransactions = transactions.filter(transaction => !discardedTransactionIds.includes(transaction.product_id)); // Adjust this if your transaction object has a different identifier
+    // console.log(filteredTransactions)
+
+    res.render('pages/transactions/index', { 
+      logonUser: req.session.user,
+      title: 'Transactions',
+      transactions: filteredTransactions, 
+      moment: moment,
+      connection: connection,
+      predata: _preTransactionsData,
+      path: req.url,
+      peso
+    }); // Pass the data to the template
   } catch (error) {
-      console.error('Error fetching products:', error);
-      res.status(500).send('Internal Server Error');
+    console.error('Error fetching products:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 
 app.get('/transactions/new', restrict, async (req, res) => {
   try {
-      res.render('pages/transactions-new', { 
+      res.render('pages/transactions/new', { 
         logonUser: req.session.user,
         title: 'Create a new Transactions',
         moment: moment,
-        formatter: formatter,
+        // formatter: formatter,
         predata: _preTransactionsData,
         path: req.url, 
         transactions: null,
@@ -397,6 +376,10 @@ app.get('/transactions/new', restrict, async (req, res) => {
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
     const transactions = await connection.postTransactions( JSON.stringify(req.body) );
+    if(transactions) {
+
+    }
+
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
   } catch (error) {
     console.error('Error addding transaction:', error);
@@ -436,7 +419,7 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
     const transid = req.params.id;
 
     const transactions = await connection.getTransactionById(transid);
-      res.render('pages/transactions-new', { 
+      res.render('pages/transactions/new', { 
         predata: _preTransactionsData,
 
         logonUser: req.session.user,
@@ -458,18 +441,20 @@ app.get('/transactions/:id/remarks', restrict, async (req, res) => {
     const transactions = await connection.getTransactionById(transid);
     const remarks = await connection.getRemarksByRefid(transid)
     if(transactions[0]) {
-      res.render('pages/transactions-remarks', { 
+      res.render('pages/transactions/remarks', { 
         logonUser: req.session.user,
         title: 'Transactions: Remarks',
         transactions: transactions[0],
         remarks: remarks,
         moment: moment,
         path: res.url,
+        peso
       }); // Pass the data to the template
     } else {
       res.render('pages/404', {
-        title: '404 Page Not Found',
-        referer: req.referer
+        title: '404 Transaction Not Found',
+        referer: req.referer,
+        component: 'Transaction'
       });
     }
   } catch (error) {
@@ -483,7 +468,8 @@ app.delete('/transactions/:id', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
 
-    await connection.updateTransactionsDisplay('employees', transid);
+    let lists = await connection.hideToDisplay('transactions', transid);
+    // console.log('lists', lists)
     res.status(204).send(); // No content (successful deletion)
   } catch (error) {
       console.error('Error fetching products:', error);
@@ -494,7 +480,7 @@ app.delete('/transactions/:id', restrict, async (req, res) => {
 app.get('/remarks/:id', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
-    const remarks = await connection.getRemarksByRefid(transid); console.log(remarks)
+    const remarks = await connection.getRemarksByRefid(transid);
     const transactions = await connection.getTransactionById(transid)
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'partials', 'activity-feed.ejs'), { remarks, moment:moment, transactions, path: req.url});
     res.send(renderedHtml)
@@ -517,20 +503,21 @@ app.post('/remarks/new', restrict, async (req, res) => {
 
 app.get('/employees', restrict, async (req, res) => {
   const employees = await connection.retrieveEmployee();
-  console.log(employees)
-  res.render('pages/employees', {
+  // console.log(employees)
+  res.render('pages/employees/index', {
     logonUser: req.session.user,
     defaultData: _preDefaultData,
     sampleEmployee,
     title: 'Employees',
     employees: employees,
-    moment: moment,
+    moment,
+    peso,
     path: res.url
   })
 })
 
 app.get('/employees/new', restrict, function(req, res){
-  res.render('pages/employees-new', {
+  res.render('pages/employees/new', {
     logonUser: req.session.user,
     defaultData: _preDefaultData,
     title: 'Add Employee', 
@@ -540,17 +527,35 @@ app.get('/employees/new', restrict, function(req, res){
 
 app.get('/employees/:id', restrict, async function(req, res){
   try {
-    const employee = await connection.getEmployeeById(req.params.id);
-      res.render('pages/employees/profile', {
+    if(req.params.id == 'register') {
+      res.render('pages/employees/register', {
+        defaultData: _preDefaultData,
         logonUser: req.session.user,
-        employee: employee[0],
-        moment: moment,
-        title: 'Profile', 
+        title: 'Register Employee',
         path: res.url
       })
+    } else {
+      const employee = await connection.getEmployeeById(req.params.id);
+      if(employee.length > 0) {
+        res.render('pages/employees/profile', {
+          logonUser: req.session.user,
+          employee: employee[0],
+          moment: moment,
+          title: 'Profile', 
+          path: res.url
+        })
+      } else {
+        console.error('Employee not found!');
+        res.render('pages/404', {
+          title: '404 Employee Not Found',
+          referer: req.referer,
+          component: 'Employee'
+        });
+      }
+    }    
   } catch (error) {
       console.error('Error retrieving employee:', error);
-      res.status(500).send('Internal Server Error');
+      res.status(500).render('pages/404');
   }
   
 })
@@ -563,26 +568,45 @@ app.get('/employees/register', restrict, function(req, res){
     path: res.url
   })
 })
-
-  app.route('/api/employees')
+// SUPERADMIN
+app.route('/api/employees')
   .all(restrict)
   .get(async (req, res) =>{
     const employees = await connection.retrieveEmployee();
     if(employees) return  res.status(200).json({response: employees})
     return res.status(400).json({response: 'No Record is Found!'})
   })
-  app.get('/forms/forms.html', restrict, function (req, res) {
+app.route('/api/transactions')
+  .all(restrict)
+  .get(async (req, res) =>{
+    const transactions = await connection.retrieveTransactions();
+    if(transactions) return  res.status(200).json({response: transactions})
+    return res.status(400).json({response: 'No Record is Found!'})
+  })
+app.get('/forms/forms.html', restrict, function (req, res) {
   res.redirect('/demo/forms/forms.html');
 });
 
+// STARTING ON ExpressJS
 const server = http.createServer(app);
 const io = socketio(server);
+let connectedUserMap = new Map();
 
-// let { connection } = _express(io)
+io.on('connection', (socket)=>{
+  socket.on("error", (err) => {
+    if (err && err.message === "unauthorized event") {
+      socket.disconnect();
+    }
+  });
+  const clientIpAddress= socket.request.socket.remoteAddress;
+  const connectedUserId = socket.id;
+  connectedUserMap.set(socket.id, { ip: clientIpAddress, status:true, users: userLoginDetails });
 
-// connection()
-
-
+  socket.join(socket.io)
+  console.log('connectedUserMap')
+  console.log(connectedUserMap)
+})
+// ENDOF ExpressJS
 server.on('error', (err) => {
   console.error('Server error:', err);
 });

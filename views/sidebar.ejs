@@ -71,6 +71,7 @@
               <!-- <span class="caret"></span> -->
             </a>
           </li>
+          <% if (environment == 'development') { %>
           <li class="nav-item <%- (path == '/employees/new') ? 'active' : '' -%>">
             <a href="/employees/new">
               <i class="fas fa-user-plus"></i>
@@ -85,6 +86,7 @@
               <!-- <span class="caret"></span> -->
             </a>
           </li>
+          <% } %>
         </ul>
       </div>
     </div>

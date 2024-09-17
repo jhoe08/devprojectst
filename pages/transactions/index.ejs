@@ -11,19 +11,26 @@
           <div class="page-inner">
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div>
-                  <h3 class="fw-bold mb-3">List of <%- title -%></h3>
-                  <h6 class="op-7 mb-2">Purchase Request</h6>
+                  <h3 class="fw-bold mb-3"><%- title -%></h3>
+                  <h6 class="op-7 mb-2">List of request like Purchase Request, Travel Order, and etc...</h6>
               </div>
               <div class="ms-md-auto py-2 py-md-0">
-                  <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
-                  <a href="/transactions/new" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Add New</a>
+                <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="transactions" data-column="11">Manage</a>
+                <a href="/transactions/new" class="btn btn-primary btn-round"  data-bs-toggle="modal" data-bs-target="#addTransactionModal"><i class="fas fa-plus"></i> Add New</a>
               </div>
             </div>
             <div class="row">
                 <div class="col-md-12">
                     <div class="card">
                       <div class="card-header">
-                        <h4 class="card-title"><%- title -%></h4>
+                        <div class="card-head-row card-tools-still-right">
+                          <div class="card-title">List of <%=title%></div>
+                          <div class="card-tools">
+                            <button id="refreshTransactions" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card" data-component="transactions">
+                              <span class="fa fa-sync-alt"></span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                       <div class="card-body">
                         <div class="table-responsive">
@@ -78,13 +85,13 @@
                                   budget = parseFloat(cleanBudget)
                               %>
                                
-                                <tr>
+                                <tr data-transaction="<%= JSON.stringify(transactions[i]) %>">
                                   <td data-head="Product ID"><%= product_id %></td>
                                   <td data-head="Notice Title"><%= bid_notice_title %></td>
                                   <td data-head="Requistioner"><%= requisitioner %></td>
                                   <td data-head="Division"><%= division %></td>
                                   <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>"><%= date %></td>
-                                  <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>"><%= budget %></td>
+                                  <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>" class="align-right"><%= budget %></td>
                                   <td data-head="Fund Sources"><%= fund_source %></td>
                                   <td data-head="Codes"><%= trans_code %></td>
                                   <td data-head="Banner"><%= banner_program %></td>
@@ -92,7 +99,7 @@
                                   <td data-head="BAC"><%= bac_unit %></td>
                                   <td data-head="Actions">
                                     <div class="form-button-action" data-transid="<%= product_id %>" data-transaction="<%= JSON.stringify(transactions[i]) %>">
-                                      <button data-transid="<%= product_id %>" type="button" class="btn btn-link  btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="<%= product_id %>" data-original-title="Edit Task">
+                                      <button data-transid="<%= product_id %>" type="button" class="btn btn-link  btn-primary" data-bs-toggle="modal" data-bs-target="#viewTransactionModal" data-bs-whatever="<%= product_id %>" data-original-title="Edit Task">
                                         <i class="fa fa-eye"></i>
                                       </button>
                                       <a href="/transactions/<%= product_id %>/edit" data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task">
@@ -116,47 +123,12 @@
       </div>
 
     </div>
-    <%- include('../../views/settings') -%>
+    <%# include('../../views/settings') #%>
 </div>
-<!-- Transaction Modal -->
-<div class="modal modal-lg fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5" id="exampleModalLabel">Details</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="d-flex justify-content-between">
-          <div class="left text-uppercase">
-            <span class="badge badge-count">Classification</span>
-            <span class="badge badge-danger">Bac Unit</span>
-            <span class="badge badge-info"> Banner Program</span>
-          </div>
-          <div class="right">
-            <span class="badge badge-black">2024-03-12T16:00:00.000Z</span>
-          </div>
-        </div>
-        <div class="row mb-3 mt-3">
-          <div class="col-md-4">
-            <div class="qrcode"></div>
-          </div>
-          <div class="col-md-8">
-            <h3>Sample Text</h3>
-            <h5 class="text-muted mb-4">Requestioner </h5>
-          </div>
-        </div>
-        
-        <button class="btn btn-primary btn-round">₱12,143.69</button>
-        <button class="btn btn-primary btn-border btn-round"><i class="fas fa-solid fa-coins"></i> <span>Fund Source</span></button>
-        
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal">Close</button>
-        <a href="#" type="button" class="btn button btn-primary">View Remarks</a>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- Transaction Modal: View -->
+<%- include('../../components/modals/transactions/view') -%>
+<!-- Transaction Modal: New -->
+<%- include('../../components/modals/transactions/add') -%>
+<!-- --------------- -->
 <!-- Footer Template -->
 <%- include('../../views/footer') -%>
