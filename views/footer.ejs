@@ -4,10 +4,9 @@
       // new DataTable.datetime('D MMM YYYY');
 
       let transactions = $("#basic-datatables").DataTable({
-    
         "order": [[0, 'desc']],
         columnDefs: [{
-            render: (data, type, row) => '<div><span data-head="Classification" class="badge badge-count mr-3">' + row[9] + '</span><span data-head="Banner"  class="badge badge-info">' + row[8] + '</span></div><div class="mb-0">'+ data +'</div><span data-head="Transaction Codes"  class="badge badge-success">' + row[7] + '</span>',
+            render: (data, type, row) => '<div><span data-head="Classification" class="badge badge-count mr-3">' + row[9] + '</span><span data-head="Banner"  class="badge badge-info">' + row[8] + '</span></div><div class="mb-0">'+ data +'</div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div>',
             targets: 1
           }, {
             render: (data, type, row) => `${data} <br><span data-head="Division" class="badge badge-warning">${row[3]}<span>`,
@@ -45,9 +44,7 @@
           // });
         }, 
       })
-      // table.datetime('D MMM YYYY')
-      // target: 5,
-      // render: $.fn.dataTable.render.number(null, null, 0, '₱')
+ 
       const employeesHiddenColumns = [6,7,] 
       let employees = $("#employees").DataTable({
         
@@ -104,21 +101,23 @@
       });
 
       const btn = document.getElementById('manageBtn')
-      btn.addEventListener('click', function (e) {
+      if(btn) {
+        btn.addEventListener('click', function (e) {
         const tableId = e.target.getAttribute('data-component')
         let columnIdx = e.target.getAttribute('data-column');
         console.log(tableId)
         if ( tableId ) {
           let column = ''
-          if (tableId == 'employees') {
-            column = employees.column(columnIdx);
-          } else if (tableId == 'transactions') {
-            column = transactions.column(columnIdx);
+            if (tableId == 'employees') {
+              column = employees.column(columnIdx);
+            } else if (tableId == 'transactions') {
+              column = transactions.column(columnIdx);
+            }
+            column.visible(!column.visible());
           }
-          column.visible(!column.visible());
-        }
-      })
-
+        })
+      }
+      
       $("#lineChart").sparkline([102, 109, 120, 99, 110, 105, 115], {
         type: "line",
         height: "70",

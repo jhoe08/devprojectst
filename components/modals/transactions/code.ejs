@@ -1,0 +1,43 @@
+<div class="modal fade" id="codeModal" tabindex="-1" aria-labelledby="codeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="codeModalLabel">Transaction Codes</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-3 mt-3">
+            
+            <div class="form-group">
+              <div class="selectgroup selectgroup-pills">
+                <% if(transactions?.trans_code && isValidJSON(transactions.trans_code)) { 
+                  trans_code = JSON.parse(transactions.trans_code)
+                  trans_code.forEach(function(code){ %>
+                  <label class="selectgroup-item">
+                    <input type="checkbox" name="value" value="<%=code%>" class="selectgroup-input">
+                    <span class="selectgroup-button"><%=code%></span>
+                  </label>
+                  <% })%>
+                <% } else { %>
+                  <label class="selectgroup-item">
+                    <input type="checkbox" name="value" value="<%=transactions?.trans_code%>" class="selectgroup-input">
+                    <span class="selectgroup-button"><%=transactions?.trans_code%></span>
+                  </label>
+                <% } %>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="input-group mb-3">
+                <span class="input-group-text" id="transCodeLabel">#</span>
+                <input type="text" class="form-control" placeholder="codes" id="transCodeText">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal">Close</button>
+          <a id="createTransactionCode" href="#" type="button" class="btn button btn-primary" data-transid="<%- transactions.product_id -%>">Add Transaction Codes</a>
+        </div>
+      </div>
+    </div>
+  </div>

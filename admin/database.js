@@ -2,6 +2,7 @@
 let mysql = require('mysql');
 let moment = require('moment')
 const misc = require("./misc")
+const {isValidJSON} = require("./utils")
 
 const { hashPassword, registerUser, loginUser } = misc
 
@@ -126,6 +127,32 @@ const databaseUtils = {
             throw error; // Propagate the error for further handling if necessary
         }
     },
+    updateTransactionCodes: async (data) => {
+        try {
+            const {transid, code} = JSON.parse(data)
+            let rows = await databaseUtils.retrieveData('transid', 'trans_code', {'product_id': transid})
+            console.log(rows[0])
+            if(rows.length > 0) {
+                let codes = rows[0].trans_code;
+                if (!codes || codes.length === 0 || typeof codes === 'string') { codes = [codes] }
+                if (isValidJSON(codes)) { codes = JSON.parse(codes) }
+                if (!codes.includes(code)) { codes.push(code) }
+                
+                new Promise((resolve, reject) => {
+                    connection.query(`UPDATE ${prefix}.transid SET trans_code = ? WHERE product_id = ?`, [JSON.stringify(codes), transid], (error, results) => {
+                        if (error) reject(error);
+                        else resolve(results);
+                    });
+                });
+            } 
+           
+            console.log('Operation successful');
+            return 'Operation successful'; // Return a success message or data if needed
+        } catch (error) {
+            console.error('Error occurred:', error);
+            throw error; // Propagate the error for further handling if necessary
+        }
+    },
     getListOfDiscarded: (component=NULL) => new Promise((resolve, reject) => {
         let query = `SELECT * FROM ${prefix}.discarding`
         if (component) query += ` WHERE component = '${component}'`
@@ -159,7 +186,7 @@ const databaseUtils = {
     retrieveData: (table, filter, where) => new Promise((resolve, reject) => {
         if(!filter) { filter = '*';}
         let query = `SELECT ${filter} FROM ${prefix}.${table}`
-        // console.log({table, where})
+        console.log({table, where})
         if(where) {
             query += " WHERE"
             query += Object.entries(where)
@@ -169,7 +196,7 @@ const databaseUtils = {
             })
             .join(' AND');
         }
-        // console.log(query)
+        console.log(query)
         connection.query(query, (error, results) => {
             if (error) {
                 reject(error)

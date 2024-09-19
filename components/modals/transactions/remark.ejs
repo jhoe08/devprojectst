@@ -1,0 +1,69 @@
+<div class="modal fade" id="remarksModal" tabindex="-1" aria-labelledby="remarksModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="remarksModalLabel">New Remarks</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-3 mt-3">
+            <div class="form-group">
+              <label class="form-label">Select Status</label>
+              <div class="row gutters-xs">
+                <div class="col-auto">
+                  <label class="colorinput">
+                    <input name="color" type="radio" value="dark" class="colorinput-input">
+                    <span class="colorinput-color bg-black"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="colorinput">
+                    <input name="color" type="radio" value="primary" class="colorinput-input">
+                    <span class="colorinput-color bg-primary"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="colorinput">
+                    <input name="color" type="radio" value="secondary" class="colorinput-input">
+                    <span class="colorinput-color bg-secondary"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="colorinput">
+                    <input name="color" type="radio" value="info" class="colorinput-input">
+                    <span class="colorinput-color bg-info"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="colorinput">
+                    <input name="color" type="radio" value="success" class="colorinput-input">
+                    <span class="colorinput-color bg-success"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="colorinput">
+                    <input name="color" type="radio" value="warning" class="colorinput-input">
+                    <span class="colorinput-color bg-warning"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="colorinput">
+                    <input name="color" type="radio" value="danger" class="colorinput-input">
+                    <span class="colorinput-color bg-danger"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="comment">Comment</label>
+              <textarea class="form-control" id="comment" rows="5" required></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal">Close</button>
+          <a id="createRemarks" href="#" type="button" class="btn button btn-primary" data-transid="<%- transactions.product_id -%>">New Remarks</a>
+        </div>
+      </div>
+    </div>
+  </div>

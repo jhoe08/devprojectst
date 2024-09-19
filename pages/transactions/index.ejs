@@ -93,7 +93,7 @@
                                   <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>"><%= date %></td>
                                   <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>" class="align-right"><%= budget %></td>
                                   <td data-head="Fund Sources"><%= fund_source %></td>
-                                  <td data-head="Codes"><%= trans_code %></td>
+                                  <td data-head="Codes"><%- trans_code -%></td>
                                   <td data-head="Banner"><%= banner_program %></td>
                                   <td data-head="Classification"><%= pr_classification %></th>
                                   <td data-head="BAC"><%= bac_unit %></td>
@@ -130,5 +130,6 @@
 <!-- Transaction Modal: New -->
 <%- include('../../components/modals/transactions/add') -%>
 <!-- --------------- -->
+
 <!-- Footer Template -->
 <%- include('../../views/footer') -%>

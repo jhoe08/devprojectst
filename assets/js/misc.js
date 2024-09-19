@@ -116,12 +116,6 @@ if (dangers) {
   })
   
 }
-let transcode = document.getElementById('#transcode')
-if (transcode) {
-  transcode.addEventListener('click', function(){
-
-  })
-}
 let createTransactions = document.getElementById('createTransactions')
 if (createTransactions) {
   let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
@@ -403,10 +397,23 @@ function isEmpty(value) {
   if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return true;
   return false;
 }
-
 function peso(amount) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'PHP',
   }).format(amount); 
+}
+
+function stringToArray(str, callback) {
+  const separated = str.slice(1,-1).split(',').map(item => item.trim().replace(/"/g, ''));
+  return separated.map(callback).join(' ')
+}
+
+function isValidJSON(jsonString) {
+  try {
+      JSON.parse(jsonString);
+      return true; // If parse is successful, return true
+  } catch (e) {
+      return false; // If there's an error, return false
+  }
 }

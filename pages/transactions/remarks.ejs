@@ -11,7 +11,7 @@
           <div class="page-inner">
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div class="col-md-1 mr-4">
-                <div id="transid-<%- transactions.product_id -%>" class="qrcode"></div>
+                <div id="transid-<%- transactions.product_id -%>" class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- transactions.product_id -%>"></div>
               </div>
               <div class="col-md-8">
                   <h3 class="fw-bold mb-3"><%- transactions.bid_notice_title -%></h3>
@@ -50,7 +50,7 @@
                           <div class="flex-1 ms-3 pt-1">
                             <h6 class="text-uppercase fw-bold mb-1">
                               <%- transactions.requisitioner -%>
-                              <span class="badge badge-success"><%- transactions.division -%></span>
+                              <span class="badge badge-success" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Division"><%- transactions.division -%></span>
                             </h6>
                             <span class="text-muted">Requisitioner</span>
                           </div>
@@ -80,7 +80,7 @@
                           <div class="flex-1 ms-3 pt-1">
                             <h6 class="text-uppercase fw-bold mb-1">
                               <%- peso(transactions?.approved_budget) -%>
-                              <span class="text-warning ps-3"><%- transactions.fund_source -%></span>
+                              <span class="text-warning ps-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Fund Source"><%- transactions.fund_source -%></span>
                             </h6>
                             <span class="text-muted">Approved Budget</span>
                           </div>
@@ -95,12 +95,19 @@
                           </div>
                           <div class="flex-1 ms-3 pt-1">
                             <h6 class="text-uppercase fw-bold mb-1">
-                              <%- transactions?.trans_code ?? '...'; -%>
+                            <% if(transactions?.trans_code && isValidJSON(transactions.trans_code)) { 
+                              trans_code = JSON.parse(transactions.trans_code)
+                              trans_code.forEach(function(code){ %>
+                              <span class="badge badge-count"><%= code %></span>
+                              <% })%>
+                            <% } else { %>
+                              <span class="badge badge-count"><%= transactions?.trans_code %></span>
+                            <% } %>
                             </h6>
                             <span class="text-muted">Transaction Codes</span>
                           </div>
                           <div class="float-end pt-1">
-                            <button id="transcode" class="btn btn-icon btn-link op-8 me-1">
+                            <button  data-bs-toggle="modal" data-bs-target="#codeModal" id="addTransactionCodes" class="btn btn-icon btn-link op-8 me-1"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add Transaction Codes">
                               <i class="fas fa-plus-circle"></i>
                             </button>
                           </div>
@@ -134,79 +141,11 @@
     </div>
 </div>
 
-
-
 <!-- Transaction: Remarks -->
-<div class="modal fade" id="remarksModal" tabindex="-1" aria-labelledby="remarksModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5" id="remarksModalLabel">New Remarks</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row mb-3 mt-3">
-          <div class="form-group">
-            <label class="form-label">Select Status</label>
-            <div class="row gutters-xs">
-              <div class="col-auto">
-                <label class="colorinput">
-                  <input name="color" type="radio" value="dark" class="colorinput-input">
-                  <span class="colorinput-color bg-black"></span>
-                </label>
-              </div>
-              <div class="col-auto">
-                <label class="colorinput">
-                  <input name="color" type="radio" value="primary" class="colorinput-input">
-                  <span class="colorinput-color bg-primary"></span>
-                </label>
-              </div>
-              <div class="col-auto">
-                <label class="colorinput">
-                  <input name="color" type="radio" value="secondary" class="colorinput-input">
-                  <span class="colorinput-color bg-secondary"></span>
-                </label>
-              </div>
-              <div class="col-auto">
-                <label class="colorinput">
-                  <input name="color" type="radio" value="info" class="colorinput-input">
-                  <span class="colorinput-color bg-info"></span>
-                </label>
-              </div>
-              <div class="col-auto">
-                <label class="colorinput">
-                  <input name="color" type="radio" value="success" class="colorinput-input">
-                  <span class="colorinput-color bg-success"></span>
-                </label>
-              </div>
-              <div class="col-auto">
-                <label class="colorinput">
-                  <input name="color" type="radio" value="warning" class="colorinput-input">
-                  <span class="colorinput-color bg-warning"></span>
-                </label>
-              </div>
-              <div class="col-auto">
-                <label class="colorinput">
-                  <input name="color" type="radio" value="danger" class="colorinput-input">
-                  <span class="colorinput-color bg-danger"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="comment">Comment</label>
-            <textarea class="form-control" id="comment" rows="5" required></textarea>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal">Close</button>
-        <a id="createRemarks" href="#" type="button" class="btn button btn-primary" data-transid="<%- transactions.product_id -%>">New Remarks</a>
-      </div>
-    </div>
-  </div>
-</div>
-
+<%- include('../../components/modals/transactions/remark') -%>
+<!-- Transaction: Codes -->
+<%- include('../../components/modals/transactions/code') -%>
+<script src="/assets/js/components/transactions.js"></script>
 <script> 
   new QRCode(`transid-<%- transactions.product_id %>`, `<%- transactions.product_id %>`); 
 </script>

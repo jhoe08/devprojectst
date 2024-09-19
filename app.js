@@ -26,7 +26,7 @@ const jwt = require('jsonwebtoken')
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
-const {hashPasswordUtils, authenticateUserUtils, peso} = utils
+const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON} = utils
 
 const _preDefaultData = {
     blood_type: ['N/A','O+','O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
@@ -448,7 +448,7 @@ app.get('/transactions/:id/remarks', restrict, async (req, res) => {
         remarks: remarks,
         moment: moment,
         path: res.url,
-        peso
+        peso, isValidJSON
       }); // Pass the data to the template
     } else {
       res.render('pages/404', {
@@ -501,6 +501,15 @@ app.post('/remarks/new', restrict, async (req, res) => {
   }
 })
 
+app.post('/transcodes/new', restrict, async (req, res) => {
+  try {
+    const codes = await connection.updateTransactionCodes( JSON.stringify(req.body) );
+    res.status(201).json({ message: 'Successfully added transaction codes!', response: codes });
+  } catch (error) {
+    console.error('Error addding transaction codes:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
 app.get('/employees', restrict, async (req, res) => {
   const employees = await connection.retrieveEmployee();
   // console.log(employees)
