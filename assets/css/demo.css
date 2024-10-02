@@ -16,6 +16,14 @@
 }
 
 .form-group-default {
+  .form-select {
+    padding: 0 12px;
+    margin-left: -12px;
+    margin-right: -12px;
+    width: 100%;
+    display: inline-block;
+    width: calc(100% + 24px);
+  }
   .input-group-text {
     background: transparent;
     border: none;

@@ -83,8 +83,10 @@ const databaseUtils = {
             }
         })
     }),
-    putTransactions: (data) => new Promise((resolve, reject) => {    
-    }),
+    putTransactions: async (data) => {
+        console.log('putTransactions')
+        console.log(data)
+    },
     hideToDisplay: async (component, id) => {
         try {
             // Fetch the existing list for the given component

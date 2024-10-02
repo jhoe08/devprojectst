@@ -2,7 +2,9 @@ require('dotenv').config();
 
 const http = require('http');
 const express = require('express');
-const socketio = require('socket.io');
+// const socketio = require('socket.io');
+const { createServer } = require("node:http")
+const { Server } = require('socket.io');
 const path = require("path");
 const fetch = require('node-fetch');
 const connection = require("./admin/database");
@@ -19,10 +21,14 @@ const hash = require('pbkdf2-password')()
 const bcrypt = require('bcrypt')
 const saltRounds = 10
 
+const _express = require('./admin/express');
+
+
 const sampleEmployee = require('./admin/employees.json')
 
 const bcryptjs = require('bcryptjs');
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const { exit } = require('process');
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
@@ -120,6 +126,7 @@ app.use('/salary', express.static(clientPath));
 app.use('/demo', express.static(adminPath))
 //paths
 app.use('/modules', express.static(modulesPath))
+app.use('/client', express.static(clientPath))
 app.use('/assets', express.static(viewsAssets))
 app.use('/employees', express.static(viewsAssets))
 // ============================================
@@ -134,19 +141,27 @@ app.use(session({
 }));
 
 app.use(async function(req, res, next){
-  var err = req.session.error;
-  var msg = req.session.success;
-  delete req.session.error;
-  delete req.session.success;
-  res.locals.message = '';
-  if (err) res.locals.message = '<p class="text-danger">' + err + '</p>';
-  if (msg) res.locals.message = '<p class="text-success">' + msg + '</p>';
+  // const err = req.session.error;
+  // const msg = req.session.success;
+  // delete req.session.error;
+  // delete req.session.success;
+  // res.locals.message = err;
+  // if (err) res.locals.message = '<p class="text-danger">' + err + '</p>';
+  // if (msg) res.locals.message = '<p class="text-success">' + msg + '</p>';
 
-  res.locals.environment = process.env.NODE_ENV
-  res.locals.userLoginDetails = req.session.user
   
-  const transactions = await connection.retrieveNotifications()
-  res.locals.notifications = JSON.stringify(transactions)
+  const notifications = await connection.retrieveNotifications()
+  // res.locals.notifications = JSON.stringify(transactions)
+
+
+  res.locals = {
+    environment: process.env.NODE_ENV,
+    testmode: process.env.TEST_MODE,
+    userLoginDetails: req.session.user,
+    notifications: (req.url === '/login') ? '':JSON.stringify(notifications)
+  }
+
+  console.log(req.url)
 
   next();
 });
@@ -177,12 +192,17 @@ app.get('/404', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
+  const error = req.session.error
+  
+  req.session.error = null
+
   if (req.session.isAuthenticated) {
     return res.redirect(302, '/');
   } else {
     return res.render('pages/login', {
       title: 'Login',
-      path: res.url
+      path: res.url,
+      emitMessage: error
     })
   }
  
@@ -191,30 +211,35 @@ app.get('/login', (req, res) => {
 app.post('/login', async (req, res, next) => {
   try {
     const {username, password} = req.body
+    if (!username || !password) return res.status(400).json({ message: 'Username and password are required.' });
+
     let userDetails = await connection.retrieveEmployeeByUsername( username )
-
-    // console.log(userDetails)
-
-    if(!userDetails) return res.status(404).json({message:'Account Not Found', response:{}})
+    
+    if(userDetails.length !== 0) {
+      userDetails = userDetails[0] ? JSON.stringify(userDetails[0]) : JSON.stringify({ message: 'Account Not Found' })
+      let user = JSON.parse(userDetails)
   
-    userDetails = userDetails[0] ? JSON.stringify(userDetails[0]) : JSON.stringify({message: 'Account Not Found'})
-    let user = JSON.parse(userDetails)
-
-    if(!bcrypt.compareSync(password, user.password)) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      if(!bcrypt.compareSync(password, user.password)) {
+      console.log('hiuhb')
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
+  
+      req.session.user = user
+      req.session.isAuthenticated = true
+      req.session.token = token
+  
+      res.status(200).redirect('/'); // Only send one response  
+    } else {
+      req.session.error = true; // Account Not Found
+      res.status(404).redirect('/login')
     }
-    const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
-
-    req.session.user = user
-    req.session.isAuthenticated = true
-    req.session.token = token
-
-    res.status(200).redirect('/'); // Only send one response
-
   } catch (error) {
     console.error(error);
-    res.status(200).json({ message: 'Internal server error' });
+    return res.status(500).json({ error: 'An error occurred while processing your request.' });
   }
+
+  next()
 })
 
 app.post('/login-HUH', async (req, res) => {
@@ -376,16 +401,23 @@ app.get('/transactions/new', restrict, async (req, res) => {
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
     const transactions = await connection.postTransactions( JSON.stringify(req.body) );
-    if(transactions) {
-
-    }
-
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
   } catch (error) {
     console.error('Error addding transaction:', error);
     res.status(500).send('Internal Server Error');
   }
 })
+
+app.put('/transactions/update', restrict, async (req, res) => {
+  try {
+    const transactions = await connection.putTransactions( JSON.stringify(req.body) );
+    res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
+  } catch (error) {
+    console.error('Error addding transaction:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
 
 app.put('/transactions/:id', restrict, async (req, res) => {
   try {
@@ -597,24 +629,36 @@ app.get('/forms/forms.html', restrict, function (req, res) {
 });
 
 // STARTING ON ExpressJS
-const server = http.createServer(app);
-const io = socketio(server);
+// const server = http.createServer(app, (req, res) => {
+//   // Get the protocol (http or https)
+//   const protocol = req.connection.encrypted ? 'https://' : 'http://';
+    
+//   // Get the host (hostname and port)
+//   const host = req.headers.host;
+  
+//   // Get the request URL
+//   const url = req.url;
+
+//   // Construct the full URL
+//   const fullUrl = `${protocol}${host}${url}`;
+
+//   // Send the full URL as a response
+//   res.writeHead(200, { 'Content-Type': 'text/plain' });
+//   res.end(`Full URL: ${fullUrl}\n`);
+//   console.log(fullUrl)
+// });
+const server = createServer(app);
+// const io = socketio(server);
+const io = new Server(server)
 let connectedUserMap = new Map();
 
-io.on('connection', (socket)=>{
-  socket.on("error", (err) => {
-    if (err && err.message === "unauthorized event") {
-      socket.disconnect();
-    }
-  });
-  const clientIpAddress= socket.request.socket.remoteAddress;
-  const connectedUserId = socket.id;
-  connectedUserMap.set(socket.id, { ip: clientIpAddress, status:true, users: userLoginDetails });
+const { expressConnect } = _express(io)
+expressConnect()
 
-  socket.join(socket.io)
-  console.log('connectedUserMap')
-  console.log(connectedUserMap)
-})
+// io.on('connection', (socket)=>{
+//   console.log('a user connected', socket.id)
+// })
+
 // ENDOF ExpressJS
 server.on('error', (err) => {
   console.error('Server error:', err);
