@@ -35,7 +35,7 @@
       <div class="col-sm-6 col-md-5 form-section">
         <div class="login-wrapper">
           <h2 class="login-title">Sign in</h2>
-          <form action="/login" method="post">
+          <form action="/login" method="post" data-message="<%=emitMessage%>">
             <div class="form-floating form-floating-custom mb-3">
               <input type="text" class="form-control" name="username" id="floatingUsernameInput">
               <label for="floatingUsernameInput">Username</label>
@@ -44,12 +44,11 @@
               <input type="password" class="form-control" name="password"  id="floatingPasswordInput">
               <label for="floatingPasswordInput">Password</label>
             </div>
-            <%- message %>
             <div class="d-flex justify-content-between align-items-center mb-5">
               <input name="login" id="login" class="btn login-btn" type="submit" value="Login">
               <a href="#!" class="forgot-password-link">Password?</a>
             </div>
-          </form>           
+          </form>
           <p class="login-wrapper-footer-text">Need an account? <a href="/register" class="text-reset">Signup here</a></p>
         </div>
       </div>
