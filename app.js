@@ -20,8 +20,11 @@ const LocalStrategy = require('passport-local');
 const hash = require('pbkdf2-password')()
 const bcrypt = require('bcrypt')
 const saltRounds = 10
+const cron = require('node-cron');
+
 
 const _express = require('./admin/express');
+const _cronjobs = require('./admin/cron')
 
 
 const sampleEmployee = require('./admin/employees.json')
@@ -107,8 +110,6 @@ const viewsAssets = `${__dirname}/assets/`;
 
 const SERVER_PORT = 4000;
 
-
-
 // router.get('/', function(req, res, next) {
 //   res.end()
 // })
@@ -164,6 +165,20 @@ app.use(async function(req, res, next){
 
   next();
 });
+// CRON JOBS
+const {checkDueNotifications} = _cronjobs(moment)
+// Define the cron job (this example runs every minute)
+const task = cron.schedule('* * * * *', async () => {
+  const remarks = await connection.getRemarks()
+
+  console.log('Checking for due tasks...', new Date());
+  checkDueNotifications(remarks)
+}, {
+  scheduled: false
+}); 
+task.start()
+// task.stop()
+// ENDOFCRONJOBS
 
 function restrict(req, res, next) {
   // Check if the user is authenticated
@@ -544,10 +559,14 @@ app.get('/remarks/:id', restrict, async (req, res) => {
 app.post('/remarks/new', restrict, async (req, res) => {
   try {
     const data = JSON.parse(JSON.stringify(req.body))
-    const currentUser = req.session.user
-    // console.log('currentUser', currentUser)
+    let currentUser = req.session.user
+    console.log('currentUser', currentUser)
+    if(res.locals.ENVIRONMENT === 'development' && currentUser === undefined) {
+      currentUser = { username: 'justtest' }
+    }
+    
     const updatedRemarks = { ...data, user: currentUser.username };
-    // console.log(updatedRemarks)
+    console.log(updatedRemarks)
     const remarks = await connection.postRemarks( JSON.stringify(updatedRemarks) );
     res.status(201).json({ message: 'New remarks is added successfully!', response: remarks });
   } catch (error) {

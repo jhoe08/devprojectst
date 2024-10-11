@@ -291,7 +291,7 @@
                     user:'justjoe',
                     dueDate: checkedCheckboxes
                 }
-            
+                console.log(preloaded)
                 const apiUrl = '/remarks/new'
             
                 const requestOptions = {
