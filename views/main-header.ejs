@@ -38,6 +38,7 @@
             <div class="input-group-prepend">
               <button type="submit" class="btn btn-search pe-1">
                 <i class="fa fa-search search-icon"></i>
+                <!-- <i class="fa fa-qrcode"></i> -->
               </button>
             </div>
             <input
@@ -74,7 +75,7 @@
               </form>
             </ul>
           </li>
-          <li class="nav-item topbar-icon dropdown hidden-caret">
+          <li class="nav-item topbar-icon dropdown hidden hidden-caret">
             <a
               class="nav-link dropdown-toggle"
               href="#"
@@ -186,7 +187,7 @@
             <%- include('partials/notifications') -%>
             </ul>
           </li>
-          <li class="nav-item topbar-icon dropdown hidden-caret">
+          <li class="nav-item topbar-icon dropdown hidden hidden-caret">
             <a
               class="nav-link"
               data-bs-toggle="dropdown"
@@ -299,7 +300,7 @@
                       <h4><%= [logonUser?.firstname, logonUser?.lastname].filter(Boolean).join(' ') %></h4>
                       <p class="text-muted"><%- logonUser?.email -%></p>
                       <a
-                        href="profile.html"
+                        href="/employees/<%- logonUser?.employeeid -%>"
                         class="btn btn-xs btn-secondary btn-sm"
                         >View Profile</a
                       >

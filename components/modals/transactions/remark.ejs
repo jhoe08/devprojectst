@@ -13,7 +13,7 @@
                 <div class="col-auto">
                   <label class="colorinput">
                     <input name="color" type="radio" value="dark" class="colorinput-input">
-                    <span class="colorinput-color bg-black"></span>
+                    <span class="colorinput-color bg-black" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Back to office"></span>
                   </label>
                 </div>
                 <div class="col-auto">
@@ -24,32 +24,32 @@
                 </div>
                 <div class="col-auto">
                   <label class="colorinput">
-                    <input name="color" type="radio" value="secondary" class="colorinput-input">
-                    <span class="colorinput-color bg-secondary"></span>
+                    <input name="color" type="radio" value="secondary" class="colorinput-input" >
+                    <span class="colorinput-color bg-secondary" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Lack of Signature"></span>
                   </label>
                 </div>
                 <div class="col-auto">
                   <label class="colorinput">
                     <input name="color" type="radio" value="info" class="colorinput-input">
-                    <span class="colorinput-color bg-info"></span>
+                    <span class="colorinput-color bg-info" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Lack of Attachments"></span>
                   </label>
                 </div>
                 <div class="col-auto">
                   <label class="colorinput">
                     <input name="color" type="radio" value="success" class="colorinput-input">
-                    <span class="colorinput-color bg-success"></span>
+                    <span class="colorinput-color bg-success" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Read to move"></span>
                   </label>
                 </div>
                 <div class="col-auto">
                   <label class="colorinput">
                     <input name="color" type="radio" value="warning" class="colorinput-input">
-                    <span class="colorinput-color bg-warning"></span>
+                    <span class="colorinput-color bg-warning"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Waiting"></span>
                   </label>
                 </div>
                 <div class="col-auto">
                   <label class="colorinput">
                     <input name="color" type="radio" value="danger" class="colorinput-input">
-                    <span class="colorinput-color bg-danger"></span>
+                    <span class="colorinput-color bg-danger" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Issue occured"></span>
                   </label>
                 </div>
               </div>
@@ -58,11 +58,44 @@
               <label for="comment">Comment</label>
               <textarea class="form-control" id="comment" rows="5" required></textarea>
             </div>
+            <div class="form-group">
+              <label class="form-label">Reglementary Period</label>
+              <div class="selectgroup selectgroup-pills">
+                <label class="selectgroup-item">
+                  <input type="checkbox" name="period" value="1" class="selectgroup-input" checked="">
+                  <span class="selectgroup-button">1hr</span>
+                </label>
+                <label class="selectgroup-item">
+                  <input type="checkbox" name="period" value="2" class="selectgroup-input">
+                  <span class="selectgroup-button">2hr</span>
+                </label>
+                <label class="selectgroup-item">
+                  <input type="checkbox" name="period" value="3" class="selectgroup-input">
+                  <span class="selectgroup-button">3hr</span>
+                </label>
+                <label class="selectgroup-item">
+                  <input type="checkbox" name="period" value="4" class="selectgroup-input">
+                  <span class="selectgroup-button">4hr</span>
+                </label>
+                <label class="selectgroup-item">
+                  <input type="checkbox" name="period" value="24" class="selectgroup-input">
+                  <span class="selectgroup-button">1 Day</span>
+                </label>
+                <label class="selectgroup-item">
+                  <input type="checkbox" name="period" value="48" class="selectgroup-input">
+                  <span class="selectgroup-button">2 Days</span>
+                </label>
+                <label class="selectgroup-item">
+                  <input type="checkbox" name="period" value="72" class="selectgroup-input">
+                  <span class="selectgroup-button">3 Days</span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal">Close</button>
-          <a id="createRemarks" href="#" type="button" class="btn button btn-primary" data-transid="<%- transactions.product_id -%>">New Remarks</a>
+          <a id="createRemarks" href="#" type="button" class="btn button btn-primary" data-transid="<%- transactions?.product_id || 0 -%>">New Remarks</a>
         </div>
       </div>
     </div>

@@ -1,14 +1,87 @@
-<% for(var i=remarks.length; i >= 0; i--) { %>
-  <% if(remarks[i]?.status) { %>
-  <li class="feed-item feed-item-<%- remarks[i]?.status -%>" data-index="<%- i -%>">
-    <time class="date" datetime=""><%- moment(remarks[i]?.date).format('MMM DD YYYY hh:mm:ss') -%></time>
-    <span class="text"><span class="badge badge-<%- (i % 2 == 0) ? 'count' : 'info' -%> mr-3"><%- (i % 2 == 0) ? 'In' : 'Out' -%></span><%- remarks[i]?.comment -%></span>
-  </li>
+<% for (let i = remarks.length - 1; i >= 0; i--) { 
+  const remark = remarks[i];
+  const format2 = 'MMM DD YYYY hh:mm:ss';
+  const format = 'MMMM Do YYYY, h:mm:ss a'
+  
+  if (!remark) continue; // Skip if there's no remark at all
+  
+  const { dueDate, date, status, comment, id } = remark;
+  
+  // Format dates
+  const displayDate = dueDate ? moment(dueDate, format).fromNow() : `<a href="#" data-bs-toggle="modal" data-bs-target="#remarksModal" data-action="update">Set</a>`;
+  const now = moment()
+  const startTime = moment(date, format);
+  const endTime = moment(dueDate, format);
+
+  const duration = moment.duration(endTime.diff(now));
+  const remainingHours = duration.hours();
+  const remainingMinutes = duration.minutes();
+  const remainingSeconds = duration.seconds();
+
+  
+  // Calculate duration
+  <!-- const displayDate2 = moment.duration(endTime.diff(startTime)).humanize(); -->
+  <!-- const displayDate2 = endTime.toNow() -->
+  const displayDate2 = `${remainingHours}h: ${remainingMinutes}m: ${remainingSeconds}s`
+
+  // Handle dueDate display fallback
+  const duedate = dueDate ? displayDate : displayDate;
+  
+  // Class for status
+  const statusClass = status ? `feed-item-${status}` : 'feed-item-default'; // Default class if no status
+  
+  let tooltipHTML = 'data-bs-toggle="tooltip" data-bs-placement="left" '
+  switch(status) {
+    case 'dark':
+      tooltipHTML += 'data-bs-title="Back to office"'
+    break;
+    case 'secondary':
+      tooltipHTML += 'data-bs-title="Lack of Signature"'
+    break;
+    case 'info':
+      tooltipHTML += 'data-bs-title="Lack of Attachments"'
+    break;
+    case 'success':
+      tooltipHTML += 'data-bs-title="Read to move"'
+    break;
+    case 'warning':
+      tooltipHTML += 'data-bs-title="Waiting"'
+    break;
+    case 'danger':
+      tooltipHTML += 'data-bs-title="Issue occured"'
+    break;
+    default:
+      tooltipHTML += 'data-bs-title="Tooltip"'
+  }
+%>
+
+  <% if (remark.status) { %>
+    <li id="remark-<%=id%>" class="feed-item <%- statusClass %> d-flex justify-content-between" data-index="<%- i %>" data-startdate="<%- moment(date).format(format) %>" data-duedate="<%- moment(dueDate).format(format) %>" <%-tooltipHTML%>>
+      <div>
+        <time class="date" datetime="<%- moment(date).format(format) %>">
+          <%- moment(date).format(format) %>
+        </time>
+        <span class="text">
+          <span class="badge badge-<%- (i % 2 === 0) ? 'count' : 'info' %> mr-3">
+            <%- (i % 2 === 0) ? 'In' : 'Out' %>
+          </span>
+          <%- comment %>
+        </span>
+      </div>
+      <div>
+        <span id="timeCheck"><%- displayDate %></span>
+      </div>
+    </li>
   <% } %>
+
 <% } %>
 
 <!-- Remarks from published -->
 <li class="feed-item pb-0" data-order="first">
-    <time class="date" datetime="<%- moment(transactions.pr_date).format('MMM DD YYYY') -%>"><%- moment(transactions.pr_date).format('MMM DD YYYY') -%> (<%- moment(transactions.pr_date, "YYYYMMDD").fromNow() -%>)</time>
-    <span class="text"><span class="badge badge-black mr-3">Out</span>Purchase request created date</span>
+  <time class="date" datetime="<%- moment(transactions.pr_date).format('MMM DD YYYY') %>">
+    <%- moment(transactions.pr_date).format('MMM DD YYYY') %> (<%- moment(transactions.pr_date, "YYYYMMDD").fromNow() %>)
+  </time>
+  <span class="text">
+    <span class="badge badge-black mr-3">Out</span>Purchase request created date
+  </span>
 </li>

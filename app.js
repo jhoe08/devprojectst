@@ -132,7 +132,7 @@ app.use('/employees', express.static(viewsAssets))
 // ============================================
 // login
 // ============================================
-app.use(express.urlencoded({ extended: false }))
+app.use(express.urlencoded({ extended: true }))
 app.use(session({
   secret: 'unsamansecret-ani-oi',
   resave: false,
@@ -150,27 +150,27 @@ app.use(async function(req, res, next){
   // if (msg) res.locals.message = '<p class="text-success">' + msg + '</p>';
 
   
-  const notifications = await connection.retrieveNotifications()
+  // const notifications = await connection.retrieveNotifications()
   // res.locals.notifications = JSON.stringify(transactions)
 
 
   res.locals = {
-    environment: process.env.NODE_ENV,
-    testmode: process.env.TEST_MODE,
-    userLoginDetails: req.session.user,
-    notifications: (req.url === '/login') ? '':JSON.stringify(notifications)
+    ENVIRONMENT: process.env.NODE_ENV,
+    TEST_MODE: process.env.TEST_MODE,
+    TEST_UNIT: process.env.TEST_UNIT,
+    SESSION_USER: req.session.user,
+    // LOCAL_NOTIFICATIONS: (req.url === '/login') ? '':JSON.stringify(notifications)
   }
-
-  console.log(req.url)
 
   next();
 });
 
 function restrict(req, res, next) {
   // Check if the user is authenticated
+  // console.log('res.locals.environment', res.locals.ENVIRONMENT)
   if (!req.session.isAuthenticated) {
     // Redirect to login page if not authenticated
-    return (res.locals.environment === 'production') ? res.redirect('/login') : next() ; // Perform the redirect
+    return (res.locals.ENVIRONMENT === 'production') ? res.redirect('/login') : next() ; // Perform the redirect
   }
   
   // If authenticated, proceed to the next middleware
@@ -220,8 +220,9 @@ app.post('/login', async (req, res, next) => {
       let user = JSON.parse(userDetails)
   
       if(!bcrypt.compareSync(password, user.password)) {
-      console.log('hiuhb')
-        return res.status(401).json({ message: 'Invalid credentials' });
+        req.session.error = 401; // Incorrect password
+        res.status(404).redirect('/login')
+        return next()
       }
       const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
   
@@ -231,7 +232,7 @@ app.post('/login', async (req, res, next) => {
   
       res.status(200).redirect('/'); // Only send one response  
     } else {
-      req.session.error = true; // Account Not Found
+      req.session.error = 404; // Account Not Found
       res.status(404).redirect('/login')
     }
   } catch (error) {
@@ -398,6 +399,23 @@ app.get('/transactions/new', restrict, async (req, res) => {
   }
 })
 
+app.get('/transactions/scan', restrict, async (req, res) => {
+  try {
+      res.render('pages/transactions/scan', { 
+        logonUser: req.session.user,
+        title: 'Scan Transaction QRCode',
+        moment: moment,
+        // formatter: formatter,
+        predata: _preTransactionsData,
+        path: req.url, 
+        transactions: null,
+      }); // Pass the data to the template
+  } catch (error) {
+      console.error('Error fetching products:', error);
+      res.status(500).send('Internal Server Error');
+  }
+})
+
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
     const transactions = await connection.postTransactions( JSON.stringify(req.body) );
@@ -525,10 +543,15 @@ app.get('/remarks/:id', restrict, async (req, res) => {
 
 app.post('/remarks/new', restrict, async (req, res) => {
   try {
-    const remarks = await connection.postRemarks( JSON.stringify(req.body) );
+    const data = JSON.parse(JSON.stringify(req.body))
+    const currentUser = req.session.user
+    // console.log('currentUser', currentUser)
+    const updatedRemarks = { ...data, user: currentUser.username };
+    // console.log(updatedRemarks)
+    const remarks = await connection.postRemarks( JSON.stringify(updatedRemarks) );
     res.status(201).json({ message: 'New remarks is added successfully!', response: remarks });
   } catch (error) {
-    console.error('Error addding transaction:', error);
+    console.error('Error addding remarks on transaction:', error);
     res.status(500).send('Internal Server Error');
   }
 })
@@ -624,9 +647,26 @@ app.route('/api/transactions')
     if(transactions) return  res.status(200).json({response: transactions})
     return res.status(400).json({response: 'No Record is Found!'})
   })
+app.route('/api/transactions/:id')
+  .all(restrict)
+  .get(async (req, res) => {
+    const { id } = req.params;
+    if (!Number(id)) {
+      return res.status(400).json({ response: 'Invalid ID format' });
+    }
+
+    const employee = await connection.getTransactionById(id);
+    if (employee) {
+      return res.status(200).json({ response: employee });
+    }
+    return res.status(404).json({ response: 'Employee Not Found!' });
+  });
+
+// DEMO
 app.get('/forms/forms.html', restrict, function (req, res) {
   res.redirect('/demo/forms/forms.html');
 });
+
 
 // STARTING ON ExpressJS
 // const server = http.createServer(app, (req, res) => {
@@ -652,7 +692,7 @@ const server = createServer(app);
 const io = new Server(server)
 let connectedUserMap = new Map();
 
-const { expressConnect } = _express(io)
+const { expressConnect } = _express(io, moment)
 expressConnect()
 
 // io.on('connection', (socket)=>{
@@ -664,6 +704,6 @@ server.on('error', (err) => {
   console.error('Server error:', err);
 });
 
-server.listen(SERVER_PORT, () => {
+server.listen(SERVER_PORT, '0.0.0.0', () => {
   console.log('Server started on', SERVER_PORT);
 });

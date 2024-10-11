@@ -1,8 +1,10 @@
-import client from './admin/express.js'
+import daExpress from './admin/express.js'
+import daLogin from './admin/login.js'
 
 const main = {
   init(func) {
-    client.init(func)
+    daExpress.init(func)
+    daLogin.init()
   }
 }
 

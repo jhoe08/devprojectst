@@ -56,10 +56,10 @@
               <input type="date" class="form-control" name="birthdate" id="floatingBirthdateeDInput" >
               <label for="floatingBirthdateeDInput">Birthdate</label>
             </div>
-            <%- message %>
+            
             <div class="d-flex justify-content-between align-items-center mb-5">
               <input id="verify" class="btn login-btn" type="submit" value="Verify">
-              <input id="predata" class="btn text-danger" type="button" value="Predata">
+              <input id="predata" class="btn text-danger <%= TEST_MODE == 'true' ? '' : 'hidden' %>" type="button" value="Predata">
             </div>
           </form>    
           <form id="registerForm" action="/register" method="post" class="hidden">
@@ -79,7 +79,7 @@
             <input type="hidden" class="form-control" name="referenceid"  id="referenceIDHidden">
             <div class="d-flex justify-content-between align-items-center mb-5">
               <input id="register" class="btn login-btn" type="submit" value="Register">
-              <input id="predataRegister" class="btn text-danger" type="button" value="Predata">
+              <input id="predataRegister" class="btn text-danger <%= TEST_MODE == 'true' ? '' : 'hidden' %>" type="button" value="Predata">
             </div>
           </form>       
         </div>
@@ -140,7 +140,8 @@
           firstname: firstname,
           lastname: lastname,
           middlename: middlename,
-          birthdate: birthdate
+          birthdate: birthdate,
+          // username: "" // Uncomment this to trap the existing account with already username
         }
 
         let apiUrl = `/verify`

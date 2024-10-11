@@ -71,7 +71,6 @@ let dangers = document.querySelectorAll('#basic-datatables .form-button-action .
 if (dangers) {
   // const table = new DataTable('#basic-datatables')
 
-
   dangers.forEach(danger=>{
     
     danger.addEventListener('click', (event)=>{
@@ -114,224 +113,232 @@ if (dangers) {
       });
     })
   })
-  
 }
-let createTransactions = document.getElementById('createTransactions')
-if (createTransactions) {
-  let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
-  let prClassification = document.querySelector('#prClassification')
-  let requisitioner = document.querySelector('#requisitioner')
-  let division = document.querySelector('#divisions')
-  let budget = document.querySelector('#budget')
-  let fundSource = document.querySelector('#fundSource')
-  let bannerProgram = document.querySelector('#bannerProgram')
-  let bacUnit = document.querySelector('#bacUnit')
-  let remarks = document.querySelector('#remarks')
+// let createTransactions = document.getElementById('createTransactions')
+// if (createTransactions) {
+//   let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
+//   let prClassification = document.querySelector('#prClassification')
+//   let requisitioner = document.querySelector('#requisitioner')
+//   let division = document.querySelector('#divisions')
+//   let budget = document.querySelector('#budget')
+//   let fundSource = document.querySelector('#fundSource')
+//   let bannerProgram = document.querySelector('#bannerProgram')
+//   let bacUnit = document.querySelector('#bacUnit')
+//   let remarks = document.querySelector('#remarks')
 
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
+//   const myHeaders = new Headers();
+//   myHeaders.append("Content-Type", "application/json");
 
-  createTransactions.addEventListener('click', async () => {
-    try {
-      let bidNoticeTitleValue = bidNoticeTitle.value
-      let prClassificationValue = prClassification.value
-      let requisitionerValue = requisitioner.value
-      let divisionValue = division.value
-      let budgetValue = budget.value
-      let fundSourceValue = fundSource.value
-      let bannerProgramValue = bannerProgram.value
-      let bacUnitValue = bacUnit.value
-      // let remarksValue = remarks.value
+//   createTransactions.addEventListener('click', async () => {
+//     console.log('asdfw')
 
-      if(bidNoticeTitleValue === '' || budgetValue > 0 || requisitionerValue === '') return;
+//     try {
+//       let bidNoticeTitleValue = bidNoticeTitle.value
+//       let prClassificationValue = prClassification.value
+//       let requisitionerValue = requisitioner.value
+//       let divisionValue = division.value
+//       let budgetValue = budget.value
+//       let fundSourceValue = fundSource.value
+//       let bannerProgramValue = bannerProgram.value
+//       let bacUnitValue = bacUnit.value
+//       // let remarksValue = remarks.value
 
-      const apiUrl = '/transactions/new';
-      let data = { 
-        bid_notice_title: bidNoticeTitleValue, 
-        pr_classification: prClassificationValue, 
-        requisitioner: requisitionerValue, 
-        division: divisionValue,
-        approved_budget: budgetValue,
-        fund_source: fundSourceValue,
-        banner_program: bannerProgramValue, 
-        bac_unit: bacUnitValue,
-        remarks: {
-            createby: 'JustJoe',
-            message: 'remarksValue'
-        } 
-      };
+//       if(bidNoticeTitleValue === '' || budgetValue > 0 || requisitionerValue === '') return;
 
-      const requestOptions = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-      };
+//       const apiUrl = '/transactions/new';
+//       let data = { 
+//         bid_notice_title: bidNoticeTitleValue, 
+//         pr_classification: prClassificationValue, 
+//         requisitioner: requisitionerValue, 
+//         division: divisionValue,
+//         approved_budget: budgetValue,
+//         fund_source: fundSourceValue,
+//         banner_program: bannerProgramValue, 
+//         bac_unit: bacUnitValue,
+//         remarks: {
+//             createby: 'JustJoe',
+//             message: 'remarksValue'
+//         } 
+//       };
 
-      console.log(requestOptions.body)
+//       const requestOptions = {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify(data)
+//       };
 
-      fetch(apiUrl, requestOptions)
-      .then(response => {
-        if (!response.ok) {
-          // throw new Error('Network response was not ok');
-          $.notify({
-            icon: 'icon-bell',
-            title: `System Issue`,
-            message: 'Network response was not ok!',
-          },{
-            type: 'danger',
-            placement: {
-              from: "top",
-              align: "right"
-            },
-            time: 1000,
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        if(!data) {
-          $.notify({ icon: 'icon-bell', title: `Error`, message: `Failed to create the Transaction` },
-                  { type: 'danger', placement: { from: "top", align: "right" },
-                  time: 1000});
-        }
+//       console.log(requestOptions.body)
 
-        let {message, response } = data
-        let {insertId} = response
+//       fetch(apiUrl, requestOptions)
+//       .then(response => {
+//         if (!response.ok) {
+//           // throw new Error('Network response was not ok');
+//           $.notify({
+//             icon: 'icon-bell',
+//             title: `System Issue`,
+//             message: 'Network response was not ok!',
+//           },{
+//             type: 'danger',
+//             placement: {
+//               from: "top",
+//               align: "right"
+//             },
+//             time: 1000,
+//           });
+//         }
+//         return response.json();
+//       })
+//       .then(data => {
+//         if(!data) {
+//           $.notify({ icon: 'icon-bell', title: `Error`, message: `Failed to create the Transaction` },
+//                   { type: 'danger', placement: { from: "top", align: "right" },
+//                   time: 1000});
+//         }
+
+//         let {message, response } = data
+//         let {insertId} = response
         
-        $.notify({
-          icon: 'icon-bell',
-          title: `${message}`,
-          message: `Transaction ID#${insertId}`,
-        },{
-          type: 'success',
-          placement: {
-            from: "top",
-            align: "right"
-          },
-          time: 1000,
-        });
-        // Clearing the fields
-        bidNoticeTitle.value = ''
-        prClassification.value = ''
-        requisitioner.value = ''
-        division.value = ''
-        budget.value = ''
-        fundSource.value = ''
-        bannerProgram.value = ''
-        bacUnit.value = ''
+//         $.notify({
+//           icon: 'icon-bell',
+//           title: `${message}`,
+//           message: `Transaction ID#${insertId}`,
+//         },{
+//           type: 'success',
+//           placement: {
+//             from: "top",
+//             align: "right"
+//           },
+//           time: 1000,
+//         });
+//         // Clearing the fields
+//         bidNoticeTitle.value = ''
+//         prClassification.value = ''
+//         requisitioner.value = ''
+//         division.value = ''
+//         budget.value = ''
+//         fundSource.value = ''
+//         bannerProgram.value = ''
+//         bacUnit.value = ''
 
-      })
-      .catch(error => {
-        $.notify({ icon: 'icon-bell', title: `There was an error on the system!`, message: error },
-          { type: 'danger', placement: { from: "top", align: "right" },
-          time: 1000});
-      });
-    } catch (error) {
-      $.notify({ icon: 'icon-close', title: 'Field is empty please check!', message: error },
-        { type: 'danger', placement: { from: "top", align: "right" },
-        time: 1000});
-    }
-  });
-}
-let createRemarks = document.getElementById('createRemarks')
-if (createRemarks) {
+//       })
+//       .catch(error => {
+//         $.notify({ icon: 'icon-bell', title: `There was an error on the system!`, message: error },
+//           { type: 'danger', placement: { from: "top", align: "right" },
+//           time: 1000});
+//       });
+//     } catch (error) {
+//       $.notify({ icon: 'icon-close', title: 'Field is empty please check!', message: error },
+//         { type: 'danger', placement: { from: "top", align: "right" },
+//         time: 1000});
+//     }
+//   });
+// }
+// let createRemarks = document.getElementById('createRemarks')
+// if (createRemarks) {
 
-  let comment = document.querySelector('#comment')
+//   let comment = document.querySelector('#comment')
 
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
+//   const myHeaders = new Headers();
+//   myHeaders.append("Content-Type", "application/json");
 
-  createRemarks.addEventListener('click', async () => {
-    try {
-      let selectedStatus = document.querySelector('input[name="color"]:checked');
-      let {transid} = createRemarks.dataset
-      let selectedStatusValue = selectedStatus.value
-      let data = { 
-          comment: comment.value, 
-          refid: transid, 
-          status: selectedStatusValue,
-          user:'justjoe' 
-      }
+//   createRemarks.addEventListener('click', async () => {
+//     try {
+//       let selectedStatus = document.querySelector('input[name="color"]:checked');
+//       let selectedPeriod = document.querySelectorAll('input[name="period"]');
+//       let {transid} = createRemarks.dataset
+//       let selectedStatusValue = selectedStatus.value
+//       const checkedCheckboxes = Array.from(selectedPeriod)
+//       .filter(checkbox => checkbox.checked)
+//       .map(checkbox => parseFloat(checkbox.value))
+//       .reduce((sum, value) => sum + value, 0);
   
-      const apiUrl = '/remarks/new'
+//       let data = { 
+//           comment: comment.value, 
+//           refid: transid, 
+//           status: selectedStatusValue,
+//           user:'justjoe',
+//           dueDate: checkedCheckboxes
+//       }
   
-      const requestOptions = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-      };
+//       const apiUrl = '/remarks/new'
   
-      fetch(apiUrl, requestOptions)
-      .then(response => {
-        if (!response.ok) {
-          // throw new Error('Network response was not ok');
-          $.notify({
-            icon: 'icon-bell',
-            title: `Hello, ${greetings} Joe!`,
-            message: 'Network response was not ok!',
-          },{
-            type: 'danger',
-            placement: {
-              from: "top",
-              align: "right"
-            },
-            time: 1000,
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        if(!data) {
-          $.notify({ icon: 'icon-bell', title: `Error`, message: `Failed to create new remarks` },
-                   { type: 'danger', placement: { from: "top", align: "right" },
-                   time: 1000});
-        }
+//       const requestOptions = {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify(data)
+//       };
   
-        let {message, response} = data
-        // console.log(response)
+//       fetch(apiUrl, requestOptions)
+//       .then(response => {
+//         if (!response.ok) {
+//           // throw new Error('Network response was not ok');
+//           $.notify({
+//             icon: 'icon-bell',
+//             title: `Hello, ${greetings} Joe!`,
+//             message: 'Network response was not ok!',
+//           },{
+//             type: 'danger',
+//             placement: {
+//               from: "top",
+//               align: "right"
+//             },
+//             time: 1000,
+//           });
+//         }
+//         return response.json();
+//       })
+//       .then(data => {
+//         if(!data) {
+//           $.notify({ icon: 'icon-bell', title: `Error`, message: `Failed to create new remarks` },
+//                    { type: 'danger', placement: { from: "top", align: "right" },
+//                    time: 1000});
+//         }
+  
+//         let {message, response} = data
+//         // console.log(response)
         
-        refreshActivity.click()
-        // clearing fields
-        selectedStatus.checked = false
-        comment.value = ''
-        // return notifications
-        $.notify({
-          icon: 'icon-check',
-          title: `${message}`,
-          message: `Successfully added the remarks on the transactions!`,
-        },{
-          type: 'success',
-          placement: {
-            from: "top",
-            align: "right"
-          },
-          time: 1000,
-        });
+//         refreshActivity.click()
+//         // clearing fields
+//         selectedStatus.checked = false
+//         comment.value = ''
+//         // return notifications
+//         $.notify({
+//           icon: 'icon-check',
+//           title: `${message}`,
+//           message: `Successfully added the remarks on the transactions!`,
+//         },{
+//           type: 'success',
+//           placement: {
+//             from: "top",
+//             align: "right"
+//           },
+//           time: 1000,
+//         });
 
      
-      })
-      .catch(error => {
-        $.notify({ icon: 'icon-exclamation', title: `There was an error on the system!`, message: `${error} adsdsa` },
-          { type: 'danger', placement: { from: "top", align: "right" },
-          time: 1000});
-      });
+//       })
+//       .catch(error => {
+//         $.notify({ icon: 'icon-exclamation', title: `There was an error on the system!`, message: `${error} adsdsa` },
+//           { type: 'danger', placement: { from: "top", align: "right" },
+//           time: 1000});
+//       });
 
       
-    } catch (error) {
-      $.notify({ icon: 'icon-exclamation', title: `Field is empty please check!`, message: `${error}` },
-        { type: 'danger', placement: { from: "top", align: "right" },
-        time: 1000});
-    }
-    /// AHAAHHAHAHAHAHHAHA
+//     } catch (error) {
+//       $.notify({ icon: 'icon-exclamation', title: `Field is empty please check!`, message: `${error}` },
+//         { type: 'danger', placement: { from: "top", align: "right" },
+//         time: 1000});
+//     }
+//     /// AHAAHHAHAHAHAHHAHA
   
-  })
+//   })
 
   
-}
+// }
 let refreshActivity = document.getElementById('refreshActivity')
 if (refreshActivity) {
   refreshActivity.addEventListener('click', async () =>{
@@ -348,54 +355,7 @@ if (refreshActivity) {
       document.querySelector('.activity-feed').innerHTML = html;
     })
     .catch(error => console.error('Error fetching HTML:', error));
-
-    // let feeds = document.querySelector('.activity-feed')
-    // let html = ''
-    // for(let i=0; i < remarks.length; i++) {
-    //     html += `<li class="feed-item feed-item-<%- remarks[i].status -%>">
-    //       <time class="date" datetime="<%- moment(remarks[i].date).format('MMM-DD-YYYY') -%>"><%- moment(remarks[i].date).format('MMM DD YYYY') -%> (<%- moment(remarks[i].date, "YYYYMMDD").fromNow() -%>)</time>
-    //       <span class="text"><span class="badge badge-<%- (i % 2 == 1) ? 'count' : 'info' -%> mr-3"><%- (i % 2 == 1) ? 'In' : 'Out' -%></span><%- remarks[i].comment -%></span>
-    //     </li>`
-    // }
-
-    // feeds.innerHTML = html
-
   })
-}
-
-let loginBtn = document.getElementById('login')
-if(loginBtn) {
-  
-  const form = document.getElementsByTagName('form')[0]
-  const fields = form.getElementsByClassName('form-control')
-  const message = form.dataset.message
-  
-   // Add a submit event listener to the form
-    form.addEventListener('submit', function(event) {
-    let allFilled = true;
-
-    // Check each field to see if it's empty
-    for (let field of fields) {
-      if (!field.value.trim()) {
-        allFilled = false;
-        break; // Exit loop if any field is empty
-      }
-    }
-
-    // If any field is empty, prevent form submission
-    if (!allFilled) {
-      event.preventDefault(); // Prevent form submission
-      // alert('Please fill out all fields before submitting.');
-      $.notify({ icon: 'icon-bell', title: 'Empty fields', message: 'Please fill out all fields before submitting.' },
-        { type: 'danger', placement: { from: "top", align: "right" },
-        time: 1000});
-    }
-  });
-  if(message) {
-    $.notify({ icon: 'icon-bell', title: 'Account Not Found', message: 'No account is registered using the credentials.' },
-      { type: 'danger', placement: { from: "top", align: "right" },
-      time: 1000});
-  }
 }
 
 function numberFormat ( data ) {
@@ -440,7 +400,7 @@ function peso(amount) {
 }
 
 function stringToArray(str, callback) {
-  const separated = str.slice(1,-1).split(',').map(item => item.trim().replace(/"/g, ''));
+  const separated = str.slice(1,-1).split(',').map(item => item.trim().replace(/"/g, '')).filter(item => item !== 'null' && item !== '');
   return separated.map(callback).join(' ')
 }
 

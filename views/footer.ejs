@@ -3,7 +3,7 @@
     <script>
       // new DataTable.datetime('D MMM YYYY');
 
-      let transactions = $("#basic-datatables").DataTable({
+      const transactions = $("#transactions-datatables").DataTable({
         "order": [[0, 'desc']],
         columnDefs: [{
             render: (data, type, row) => '<div><span data-head="Classification" class="badge badge-count mr-3">' + row[9] + '</span><span data-head="Banner"  class="badge badge-info">' + row[8] + '</span></div><div class="mb-0">'+ data +'</div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div>',
@@ -87,6 +87,20 @@
         },
       })
 
+      const transactionsIDs = $("#basic-datatables").DataTable()
+
+      function addNewRow(data) {
+        // alert(data)
+        console.log(data)
+        const { approved_budget, bid_notice_title, product_id } = data[0]
+        const newRowData = [
+          product_id,           // Product ID
+          bid_notice_title,     // Notice Title
+          approved_budget,      // Approved Budget
+        ];
+        console.log('asdadadasdasdasdadad', newRowData)
+        transactionsIDs.row.add(newRowData).draw();
+      }
 
       document.querySelectorAll('.toggle-vis').forEach((el) => {
         el.addEventListener('click', function (e) {
