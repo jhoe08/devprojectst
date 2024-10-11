@@ -12,14 +12,15 @@
               <div class="selectgroup selectgroup-pills">
                 <% if(transactions?.trans_code && isValidJSON(transactions.trans_code)) { 
                   trans_code = JSON.parse(transactions.trans_code)
-                  trans_code.forEach(function(code){ %>
-                  <label class="selectgroup-item">
+                  trans_code.filter(code => code !== null) 
+                  trans_code.forEach(function(code){ if(code) { %>
+                  <label class="selectgroup-item" data-label="array">
                     <input type="checkbox" name="value" value="<%=code%>" class="selectgroup-input">
                     <span class="selectgroup-button"><%=code%></span>
                   </label>
-                  <% })%>
+                  <% } })%>
                 <% } else { %>
-                  <label class="selectgroup-item">
+                  <label class="selectgroup-item" data-label="text">
                     <input type="checkbox" name="value" value="<%=transactions?.trans_code%>" class="selectgroup-input">
                     <span class="selectgroup-button"><%=transactions?.trans_code%></span>
                   </label>

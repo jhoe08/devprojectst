@@ -97,9 +97,9 @@
                             <h6 class="text-uppercase fw-bold mb-1">
                             <% if(transactions?.trans_code && isValidJSON(transactions.trans_code)) { 
                               trans_code = JSON.parse(transactions.trans_code)
-                              trans_code.forEach(function(code){ %>
+                              trans_code.forEach(function(code){ if(code) { %>
                               <span class="badge badge-count"><%= code %></span>
-                              <% })%>
+                              <% } })%>
                             <% } else { %>
                               <span class="badge badge-count"><%= transactions?.trans_code %></span>
                             <% } %>

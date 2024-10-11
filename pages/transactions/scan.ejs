@@ -1,0 +1,81 @@
+<!-- Header Template -->
+<%- include('../../views/header') -%>
+
+<div class="wrapper">
+    <%- include('../../views/sidebar') -%>
+
+    <div class="main-panel">
+      <%- include('../../views/main-header') -%>
+
+      <div class="container" >
+          <div class="page-inner">
+            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+              <div>
+                  <h3 class="fw-bold mb-3"><%- title -%></h3>
+                  <h6 class="op-7 mb-2">Scan QRCode like Purchase Request, Travel Order, and etc...</h6>
+              </div>
+              <div class="ms-md-auto py-2 py-md-0">
+                <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="transactions" data-column="11">Manage</a>
+                <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add Remarks</a>
+              </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                      <div class="card-header">
+                        <h4 class="card-title">Scan QRCode</h4>
+                      </div>
+                      <!-- HIDDEN camera for now -->
+                      <div class="card-body">
+                        <!-- Camera here -->
+                        <video id="qrcodeScanner" autoplay></video>
+                        <div id="qrCodeData" class="mt-2">QR Code data will appear here...</div>
+
+                        <!-- Include jsQR library from CDN -->
+                        <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+                        <!-- HTTPS needed in order for the camera to run -->
+                        <script>
+                            
+                        </script>
+                      </div>
+                      <div class="card-action">
+                      </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center">
+                                <h4 class="card-title">Transaction #</h4>
+                            </div>
+                        </div>
+                      <div class="card-body">
+                        <div class="col-md-12">
+                            <table id="basic-datatables" class="display table table-striped table-hover dataTable" role="grid" aria-describedby="basic-datatables_info">
+                                <thead>
+                                  <tr role="row">
+                                    <th class="sorting_asc" tabindex="0" aria-controls="basic-datatables" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 240.359px;">Bit Notice Title</th>
+                                    <th class="sorting" tabindex="0" aria-controls="basic-datatables" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 365.891px;">Requisitioner</th>
+                                    <th class="sorting" tabindex="0" aria-controls="basic-datatables" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 187.781px;">Budget</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                  <tr><th rowspan="1" colspan="1">Bit Notice Title</th><th rowspan="1" colspan="1">Requisitioner</th><th rowspan="1" colspan="1">Budget</th></tr>
+                                </tfoot>
+                                <tbody>
+                                </tbody>
+                              </table>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+      </div>
+    </div>
+</div>
+<!-- Transaction: Remarks -->
+<%- include('../../components/modals/transactions/remark') -%>
+<script src="/assets/js/components/transactions.js"></script>
+<!-- Footer Template -->
+<%- include('../../views/footer') -%>

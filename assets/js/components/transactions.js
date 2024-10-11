@@ -1,4 +1,4 @@
-
+// let notifyIcon = ['check', 'close', 'exclamation', 'bell'];
 (()=>{
     function notifyCustom(type, title, message, status) {
         return $.notify({
@@ -35,8 +35,11 @@
     
 
     const createTransactionCode = document.getElementById('createTransactionCode')
+    const createTransactions = document.getElementById('createTransactions')
     const updateTransactions = document.getElementById('updateTransactions')
-
+    const createRemarks = document.getElementById('createRemarks')
+    const updateRemarks = document.getElementById('updateRemakrs')
+    
     if(createTransactionCode) {
         const transCodeText = document.getElementById('transCodeText')
         createTransactionCode.addEventListener('click', function(e){
@@ -71,6 +74,101 @@
             transCodeText.value = ''
         })
     }
+    if(createTransactions) {
+        let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
+        let prClassification = document.querySelector('#prClassification')
+        let requisitioner = document.querySelector('#requisitioner')
+        let division = document.querySelector('#divisions')
+        let budget = document.querySelector('#budget')
+        let fundSource = document.querySelector('#fundSource')
+        let bannerProgram = document.querySelector('#bannerProgram')
+        let bacUnit = document.querySelector('#bacUnit')
+        let remarks = document.querySelector('#remarks')
+      
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+      
+        createTransactions.addEventListener('click', async () => {
+          console.log('asdfw')
+      
+          try {
+            let bidNoticeTitleValue = bidNoticeTitle.value
+            let prClassificationValue = prClassification.value
+            let requisitionerValue = requisitioner.value
+            let divisionValue = division.value
+            let budgetValue = budget.value
+            let fundSourceValue = fundSource.value
+            let bannerProgramValue = bannerProgram.value
+            let bacUnitValue = bacUnit.value
+            // let remarksValue = remarks.value
+      
+            if(bidNoticeTitleValue === '' || budgetValue > 0 || requisitionerValue === '') {
+                notifyCustom('exclamation', 'Fields are empty', 'Either this fields are empty Bid Notice Title, Budget, and Requisitioner', 'danger')
+                return
+            };
+      
+            const apiUrl = '/transactions/new';
+            let data = { 
+              bid_notice_title: bidNoticeTitleValue, 
+              pr_classification: prClassificationValue, 
+              requisitioner: requisitionerValue, 
+              division: divisionValue,
+              approved_budget: budgetValue,
+              fund_source: fundSourceValue,
+              banner_program: bannerProgramValue, 
+              bac_unit: bacUnitValue,
+              remarks: {
+                  createby: 'JustJoe',
+                  message: 'remarksValue'
+              } 
+            };
+      
+            const requestOptions = {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(data)
+            };
+      
+            console.log(requestOptions.body)
+      
+            fetch(apiUrl, requestOptions)
+            .then(response => {
+              if (!response.ok) {
+                // throw new Error('Network response was not ok');
+                notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
+              }
+              return response.json();
+            })
+            .then(data => {
+              if(!data) {
+                notifyCustom('bell', 'Error', 'Failed to create the Transaction!', 'danger')
+              }
+      
+              let {message, response } = data
+              let {insertId} = response
+              
+              notifyCustom('bell', message, `Transaction ID#${insertId}`, 'success')
+              // Clearing the fields
+              bidNoticeTitle.value = ''
+              prClassification.value = ''
+              requisitioner.value = ''
+              division.value = ''
+              budget.value = ''
+              fundSource.value = ''
+              bannerProgram.value = ''
+              bacUnit.value = ''
+      
+            })
+            .catch(error => {
+                notifyCustom('bell', 'There was an error on the system!', error, 'danger')
+            });
+          } catch (error) {
+            notifyCustom('close', 'Field is empty please check!', error, 'danger')
+          }
+        });
+      }
     if(updateTransactions) {
         let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
         let prClassification = document.querySelector('#prClassification')
@@ -165,6 +263,75 @@
             .catch(error => {
                 notifyCustom('bell', `System Error`, `${error}`, 'danger')
             });
+        })
+    }
+    if(createRemarks) {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+        let comment = document.querySelector('#comment')
+
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        createRemarks.addEventListener('click', async () => {
+            try {
+                let selectedStatus = document.querySelector('input[name="color"]:checked');
+                let selectedPeriod = document.querySelectorAll('input[name="period"]');
+                let {transid} = createRemarks.dataset
+                let selectedStatusValue = selectedStatus.value
+                
+                const checkedCheckboxes = Array.from(selectedPeriod)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => parseFloat(checkbox.value))
+                .reduce((sum, value) => sum + value, 0);
+            
+                let preloaded = { 
+                    comment: comment.value, 
+                    refid: transid, 
+                    status: selectedStatusValue,
+                    user:'justjoe',
+                    dueDate: checkedCheckboxes
+                }
+            
+                const apiUrl = '/remarks/new'
+            
+                const requestOptions = {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(preloaded)
+                };
+            
+                fetch(apiUrl, requestOptions)
+                .then(response => {
+                    if (!response.ok) {
+                        // throw new Error('Network response was not ok');
+                        notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if(!data) {
+                        notifyCustom('bell', 'Error', 'Failed to create new remarks', 'danger')
+                    }
+            
+                    let {message} = data
+                    if(refreshActivity) {
+                        refreshActivity.click()
+                    }
+                    
+                    // clearing fields
+                    selectedStatus.checked = false
+                    comment.value = ''
+                    // return notifications
+                    notifyCustom('check', `${message}`, 'Successfully added the remarks on the transactions!', 'success')
+                })
+                .catch(error => {
+                    notifyCustom('exclamation', `There was an error on the system!`, `${error}`, 'danger')
+                });
+            } catch (error) {
+                notifyCustom('exclamation', `Field is empty please check!`, `${error}`, 'danger')
+            }
         })
     }
 })()

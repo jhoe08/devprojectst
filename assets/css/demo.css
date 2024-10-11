@@ -51,9 +51,12 @@
   img {
     width: 100%;
     max-width: 250px;
+    @media (max-width: 767px) {
+      margin: 0 auto;
+    }
   }
   @media (max-width: 767px) {
-    display: none;
+    /* display: none; */
   }
 }
 

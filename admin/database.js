@@ -7,6 +7,7 @@ const {isValidJSON} = require("./utils")
 const { hashPassword, registerUser, loginUser } = misc
 
 let prefix = 'transto'
+const TEST_UNIT = process.env.TEST_UNIT
 
 var connection = mysql.createConnection({
     host     : 'localhost',
@@ -18,8 +19,10 @@ var connection = mysql.createConnection({
 
   connection.connect();
 
-function convertDate (date) {
-    return moment(date).format("YYYY-MM-DD hh:mm:ss");
+function convertDate (date, hours) {
+    return moment(date)
+    .add(hours, TEST_UNIT)
+    .format("YYYY-MM-DD hh:mm:ss");
 } 
 
 function isEmpty(value) {
@@ -72,11 +75,23 @@ const databaseUtils = {
         })
     }),
     postRemarks: (data) => new Promise((resolve, reject) => {
-        let {comment, user, refid, status} = JSON.parse(data)
-        let date = convertDate(new Date())
+        let {comment, user, refid, status, dueDate} = JSON.parse(data)
+        let date = convertDate(new Date(), 0) // No additional hours
+        let values = ''
+       
+        refid = JSON.parse(refid)
+        dueDate = convertDate(new Date(), dueDate)
+      
+        if(Array.isArray(refid)) {
+            values = refid.map(id => 
+                `('${comment}', '${status}', ${id}, '${user}', '${date}', '${dueDate}')`
+              ).join(', ');
+        } else {
+            values = `('${comment}', '${status}', ${refid}, '${user}', '${date}', '${dueDate}')`
+        }
 
-        connection.query(`INSERT INTO remarks (comment, status, refid, user, date) VALUES ('${comment}', '${status}', ${refid}, '${user}', '${date}')`, (error, results) => {
-            if (error) {
+        connection.query(`INSERT INTO remarks (comment, status, refid, user, date, dueDate) VALUES ${values}`, (error, results) => {
+            if (error) {    
                 reject(error)
             } else {
                 resolve(results)

@@ -58,6 +58,13 @@
               <!-- <span class="caret"></span> -->
             </a>
           </li>
+          <li class="nav-item <%- (path == '/transactions/scan') ? 'active' : '' -%>">
+            <a href="/transactions/scan">
+              <i class="fas fa-qrcode"></i>
+              <p>Scan QRCode</p>
+              <!-- <span class="caret"></span> -->
+            </a>
+          </li>
           <li class="nav-section">
             <span class="sidebar-mini-icon">
               <i class="fa fa-ellipsis-h"></i>
@@ -71,7 +78,7 @@
               <!-- <span class="caret"></span> -->
             </a>
           </li>
-          <% if (environment == 'development') { %>
+          <% if (ENVIRONMENT == 'development') { %>
           <li class="nav-item <%- (path == '/employees/new') ? 'active' : '' -%>">
             <a href="/employees/new">
               <i class="fas fa-user-plus"></i>
