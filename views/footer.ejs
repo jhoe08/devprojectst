@@ -44,8 +44,8 @@
           // });
         }, 
       })
- 
-      const employeesHiddenColumns = [6,7,] 
+      const employeesHiddenColumns = []
+      // const employeesHiddenColumns = [6,7,] 
       let employees = $("#employees").DataTable({
         
         layout: {
@@ -58,6 +58,7 @@
             render: (data, type, row) => `<span class="badge badge-success"></span>${data}`,
             targets: 1
           },{ visible: false, targets: employeesHiddenColumns }],
+        // rowDefs:[{ visible: false, targets: [3, 4, 5] }],
         responsive: true,
         initComplete: function () {
           this.api()
@@ -86,6 +87,13 @@
           });
         },
       })
+      // employees.rows().every(function() {
+      //   var data = this.data();
+      //   if ([4, 6, 14].includes(data[0])) {  // Hide rows where position is 'Accountant'
+      //       this.nodes().to$().hide();
+      //   }
+      // });
+
 
       const transactionsIDs = $("#basic-datatables").DataTable()
 

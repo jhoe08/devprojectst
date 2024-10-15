@@ -2,7 +2,11 @@
 const _express = (io, moment) => {
     const format = 'MMM DD YYYY hh:mm:ss a'
     const units = 'minutes' // hours, minutes, seconds
-   
+    let countNotif = 0;
+
+    const getCountNotif = (data) => {
+      return data
+    }
     const updateCountdown = (countdownEnd) => {
       const now = moment; // current time
       const remainingTime = countdownEnd.diff(now); // difference between current time and countdown end
@@ -31,29 +35,34 @@ const _express = (io, moment) => {
 
         ///////////////////////////
         socket.join(socketID)
-        
-          socket.on('timeLimit', (data)=>{
-            const {startDate, dueDate} = data
-            
-            const startTime = moment(startDate, format);
-          
-            setInterval(()=>{
-              const now = moment()
-              const endTime = moment(dueDate, format);
+        // socket.emit('notificationCount', { countNotif });
 
-              const duration = moment.duration(endTime.diff(now));
-              
-              const remainingHours = duration.hours();
-              const remainingMinutes = duration.minutes();
-              const remainingSeconds = duration.seconds();
-              const html = `${remainingHours} hours ${remainingMinutes} minutes ${remainingSeconds} seconds`
-              // console.log(html)
-              io.emit('displayTimeLimit', JSON.stringify({remainingHours, remainingMinutes, remainingSeconds}))
-            }, 1000)
-    
-          })
+        setInterval(function(){
+          countNotif++;
+          // socket.emit('notificationCount', { countNotif }); // Emit to all connected clients
+          // console.log(countNotif)
+        }, 1000);  // Update every 10 seconds
+
+        socket.on('timeLimit', (data)=>{
+          const {startDate, dueDate} = data
+          
+          const startTime = moment(startDate, format);
         
-      
+          setInterval(()=>{
+            const now = moment()
+            const endTime = moment(dueDate, format);
+
+            const duration = moment.duration(endTime.diff(now));
+            
+            const remainingHours = duration.hours();
+            const remainingMinutes = duration.minutes();
+            const remainingSeconds = duration.seconds();
+            const html = `${remainingHours} hours ${remainingMinutes} minutes ${remainingSeconds} seconds`
+            // console.log(html)
+            io.emit('displayTimeLimit', JSON.stringify({remainingHours, remainingMinutes, remainingSeconds}))
+          }, 1000)
+  
+        })
        
         /////// DISCONNECT ///////
         socket.on('disconnect', () => {
@@ -63,7 +72,7 @@ const _express = (io, moment) => {
     } 
   
     return {
-      expressConnect
+      expressConnect, getCountNotif
     }
   }
   

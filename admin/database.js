@@ -361,6 +361,8 @@ const databaseUtils = {
         return await databaseUtils.amendData('notifications', data)
     },
     postNotifications: async (data) => {
+        data = JSON.parse(data)
+        data = JSON.stringify({...data, created_at: convertDate(new Date())})
         return await databaseUtils.storeData('notifications', data)
     },
     // Sample

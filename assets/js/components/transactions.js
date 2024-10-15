@@ -102,7 +102,7 @@
             let bacUnitValue = bacUnit.value
             // let remarksValue = remarks.value
       
-            if(bidNoticeTitleValue === '' || budgetValue > 0 || requisitionerValue === '') {
+            if(bidNoticeTitleValue === '' || budgetValue === 0 || requisitionerValue === '') {
                 notifyCustom('exclamation', 'Fields are empty', 'Either this fields are empty Bid Notice Title, Budget, and Requisitioner', 'danger')
                 return
             };
