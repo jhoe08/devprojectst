@@ -412,3 +412,18 @@ function isValidJSON(jsonString) {
       return false; // If there's an error, return false
   }
 }
+
+// Function to fetch the countNotif from the server
+async function fetchNotificationCount() {
+  // try {
+  //   const response = await fetch('http://localhost:3000/api/notifications');
+  //   const data = await response.json();
+  //   const notifCount = document.getElementById('notifCount')
+  //   notifCount.querySelector('span').textContent = data.countNotif;
+  // } catch (error) {
+  //   console.error('Error fetching notification count:', error);
+  // }
+}
+
+// Periodically check for updated notification count (e.g., every 5 seconds)
+setInterval(fetchNotificationCount, 60000); // Adjust interval as needed

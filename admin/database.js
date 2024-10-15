@@ -2,7 +2,8 @@
 let mysql = require('mysql');
 let moment = require('moment')
 const misc = require("./misc")
-const {isValidJSON} = require("./utils")
+const {isValidJSON} = require("./utils");
+const { reject } = require('bcrypt/promises');
 
 const { hashPassword, registerUser, loginUser } = misc
 
@@ -178,6 +179,14 @@ const databaseUtils = {
             else resolve(results);
         });
     }),
+    getRemarks: async (data) => {
+        if (data) {
+            data = JSON.parse(data)
+            return await databaseUtils.retrieveData('remarks', '*', data)
+        }
+        
+        return await databaseUtils.retrieveData('remarks')
+    },
     getRemarksByRefid: (id) => new Promise((resolve, reject) => {
         connection.query(`SELECT * FROM remarks WHERE refid=${id}`, (error, results) => {
             if (error) {
@@ -203,7 +212,6 @@ const databaseUtils = {
     retrieveData: (table, filter, where) => new Promise((resolve, reject) => {
         if(!filter) { filter = '*';}
         let query = `SELECT ${filter} FROM ${prefix}.${table}`
-        console.log({table, where})
         if(where) {
             query += " WHERE"
             query += Object.entries(where)
@@ -213,7 +221,6 @@ const databaseUtils = {
             })
             .join(' AND');
         }
-        console.log(query)
         connection.query(query, (error, results) => {
             if (error) {
                 reject(error)
@@ -354,6 +361,8 @@ const databaseUtils = {
         return await databaseUtils.amendData('notifications', data)
     },
     postNotifications: async (data) => {
+        data = JSON.parse(data)
+        data = JSON.stringify({...data, created_at: convertDate(new Date())})
         return await databaseUtils.storeData('notifications', data)
     },
     // Sample

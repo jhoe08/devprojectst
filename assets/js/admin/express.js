@@ -11,16 +11,27 @@ const client = {
             console.log(data)
         })
 
-        _io.on('user', (data) => {
-            console.log()
-        })
+        _io.on('notificationCount', (data) => {
+            const notifCount = document.getElementById('notifDropdown');
+            const {countNotif} = data
+            console.log(countNotif)
+            if(notifCount) {
+                if(countNotif > 100) { 
+                    notifCount.querySelector('span').textContent = '99+'
+                } else {
+                    notifCount.querySelector('span').textContent = countNotif
+                }
+            }
+            
+            
+            // notifCount.textContent = data.countNotif; // Update the count
+          });
         _io.on('dateLang', (data) => {
             if(this.timeCheck) {
                 this.timeCheck.innerHTML = data
             }
-            
-            // console.log('asdws-', data)
         })
+        
         if(this.feedItems) {
             const startDate = this.feedItems.dataset.startdate
             const dueDate = this.feedItems.dataset.duedate
@@ -37,7 +48,7 @@ const client = {
                         console.log('Transaction being FLAGGED!')
                         _io.removeListener('displayTimeLimit', this.timeLimit())
                     }
-                    this.timeCheck.innerHTML = `${remainingHours}h: ${remainingMinutes}m: ${remainingSeconds}s`
+                    // this.timeCheck.innerHTML = `${remainingHours}h: ${remainingMinutes}m: ${remainingSeconds}s`
                 }
             })
         }

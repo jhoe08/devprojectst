@@ -20,8 +20,11 @@ const LocalStrategy = require('passport-local');
 const hash = require('pbkdf2-password')()
 const bcrypt = require('bcrypt')
 const saltRounds = 10
+const cron = require('node-cron');
+
 
 const _express = require('./admin/express');
+const _cronjobs = require('./admin/cron')
 
 
 const sampleEmployee = require('./admin/employees.json')
@@ -29,6 +32,7 @@ const sampleEmployee = require('./admin/employees.json')
 const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { exit } = require('process');
+const { count } = require('console');
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
@@ -107,8 +111,6 @@ const viewsAssets = `${__dirname}/assets/`;
 
 const SERVER_PORT = 4000;
 
-
-
 // router.get('/', function(req, res, next) {
 //   res.end()
 // })
@@ -140,6 +142,30 @@ app.use(session({
   cookie: { secure: false }  // Set to `true` in production with HTTPS
 }));
 
+/////// SERVER
+const server = createServer(app);
+// const io = socketio(server);
+const io = new Server(server)
+let connectedUserMap = new Map();
+/////// endof SERVER
+
+// CRON JOBS
+const {checkDueNotifications, incrementNotification} = _cronjobs(moment)
+let countNotif = 0
+// Define the cron job (this example runs every minute)
+const task = cron.schedule('* * * * *', async () => {
+  const remarks = await connection.getRemarks()
+
+  console.log('Checking for due tasks...', new Date());
+  // checkDueNotifications(remarks)
+  countNotif = incrementNotification()
+}, {
+  scheduled: false
+}); 
+task.start()
+// task.stop()
+// ENDOFCRONJOBS
+
 app.use(async function(req, res, next){
   // const err = req.session.error;
   // const msg = req.session.success;
@@ -150,16 +176,16 @@ app.use(async function(req, res, next){
   // if (msg) res.locals.message = '<p class="text-success">' + msg + '</p>';
 
   
-  // const notifications = await connection.retrieveNotifications()
+  const notifications = await connection.retrieveNotifications()
   // res.locals.notifications = JSON.stringify(transactions)
-
-
   res.locals = {
     ENVIRONMENT: process.env.NODE_ENV,
     TEST_MODE: process.env.TEST_MODE,
     TEST_UNIT: process.env.TEST_UNIT,
     SESSION_USER: req.session.user,
-    // LOCAL_NOTIFICATIONS: (req.url === '/login') ? '':JSON.stringify(notifications)
+    // NOTIFICATIONS: countNotif,
+    // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications)
+    NOTIFICATIONS: JSON.stringify(notifications)
   }
 
   next();
@@ -184,7 +210,14 @@ app.get('/', restrict, function(req, res){
       title: "Dashboard",
       header: "Some users", 
       path: res.url,
+      moment
     });
+});
+
+// Endpoint to get the countNotif value
+app.get('/api/notifications', (req, res) => {
+  console.log(countNotif)
+  res.json({ countNotif });
 });
 
 app.get('/404', (req, res) => {
@@ -338,6 +371,16 @@ app.post('/register/new', async (req, res) => {
     let data = JSON.stringify(req.body)
     const register = await connection.postEmployees(data)
     if(register.length != 0) {
+      if(register?.affectedRows){
+        const {insertId} = register
+        const data = {
+          "message": "New Users was registered",
+          "link": insertId, 
+          "component": "employee",
+          // "created_at": convertDate(new Date())
+        }
+        const nofitifications = await connection.postNotifications(JSON.stringify(data))
+      }
       res.status(200).json({ message: 'Account is successfully register', response: register})
     } else {
       res.status(200).json({ message: 'Failed to register the account',  response: register });
@@ -419,6 +462,17 @@ app.get('/transactions/scan', restrict, async (req, res) => {
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
     const transactions = await connection.postTransactions( JSON.stringify(req.body) );
+    if(transactions?.affectedRows){
+      const {insertId} = transactions
+      const data = {
+        "message": "New Transactions was created",
+        "link": insertId, 
+        "component": "transactions",
+        // "created_at": convertDate(new Date())
+      }
+      const nofitifications = await connection.postNotifications(JSON.stringify(data))
+    }
+    // console.log('transactions', transactions)
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
   } catch (error) {
     console.error('Error addding transaction:', error);
@@ -544,15 +598,40 @@ app.get('/remarks/:id', restrict, async (req, res) => {
 app.post('/remarks/new', restrict, async (req, res) => {
   try {
     const data = JSON.parse(JSON.stringify(req.body))
-    const currentUser = req.session.user
-    // console.log('currentUser', currentUser)
+    let currentUser = req.session.user
+    console.log('currentUser', currentUser)
+    if(res.locals.ENVIRONMENT === 'development' && currentUser === undefined) {
+      currentUser = { username: 'justtest' }
+    }
+    
     const updatedRemarks = { ...data, user: currentUser.username };
-    // console.log(updatedRemarks)
+    console.log(updatedRemarks)
     const remarks = await connection.postRemarks( JSON.stringify(updatedRemarks) );
+    if(remarks?.affectedRows){
+      const {insertId} = register
+      const data = {
+        "message": "New Users was registered",
+        "link": insertId, 
+        "component": "employee",
+        // "created_at": convertDate(new Date())
+      }
+      const nofitifications = await connection.postNotifications(JSON.stringify(data))
+    }
     res.status(201).json({ message: 'New remarks is added successfully!', response: remarks });
   } catch (error) {
-    console.error('Error addding remarks on transaction:', error);
-    res.status(500).send('Internal Server Error');
+    console.error('Error addding new remarks on transaction:', error);
+    res.status(500).send('Error addding new remarks on transaction:', error);
+  }
+})
+
+app.post('/notifications/new', restrict, async (req, res) => {
+  try {
+    const data = JSON.stringify(req.body)
+    const results = await connection.postNotifications(data)
+    res.status(201).json({ message: 'New notification is added successfully', response: results})
+  } catch (error) {
+    console.error('Error addding new notification on transaction:', error);
+    res.status(500).send('Error addding notification on transaction:', error);
   }
 })
 
@@ -562,7 +641,7 @@ app.post('/transcodes/new', restrict, async (req, res) => {
     res.status(201).json({ message: 'Successfully added transaction codes!', response: codes });
   } catch (error) {
     console.error('Error addding transaction codes:', error);
-    res.status(500).send('Internal Server Error');
+    res.status(500).send('Error addding transaction codes:', error);
   }
 })
 app.get('/employees', restrict, async (req, res) => {
@@ -585,7 +664,8 @@ app.get('/employees/new', restrict, function(req, res){
     logonUser: req.session.user,
     defaultData: _preDefaultData,
     title: 'Add Employee', 
-    path: res.url
+    path: res.url,
+    moment
   })
 })
 
@@ -596,7 +676,8 @@ app.get('/employees/:id', restrict, async function(req, res){
         defaultData: _preDefaultData,
         logonUser: req.session.user,
         title: 'Register Employee',
-        path: res.url
+        path: res.url,
+        moment
       })
     } else {
       const employee = await connection.getEmployeeById(req.params.id);
@@ -604,7 +685,7 @@ app.get('/employees/:id', restrict, async function(req, res){
         res.render('pages/employees/profile', {
           logonUser: req.session.user,
           employee: employee[0],
-          moment: moment,
+          moment,
           title: 'Profile', 
           path: res.url
         })
@@ -632,6 +713,9 @@ app.get('/employees/register', restrict, function(req, res){
     path: res.url
   })
 })
+
+
+
 // SUPERADMIN
 app.route('/api/employees')
   .all(restrict)
@@ -687,10 +771,7 @@ app.get('/forms/forms.html', restrict, function (req, res) {
 //   res.end(`Full URL: ${fullUrl}\n`);
 //   console.log(fullUrl)
 // });
-const server = createServer(app);
-// const io = socketio(server);
-const io = new Server(server)
-let connectedUserMap = new Map();
+
 
 const { expressConnect } = _express(io, moment)
 expressConnect()

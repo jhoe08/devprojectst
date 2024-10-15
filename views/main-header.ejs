@@ -50,8 +50,7 @@
         </nav>
 
         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-          <li
-            class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none"
+          <li class="nav-item topbar-icon dropdown hidden hidden-caret d-flex d-lg-none"
           >
             <a
               class="nav-link dropdown-toggle"
@@ -166,27 +165,9 @@
               </li>
             </ul>
           </li>
-          <li class="nav-item topbar-icon dropdown hidden-caret">
-            <a
-              class="nav-link dropdown-toggle"
-              href="#"
-              id="notifDropdown"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-haspopup="true"
-              aria-expanded="false"
-            >
-              <i class="fa fa-bell"></i>
-              <span class="notification">5</span>
-            </a>
-            <ul
-              class="dropdown-menu notif-box animated fadeIn"
-              aria-labelledby="notifDropdown"
-            >
-            <!-- NOTIFICATIONS -->
-            <%- include('partials/notifications') -%>
-            </ul>
-          </li>
+          <!-- NOTIFICATIONS -->
+          <%- include('partials/notifications') -%>
+          <!-- endof NOTIFICATIONS -->
           <li class="nav-item topbar-icon dropdown hidden hidden-caret">
             <a
               class="nav-link"
