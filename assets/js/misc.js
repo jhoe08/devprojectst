@@ -67,53 +67,53 @@ if (views) {
     })
 })
 }
-let dangers = document.querySelectorAll('#basic-datatables .form-button-action .btn-danger');
-if (dangers) {
-  // const table = new DataTable('#basic-datatables')
+// let dangers = document.querySelectorAll('#transactions-datatables .form-button-action .btn-danger');
+// if (dangers) {
+//   // const table = new DataTable('#basic-datatables')
 
-  dangers.forEach(danger=>{
+//   dangers.forEach(danger=>{
     
-    danger.addEventListener('click', (event)=>{
-      let transactions = danger
-      // transid = danger.target
-      let {transid} = transactions.dataset
-      // Removed existing 'selected' class on the <row> tag
-      document.querySelectorAll('#basic-datatables tr').forEach(row => row.classList.remove('selected'));
-      // Add 'selected' class on the <row> tag
-      event.target.closest('tr').classList.add('selected')
-      // console.dir(event.target.closest('tr'))
+//     danger.addEventListener('click', (event)=>{
+//       let transactions = danger
+//       // transid = danger.target
+//       let {transid} = transactions.dataset
+//       // Removed existing 'selected' class on the <row> tag
+//       document.querySelectorAll('#transactions-datatables tr').forEach(row => row.classList.remove('selected'));
+//       // Add 'selected' class on the <row> tag
+//       event.target.closest('tr').classList.add('selected')
+//       // console.dir(event.target.closest('tr'))
 
-      title = `Are you sure to delete ${transid}?`
-      message = "Once deleted, you will not be able to recover this imaginary file!"
+//       title = `Are you sure to delete ${transid}?`
+//       message = "Once deleted, you will not be able to recover this imaginary file!"
 
-      swal({
-        title,
-        text: "Once deleted, you will not be able to recover this transaction file!",
-        icon: "warning",
-        buttons: ["Cancel", "Delete it!"],
-        dangerMode: true, })
-      .then((willDelete) => {
-        if (willDelete) {
+//       swal({
+//         title,
+//         text: "Once deleted, you will not be able to recover this transaction file!",
+//         icon: "warning",
+//         buttons: ["Cancel", "Delete it!"],
+//         dangerMode: true, })
+//       .then((willDelete) => {
+//         if (willDelete) {
         
-          let url = `/transactions/${transid}`
+//           let url = `/transactions/${transid}`
 
-          fetch(url, {
-            method: 'DELETE' })
-          .then(res => {
-            return res.text()}) // or res.json()
-          .then(data => {
-            swal("Poof! Transaction file has been deleted!", {
-              icon: "success", });
-            // if Yes
-            document.querySelector('tr.selected').remove().draw(false)
-          }) // endof fetch()
-        } else {
-          document.querySelectorAll('#basic-datatables tr').forEach(row => row.classList.remove('selected'));
-        }
-      });
-    })
-  })
-}
+//           fetch(url, {
+//             method: 'DELETE' })
+//           .then(res => {
+//             return res.text()}) // or res.json()
+//           .then(data => {
+//             swal("Poof! Transaction file has been deleted!", {
+//               icon: "success", });
+//             // if Yes
+//             document.querySelector('tr.selected').remove().draw(false)
+//           }) // endof fetch()
+//         } else {
+//           document.querySelectorAll('#transactions-datatables tr').forEach(row => row.classList.remove('selected'));
+//         }
+//       });
+//     })
+//   })
+// }
 // let createTransactions = document.getElementById('createTransactions')
 // if (createTransactions) {
 //   let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
@@ -413,17 +413,50 @@ function isValidJSON(jsonString) {
   }
 }
 
+function notifyCustom(type, title, message, status) {
+  return $.notify({
+      icon: `icon-${type ?? 'bell'}`,
+      title: `${title ?? 'Error'}`,
+      message: `${message ?? 'System found an issue!'}`,
+      },{
+      type: `${status ?? 'danger'}`,
+      placement: {
+          from: "top",
+          align: "right"
+      },
+      time: 2000,
+  });
+}
+
+function fieldsUpdated(container) {
+  const fields = document.querySelectorAll(`${container} .form-control`);
+
+  fields.forEach(field => {
+      field.addEventListener('input', function() {
+          this.classList.toggle('updated', !!this.value);
+      });
+  
+      // For select elements, listen for the 'change' event
+      if (field.tagName === 'SELECT') {
+          field.addEventListener('change', function() {
+              this.classList.toggle('updated', !!this.value);
+          });
+      }
+  });
+}
 // Function to fetch the countNotif from the server
 async function fetchNotificationCount() {
-  // try {
-  //   const response = await fetch('http://localhost:3000/api/notifications');
-  //   const data = await response.json();
-  //   const notifCount = document.getElementById('notifCount')
-  //   notifCount.querySelector('span').textContent = data.countNotif;
-  // } catch (error) {
-  //   console.error('Error fetching notification count:', error);
-  // }
+  try {
+    const response = await fetch('http://localhost:4000/api/notifications');
+    const data = await response.json();
+    const notifCount = document.getElementById('notifDropdown')
+    console.log(data)
+    notifCount.querySelector('span').textContent = data.counts;
+    notifCount.querySelector('span').dataset.lastupdated = new Date()
+  } catch (error) {
+    console.error('Error fetching notification count:', error);
+  }
 }
 
 // Periodically check for updated notification count (e.g., every 5 seconds)
-setInterval(fetchNotificationCount, 60000); // Adjust interval as needed
+setInterval(fetchNotificationCount, 5000); // Adjust interval as needed

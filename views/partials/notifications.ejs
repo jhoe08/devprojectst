@@ -34,16 +34,34 @@
           <% 
             notifs.forEach(notif=>{ 
               const {id, message, link, component, created_at, updated_at} = notif
-              const path = `/${component}/${link}/remarks`
-              const date = moment(created_at, "YYYYMMDD").fromNow()
+              let path = `/${component}/${link}`;
+              const date = moment(created_at).fromNow()
+              let icon, color, query= ''
+              switch(component){
+                case 'transactions': 
+                  icon = 'file'
+                  color = 'success'
+                  path += '/remarks'
+                break;
+                case 'employees': 
+                  icon = 'user'
+                  color = 'warning'
+                  query = ''
+                break;
+                case 'remarks':
+                  path = `/transactions/${link}/remarks`
+                  color = 'info'
+                  icon = 'comment'
+                break;
+              }
           %>
             <a href="<%=path%>" class="">
-              <div class="notif-icon notif-primary">
-                <i class="fa fa-file"></i>
+              <div class="notif-icon notif-<%=color%>">
+                <i class="fa fa-<%=icon%>"></i>
               </div>
               <div class="notif-content">
                 <span class="block"> <%=message%> </span>
-                <span class="time"><%=date%></span>
+                <span class="time" data-created="<%-created_at%>"><%=date%></span>
               </div>
             </a>
           <% }) %>

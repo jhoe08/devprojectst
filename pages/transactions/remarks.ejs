@@ -17,7 +17,7 @@
                   <h3 class="fw-bold mb-3"><%- transactions.bid_notice_title -%></h3>
               </div>
               <div class="ms-md-auto py-2 py-md-0">
-                  <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
+                  <a href="#" class="btn btn-label-info btn-round me-2" id="btnPrint"><i class="fas fa-print"></i> Print</a>
                   <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add Remarks</a>
               </div>
             </div>
@@ -107,8 +107,8 @@
                             <span class="text-muted">Transaction Codes</span>
                           </div>
                           <div class="float-end pt-1">
-                            <button  data-bs-toggle="modal" data-bs-target="#codeModal" id="addTransactionCodes" class="btn btn-icon btn-link op-8 me-1"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add Transaction Codes">
-                              <i class="fas fa-plus-circle"></i>
+                            <button  data-bs-toggle="modal" data-bs-target="#codeModal" id="addTransactionCodes" class="btn btn-icon btn-link op-8 me-1">
+                              <i class="fas fa-plus-circle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add Transaction Codes"></i>
                             </button>
                           </div>
                         </div>

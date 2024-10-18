@@ -8,10 +8,10 @@
   const { dueDate, date, status, comment, id } = remark;
   
   // Format dates
-  const displayDate = dueDate ? moment(dueDate, format).fromNow() : `<a href="#" data-bs-toggle="modal" data-bs-target="#remarksModal" data-action="update">Set</a>`;
+  const displayDate = dueDate ? moment(dueDate).fromNow() : `<a href="#" data-bs-toggle="modal" data-bs-target="#remarksModal" data-action="update">Set</a>`;
   const now = moment()
-  const startTime = moment(date, format);
-  const endTime = moment(dueDate, format);
+  const startTime = moment(date);
+  const endTime = moment(dueDate);
 
   const duration = moment.duration(endTime.diff(now));
   const remainingHours = duration.hours();
@@ -77,7 +77,7 @@
 <% } %>
 
 <!-- Remarks from published -->
-<li class="feed-item pb-0" data-order="first">
+<li class="feed-item pb-0" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Out of office">
   <time class="date" datetime="<%- moment(transactions.pr_date).format('MMM DD YYYY') %>">
     <%- moment(transactions.pr_date).format('MMM DD YYYY') %> (<%- moment(transactions.pr_date, "YYYYMMDD").fromNow() %>)
   </time>

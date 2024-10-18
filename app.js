@@ -157,8 +157,8 @@ const task = cron.schedule('* * * * *', async () => {
   const remarks = await connection.getRemarks()
 
   console.log('Checking for due tasks...', new Date());
-  // checkDueNotifications(remarks)
-  countNotif = incrementNotification()
+  const duedates = checkDueNotifications(remarks)
+  // console.log(duedates)
 }, {
   scheduled: false
 }); 
@@ -177,7 +177,9 @@ app.use(async function(req, res, next){
 
   
   const notifications = await connection.retrieveNotifications()
-  // res.locals.notifications = JSON.stringify(transactions)
+  // Sort using Descending
+  notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
   res.locals = {
     ENVIRONMENT: process.env.NODE_ENV,
     TEST_MODE: process.env.TEST_MODE,
@@ -215,9 +217,9 @@ app.get('/', restrict, function(req, res){
 });
 
 // Endpoint to get the countNotif value
-app.get('/api/notifications', (req, res) => {
-  console.log(countNotif)
-  res.json({ countNotif });
+app.get('/api/notifications', async (req, res) => {
+  const notifications = await connection.retrieveNotifications()
+  res.json({ notifications, counts: notifications.length });
 });
 
 app.get('/404', (req, res) => {
@@ -372,14 +374,14 @@ app.post('/register/new', async (req, res) => {
     const register = await connection.postEmployees(data)
     if(register.length != 0) {
       if(register?.affectedRows){
-        const {insertId} = register
-        const data = {
-          "message": "New Users was registered",
-          "link": insertId, 
-          "component": "employee",
+        const {employeeid} = JSON.parse(data)
+        const notif = {
+          "message": "New user was registered",
+          "link": employeeid, 
+          "component": "employees",
           // "created_at": convertDate(new Date())
         }
-        const nofitifications = await connection.postNotifications(JSON.stringify(data))
+        await connection.postNotifications(JSON.stringify(notif))
       }
       res.status(200).json({ message: 'Account is successfully register', response: register})
     } else {
@@ -465,7 +467,7 @@ app.post('/transactions/new', restrict, async (req, res) => {
     if(transactions?.affectedRows){
       const {insertId} = transactions
       const data = {
-        "message": "New Transactions was created",
+        "message": "New transaction was created",
         "link": insertId, 
         "component": "transactions",
         // "created_at": convertDate(new Date())
@@ -568,6 +570,27 @@ app.get('/transactions/:id/remarks', restrict, async (req, res) => {
   }
 })
 
+app.get('/transactions/:id/print', restrict, async (req, res) => {
+  try {
+    const transid = req.params.id;
+    const transactions = await connection.getTransactionById(transid);
+    const remarks = await connection.getRemarksByRefid(transid)
+    if (transactions[0]) {
+      res.render('pages/transactions/print', { 
+        
+        transactions: transactions[0],
+        remarks,
+        moment,
+        path: res.url,
+        peso, isValidJSON
+      }); //
+    }
+  } catch (error) {
+    console.error('Error deleting transaction:', error);
+    res.status(404).render('pages/404');
+  }
+})
+
 app.delete('/transactions/:id', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
@@ -586,7 +609,7 @@ app.get('/remarks/:id', restrict, async (req, res) => {
     const transid = req.params.id;
     const remarks = await connection.getRemarksByRefid(transid);
     const transactions = await connection.getTransactionById(transid)
-    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'partials', 'activity-feed.ejs'), { remarks, moment:moment, transactions, path: req.url});
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'partials', 'activity-feed.ejs'), { remarks, moment, transactions, path: req.url});
     res.send(renderedHtml)
   } catch (error) {
     console.error('Error rendering EJS part:', error);
@@ -599,23 +622,21 @@ app.post('/remarks/new', restrict, async (req, res) => {
   try {
     const data = JSON.parse(JSON.stringify(req.body))
     let currentUser = req.session.user
-    console.log('currentUser', currentUser)
-    if(res.locals.ENVIRONMENT === 'development' && currentUser === undefined) {
-      currentUser = { username: 'justtest' }
-    }
-    
+
+    if(res.locals.ENVIRONMENT === 'development' && currentUser === undefined) currentUser = { username: 'justtest' };
     const updatedRemarks = { ...data, user: currentUser.username };
+
     console.log(updatedRemarks)
     const remarks = await connection.postRemarks( JSON.stringify(updatedRemarks) );
     if(remarks?.affectedRows){
-      const {insertId} = register
+      const {refid, comment, status} = updatedRemarks
       const data = {
-        "message": "New Users was registered",
-        "link": insertId, 
-        "component": "employee",
+        "message": `New remark is added on TransID#${refid}`,
+        "link": refid, 
+        "component": "remarks",
         // "created_at": convertDate(new Date())
       }
-      const nofitifications = await connection.postNotifications(JSON.stringify(data))
+      await connection.postNotifications(JSON.stringify(data))
     }
     res.status(201).json({ message: 'New remarks is added successfully!', response: remarks });
   } catch (error) {

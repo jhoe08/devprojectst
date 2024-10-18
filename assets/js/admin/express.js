@@ -14,7 +14,7 @@ const client = {
         _io.on('notificationCount', (data) => {
             const notifCount = document.getElementById('notifDropdown');
             const {countNotif} = data
-            console.log(countNotif)
+            // console.log(countNotif)
             if(notifCount) {
                 if(countNotif > 100) { 
                     notifCount.querySelector('span').textContent = '99+'
