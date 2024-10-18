@@ -23,7 +23,7 @@ var connection = mysql.createConnection({
 function convertDate (date, hours) {
     return moment(date)
     .add(hours, TEST_UNIT)
-    .format("YYYY-MM-DD hh:mm:ss");
+    .format("YYYY-MM-DD HH:MM:ss");
 } 
 
 function isEmpty(value) {
@@ -363,6 +363,7 @@ const databaseUtils = {
     postNotifications: async (data) => {
         data = JSON.parse(data)
         data = JSON.stringify({...data, created_at: convertDate(new Date())})
+        console.log('postNotifications', data)
         return await databaseUtils.storeData('notifications', data)
     },
     // Sample
