@@ -17,21 +17,29 @@ const client = {
             // console.log(countNotif)
             if(notifCount) {
                 if(countNotif > 100) { 
-                    notifCount.querySelector('span').textContent = '99+'
+                    notifCount.querySelectorAll('.countNotif').textContent = '99+'
                 } else {
-                    notifCount.querySelector('span').textContent = countNotif
+                    notifCount.querySelectorAll('.countNotif').textContent = countNotif
                 }
             }
-            
-            
             // notifCount.textContent = data.countNotif; // Update the count
           });
+          
         _io.on('dateLang', (data) => {
             if(this.timeCheck) {
                 this.timeCheck.innerHTML = data
             }
         })
         
+        _io.on('sendAlert', (data) => {
+            const { comment, refid, status, user } = data
+            
+            $.notify({ icon: 'icon-bell', title: `Trans ID #${refid} has updated`, message: `${comment} by <b>${user}</b>. <a href="/transactions/${refid}/remarks">Click here</a>`},
+                { type: status, placement: { from: "top", align: "right" },
+                time: 100000 });
+            
+        })
+
         if(this.feedItems) {
             const startDate = this.feedItems.dataset.startdate
             const dueDate = this.feedItems.dataset.duedate

@@ -4,19 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tracking Sheet for SVP</title>
+    <style>
+        #trackingSheet {
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            header {
+                h1, h4 {
+                    margin: 0;
+                    text-align: center;
+                }
+            }
+        }
+        .subHeader {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        @media print {
+            * {
+                font-size: 10pt;
+            }
+        }
+    </style>
 </head>
-<body>
+<body id="trackingSheet">
     <header class="text-center">
         <h1 class="text-uppercase">Tracking Sheet for SVP</h1>
-        <h6>Department of Agriculture RFO7</h6>
-    </header>
-    <main>
-        <div class="">
+        <h4>Department of Agriculture RFO7</h4>
+        <div class="subHeader">
             <div>Item: </div>
             <div>PR #:</div>
             <div>ABC ₱:</div>
         </div>
-        <table id="example" class="display text-center" style="width:100%">
+    </header>
+    <main>
+        <table id="trackingSheetTable" class="display text-center" style="width:100%">
             <thead>
                 <tr>
                     <th>OFFICE/Person Responsible</th>
@@ -51,18 +72,22 @@
                     </td>
                     <td>PR Preparation & Fund Earmarking</td>
                 </tr>
-                
-            </tbody>
-            <tfoot>
                 <tr>
-                    <th>Name</th>
-                    <th>Position</th>
-                    <th>Salary</th>
-                    <th>Office</th>
-                    <th>Extn.</th>
-                    <th>E-mail</th>
+                    <td>2. Division Chief</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <table class="text-center" style="width:100%">
+                            <tr>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>PR Approval (Division Chief)</td>
                 </tr>
-            </tfoot>
+            </tbody>
         </table>
     </main>
 </body>

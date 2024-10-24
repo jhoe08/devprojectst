@@ -1,7 +1,7 @@
-const _tasks = (moment) => {
+const _tasks = (moment, io) => {
     const format = 'MMM DD YYYY hh:mm:ss a'
-    const now = moment()
-    let countNotif = 8;
+    let now = moment()
+    let countNotif = 8
 
 
     const incrementNotification = () => {
@@ -10,12 +10,13 @@ const _tasks = (moment) => {
     
     const sendNotification = (task) => {
         console.log(`Notification: Transactions "${task.refid}" is due now!`);
+        io.emit('sendAlert', task)
     }
 
     const checkDueNotifications = (lists) => {
         let allDatesToday = [];
         let uniqueRefids = {};  // To keep track of unique refid values
-    
+        now = moment()
         lists.forEach(task => {
             const { id, refid, dueDate } = task;
             
@@ -24,10 +25,13 @@ const _tasks = (moment) => {
             const endOfDay = moment().endOf('day');      // End of today (23:59:59)
     
             let currentDate = moment(dueDate);
-    
+            
             // Check if the due date is within today's range
             if (currentDate.isBetween(startOfDay, endOfDay, null, '[]')) {
     
+                const diff = currentDate.diff(now, 'minutes')
+                console.log('diff', {[id]:diff})
+
                 // If refid hasn't been added yet, add it to the allDatesToday array
                 // if (!uniqueRefids[refid]) {
                 //     uniqueRefids[refid] = true;  // Mark this refid as processed
@@ -37,9 +41,16 @@ const _tasks = (moment) => {
     
                     allDatesToday.push(newEntry);
                 // }
+
+                 if(diff <= 60 && diff > 0) {
+                    sendNotification(task)
+                }
             }
+
         });
     
+
+
         console.log('allDatesToday', allDatesToday);
     }
     

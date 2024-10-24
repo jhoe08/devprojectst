@@ -450,7 +450,7 @@ async function fetchNotificationCount() {
     const response = await fetch('http://localhost:4000/api/notifications');
     const data = await response.json();
     const notifCount = document.getElementById('notifDropdown')
-    console.log(data)
+    // console.log(data)
     notifCount.querySelector('span').textContent = data.counts;
     notifCount.querySelector('span').dataset.lastupdated = new Date()
   } catch (error) {
