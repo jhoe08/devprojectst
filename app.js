@@ -150,7 +150,7 @@ let connectedUserMap = new Map();
 /////// endof SERVER
 
 // CRON JOBS
-const {checkDueNotifications, incrementNotification} = _cronjobs(moment)
+const {checkDueNotifications, incrementNotification, sendNotification} = _cronjobs(moment, io)
 let countNotif = 0
 // Define the cron job (this example runs every minute)
 const task = cron.schedule('* * * * *', async () => {
@@ -158,7 +158,6 @@ const task = cron.schedule('* * * * *', async () => {
 
   console.log('Checking for due tasks...', new Date());
   const duedates = checkDueNotifications(remarks)
-  // console.log(duedates)
 }, {
   scheduled: false
 }); 
@@ -631,7 +630,7 @@ app.post('/remarks/new', restrict, async (req, res) => {
     if(remarks?.affectedRows){
       const {refid, comment, status} = updatedRemarks
       const data = {
-        "message": `New remark is added on TransID#${refid}`,
+        "message": `New remark is added #${refid}!`,
         "link": refid, 
         "component": "remarks",
         // "created_at": convertDate(new Date())

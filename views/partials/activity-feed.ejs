@@ -77,11 +77,16 @@
 <% } %>
 
 <!-- Remarks from published -->
-<li class="feed-item pb-0" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Out of office">
-  <time class="date" datetime="<%- moment(transactions.pr_date).format('MMM DD YYYY') %>">
-    <%- moment(transactions.pr_date).format('MMM DD YYYY') %> (<%- moment(transactions.pr_date, "YYYYMMDD").fromNow() %>)
-  </time>
-  <span class="text">
-    <span class="badge badge-black mr-3">Out</span>Purchase request created date
-  </span>
+<li class="feed-item pb-0 d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Out of office">
+  <div>
+    <time class="date" datetime="<%- moment(transactions.pr_date).format('MMMM Do YYYY, h:mm:ss a') %>">
+      <%- moment(transactions.pr_date).format('MMM DD YYYY') %>
+    </time>
+    <span class="text">
+      <span class="badge badge-black mr-3">Out</span>Purchase request created date
+    </span>
+  </div>
+  <div>
+    (<%- moment(transactions.pr_date, "YYYYMMDD").fromNow() %>)
+  </div>
 </li>
