@@ -1,37 +1,21 @@
 // let notifyIcon = ['check', 'close', 'exclamation', 'bell'];
 (()=>{
-    function notifyCustom(type, title, message, status) {
-        return $.notify({
-            icon: `icon-${type ?? 'bell'}`,
-            title: `${title ?? 'Error'}`,
-            message: `${message ?? 'System found an issue!'}`,
-            },{
-            type: `${status ?? 'danger'}`,
-            placement: {
-                from: "top",
-                align: "right"
-            },
-            time: 2000,
-        });
-    }
+    function uUasdlwaWW() {
+        const divisionVal = document.getElementById('divisions').value
+        const bannerVal = document.getElementById('bannerProgram').value
+        let unitCOunt = document.getElementById('unitCount').value
 
-    function fieldsUpdated(container) {
-        const fields = document.querySelectorAll(`${container} .form-control`);
-
-        fields.forEach(field => {
-            field.addEventListener('input', function() {
-                this.classList.toggle('updated', !!this.value);
-            });
+        const currentYear = new Date().getFullYear();
+        const lastTwoDigits = currentYear % 100;
         
-            // For select elements, listen for the 'change' event
-            if (field.tagName === 'SELECT') {
-                field.addEventListener('change', function() {
-                    this.classList.toggle('updated', !!this.value);
-                });
-            }
-        });
-    }
+        unitCOunt = unitCOunt.length < 10 ? '00' + unitCOunt : (unitCOunt.length > 10 && unitCOunt.length < 99) ? '0' + unitCOunt : unitCOunt
 
+        let combined = [divisionVal, bannerVal, lastTwoDigits, unitCOunt]
+        .filter(value => value !== '')  // Remove empty values
+        .join(' - ')
+
+        document.querySelector('.transcations-code').textContent = combined
+    }
     
 
     const createTransactionCode = document.getElementById('createTransactionCode')
@@ -39,10 +23,15 @@
     const updateTransactions = document.getElementById('updateTransactions')
     const createRemarks = document.getElementById('createRemarks')
     const updateRemarks = document.getElementById('updateRemakrs')
-    const dangers = document.querySelectorAll('.form-button-action .btn-danger');
+    const deleteTransaction = document.querySelectorAll('.form-button-action .btn-danger');
     const printRemarks = document.getElementById('btnPrint')
 
+    const divisionsSelect = document.getElementById('divisions')
+    const bannerProgramSelect = document.getElementById('bannerProgram')
+    const unitCount = document.getElementById('unitCount')
     
+    const addButton = document.querySelector('.form-group-add button');
+
     if(createTransactionCode) {
         const transCodeText = document.getElementById('transCodeText')
         createTransactionCode.addEventListener('click', function(e){
@@ -92,8 +81,6 @@
         myHeaders.append("Content-Type", "application/json");
       
         createTransactions.addEventListener('click', async () => {
-          console.log('asdfw')
-      
           try {
             let bidNoticeTitleValue = bidNoticeTitle.value
             let prClassificationValue = prClassification.value
@@ -171,6 +158,12 @@
             notifyCustom('close', 'Field is empty please check!', error, 'danger')
           }
         });
+        
+        if(divisionsSelect) {
+            divisionsSelect.addEventListener('change', uUasdlwaWW)
+            bannerProgramSelect.addEventListener('change', uUasdlwaWW)
+            unitCount.addEventListener('keypress', uUasdlwaWW)
+        }
     }
     if(updateTransactions) {
         let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
@@ -196,7 +189,7 @@
             let bannerProgramValue = bannerProgram.value
             let bacUnitValue = bacUnit.value
 
-            if(bidNoticeTitleValue === '' || budgetValue <= 0 || requisitionerValue === '') return;
+            if(bidNoticeTitleValue === '' || budgetValue != 0 || requisitionerValue === '') return;
             const myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
             
@@ -337,53 +330,98 @@
             }
         })
     }
-    if(dangers) {
+    if(deleteTransaction) {
     // const table = new DataTable('#basic-datatables')
 
-    dangers.forEach(danger=>{
+     deleteTransaction.forEach(danger=>{
         
         danger.addEventListener('click', (event)=>{
-        let transactions = danger
-        // transid = danger.target
-        let {transid} = transactions.dataset
-        // Removed existing 'selected' class on the <row> tag
-        document.querySelectorAll('#transactions-datatables tr').forEach(row => row.classList.remove('selected'));
-        // Add 'selected' class on the <row> tag
-        event.target.closest('tr').classList.add('selected')
-        // console.dir(event.target.closest('tr'))
-
-        title = `Are you sure to delete ${transid}?`
-        message = "Once deleted, you will not be able to recover this imaginary file!"
-
-        swal({
-            title,
-            text: "Once deleted, you will not be able to recover this transaction file!",
-            icon: "warning",
-            buttons: ["Cancel", "Delete it!"],
-            dangerMode: true, })
-        .then((willDelete) => {
-            if (willDelete) {
-            
-            let url = `/transactions/${transid}`
-
-            fetch(url, {
-                method: 'DELETE' })
-            .then(res => {
-                return res.text()}) // or res.json()
-            .then(data => {
-                swal("Poof! Transaction file has been deleted!", {
-                icon: "success", });
-                // if Yes
-                document.querySelector('tr.selected').remove().draw(false)
-            }) // endof fetch()
-            } else {
+            let transactions = danger
+            // transid = danger.target
+            let {transid} = transactions.dataset
+            // Removed existing 'selected' class on the <row> tag
             document.querySelectorAll('#transactions-datatables tr').forEach(row => row.classList.remove('selected'));
-            }
-        });
+            // Add 'selected' class on the <row> tag
+            event.target.closest('tr').classList.add('selected')
+            // console.dir(event.target.closest('tr'))
+
+            title = `Are you sure to delete ${transid}?`
+            message = "Once deleted, you will not be able to recover this file!"
+
+            swal({
+                title,
+                text: "Once deleted, you will not be able to recover this transaction file!",
+                icon: "warning",
+                buttons: ["Cancel", "Delete it!"],
+                dangerMode: true, })
+            .then((willDelete) => {
+                if (willDelete) {
+                
+                let url = `/transactions/${transid}`
+
+                fetch(url, {
+                    method: 'DELETE' })
+                .then(res => {
+                    return res.text()}) // or res.json()
+                .then(data => {
+                    swal("Poof! Transaction file has been deleted!", {
+                    icon: "success", });
+                    // if Yes
+                    document.querySelector('tr.selected').remove().draw(false)
+                }) // endof fetch()
+                } else {
+                    document.querySelectorAll('#transactions-datatables tr').forEach(row => row.classList.remove('selected'));
+                }
+            });
         })
     })
     }
-    if(printRemarks) {
-        
+    if(addButton) {
+        let rowCount = 1;
+        addButton.addEventListener('click', function() {
+            // Find the closest row element
+            // const row = this.closest('.row');
+            const row = document.querySelector('#chargingTo .row')
+            
+            // Clone the row
+            const clonedForm = row.cloneNode(true); // true means deep clone (including child nodes)
+            
+            // Remove the "Add" button from the cloned row to prevent duplication
+            // const addButtonInClonedRow = clonedForm.querySelector('.form-group-add');
+            // addButtonInClonedRow.remove();
+            
+            // Clear input values inside the cloned row
+            const labels = clonedForm.querySelectorAll('label')
+            const inputs = clonedForm.querySelectorAll('input, select, button');
+            
+            console.log(clonedForm)
+
+            inputs.forEach(input => {
+                // Generate new ID based on current row count
+                const newId = input.id.split('-')[0] + rowCount; // Assuming ID pattern is like "divisions-1"
+                input.id = newId; // Update the ID attribute
+                input.value = ''; // Clear the value
+            });
+
+            labels.forEach(label => {
+                const inputId = label.getAttribute('for');
+                const baseId = inputId.split('-')[0];
+                label.setAttribute('for', baseId + rowCount);
+            })
+
+            // Add a "Remove" button to the cloned row
+            const removeButton = clonedForm.querySelector('.fa-minus-circle');
+            removeButton.addEventListener('click', function() {
+                clonedForm.remove(); // Remove the clicked row
+            });
+            
+            // Update the row count
+            rowCount++;
+            
+            // Append the cloned row to the form container
+            const formContainer = document.getElementById('chargingTo');
+            formContainer.appendChild(clonedForm);
+        });
     }
+    // Creating Transactional Code
 })()

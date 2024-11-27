@@ -8,6 +8,11 @@ const { reject } = require('bcrypt/promises');
 const { hashPassword, registerUser, loginUser } = misc
 
 let prefix = 'transto'
+const tables = {
+    employee: 'employees',
+    transaction: 'transid',
+    remark: 'remarks',
+}
 const TEST_UNIT = process.env.TEST_UNIT
 
 var connection = mysql.createConnection({
@@ -35,6 +40,98 @@ function isEmpty(value) {
   }
 
 const databaseUtils = {
+    getDistinct: (column, table) => new Promise((resolve, reject) =>{
+       connection.query(`SELECT DISTINCT(${column}) FROM ${prefix}.${table}`, (error, results) => {
+        if (error) {
+            reject(error);
+        } else {
+            resolve(results);
+        }
+    }) 
+    }),
+    cardsData: () => new Promise((resolve, reject) =>{
+        connection.query(`  SELECT 
+                                'employees' AS table_name,
+                                COUNT(*) AS row_count,
+                                NULL AS total_sum
+                            FROM
+                                transto.employees 
+                            UNION ALL 
+                            SELECT 
+                                'transactions' AS table_name,
+                                COUNT(*) AS row_count,
+                                SUM(approved_budget) AS total_sum
+                            FROM 
+                                transto.transid 
+                            UNION ALL 
+                            SELECT 
+                                'notifications' AS table_name,
+                                COUNT(*) AS row_count,
+                                NULL AS total_sum
+                            FROM
+                                transto.notifications
+                        `, (error, results) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(results);
+            }
+        });
+    }),
+    countPerPRClassification: async () => {
+        try {
+            const distinctClassifications = await databaseUtils.getDistinct('pr_classification', 'transid');
+            let classificationsArray = distinctClassifications.map(row => `'${row.pr_classification}'`);
+
+            if (classificationsArray.length === 0) {
+                return [];
+            }
+            
+            const classificationList = classificationsArray.join(', ');
+            const query = `SELECT 
+                                pr_classification,
+                                COUNT(*) AS item_count
+                            FROM 
+                                ${prefix}.transid
+                            WHERE 
+                                pr_classification IN (${classificationList})
+                            GROUP BY 
+                                pr_classification
+                            ORDER BY 
+                                pr_classification`;
+
+            // Execute the query
+            return new Promise((resolve, reject) => {
+                connection.query(query, (error, results) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(results);
+                    }
+                });
+            });
+        } catch (error) {
+            throw error;
+        }
+    },
+    countTotalRows:  (table) => new Promise((resolve, reject) => {
+        connection.query(`SELECT count(${table}) as total FROM ${prefix}.transid`, (error, results) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(results);
+            }
+        });
+    }),
+    getTotalApprovedBudget: () => new Promise((resolve, reject) => {
+        connection.query(`SELECT sum(approved_budget) as total FROM ${prefix}.transid`, (error, results) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(results);
+            }
+        });
+    }),
     getTransactions: () => new Promise((resolve, reject) => {
         connection.query(`SELECT * FROM ${prefix}.transid`, (error, results) => {
             if (error) {
@@ -55,6 +152,11 @@ const databaseUtils = {
     }),
     getEmployeeById: (id) => new Promise((resolve, reject) => {
         connection.query(`SELECT * FROM ${prefix}.employees WHERE employeeid=${id}`, (error, results) => {
+            error ? reject(error) : resolve(results);
+        })
+    }),
+    getEmployeeByUsername: (username) => new Promise((resolve, reject) => {
+        connection.query(`SELECT * FROM ${prefix}.${tables.employee} WHERE username LIKE '${username}'`, (error, results) => {
             error ? reject(error) : resolve(results);
         })
     }),
@@ -271,7 +373,7 @@ const databaseUtils = {
             }
         })
     }),
-    // Update data
+    // UPDATE DATA
     amendData: async (table, data) => {
         try {
             let { set, where } = JSON.parse(data);
@@ -284,7 +386,7 @@ const databaseUtils = {
                 query += Object.entries(where)
                     .map(([key, value]) => `${key}='${value}'`)
                     .join(' AND ');
-    
+
             // Execute the query
             return new Promise((resolve, reject) => {
                 connection.query(query, (error, results) => {
@@ -299,52 +401,11 @@ const databaseUtils = {
         }
     
     },
-    // amendEmployeeError: async (data) => {
-    //     try {
-    //         const table = 'employees'
-    //         let { set, where } = JSON.parse(data);
-    //         delete set.confirmPassword;
-            
-    //         data.set.password = JSON.parse({password: set.password})
-
-    //         console.log(table, data)
-    //         let query = `SELECT * FROM ${table} `
-    //         // Execute the query
-    //         return new Promise((resolve, reject) => {
-    //             connection.query(query, (error, results) => {
-    //                 if (error) reject(error);
-    //                 else resolve(results);
-    //             });
-    //         });
-
-    //     } catch (error) {
-    //         return Promise.reject(error);
-    //     }
-    // },
-    // amendEmployeePending: (data) => new Promise((resolve, reject) => {
-    //     // console.log(query)
-    //     data = JSON.parse(data)
-    //     let {set, where} = data
-    //     set.password = hashPassword(set.password)
-    //     console.log(set)
-    // }),
-    // amendEmployeeObjectObject: async (data) => {
-    //     data = JSON.parse(data)
-    //     let {set, where} = data
-    //     set.password = await hashPassword(set.username, set.password)
-    //     set.password = JSON.stringify(set.password)
-    //     // delete set.confirmPassword
-    //     data = { set, where }
-        
-        
-    //     const amend = databaseUtils.amendData('employees', set)
-    //     console.log("amending", set)
-    //     console.log(amend)
-    // },
+    // AMEND
     amendEmployee: async (data) =>{
         return await databaseUtils.amendData('employees', data)
     },
-    // store
+    // STORE
     postEmployees: async (data) => {
         return await databaseUtils.storeData('employees', data)
     },
@@ -363,9 +424,28 @@ const databaseUtils = {
     postNotifications: async (data) => {
         data = JSON.parse(data)
         data = JSON.stringify({...data, created_at: convertDate(new Date())})
-        console.log('postNotifications', data)
         return await databaseUtils.storeData('notifications', data)
     },
+    // endof NOTIFICATIONS
+    getDataFromLast7Days: async (table, column) => {
+        // const query = `SELECT * FROM ${prefix}.${table} WHERE ${column} >= CURDATE() - INTERVAL 7 DAY;`
+        const query = ` SELECT 
+                            remarks.*, transactions.*
+                        FROM
+                            transto.remarks AS remarks
+                                JOIN
+                            transto.transid AS transactions ON remarks.refid = transactions.product_id
+                        WHERE
+                            remarks.date >= CURDATE() - INTERVAL 7 DAY;`
+
+        return new Promise((resolve, reject) => {
+            connection.query(query, (error, results) => {
+                if (error) reject(error);
+                else resolve(results);
+            });
+        });
+    },
+    
     // Sample
     divisions: (division) => {
         let lists = ["ILD", "PMED", "FOD", "ADMIN", "RESEARCH", "REGULATORY", "AMAD", "RAED", "Others"]

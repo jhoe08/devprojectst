@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Virtual DOM Example</title>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // Simple Virtual DOM implementation
+        function createElement(tag, props, ...children) {
+            return { tag, props, children };
+        }
+
+        function render(virtualDOM, container) {
+            const domNode = document.createElement(virtualDOM.tag);
+            for (const prop in virtualDOM.props) {
+                domNode[prop] = virtualDOM.props[prop];
+            }
+            const childs = virtualDOM.children
+            // console.log(childs)
+            console.log(domNode)
+            childs.forEach(child => {
+                if (typeof child === 'string') {
+                    domNode.appendChild(document.createTextNode(child));
+                } else {
+                    render(child, domNode);
+                }
+            });
+            container.appendChild(domNode);
+            return domNode;
+        }
+
+        function updateElement(parent, newNode, oldNode, index = 0) {
+            if (!oldNode) {
+                parent.appendChild(render(newNode, document.createDocumentFragment()));
+            } else if (!newNode) {
+                parent.removeChild(parent.childNodes[index]);
+            } else if (changed(newNode, oldNode)) {
+                parent.replaceChild(render(newNode, document.createDocumentFragment()), parent.childNodes[index]);
+            } else if (newNode.tag) {
+                const newLength = newNode.children.length;
+                const oldLength = oldNode.children.length;
+
+                for (let i = 0; i < Math.max(newLength, oldLength); i++) {
+                    updateElement(parent.childNodes[index], newNode.children[i], oldNode.children[i], i);
+                }
+            }
+        }
+
+        function changed(node1, node2) {
+            return typeof node1 !== typeof node2 || 
+                   (typeof node1 === 'string' && node1 !== node2) ||
+                   node1.tag !== node2.tag;
+        }
+
+        // Simple Component System
+        class Component {
+            constructor(props) {
+                this.props = props;
+                this.state = {};
+            }
+
+            setState(newState) {
+                this.state = { ...this.state, ...newState };
+                this.render();
+            }
+
+            render() {
+                // To be implemented in subclasses
+            }
+        }
+
+        // Timer Component
+        class Timer extends Component {
+            constructor(props) {
+                super(props);
+                this.state = { time: new Date().toLocaleTimeString() };
+                this.virtualDOM = null; // Initialize virtualDOM
+                this.updateTime(); // Initial render
+                setInterval(this.updateTime.bind(this), 1000);
+            }
+
+            updateTime() {
+                this.setState({ time: new Date().toLocaleTimeString() });
+            }
+
+            render() {
+                const virtualDOM = createElement('div', {}, `Current time: ${this.state.time}`);
+                if (this.virtualDOM) {
+                    updateElement(document.getElementById('app'), virtualDOM, this.virtualDOM);
+                } else {
+                    render(virtualDOM, document.getElementById('app')); // Initial render
+                }
+                this.virtualDOM = virtualDOM; // Update virtualDOM for next render
+            }
+        }
+
+        // Create and render the Timer component
+        new Timer();
+    </script>
+</body>
+</html>

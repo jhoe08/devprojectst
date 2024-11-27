@@ -40,8 +40,9 @@ const _express = (io, moment) => {
         setInterval(function(){
           countNotif++;
           // socket.emit('notificationCount', { countNotif }); // Emit to all connected clients
+          socket.emit('realtime', moment().format(format))
           // console.log(countNotif)
-        }, 1000);  // Update every 10 seconds
+        }, 1000);
 
         socket.on('timeLimit', (data)=>{
           const {startDate, dueDate} = data

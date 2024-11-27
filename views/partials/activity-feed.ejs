@@ -1,7 +1,8 @@
-<% for (let i = remarks.length - 1; i >= 0; i--) { 
-  const remark = remarks[i];
+<% 
   const format2 = 'MMM DD YYYY hh:mm:ss';
   const format = 'MMMM Do YYYY, h:mm:ss a'
+  for (let i = remarks.length - 1; i >= 0; i--) { 
+  const remark = remarks[i];
   
   if (!remark) continue; // Skip if there's no remark at all
   
@@ -28,7 +29,7 @@
   const duedate = dueDate ? displayDate : displayDate;
   
   // Class for status
-  const statusClass = status ? `feed-item-${status}` : 'feed-item-default'; // Default class if no status
+  const statusClass = (status === 'dark') ? `feed-item-black` : status ? `feed-item-${status}` : 'feed-item-default'; // Default class if no status
   
   let tooltipHTML = 'data-bs-toggle="tooltip" data-bs-placement="left" '
   switch(status) {
@@ -57,19 +58,23 @@
 
   <% if (remark.status) { %>
     <li id="remark-<%=id%>" class="feed-item <%- statusClass %> d-flex justify-content-between" data-index="<%- i %>" data-startdate="<%- moment(date).format(format) %>" data-duedate="<%- moment(dueDate).format(format) %>" <%-tooltipHTML%>>
-      <div>
-        <time class="date" datetime="<%- moment(date).format(format) %>">
-          <%- moment(date).format(format) %>
-        </time>
-        <span class="text">
-          <span class="badge badge-<%- (i % 2 === 0) ? 'count' : 'info' %> mr-3">
-            <%- (i % 2 === 0) ? 'In' : 'Out' %>
-          </span>
-          <%- comment %>
-        </span>
+      <div class="d-flex">
+        <span class="user fs-2 mr-3"><i class="far fa-user-circle"></i></span>
+        <div class="">
+          <div class="username"><%- remark.user %></div>
+          <div class="text">
+            <span class="badge badge-<%- (status === 'dark') ? 'black' : ((i % 2 === 0) ? 'success' : 'info') %> mr-3">
+              <%- (i % 2 === 0) ? 'In' : 'Out' %>
+            </span>
+            <%- comment %>
+          </div>
+        </div>
       </div>
       <div>
-        <span id="timeCheck"><%- displayDate %></span>
+        <time class="date hidden" datetime="<%- moment(date).format(format) %>">
+          <%- moment(date).format(format) %>
+        </time>
+        <span id="timeCheck" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="<%- moment(date).format(format) %>"><%- displayDate %></span>
       </div>
     </li>
   <% } %>
@@ -77,16 +82,17 @@
 <% } %>
 
 <!-- Remarks from published -->
-<li class="feed-item pb-0 d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Out of office">
-  <div>
-    <time class="date" datetime="<%- moment(transactions.pr_date).format('MMMM Do YYYY, h:mm:ss a') %>">
-      <%- moment(transactions.pr_date).format('MMM DD YYYY') %>
-    </time>
-    <span class="text">
-      <span class="badge badge-black mr-3">Out</span>Purchase request created date
-    </span>
-  </div>
-  <div>
-    (<%- moment(transactions.pr_date, "YYYYMMDD").fromNow() %>)
+<li class="feed-item feed-item-black pb-0 d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Out of office">
+  <div class="d-flex">
+    <span class="user fs-3 mr-3"><i class="fas fa-door-open"></i></span>
+    <div class="">
+      <time class="date" datetime="<%- moment(transactions.pr_date).format(format) %>">
+        <%- moment(transactions.pr_date).format(format) %>
+      </time>
+      <span class="text">
+        <span class="badge badge-black mr-3">Out</span>
+        Purchase request created date
+      </span>
+    </div>
   </div>
 </li>

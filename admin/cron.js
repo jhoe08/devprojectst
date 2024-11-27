@@ -13,6 +13,11 @@ const _tasks = (moment, io) => {
         io.emit('sendAlert', task)
     }
 
+    const sendListofTransactions = (lists) => {
+        console.log(`Sending data to dashboard`)
+        io.emit('sendListsTransaction', lists)
+    }
+
     const checkDueNotifications = (lists) => {
         let allDatesToday = [];
         let uniqueRefids = {};  // To keep track of unique refid values
@@ -42,14 +47,13 @@ const _tasks = (moment, io) => {
                     allDatesToday.push(newEntry);
                 // }
 
-                 if(diff <= 60 && diff > 0) {
-                    sendNotification(task)
-                }
+                if(diff <= 60 && diff > 0) { sendNotification(task) }
+                
             }
 
         });
     
-
+        sendListofTransactions(allDatesToday)
 
         console.log('allDatesToday', allDatesToday);
     }

@@ -18,6 +18,33 @@ const utils = {
         } catch (e) {
             return false; // If there's an error, return false
         }
+    },
+    statusText(status) {
+        let text = ''
+        switch(status) {
+            case 'dark':
+            case 'black':
+            text = 'Back to office'
+            break;
+            case 'secondary':
+            text = 'Lack of Signature'
+            break;
+            case 'info':
+            text = 'Lack of Attachments'
+            break;
+            case 'success':
+            text = 'Read to move'
+            break;
+            case 'warning':
+            text = 'Waiting'
+            break;
+            case 'danger':
+            text = 'Issue occured'
+            break;
+            default:
+            text = 'Tooltip'
+        }
+        return text;
     }
 }
 

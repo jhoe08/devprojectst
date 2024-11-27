@@ -79,10 +79,16 @@
                           </div>
                           <div class="flex-1 ms-3 pt-1">
                             <h6 class="text-uppercase fw-bold mb-1">
-                              <%- peso(transactions?.approved_budget) -%>
+                              <%
+                                var {approved_budget : budget} = transactions 
+                                var cleanBudget = budget.replace(/,/g, '');
+
+                                budget = parseFloat(cleanBudget)
+                              %>
+                              <%- peso(budget) -%>
                               <span class="text-warning ps-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Fund Source"><%- transactions.fund_source -%></span>
                             </h6>
-                            <span class="text-muted">Approved Budget</span>
+                            <span class="text-muted">PR Budget</span>
                           </div>
                           <div class="float-end pt-1">
                             <small class="text-muted"></small>
@@ -104,7 +110,7 @@
                               <span class="badge badge-count"><%= transactions?.trans_code %></span>
                             <% } %>
                             </h6>
-                            <span class="text-muted">Transaction Codes</span>
+                            <span class="text-muted">PR Number</span>
                           </div>
                           <div class="float-end pt-1">
                             <button  data-bs-toggle="modal" data-bs-target="#codeModal" id="addTransactionCodes" class="btn btn-icon btn-link op-8 me-1">
@@ -145,7 +151,7 @@
 <%- include('../../components/modals/transactions/remark') -%>
 <!-- Transaction: Codes -->
 <%- include('../../components/modals/transactions/code') -%>
-<script src="/assets/js/components/transactions.js"></script>
+<!-- <script src="/assets/js/components/transactions.js"></script> -->
 <script> 
   new QRCode(`transid-<%- transactions.product_id %>`, `<%- transactions.product_id %>`); 
 </script>
