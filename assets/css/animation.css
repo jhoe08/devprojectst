@@ -1,0 +1,54 @@
+/* Basic styling */
+.realtime {
+    padding-left: 10px !important;
+}
+.hourglass-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+  
+  /* Default icon styling */
+  .hourglass {
+    opacity: 0;
+    animation: fadeInOut 3s infinite ease-in-out;
+    position:absolute;
+  }
+  
+  /* Animation for the icons */
+  @keyframes fadeInOut {
+    0% {
+      opacity: 0;
+      /* transform: scale(0.5); */
+    }
+    20% {
+      opacity: 1;
+      /* transform: scale(1); */
+    }
+    40% {
+      opacity: 1;
+      /* transform: scale(1); */
+    }
+    60% {
+      opacity: 0;
+      /* transform: scale(0.5); */
+    }
+    100% {
+      opacity: 0;
+      /* transform: scale(0.5); */
+    }
+  }
+  
+  /* Create staggered timing for each icon */
+  .hourglass:nth-child(1) {
+    animation-delay: 0s;
+  }
+  
+  .hourglass:nth-child(2) {
+    animation-delay: 1s;
+  }
+  
+  .hourglass:nth-child(3) {
+    animation-delay: 2s;
+  }
+  

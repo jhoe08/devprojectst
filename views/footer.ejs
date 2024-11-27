@@ -1,8 +1,12 @@
     <%- include('scripts') -%>
-    
+    <% if (path2 === '/transactions' || path2.startsWith('/transactions')) { %> 
+    <script src="/assets/js/components/transactions.js"></script>
+    <% } else if (path2 === '/employees' || path2.startsWith('/employees')) { %>
+    <script src="/assets/js/components/employees.js"></script>
+    <% } else { %>
+    <script>console.log('<%= path2 %>')</script>  
+    <% } %>
     <script>
-      // new DataTable.datetime('D MMM YYYY');
-
       const transactions = $("#transactions-datatables").DataTable({
         "order": [[0, 'desc']],
         columnDefs: [{

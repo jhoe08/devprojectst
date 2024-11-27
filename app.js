@@ -32,11 +32,11 @@ const sampleEmployee = require('./admin/employees.json')
 const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { exit } = require('process');
-const { count } = require('console');
+const { count, table } = require('console');
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
-const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON} = utils
+const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText} = utils
 
 const _preDefaultData = {
     blood_type: ['N/A','O+','O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
@@ -90,10 +90,22 @@ const _preDefaultData = {
 }
 
 const _preTransactionsData = {
-  classification: ['Catering Services','Consumables','Food & Accommodation','Freight & Handling','Goods','Infrastructure','Machineries & Equipment','Motor Vehicle','Repair & Maintenance','Services(JO/COS)','Training','Training & Representation', 'Others'],
-  banner_program: ['Corn','GASS','HVCDP','Livestock','NUPAP','Organic','Rice','SAAD','STO', 'Others'],
-  bac_unit : ['BAC 1', 'BAC 2', 'Others'],
-  divisions: ["ADMIN", "AMAD", "FOD", "Field Operations", "ILD", "PMED", "RAED", "REGULATORY", "RESEARCH","Others"]
+  classification: ['', 'Catering Services','Consumables','Food & Accommodation','Freight & Handling','Goods','Infrastructure','Machineries & Equipment','Motor Vehicle','Repair & Maintenance','Services(JO/COS)','Training','Training & Representation', 'Others'],
+  banner_program: ['', 'Corn','GASS','HVCDP','Livestock','NUPAP','Organic','Rice','SAAD','STO', 'Others'],
+  bac_unit : ['', 'BAC 1', 'BAC 2', 'Others'],
+  divisions: ['', "ADMIN", "AMAD", "FOD", "ILD", "PMED", "RAED", "REGULATORY", "RESEARCH","Others"],
+  abbrev: [
+    {
+      "ADMIN": "Administrative and Finance Division",
+      "AMAD": "Agribusiness and Marketing Assistance Division",
+      "FOD": "Field Operations Division",
+      "ILD": "Integrated Laboratory Division",
+      "PMED": "Planning, Monitoring and Evaluation Division",
+      "RAED": "Regional Agricultural Engineering Division",
+      "REG": "Regulartory Division",
+      "RES": "Research Division"
+    }
+  ]
 }
 
 let transid = []
@@ -176,6 +188,7 @@ app.use(async function(req, res, next){
 
   
   const notifications = await connection.retrieveNotifications()
+  
   // Sort using Descending
   notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -186,7 +199,13 @@ app.use(async function(req, res, next){
     SESSION_USER: req.session.user,
     // NOTIFICATIONS: countNotif,
     // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications)
-    NOTIFICATIONS: JSON.stringify(notifications)
+    NOTIFICATIONS: JSON.stringify(notifications),
+    perClassification: {},
+    employees: {},
+    dafaultTransactionData: _preTransactionsData,
+    path2: req.path,
+    moment,
+    statusText,
   }
 
   next();
@@ -204,15 +223,33 @@ function restrict(req, res, next) {
   return next();
 }
 
-app.get('/', restrict, function(req, res){
-  // console.log(res.locals)
-    res.render('index', {
-      logonUser: req.session.user,
-      title: "Dashboard",
-      header: "Some users", 
-      path: res.url,
-      moment
-    });
+app.get('/', restrict, async function(req, res){
+  const getTotalApprovedBudget = await connection.getTotalApprovedBudget()
+  const getPerPRClassification = await connection.countPerPRClassification()
+  const getCardsData = await connection.cardsData()
+  const getDataFromLast7Days = await connection.getDataFromLast7Days('remarks', 'date')
+
+  const result = getCardsData.reduce((acc, { table_name, row_count, total_sum }) => {
+    acc[table_name] = { row_count, total_sum };
+    return acc;
+  }, {});
+  const perPRClassification = getPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
+    acc[pr_classification] = item_count;
+    return acc;
+  }, {});
+  
+  res.render('pages/index', {
+    logonUser: req.session.user,
+    title: "Dashboard",
+    header: "Some users", 
+    path: res.url,
+    moment,
+    peso,
+    totalApprovedBudget: JSON.stringify(getTotalApprovedBudget[0]),
+    perClassification: JSON.stringify(perPRClassification),
+    tableDashboard: JSON.stringify(getDataFromLast7Days),
+    cardsData: result,
+  });
 });
 
 // Endpoint to get the countNotif value
@@ -325,7 +362,7 @@ app.post('/verify', async (req, res) => {
   }
 })
 
-app.get('/register', restrict, function(req, res){
+app.get('/register', function(req, res){
   // res.send(req.params)
   let {username} = req.params
   let {blood_type, civil_status} = _preDefaultData
@@ -490,7 +527,18 @@ app.put('/transactions/update', restrict, async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 })
-
+app.put('/employees/update', restrict, async (req, res) => {
+  try{
+    const employee = await connection.amendEmployee(JSON.stringify(req.body))
+    if(employee.length != 0) {
+      res.status(200).json({ message: 'Successfully updated the Employee', response: employee})
+    } else {
+      res.status(200).json({ message: 'Failed to update the employee',  response: employee });
+    }
+  } catch (error) {
+    res.status(500).send({ response: error })
+  }
+})
 
 app.put('/transactions/:id', restrict, async (req, res) => {
   try {
@@ -539,12 +587,13 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
   }
 })
 
-app.get('/transactions/:id/remarks', restrict, async (req, res) => {
+app.get('/transactions/:id/view', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
 
     const transactions = await connection.getTransactionById(transid);
     const remarks = await connection.getRemarksByRefid(transid)
+        
     if(transactions[0]) {
       res.render('pages/transactions/remarks', { 
         logonUser: req.session.user,
@@ -670,12 +719,13 @@ app.get('/employees', restrict, async (req, res) => {
   res.render('pages/employees/index', {
     logonUser: req.session.user,
     defaultData: _preDefaultData,
+    dafaultTransactionData: _preTransactionsData,
     sampleEmployee,
     title: 'Employees',
     employees: employees,
     moment,
     peso,
-    path: res.url
+    path: res.url,
   })
 })
 
@@ -697,7 +747,7 @@ app.get('/employees/:id', restrict, async function(req, res){
         logonUser: req.session.user,
         title: 'Register Employee',
         path: res.url,
-        moment
+        moment,
       })
     } else {
       const employee = await connection.getEmployeeById(req.params.id);
@@ -734,6 +784,18 @@ app.get('/employees/register', restrict, function(req, res){
   })
 })
 
+app.get('/employees/:id/update', restrict, async function(req, res){
+  const employeeid = req.params.id;
+  const employee = await connection.getEmployeeById(employeeid)
+  res.render('pages/employees/register', {
+    defaultData: _preDefaultData,
+    logonUser: req.session.user,
+    employees: employee[0], 
+    title: 'Update Employee',
+    path: res.url,
+    moment,
+  })
+})
 
 
 // SUPERADMIN

@@ -50,7 +50,7 @@ if (exampleModal) {
 
     new QRCode("transid-"+recipient, recipient);
 
-    modalFooterLink.setAttribute('href', `/transactions/${recipient}/remarks`)
+    modalFooterLink.setAttribute('href', `/transactions/${recipient}/view`)
 
     // modalBodyInput.value = recipient
   })
@@ -429,7 +429,7 @@ function notifyCustom(type, title, message, status) {
 }
 
 function fieldsUpdated(container) {
-  const fields = document.querySelectorAll(`${container} .form-control`);
+  const fields = document.querySelectorAll(`${container} .form-control, ${container} .form-select, ${container} .selectgroup-input`);
 
   fields.forEach(field => {
       field.addEventListener('input', function() {
@@ -437,12 +437,40 @@ function fieldsUpdated(container) {
       });
   
       // For select elements, listen for the 'change' event
-      if (field.tagName === 'SELECT') {
+      if (field.tagName === 'select') {
           field.addEventListener('change', function() {
               this.classList.toggle('updated', !!this.value);
           });
       }
   });
+}
+
+function statusText(status) {
+  let text = ''
+  switch(status) {
+    case 'dark':
+      text = 'data-bs-title="Back to office"'
+    break;
+    case 'secondary':
+      text = 'data-bs-title="Lack of Signature"'
+    break;
+    case 'info':
+      text = 'data-bs-title="Lack of Attachments"'
+    break;
+    case 'success':
+      text = 'data-bs-title="Read to move"'
+    break;
+    case 'warning':
+      text = 'data-bs-title="Waiting"'
+    break;
+    case 'danger':
+      text = 'data-bs-title="Issue occured"'
+    break;
+    default:
+      text = 'data-bs-title="Tooltip"'
+  }
+
+  return text;
 }
 // Function to fetch the countNotif from the server
 async function fetchNotificationCount() {
@@ -451,12 +479,36 @@ async function fetchNotificationCount() {
     const data = await response.json();
     const notifCount = document.getElementById('notifDropdown')
     // console.log(data)
-    notifCount.querySelector('span').textContent = data.counts;
-    notifCount.querySelector('span').dataset.lastupdated = new Date()
+    if(notifCount){
+      notifCount.querySelector('span').textContent = data.counts;
+      notifCount.querySelector('span').dataset.lastupdated = new Date()
+    }
+    
   } catch (error) {
     console.error('Error fetching notification count:', error);
   }
 }
+function refreshDiv() {
+  let realtimeDiv = document.querySelectorAll('.realtime')
+  if(realtimeDiv) {
+    realtimeDiv.forEach(container=>{
+      // const currentTime = new Date().toLocaleTimeString();
+      const currentTime = new Date().toLocaleString();
+      container.textContent = currentTime
+    })
+  }
+}
 
-// Periodically check for updated notification count (e.g., every 5 seconds)
+
+
+// Initial call to set the time
+// refreshDiv();
+
+// Refresh every second
+// setInterval(refreshDiv, 1000);
+
+// Initial call to fetch the notification
+fetchNotificationCount()
+
+// Periodically check for updated notif`ication count (e.g., every 5 seconds)
 setInterval(fetchNotificationCount, 5000); // Adjust interval as needed
