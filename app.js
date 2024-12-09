@@ -797,6 +797,22 @@ app.get('/employees/:id/update', restrict, async function(req, res){
   })
 })
 
+app.delete('/employees/:id/:force', restrict, async (req, res) => {
+  try {
+    // const transid = req.params.id;
+    // const force = req.params.force
+
+    const {id, force} = req.params
+
+    // let lists = await connection.hideToDisplay('employees', transid);
+    console.log({id, force})
+    res.status(204).send(); // No content (successful deletion)
+  } catch (error) {
+      console.error('Error fetching products:', error);
+      res.status(500).send('Internal Server Error');
+  }
+})
+
 
 // SUPERADMIN
 app.route('/api/employees')

@@ -228,7 +228,7 @@
           let employees = danger
           let {id, name} = employees.dataset
 
-          document.querySelectorAll('#transactions-datatables tr').forEach(row => row.classList.remove('selected'));
+          document.querySelectorAll('#employees tr').forEach(row => row.classList.remove('selected'));
           event.target.closest('tr').classList.add('selected')
 
           title = `Are you sure to delete ${name}?`
@@ -249,29 +249,31 @@
                 },
                 dangerMode: true, })
             .then((willDelete) => {
-              console.log(willDelete)
-              console.log(willDelete=='forceDelete')
-                if (willDelete) {
+              let url = `/employees/${id}`
+             
+              switch(willDelete) {
+                case true:
+                  console.log('Confirm 1', url)
+                break;
+                case 'forceDelete':
+                  url += '/force'
+                  console.log('Confirm 2', url)
+                break;
+                default:
+                  document.querySelectorAll('#employees tr').forEach(row => row.classList.remove('selected'));
+                break;
+              }
 
-                  if(willDelete=='forceDelete'){
-                    console.log('Force to delete the data')
-                  }
-                
-                let url = `/employees/${id}`
-                  
-                // fetch(url, {
-                //     method: 'DELETE' })
-                // .then(res => {
-                //     return res.text()}) // or res.json()
-                // .then(data => {
-                //     swal("Poof! Transaction file has been deleted!", {
-                //     icon: "success", });
-                //     // if Yes
-                //     document.querySelector('tr.selected').remove().draw(false)
-                // }) // endof fetch()
-                } else {
-                    document.querySelectorAll('#employees tr').forEach(row => row.classList.remove('selected'));
-                }
+              fetch(url, {
+                method: 'DELETE' })
+              .then(res => {
+                return res.text()}) // or res.json()
+              .then(data => {
+                swal("Poof! Transaction file has been deleted!", {
+                icon: "success", });
+                // if Yes
+                document.querySelector('tr.selected').remove().draw(false)
+              }) // endof fetch()
             });
         })
       })
