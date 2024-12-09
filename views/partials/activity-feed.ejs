@@ -6,7 +6,14 @@
   
   if (!remark) continue; // Skip if there's no remark at all
   
-  const { dueDate, date, status, comment, id } = remark;
+  const { dueDate, date, status, comment, id, experience } = remark;
+
+  if(experience) { 
+    var { lists } = JSON.parse(experience)
+    var {office, division, banner, salary, startdate, enddate, position, employment } = lists[0] 
+    var employeeDivision = division
+    var employeeBanner = banner
+  }
   
   // Format dates
   const displayDate = dueDate ? moment(dueDate).fromNow() : `<a href="#" data-bs-toggle="modal" data-bs-target="#remarksModal" data-action="update">Set</a>`;
@@ -34,6 +41,7 @@
   let tooltipHTML = 'data-bs-toggle="tooltip" data-bs-placement="left" '
   switch(status) {
     case 'dark':
+    case 'black':
       tooltipHTML += 'data-bs-title="Back to office"'
     break;
     case 'secondary':
@@ -52,7 +60,7 @@
       tooltipHTML += 'data-bs-title="Issue occured"'
     break;
     default:
-      tooltipHTML += 'data-bs-title="Tooltip"'
+      tooltipHTML += 'data-bs-title="For Approval"'
   }
 %>
 
@@ -61,7 +69,7 @@
       <div class="d-flex">
         <span class="user fs-2 mr-3"><i class="far fa-user-circle"></i></span>
         <div class="">
-          <div class="username"><%- remark.user %></div>
+          <div class="username"><%- remark.user %> <i class="fas fa-sitemap"></i> <%- banner || division %></div>
           <div class="text">
             <span class="badge badge-<%- (status === 'dark') ? 'black' : ((i % 2 === 0) ? 'success' : 'info') %> mr-3">
               <%- (i % 2 === 0) ? 'In' : 'Out' %>

@@ -3,7 +3,7 @@ const _express = (io, moment) => {
     const format = 'MMM DD YYYY hh:mm:ss a'
     const units = 'minutes' // hours, minutes, seconds
     let countNotif = 0;
-
+    
     const getCountNotif = (data) => {
       return data
     }
@@ -31,7 +31,7 @@ const _express = (io, moment) => {
         const socketID = socket.id
         const color = 'red'
      
-        console.log('a user connected sdf', socket.id)
+        console.log('a user connected', socket.id)
 
         ///////////////////////////
         socket.join(socketID)
@@ -69,7 +69,7 @@ const _express = (io, moment) => {
 
         /////// DISCONNECT ///////
         socket.on('disconnect', () => {
-          console.log('A user has terminated their connection to the server.')
+          // console.log('A user has terminated their connection to the server.')
         })
       })
     } 

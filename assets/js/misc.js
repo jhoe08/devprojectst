@@ -467,7 +467,7 @@ function statusText(status) {
       text = 'data-bs-title="Issue occured"'
     break;
     default:
-      text = 'data-bs-title="Tooltip"'
+      text = 'data-bs-title="For Approval"'
   }
 
   return text;
@@ -497,6 +497,10 @@ function refreshDiv() {
       container.textContent = currentTime
     })
   }
+}
+
+function initial(string) {
+  return string.chartAt(0) + '.'
 }
 
 

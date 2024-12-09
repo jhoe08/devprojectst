@@ -32,12 +32,16 @@
                               <li class="nav-item submenu" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="PR Classification">
                                 <span class="nav-link active" id="pills-today" data-bs-toggle="pill" href="#pills-today" role="tab" aria-selected="false" tabindex="-1" aria-labelledby="pills-today"><%- transactions.pr_classification -%></span>
                               </li>
+                              <% if(transactions?.banner_program) { %>
                               <li class="nav-item" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Banner Program">
                                 <span class="nav-link" id="pills-week" data-bs-toggle="pill" href="#pills-week" role="tab" aria-selected="false" aria-labelledby="pills-week" tabindex="-1"><%- transactions.banner_program -%></span>
                               </li>
+                              <% } %>
+                              <% if(transactions?.bac_unit) { %>
                               <li class="nav-item submenu" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="BAC Unit">
                                 <span class="nav-link" id="pills-month" data-bs-toggle="pill" href="#pills-month" role="tab" aria-selected="false" tabindex="-1" aria-labelledby="pills-month"><%- transactions.bac_unit -%></span>
                               </li>
+                              <% } %>
                             </ul>
                           </div>
                         </div>
@@ -88,7 +92,7 @@
                               <%- peso(budget) -%>
                               <span class="text-warning ps-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Fund Source"><%- transactions.fund_source -%></span>
                             </h6>
-                            <span class="text-muted">PR Budget</span>
+                            <span class="text-muted">Purchase Request Budget</span>
                           </div>
                           <div class="float-end pt-1">
                             <small class="text-muted"></small>
@@ -110,11 +114,35 @@
                               <span class="badge badge-count"><%= transactions?.trans_code %></span>
                             <% } %>
                             </h6>
-                            <span class="text-muted">PR Number</span>
+                            <span class="text-muted">Purchase Request Number</span>
                           </div>
                           <div class="float-end pt-1">
                             <button  data-bs-toggle="modal" data-bs-target="#codeModal" id="addTransactionCodes" class="btn btn-icon btn-link op-8 me-1">
-                              <i class="fas fa-plus-circle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add Transaction Codes"></i>
+                              <i class="fas fa-plus-circle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add PR Number"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="separator-dashed"></div>
+                        <div class="d-flex">
+                          <div class="avatar">
+                            <span class="avatar-title rounded-circle border border-white bg-secondary"><i class="fas fa-truck"></i></span>
+                          </div>
+                          <div class="flex-1 ms-3 pt-1">
+                            <h6 class="text-uppercase fw-bold mb-1">
+                            <% if(transactions?.trans_code && isValidJSON(transactions.trans_code)) { 
+                              trans_code = JSON.parse(transactions.trans_code)
+                              trans_code.forEach(function(code){ if(code) { %>
+                              <span class="badge badge-count"><%= code %></span>
+                              <% } })%>
+                            <% } else { %>
+                              <span class="badge badge-count"><%= transactions?.trans_code %></span>
+                            <% } %>
+                            </h6>
+                            <span class="text-muted">Purchase Order Number</span>
+                          </div>
+                          <div class="float-end pt-1">
+                            <button  data-bs-toggle="modal" data-bs-target="#purchaseOrderNumberModal" id="" class="btn btn-icon btn-link op-8 me-1">
+                              <i class="fas fa-plus-circle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add PO Number"></i>
                             </button>
                           </div>
                         </div>
@@ -151,6 +179,8 @@
 <%- include('../../components/modals/transactions/remark') -%>
 <!-- Transaction: Codes -->
 <%- include('../../components/modals/transactions/code') -%>
+<!-- Transaction: PO Number -->
+<%- include('../../components/modals/transactions/po') -%>
 <!-- <script src="/assets/js/components/transactions.js"></script> -->
 <script> 
   new QRCode(`transid-<%- transactions.product_id %>`, `<%- transactions.product_id %>`); 
