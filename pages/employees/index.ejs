@@ -96,7 +96,7 @@
                                           <a href="/employees/<%= employeeid %>/update" data-transid="<%= employeeid %>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Edit Employee">
                                             <i class="fa fa-edit"></i>
                                           </a>
-                                          <button data-id="<%= employeeid %>" data-name="<%= [firstname, middlename, lastname, extname].filter(Boolean).join(' ') %>" type="button" data-bs-toggle="tooltip" title="Delete?" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_<%= employeeid %>">
+                                          <button data-id="<%= employeeid %>" data-name="<%= [firstname, middlename ? middlename.charAt(0) + '.' : '', lastname, extname].filter(Boolean).join(' ') %>" type="button" data-bs-toggle="tooltip" title="Delete?" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_<%= employeeid %>">
                                             <i class="fa fa-times"></i>
                                           </button>
                                         </div>
@@ -123,6 +123,6 @@
 <%- include('../../components/modals/employees/add') -%>
 <!-- Script -->
 
-<script src="/assets/js/components/employees.js"></script>
+<!-- <script src="/assets/js/components/employees.js"></script> -->
 <!-- Header Template -->
 <%- include('../../views/footer') -%>

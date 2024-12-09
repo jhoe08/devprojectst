@@ -164,7 +164,7 @@ const databaseUtils = {
         // console.log(data)
         let {bid_notice_title, pr_classification, requisitioner, division, approved_budget, banner_program, bac_unit, fund_source, remarks} = JSON.parse(data)
         
-        if(isEmpty(bid_notice_title) || isEmpty(pr_classification) || isEmpty(fund_source)) reject('Fields are empty!')
+        if(isEmpty(bid_notice_title) || isEmpty(pr_classification) /*|| isEmpty(fund_source)*/) {reject('Fields are empty!'); return }
 
         let pr_date = convertDate(new Date())
 
@@ -290,7 +290,13 @@ const databaseUtils = {
         return await databaseUtils.retrieveData('remarks')
     },
     getRemarksByRefid: (id) => new Promise((resolve, reject) => {
-        connection.query(`SELECT * FROM remarks WHERE refid=${id}`, (error, results) => {
+        connection.query(`  SELECT 
+                                remarks.*, employees.*
+                            FROM
+                                transto.remarks AS remarks
+                                    JOIN
+                                transto.employees AS employees ON remarks.user = employees.username
+                            WHERE remarks.refid = ${id}`, (error, results) => {
             if (error) {
                 reject(error)
             } else {
@@ -445,7 +451,15 @@ const databaseUtils = {
             });
         });
     },
-    
+    getCurrentUserRole: async (employeeid) => {
+        const query = ` SELECT role FROM users WHERE user_id = ${employeeid};`
+        return new Promise((resolve, reject) => {
+            connection.query(query, (error, results) => {
+                if (error) reject(error);
+                else resolve(results);
+            });
+        });
+    },
     // Sample
     divisions: (division) => {
         let lists = ["ILD", "PMED", "FOD", "ADMIN", "RESEARCH", "REGULATORY", "AMAD", "RAED", "Others"]

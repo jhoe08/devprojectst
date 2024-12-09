@@ -238,13 +238,27 @@
                 title,
                 text: "Once deleted, you will not be able to recover this employee file!",
                 icon: "warning",
-                buttons: ["Cancel", "Delete it!"],
+                // buttons: ["Cancel", "Delete it!", "ASD"],
+                buttons: {
+                  cancel: true,
+                  confirm: "Confirm",
+                  roll: {
+                    text: "Force Delete!",
+                    value: "forceDelete",
+                  },
+                },
                 dangerMode: true, })
             .then((willDelete) => {
+              console.log(willDelete)
+              console.log(willDelete=='forceDelete')
                 if (willDelete) {
+
+                  if(willDelete=='forceDelete'){
+                    console.log('Force to delete the data')
+                  }
                 
                 let url = `/employees/${id}`
-
+                  
                 // fetch(url, {
                 //     method: 'DELETE' })
                 // .then(res => {

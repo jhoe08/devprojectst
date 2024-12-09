@@ -4,14 +4,16 @@
     "description": "A just project list for dev",
     "main": "app.js",
     "scripts": {
-        "dev": "nodemon app.js",
-        "start": "node app.js",
+        "dev": "cross-env NODE_ENV=development nodemon app.js",
+        "start": "cross-env NODE_ENV=production node app.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [
-        "Multiplayer",
-        "Game",
-        "Socket.IO"
+        "Tracking",
+        "Purchase Request",
+        "Inventory",
+        "Socket.IO", 
+        "NodeJS"
     ],
     "repository": {
         "type": "git"
@@ -40,6 +42,7 @@
         "socket.io": "^4.7.5"
     },
     "devDependencies": {
+        "cross-env": "^7.0.3",
         "express-session": "^1.18.0",
         "method-override": "^3.0.0",
         "morgan": "^1.10.0",

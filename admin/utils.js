@@ -42,7 +42,7 @@ const utils = {
             text = 'Issue occured'
             break;
             default:
-            text = 'Tooltip'
+            text = 'For Approval'
         }
         return text;
     }
