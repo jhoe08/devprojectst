@@ -2,10 +2,15 @@
 
 const video = document.getElementById('qrcodeScanner');
 const output = document.getElementById('qrCodeData');
+// alternative
+const text = document.getElementById('qrCodeText')
+
+let transIDs = [];
+const btnRemarks = document.getElementById('createRemarks')
+        
 
 if(video && output) {
-    let transIDs = [];
-
+    
     // const table = new DataTable('#basic-datatables');
     
     // Access the webcam
@@ -32,7 +37,6 @@ if(video && output) {
     async function scanQRCode() {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        const btnRemarks = document.getElementById('createRemarks')
     
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -49,7 +53,7 @@ if(video && output) {
                 transIDs.push(decoded.data)
                 const data = await fetchTransactionById(decoded.data)
                 const {approved_budget, bid_notice_title, product_id} = data
-                if(data) {
+                if(data.length > 0) {
                     addNewRow(data)
                     btnRemarks.dataset.transid = JSON.stringify(transIDs)
                 }
@@ -65,25 +69,44 @@ if(video && output) {
         // console.log(transIDs)
     }
     
-    async function fetchTransactionById(transactionId) {
-        try {
-          const response = await fetch(`/api/transactions/${transactionId}`); // Assuming your API endpoint is like this
-          const data = await response.json(); // Parse JSON response
-      
-          if (response.ok) {
-            // If the request is successful, log or process the employee data
-            console.log('Transaction Data:', data.response);
-            return data.response; // Return employee data
-          } else {
-            // If the employee is not found or there's another issue
-            console.error('Error:', data.response);
-            return null;
-          }
-        } catch (error) {
-          // Handle errors like network issues
-          console.error('Error fetching employee data:', error);
-          return null;
-        }
-      }
       
 }
+
+if(text) {
+    setInterval(async function(){
+        const qrNumber = text.value
+        if(!transIDs.includes(qrNumber) && qrNumber !== "") {
+            const data = await fetchTransactionById(qrNumber)
+            const {approved_budget, bid_notice_title, product_id} = data
+            if(data.length > 0) {
+                transIDs.push(qrNumber)
+                addNewRow(data)
+                btnRemarks.dataset.transid = JSON.stringify(transIDs)   
+                text.value = ''
+            }
+        }
+    }, 1000)
+}
+
+
+
+async function fetchTransactionById(transactionId) {
+    try {
+      const response = await fetch(`/api/transactions/${transactionId}`); // Assuming your API endpoint is like this
+      const data = await response.json(); // Parse JSON response
+  
+      if (response.ok) {
+        // If the request is successful, log or process the employee data
+        console.log('Transaction Data:', data.response);
+        return data.response; // Return employee data
+      } else {
+        // If the employee is not found or there's another issue
+        console.error('Error:', data.response);
+        return null;
+      }
+    } catch (error) {
+      // Handle errors like network issues
+      console.error('Error fetching employee data:', error);
+      return null;
+    }
+  }

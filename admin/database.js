@@ -186,9 +186,12 @@ const databaseUtils = {
         dueDate = convertDate(new Date(), dueDate)
       
         if(Array.isArray(refid)) {
-            values = refid.map(id => 
-                `('${comment}', '${status}', ${id}, '${user}', '${date}', '${dueDate}')`
-              ).join(', ');
+            values = refid
+            .filter(id => id !== '0' && id !== 0) // Exclude both '0' (string) and 0 (number)
+            .map(id => 
+              `('${comment}', '${status}', ${id}, '${user}', '${date}', '${dueDate}')`
+            )
+            .join(', ');
         } else {
             values = `('${comment}', '${status}', ${refid}, '${user}', '${date}', '${dueDate}')`
         }

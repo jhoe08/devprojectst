@@ -64,12 +64,19 @@
   }
 %>
 
-  <% if (remark.status) { %>
-    <li id="remark-<%=id%>" class="feed-item <%- statusClass %> d-flex justify-content-between" data-index="<%- i %>" data-startdate="<%- moment(date).format(format) %>" data-duedate="<%- moment(dueDate).format(format) %>" <%-tooltipHTML%>>
+  <% 
+    if (remark.status) { 
+    %>
+    <% let firstLetter = (remark.firstname && typeof remark.firstname === 'string' ? remark.firstname : '').charAt(0); %>
+
+    <li id="remark-<%=id%>" class="feed-item <%- statusClass %> d-flex justify-content-between" data-index="<%- i %>" data-startdate="<%- moment(date).format(format) %>" data-duedate="<%- moment(dueDate).format(format) %>" data-division="<%- division %>" <%-tooltipHTML%>>
       <div class="d-flex">
-        <span class="user fs-2 mr-3"><i class="far fa-user-circle"></i></span>
-        <div class="">
-          <div class="username"><%- remark.user %> <i class="fas fa-sitemap"></i> <%- banner || division %></div>
+        <!-- <span class="user fs-2 mr-3"><i class="far fa-user-circle"></i></span> -->
+        <div class="avatar">
+          <span class="avatar-title rounded-circle border border-white bg-info"><%- firstLetter %></span>
+        </div>
+        <div class="flex-1 ms-3 pt-1">
+          <div class="username"><%- remark.firstname %> • <%- division %> <%- banner ? `- ${banner}` : '' %></div>
           <div class="text">
             <span class="badge badge-<%- (status === 'dark') ? 'black' : ((i % 2 === 0) ? 'success' : 'info') %> mr-3">
               <%- (i % 2 === 0) ? 'In' : 'Out' %>
@@ -78,7 +85,7 @@
           </div>
         </div>
       </div>
-      <div>
+      <div class="text-capitalize">
         <time class="date hidden" datetime="<%- moment(date).format(format) %>">
           <%- moment(date).format(format) %>
         </time>

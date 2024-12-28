@@ -1,5 +1,18 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
+<%
+      if(logonUser) {
+        logonUser = JSON.stringify(logonUser)
+        const { experience } = logonUser || {}
+        if(experience) {
+            const { lists } = JSON.parse(experience)
+            const { position, division: employeeDivision } = lists[0] || {}
+
+            console.log(`asd ${division}`)
+        }
+
+      }
+    %>
 <% if(transactions) { %>
 <div class="wrapper">
     <%- include('../../views/sidebar') -%>
@@ -11,7 +24,7 @@
           <div class="page-inner">
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div class="col-md-1 mr-4">
-                <div id="transid-<%- transactions.product_id -%>" class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- transactions.product_id -%>"></div>
+                <div id="transid-<%- transactions.product_id -%>" data-qrcode="<%- transactions.product_id -%>" class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- transactions.product_id -%>"></div>
               </div>
               <div class="col-md-8">
                   <h3 class="fw-bold mb-3"><%- transactions.bid_notice_title -%></h3>
@@ -182,9 +195,9 @@
 <!-- Transaction: PO Number -->
 <%- include('../../components/modals/transactions/po') -%>
 <!-- <script src="/assets/js/components/transactions.js"></script> -->
-<script> 
+<!-- <script> 
   new QRCode(`transid-<%- transactions.product_id %>`, `<%- transactions.product_id %>`); 
-</script>
+</script> -->
 <% } %>
 <!-- Footer Template -->
 <%- include('../../views/footer') -%>

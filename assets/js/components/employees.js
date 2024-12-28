@@ -64,7 +64,7 @@
           firstname: firstname.value,
           middlename: middlename.value,
           lastname: lastname.value,
-          extname: extname.value,
+          extname: extname?.value,
           birthdate: dob.value,
           experience: {
             lists: [{
@@ -90,11 +90,13 @@
           }
         }
   
-        let {experience, contacts} = data
+        let {experience, contacts, others} = data
         experience = JSON.stringify(experience)
         contacts = JSON.stringify(contacts)
+        others = JSON.stringify(others)
         data.experience = experience
         data.contacts = contacts
+        data.others = others
   
         const requestOptions = {
           method: 'POST',

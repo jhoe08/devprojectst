@@ -1,0 +1,196 @@
+.documentToPrint {
+    background-color: white;
+    margin: 40px auto;
+
+    &.letter{
+        width: 8.5in;
+        height: 11in;
+    }
+    
+    &.long, &.legal {
+        width: 8.5in;
+        height: 13in;
+        padding: .5in .25in;
+    }
+
+    & .documentBody {
+        /* margin: 1in;
+        border: 1px solid; */
+        padding: .5in;
+
+        .header {
+            position: relative;
+        }
+        .logo {
+            border: 1px solid #ccc;
+            position: absolute;
+            border-radius: 100px;
+            padding: 2px;
+            top: -4px;
+        }
+        .qrcode {
+            position: absolute;
+            right: 0;
+            top: -20px;
+        }
+        .main-heading {
+            text-align: center;
+
+            h1, h2 {
+                text-transform: uppercase;
+                font-size: 1em;
+            }
+            h1 {
+                /* font-size: 1.2em; */
+            }
+            h2 {
+                /* font-size: 1em; */
+            }
+            h3 {
+                font-size: .7em;
+            }
+        }
+    }
+
+    &.s-border {
+        #trackingSheetTable {
+            > tbody,
+            td,
+            > tfoot,
+            th,
+            > thead ,
+            tr {
+                border-width: 1px;
+                padding: 5px;
+            }
+        }
+    }
+}
+
+table {
+    font-size: .8em;
+    width: 100%;
+
+    &.body-head {
+        td {
+            border-width: 1px;
+            padding: 20px 0 0;
+            width: 80px;
+            border-color: white;
+        }
+    }
+    
+    &.items {
+        margin-top: 10px;
+        table-layout:fixed;
+
+        th, td {
+            border-color: black;
+            border-width: 1px;
+        }
+        th {
+            font-weight: 800;
+            text-align: center;
+        }
+        
+    }
+    td {
+        &.underline {
+            border-bottom-color: black;
+            border-bottom-width: 1px;
+        }
+    }
+}
+
+.trackingsheet {
+    position: relative;
+
+    header table {
+        margin-top: 40px;
+    }
+    h1, h4 {
+        line-height: 1em;
+    }
+    h1 {
+        font-size: 1.7em;
+    }
+    h4 {
+        font-size: 1.1em;
+    }
+    & header {
+        margin-bottom:10px;
+    }
+    .qrcode {
+        position: absolute;
+        right: 0;
+        top: -20px;
+        img {
+            width: 100px;
+        }
+    }
+
+    #trackingSheetTable {
+        td {
+            white-space: pre;
+            color: #fff;
+            visibility: hidden;
+        }
+    }
+}
+
+@media print {
+    * { 
+        overflow: hidden;
+        visibility: hidden;
+    } 
+
+    .main-panel,
+    .main-header {
+        width: 100%;
+
+        &>.container {
+            margin-top: 0;
+        }
+    }
+
+    .documentToPrint { 
+        margin: 0;
+        page-break-after:always;
+
+        * {
+            overflow: visible;
+            visibility: visible;
+        }
+
+        #trackingSheetTable {
+            td {
+                white-space: pre;
+                color: #fff;
+                visibility: hidden;
+            }
+        }
+    }
+
+    /* All your print styles go here */
+    /* .sidebar,
+    .main-header {
+      display: none !important;
+    }
+    
+    .main-panel,
+    .main-header {
+        width: 100%;
+    }
+    .main-panel .container {
+        margin-top: 0;
+    }
+    .documentToPrint {
+        background-color: red;
+        margin-top: 0;
+    }
+    .documentBody {
+        padding: 0 .5in;
+    }
+ */
+
+  }
