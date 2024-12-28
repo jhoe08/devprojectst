@@ -43,7 +43,6 @@ const _tasks = (moment, io) => {
     
                     // Create a new entry object to store in the array
                     const newEntry = { [refid]: { id, date: currentDate.format('YYYY-MM-DD HH:mm:ss') } };
-    
                     allDatesToday.push(newEntry);
                 // }
 

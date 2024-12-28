@@ -1,69 +1,57 @@
-
-<%- include('../../views/header') -%>
+<%- include('../views/header') -%>
 <div class="wrapper">
-    <%- include('../../views/sidebar') -%>
+    <%- include('../views/sidebar') -%>
+  
     <div class="main-panel">
-      <%- include('../../views/main-header') -%>
+      <%- include('../views/main-header') -%>
         <div class="container">
-            <div class="documentToPrint legal s-border">
-                <%
-                    var {approved_budget : budget} = transactions 
-                    var cleanBudget = budget.replace(/,/g, '');
-
-                    budget = parseFloat(cleanBudget)
-                %>
-                <div class="wrapper trackingsheet">
-                    <div id="transid-<%=transactions.product_id%>" class="qrcode" data-qrcode="<%=transactions.product_id%>"></div>
-                    <header class="text-center">
-                        <h1><span class="text-uppercase">Tracking Sheet </span><span class="text-lowercase">for</span> <%= budget > 1000000 ? 'Public Bidding' : 'SVP'  %></h1>
-                        <h4>Department of Agriculture RFO7</h4>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <td class="text-start" style="width: 40px;">Item</td>
-                                    <td class="underline text-start lh-1"  style="width:350px;"><%= transactions.bid_notice_title %></td>
-                                    <td style="width: 40px;">PR #</td>
-                                    <td class="underline text-white" style="width: 200px;"></td>
-                                    <td style="width: 40px;">ABC ₱</td>
-                                    <td class="underline"><%= peso(budget) %></td>
-                                </tr>
-                            </thead>
+            <div class="documentToPrint letter">
+                <div class="documentBody">
+                    <div class="header">
+                        <div class="logo"><img src="/assets/img/da-logo.png" alt="" width="100"></div>
+                        <div class="qrcode"><img src="/assets/img/mlane.jpg" alt="" width="100"></div>
+                        <div class="main-heading">
+                            <h2>Department of Agriculture</h2>
+                            <small>Regional Field Office VII</small>
+                            <h3>DA RF07 Complex, Maguikay, Mandaue City</h3>
+                            <h1>Purchase Request</h1>
+                        </div>
+                    </div>
+                    <div class="body">
+                        <table class="body-head">
+                            <tr>
+                                <td>Entity Name: </td>
+                                <td class="underline" colspan="4"></td>
+                                <td class="text-right">Fund Cluster: </td>
+                                <td class="underline" colspan="2"></td>
+                            </tr>
+                            <tr>
+                                <td>Office/Section: </td>
+                                <td></td>
+                                <td>PR No.:</td>
+                                <td class="underline" colspan="2"></td>
+                                <td class="text-right">Date: </td>
+                                <td class="underline"></td>
+                                <td class="underline"></td>
+                            </tr>
+                            <tr>
+                                <td class="underline" colspan="2"></td>
+                                <td colspan="2">Responsibility Center Code: </td>
+                                <td class="underline" colspan="4"></td>
+                            </tr>
                         </table>
-                    </header>
-                    <table id="trackingSheetTable" class="display text-center" style="width:100%">
-                        <thead class="fw-bolder">
+
+                        <table class="items">
                             <tr>
-                                <th rowspan="2">OFFICE/Person Responsible</th>
-                                <th rowspan="2" width="100">NAME</th>
-                                <th rowspan="2" width="100">SIGNATURE</th>
-                                <th colspan="2" width="50">DATE</th>
-                                <th rowspan="2" width="200">REMARKS</th>
+                                <th width="80">Stock No.</th>
+                                <th width="70">Unit</th>
+                                <th width="300">Item Description</th>
+                                <th width="50">Qty</th>
+                                <th width="80">Unit Cost</th>
+                                <th width="80">Total Cost</th>
                             </tr>
                             <tr>
-                                <th width="80">IN</th>
-                                <th width="80">OUT</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <%= console.log(remarks) %>
-                            <tr>
-                                <td title="Responsible" class="text-start">1. End-User</td>
-                                <td title="Name"></td>
-                                <td title="Signature"></td>
-                                <td title="Date In"></td>
-                                <td title="Date Out"></td>
-                                <td title="Remarks" class="text-start lh-1"></td>
-                            </tr>
-                            <tr>
-                                <td title="Responsible" class="text-start">2. Division Chief</td>
-                                <td title="Name"></td>
-                                <td title="Signature"></td>
-                                <td title="Date In"></td>
-                                <td title="Date Out"></td>
-                                <td title="Remarks" class="text-start lh-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="text-start">3. Budget Section</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -71,7 +59,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">4. Procurement Section (PS)</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -79,7 +67,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">5. BAC Secretariat</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -87,7 +75,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">6. Procurement Section (PS)</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -95,7 +83,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">7. Canvassers</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -103,7 +91,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">Supplier/Contractors</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -111,7 +99,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">8. BAC & BAC Sec.</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -119,7 +107,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">9. Procurement Section (PS)</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -127,7 +115,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">10. RED/RTD</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -135,7 +123,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">11. BAC Sec./ Procurement Section (PS)</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -143,7 +131,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">12. Procurement Section (PS)</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -151,7 +139,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">13. End-User/Program Coor./Division Chief</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -159,7 +147,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">14. Budget Section</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -167,7 +155,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">15. Accounting Section</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -175,7 +163,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">16. RED/RTD</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -183,7 +171,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">17. General Services Section</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -191,7 +179,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">18. RED/RTD</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -199,7 +187,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">19. BAC Sec.</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -207,7 +195,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">20. GS/RAED/End-User</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -215,7 +203,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">21. Inspectors</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -223,7 +211,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">22. End-Users</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -231,7 +219,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">23. GS/End-Users</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -239,7 +227,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">24. End-Users</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -247,7 +235,15 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">25. Accounting Section</td>
+                                <td></td>
+                                <td></td>
+                                <td class="text-left fw-bolder">Prepared by:</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -255,7 +251,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">26. Division Chief</td>
+                                <td>&nbsp;</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -263,42 +259,55 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">27. Cashering Unit</td>
                                 <td></td>
                                 <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td class="text-start">28. Accounting Section</td>
-                                <td></td>
-                                <td></td>
+                                <td class="text-center fw-bolder text-uppercase">Full Name</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">29. RED/RTD/Admin Chief</td>
                                 <td></td>
                                 <td></td>
+                                <td class="text-center">Position</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class="text-start">30. Cashering Unit</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td>Purspose: </td>
+                                <td colspan="5"></td>
                             </tr>
-                        </tbody>
-                    </table>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td class="text-left text-underline">Request by:</td>
+                                <td class="text-underline" colspan="3">Approved by:</td>
+                            </tr>
+                            <tr>
+                                <td>Signature:</td>
+                                <td></td>
+                                <td></td>
+                                <td colspan="3"></td>
+                            </tr>
+                            <tr>
+                                <td>Printed Name:</td>
+                                <td></td>
+                                <td class="text-center fw-bolder text-uppercase">Full Name</td>
+                                <td class="text-center fw-bolder text-uppercase" colspan="3">Full Name</td>
+                            </tr>
+                            <tr>
+                                <td>Designation:</td>
+                                <td></td>
+                                <td class="text-center">Supervisor</td>
+                                <td class="text-center" colspan="3">Division Head</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<%- include('../../views/footer') -%>
+<!-- Footer Template  -->
+<%- include('../views/footer') -%>

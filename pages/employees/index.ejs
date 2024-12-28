@@ -43,6 +43,7 @@
                                     <th>Name</th>
                                     <th>Position</th>
                                     <th>Office</th>
+                                    <th>Division</th>
                                     <th>Age</th>
                                     <th>Start date</th>
                                     <th>Salary</th>
@@ -56,6 +57,7 @@
                                     <th>Name</th>
                                     <th>Position</th>
                                     <th>Office</th>
+                                    <th>Division</th>
                                     <th>Age</th>
                                     <th>Start date</th>
                                     <th>Salary</th>
@@ -73,7 +75,7 @@
                                       var { lists } = experience ? JSON.parse(experience) : {}
                                       
                                       if (lists) {
-                                        var { office, salary, status, enddate, position, startdate, employment, arrangements } = lists[0];
+                                        var { office, division, salary, status, enddate, position, startdate, employment, arrangements } = lists[0];
                                       }
                                       
                                       var today = moment()
@@ -83,6 +85,7 @@
                                       <td data-column="name"><%= [firstname, lastname].filter(Boolean).join(' ') %></td>
                                       <td data-column="position"><%= position || '-' %></td>
                                       <td data-column="office"><%= office || '-' %></td>
+                                      <td data-column="division"><%= division || '-' %></td>
                                       <td data-column="age"><%= age %></td>
                                       <td data-column="startdate"><%= moment(startdate).format('LL') || '-' %></td>
                                       <td data-column="salary"><%= peso(salary) || '-' %></td>
@@ -96,6 +99,9 @@
                                           <a href="/employees/<%= employeeid %>/update" data-transid="<%= employeeid %>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Edit Employee">
                                             <i class="fa fa-edit"></i>
                                           </a>
+                                          <button  data-bs-toggle="tooltip" title="Add Role" class="btn btn-link btn-warning">
+                                            <i class="fa fa-user" data-bs-toggle="modal" data-bs-target="#rolesModal" ></i>
+                                          </button>
                                           <button data-id="<%= employeeid %>" data-name="<%= [firstname, middlename ? middlename.charAt(0) + '.' : '', lastname, extname].filter(Boolean).join(' ') %>" type="button" data-bs-toggle="tooltip" title="Delete?" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_<%= employeeid %>">
                                             <i class="fa fa-times"></i>
                                           </button>
@@ -121,6 +127,8 @@
 </div>
 <!-- Employee Modal: Add -->
 <%- include('../../components/modals/employees/add') -%>
+<!-- Employee Modal: Set Roles -->
+<%- include('../../components/modals/employees/roles') -%>
 <!-- Script -->
 
 <!-- <script src="/assets/js/components/employees.js"></script> -->

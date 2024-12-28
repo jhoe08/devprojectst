@@ -1,0 +1,33 @@
+<div class="modal fade" id="rolesModal" tabindex="-1" aria-labelledby="rolesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="rolesModalLabel">Set Roles</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="form-group">
+                <label>Current Roles:</label>
+                
+            </div>
+            <div class="form-group">
+                <label>New Role</label>
+                <% if(purchaseRequestRoles) { %>
+                    <select class="form-select form-control" id="defaultSelect">
+                    <% purchaseRequestRoles.forEach(roles =>{
+                    const {role, description} = roles; %>
+                        <option value="<%= role %>"><%= role %></option>
+                    <% }) %>
+                    </select>
+                <% } %>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal">Close</button>
+          <a id="setRoles" href="#" type="button" class="btn button btn-primary">Add New Role</a>
+        </div>
+      </div>
+    </div>
+  </div>

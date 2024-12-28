@@ -32,6 +32,7 @@
         <div class="notif-scroll scrollbar-outer">
           <div class="notif-center">
           <% 
+            if(notifs.ength > 0) {
             notifs.forEach(notif=>{ 
               const {id, message, link, component, created_at, updated_at} = notif
               let path = `/${component}/${link}`;
@@ -64,7 +65,7 @@
                 <span class="time" data-created="<%-created_at%>"><%=date%></span>
               </div>
             </a>
-          <% }) %>
+          <% }) } %>
             <a href="#" class="hidden">
               <div class="notif-icon notif-success">
                 <i class="fa fa-comment"></i>

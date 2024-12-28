@@ -4,11 +4,11 @@
     <% } else if (path2 === '/employees' || path2.startsWith('/employees')) { %>
     <script src="/assets/js/components/employees.js"></script>
     <% } else { %>
-    <script>console.log('<%= path2 %>')</script>  
+    <script>console.log('ewan ko lang <%= path2 %>')</script>  
     <% } %>
     <script>
       const transactions = $("#transactions-datatables").DataTable({
-        "order": [[0, 'desc']],
+        "order": [[0, 'asc']],
         columnDefs: [{
             render: (data, type, row) => '<div><span data-head="Classification" class="badge badge-count mr-3">' + row[9] + '</span><span data-head="Banner"  class="badge badge-info">' + row[8] + '</span></div><div class="mb-0">'+ data +'</div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div>',
             targets: 1
@@ -49,7 +49,7 @@
         }, 
       })
       // const employeesHiddenColumns = []
-      const employeesHiddenColumns = [7] 
+      const employeesHiddenColumns = [2, 5, 8] 
       let employees = $("#employees").DataTable({
         
         layout: {
@@ -103,14 +103,15 @@
 
       function addNewRow(data) {
         // alert(data)
-        console.log(data)
-        const { approved_budget, bid_notice_title, product_id } = data[0]
+        // console.log(data)
+        const { approved_budget, bid_notice_title, product_id, requisitioner } = data[0]
         const newRowData = [
           product_id,           // Product ID
           bid_notice_title,     // Notice Title
-          approved_budget,      // Approved Budget
+          requisitioner,        // Initiator
+          peso(approved_budget),      // Approved Budget
         ];
-        console.log('asdadadasdasdasdadad', newRowData)
+        // console.log('asdadadasdasdasdadad', newRowData)
         transactionsIDs.row.add(newRowData).draw();
       }
 
@@ -170,6 +171,19 @@
         lineColor: "#ffa534",
         fillColor: "rgba(255, 165, 52, .14)",
       });
+
+
+      const qrcodes = document.querySelectorAll('[data-qrcode]')
+      console.log(qrcodes.length > 0)
+      if(qrcodes.length > 0){
+        qrcodes.forEach(codes=>{
+          const qrcode = codes.dataset.qrcode
+          console.log(qrcode)
+          new QRCode(`transid-${qrcode}`, qrcode); 
+        })
+      }
+      
+      
 
     </script>
   </body>

@@ -108,6 +108,77 @@ const _preTransactionsData = {
   ]
 }
 
+const purchaseRequestStatuses = [
+  "Draft",               // The PR is being created but not yet submitted.
+  "Submitted",           // The PR has been submitted for approval.
+  "Under Review",        // The PR is under review by approvers.
+  "Approved",            // The PR has been approved and is ready for procurement.
+  "Rejected",            // The PR has been rejected by the reviewer or approver.
+  "Ordered",             // The items from the PR have been ordered.
+  "Received",            // The items requested in the PR have been received.
+  "Invoiced",            // The PR has been invoiced and is in payment processing.
+  "Paid",                // The PR items have been paid for.
+  "Closed",              // The PR has been fully processed and is closed.
+  "Canceled",            // The PR was canceled and no further actions are required.
+  "Pending",             // The PR is pending and requires further action.
+  "Partially Received",  // Some items from the PR are received, others are pending.
+  "Backordered"          // The PR items are on backorder and will arrive later.
+];
+
+const purchaseRequestRoles = [
+  // {
+  //   role: "Requester (Initiator)",
+  //   description: "The individual or department that identifies the need for a product or service and submits the purchase request."
+  // },
+  {
+    role: "Approver",
+    description: "The person who reviews and approves the purchase request before it moves forward in the process."
+  },
+  {
+    role: "Reviewer",
+    description: "The person who ensures that the PR is complete and follows organizational policies before it reaches the approver."
+  },
+  {
+    role: "Canvasser",
+    description: "The person or team responsible for gathering price quotes from suppliers to compare costs and find the best option."
+  },
+  {
+    role: "Procurement Officer / Buyer",
+    description: "The professional responsible for sourcing, negotiating, and issuing a purchase order after the PR is approved."
+  },
+  {
+    role: "Budget Holder / Finance Officer",
+    description: "Responsible for ensuring that the purchase is within the organization's budget."
+  },
+  {
+    role: "Finance/Accounts Department",
+    description: "Ensures the financial aspects of the purchase, including payment processing and invoice reconciliation."
+  },
+  {
+    role: "Receiving Clerk / Warehouse Manager",
+    description: "Confirms that the purchased items are delivered and match the specifications in the PR/PO."
+  },
+  {
+    role: "Legal/Compliance Officer",
+    description: "Reviews contracts, terms, and conditions related to the purchase to ensure compliance with laws and policies."
+  },
+  {
+    role: "Supplier / Vendor",
+    description: "The external party that provides the goods or services, responds to quotes, and delivers as per the PO."
+  },
+  {
+    role: "Accounts Payable (AP)",
+    description: "The department responsible for processing payments to suppliers once goods or services are delivered."
+  },
+  {
+    role: "Internal Audit",
+    description: "Internal auditors review the purchase request and procurement process for compliance with company policies and legal regulations."
+  }
+];
+
+// console.log(purchaseRequestRoles);
+
+
 let transid = []
 
 const app = express();
@@ -200,14 +271,19 @@ app.use(async function(req, res, next){
     // NOTIFICATIONS: countNotif,
     // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications)
     NOTIFICATIONS: JSON.stringify(notifications),
+    logonUser: JSON.stringify(req.session.user),
     perClassification: {},
     employees: {},
     dafaultTransactionData: _preTransactionsData,
+    purchaseRequestStatuses,
+    purchaseRequestRoles,
     path2: req.path,
+    isHome: req.originalUrl,
     moment,
     statusText,
   }
-
+  // console.log('locals', res.locals.isHome)
+  // console.log(req.socket.remoteAddress )
   next();
 });
 
@@ -239,7 +315,6 @@ app.get('/', restrict, async function(req, res){
   }, {});
   
   res.render('pages/index', {
-    logonUser: req.session.user,
     title: "Dashboard",
     header: "Some users", 
     path: res.url,
@@ -251,6 +326,30 @@ app.get('/', restrict, async function(req, res){
     cardsData: result,
   });
 });
+
+app.get('/template', async function(req, res) {
+  let renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'), 
+  { 
+    title: "Template 2", 
+    ENVIRONMENT:res.locals.ENVIRONMENT, 
+    TEST_MODE: res.locals.TEST_MODE, 
+    NOTIFICATIONS: JSON.stringify({}),
+    perClassification:{}, 
+    path: req.path,
+    path2: req.path, 
+    innerContent: '../pages/employees/index2',
+    employees: []
+  });
+  // Rendered HTML
+  res.send(renderedHtml)
+})
+
+app.get('/template2', async function(req, res) {
+  let renderedHtml = await ejs.renderFile(path.join(__dirname, 'components', 'charts', 'pie.ejs'), { });
+  renderedHtml += await ejs.renderFile(path.join(__dirname, 'components', 'notifications', 'index.ejs'), 
+  { message: "HAHAHHA"  });
+  res.send(renderedHtml)
+})
 
 // Endpoint to get the countNotif value
 app.get('/api/notifications', async (req, res) => {
@@ -273,7 +372,7 @@ app.get('/login', (req, res) => {
     return res.render('pages/login', {
       title: 'Login',
       path: res.url,
-      emitMessage: error
+      emitMessage: error,
     })
   }
  
@@ -448,7 +547,6 @@ app.get('/transactions', restrict, async (req, res) => {
     // console.log(filteredTransactions)
 
     res.render('pages/transactions/index', { 
-      logonUser: req.session.user,
       title: 'Transactions',
       transactions: filteredTransactions, 
       moment: moment,
@@ -466,7 +564,6 @@ app.get('/transactions', restrict, async (req, res) => {
 app.get('/transactions/new', restrict, async (req, res) => {
   try {
       res.render('pages/transactions/new', { 
-        logonUser: req.session.user,
         title: 'Create a new Transactions',
         moment: moment,
         // formatter: formatter,
@@ -483,7 +580,6 @@ app.get('/transactions/new', restrict, async (req, res) => {
 app.get('/transactions/scan', restrict, async (req, res) => {
   try {
       res.render('pages/transactions/scan', { 
-        logonUser: req.session.user,
         title: 'Scan Transaction QRCode',
         moment: moment,
         // formatter: formatter,
@@ -555,7 +651,6 @@ app.get('/transactions/:id', restrict, async (req, res) => {
 
     const transactions = await connection.getTransactionById(transid);
       res.render('pages/transactions', { 
-        logonUser: req.session.user,
         title: 'Transactions',
         transactions: transactions, 
         moment: moment,
@@ -575,7 +670,6 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
       res.render('pages/transactions/new', { 
         predata: _preTransactionsData,
 
-        logonUser: req.session.user,
         title: 'Transactions',
         transactions: transactions[0], 
         moment: moment,
@@ -596,7 +690,6 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
         
     if(transactions[0]) {
       res.render('pages/transactions/remarks', { 
-        logonUser: req.session.user,
         title: 'Transactions: Remarks',
         transactions: transactions[0],
         remarks: remarks,
@@ -604,6 +697,8 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
         path: res.url,
         peso, isValidJSON
       }); // Pass the data to the template
+
+      console.log('req.session.user', req.session.user)
     } else {
       res.render('pages/404', {
         title: '404 Transaction Not Found',
@@ -625,13 +720,15 @@ app.get('/transactions/:id/print', restrict, async (req, res) => {
     const remarks = await connection.getRemarksByRefid(transid)
     if (transactions[0]) {
       res.render('pages/transactions/print', { 
-        
+        title: "Print Tracking Sheet",
         transactions: transactions[0],
-        remarks,
+        perClassification: {},
+        remarks: remarks,
         moment,
-        path: res.url,
+        path: req.url,
         peso, isValidJSON
       }); //
+      // console.log(transactions[0])
     }
   } catch (error) {
     console.error('Error deleting transaction:', error);
@@ -717,7 +814,6 @@ app.get('/employees', restrict, async (req, res) => {
   const employees = await connection.retrieveEmployee();
   // console.log(employees)
   res.render('pages/employees/index', {
-    logonUser: req.session.user,
     defaultData: _preDefaultData,
     dafaultTransactionData: _preTransactionsData,
     sampleEmployee,
@@ -731,7 +827,6 @@ app.get('/employees', restrict, async (req, res) => {
 
 app.get('/employees/new', restrict, function(req, res){
   res.render('pages/employees/new', {
-    logonUser: req.session.user,
     defaultData: _preDefaultData,
     title: 'Add Employee', 
     path: res.url,
@@ -744,7 +839,6 @@ app.get('/employees/:id', restrict, async function(req, res){
     if(req.params.id == 'register') {
       res.render('pages/employees/register', {
         defaultData: _preDefaultData,
-        logonUser: req.session.user,
         title: 'Register Employee',
         path: res.url,
         moment,
@@ -753,7 +847,6 @@ app.get('/employees/:id', restrict, async function(req, res){
       const employee = await connection.getEmployeeById(req.params.id);
       if(employee.length > 0) {
         res.render('pages/employees/profile', {
-          logonUser: req.session.user,
           employee: employee[0],
           moment,
           title: 'Profile', 
@@ -778,7 +871,6 @@ app.get('/employees/:id', restrict, async function(req, res){
 app.get('/employees/register', restrict, function(req, res){
   res.render('pages/employees/register', {
     defaultData: _preDefaultData,
-    logonUser: req.session.user,
     title: 'Register Employee',
     path: res.url
   })
@@ -789,12 +881,27 @@ app.get('/employees/:id/update', restrict, async function(req, res){
   const employee = await connection.getEmployeeById(employeeid)
   res.render('pages/employees/register', {
     defaultData: _preDefaultData,
-    logonUser: req.session.user,
     employees: employee[0], 
     title: 'Update Employee',
     path: res.url,
     moment,
   })
+})
+
+app.delete('/employees/:id', restrict, async (req, res) => {
+  try {
+    // const transid = req.params.id;
+    // const force = req.params.force
+
+    const {id} = req.params
+
+    // let lists = await connection.hideToDisplay('employees', transid);
+    console.log({id, force})
+    res.status(204).send(); // No content (successful deletion)
+  } catch (error) {
+      console.error('Error fetching products:', error);
+      res.status(500).send('Internal Server Error');
+  }
 })
 
 
@@ -832,7 +939,12 @@ app.route('/api/transactions/:id')
 app.get('/forms/forms.html', restrict, function (req, res) {
   res.redirect('/demo/forms/forms.html');
 });
-
+app.get('/request', function(req, res){
+  res.render('pages/request',{
+    title: "Request",
+    path: res.path,
+  })
+})
 
 // STARTING ON ExpressJS
 // const server = http.createServer(app, (req, res) => {

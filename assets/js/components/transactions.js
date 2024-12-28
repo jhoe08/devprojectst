@@ -32,6 +32,8 @@
     
     const addButton = document.querySelector('.form-group-add button');
 
+    const period = document.getElementById('period')
+
     if(createTransactionCode) {
         const transCodeText = document.getElementById('transCodeText')
         createTransactionCode.addEventListener('click', function(e){
@@ -261,8 +263,7 @@
             });
         })
     }
-    if(createRemarks) {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-
+    if(createRemarks) {            
         let comment = document.querySelector('#comment')
 
         const myHeaders = new Headers();
@@ -421,6 +422,12 @@
             // Append the cloned row to the form container
             const formContainer = document.getElementById('chargingTo');
             formContainer.appendChild(clonedForm);
+        });
+    }
+
+    if(period) {
+        $('.input-daterange input').each(function() {
+            $(this).daterangepicker('clearDates');
         });
     }
     // Creating Transactional Code

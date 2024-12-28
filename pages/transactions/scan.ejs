@@ -34,11 +34,15 @@
                         <!-- Include jsQR library from CDN -->
                         <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
                         <!-- HTTPS needed in order for the camera to run -->
-                        <script>
-                            
-                        </script>
                       </div>
                       <div class="card-action">
+                        <div class="form-group">
+                          <label for="basic-url">Enter your QRCode here</label>
+                          <div class="input-group mb-3 h1">
+                            <span class="input-group-text" id="basic-addon3"><i class="fas fa-qrcode"></i></span>
+                            <input type="text" class="form-control" id="qrCodeText" aria-describedby="basic-addon3">
+                          </div>
+                        </div>
                       </div>
                     </div>
                 </div>
@@ -54,10 +58,11 @@
                             <table id="basic-datatables" class="display table table-striped table-hover dataTable" role="grid" aria-describedby="basic-datatables_info">
                                 <thead>
                                   <tr role="row">
-                                    <th class="sorting_asc" tabindex="0" aria-controls="basic-datatables" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 240.359px;">Bit Notice Title</th>
-                                    <th class="sorting" tabindex="0" aria-controls="basic-datatables" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 365.891px;">Requisitioner</th>
-                                    <th class="sorting" tabindex="0" aria-controls="basic-datatables" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 187.781px;">Budget</th>
-                                    </tr>
+                                    <th>ID</th>
+                                    <th>Bit Notice Title</th>
+                                    <th>Requisitioner</th>
+                                    <th>Budget</th>
+                                  </tr>
                                 </thead>
                                 <tfoot>
                                   <tr class="text-uppercase"><th rowspan="1" colspan="1">Bit Notice Title</th><th rowspan="1" colspan="1">Requisitioner</th><th rowspan="1" colspan="1">Budget</th></tr>

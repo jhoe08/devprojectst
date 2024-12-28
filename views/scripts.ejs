@@ -70,70 +70,72 @@
     }
 
     const colors = generateHexColors(13);
-
-    let classification = {}
-    try {
-      
-      classification = JSON.parse(`<%- perClassification || {} %>`);
-    } catch (error) {
-      if (error instanceof ReferenceError) {
-        console.log("Error: Variable is not defined.");
-      } else {
-        console.log("Some other error occurred:", error);
+    console.log('<%=path%>' )
+    if('<%=path%>' == '' || '<%=path%>' == '/') {
+      let classification = {}
+      try {
+        classification = JSON.parse(`<%- perClassification || {} %>`);
+      } catch (error) {
+        if (error instanceof ReferenceError) {
+          console.log("Error: Variable is not defined.");
+        } else {
+          console.log("Some other error occurred:", error);
+        }
+        classification = {};  // Fallback to empty object if JSON parsing fails
       }
-      classification = {};  // Fallback to empty object if JSON parsing fails
+        const classificationLabel = Object.keys(classification);   // Array of keys
+        const classificationData = Object.values(classification);
+
+        var pieChart = document.getElementById("pieChart")
+
+        if(pieChart) {
+          pieChart.getContext("2d")
+          var myPieChart = new Chart(pieChart, {
+            type: "pie",
+            data: {
+              datasets: [{
+                  label: 'Dataset 1',
+                  data: classificationData,
+                  backgroundColor: generateHexColors(classificationData.length),
+                  borderWidth: 0,
+                },],
+              labels: classificationLabel,
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              legend: {
+                position: "bottom",
+                labels: {
+                  fontColor: "rgb(154, 154, 154)",
+                  fontSize: 11,
+                  usePointStyle: true,
+                  padding: 20,
+                },
+              },
+            //   title: {
+            //     display: true,
+            //     text: 'PR Classification'
+            //   },
+              pieceLabel: {
+                render: "percentage",
+                fontColor: "white",
+                fontSize: 18,
+              },
+              tooltips: true,
+              layout: {
+                padding: {
+                  left: 20,
+                  right: 20,
+                  top: 20,
+                  bottom: 20,
+                },
+              },
+            },
+          });
+        }
+    
     }
-      const classificationLabel = Object.keys(classification);   // Array of keys
-      const classificationData = Object.values(classification);
-
-      var pieChart = document.getElementById("pieChart")
-
-      if(pieChart) {
-        pieChart.getContext("2d")
-        var myPieChart = new Chart(pieChart, {
-          type: "pie",
-          data: {
-            datasets: [{
-                label: 'Dataset 1',
-                data: classificationData,
-                backgroundColor: generateHexColors(classificationData.length),
-                borderWidth: 0,
-              },],
-            labels: classificationLabel,
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            legend: {
-              position: "bottom",
-              labels: {
-                fontColor: "rgb(154, 154, 154)",
-                fontSize: 11,
-                usePointStyle: true,
-                padding: 20,
-              },
-            },
-          //   title: {
-          //     display: true,
-          //     text: 'PR Classification'
-          //   },
-            pieceLabel: {
-              render: "percentage",
-              fontColor: "white",
-              fontSize: 18,
-            },
-            tooltips: true,
-            layout: {
-              padding: {
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: 20,
-              },
-            },
-          },
-        });
-      }
     
     
     

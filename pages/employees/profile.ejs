@@ -3,7 +3,7 @@
 <% var {employeeid, firstname, lastname, middlename, birthdate, experience, username, contacts} = employee %>
 <% if(experience) { 
     var { lists } = JSON.parse(experience)
-    var { office, salary, startdate, enddate, position, office } = lists[0] 
+    var { office, salary, startdate, enddate, position, division } = lists[0] 
  } 
  if(contacts) {
     var {email, mobile} = JSON.parse(contacts)
@@ -57,7 +57,7 @@
         
                 <div class="card-box">
                     <h4 class="header-title">Office Location</h4>
-                    <p class="mb-3"><%=office%></p>
+                    <p class="mb-3"><%=office%> - <%=division%></p>
                 </div> <!-- end card-box-->
         
             </div> <!-- end col-->
