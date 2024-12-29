@@ -35,6 +35,13 @@
                       </div>
                       <div class="card-body">
                         <div class="table-responsive">
+                          <!-- MOVE THIS TO THE CSS FILES -->
+                          <style>
+                            .form-button-action > * > i {
+                              pointer-events: none;
+                            }
+                          </style>
+                          <!-- ENDOF MOVE  -->
                           <table
                             id="transactions-datatables"
                             class="display table table-striped table-hover"
@@ -103,9 +110,12 @@
                                       <button data-transid="<%= product_id %>" type="button" class="btn btn-link  btn-primary" data-bs-toggle="modal" data-bs-target="#viewTransactionModal" data-bs-whatever="<%= product_id %>" data-original-title="Edit Task">
                                         <i class="fa fa-eye"></i>
                                       </button>
-                                      <a href="/transactions/<%= product_id %>/edit" data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task">
+                                      <a href="/transactions/<%= product_id %>/edit" data-transid="<%= product_id %>" type="button"  class="btn btn-link btn-primary btn-lg" data-original-title="Edit Transaction" data-bs-toggle="tooltip" data-bs-placement="top" data-title="Edit Transaction">
                                         <i class="fa fa-edit"></i>
                                       </a>
+                                      <button data-href="/transactions/<%= product_id %>/print" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-warning" data-original-title="Print"  id="print_<%= product_id %>">
+                                        <i class="fas fa-print"></i>
+                                      </button>
                                       <button data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_demo_<%= product_id %>">
                                         <i class="fa fa-times"></i>
                                       </button>

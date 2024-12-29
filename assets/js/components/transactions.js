@@ -25,6 +25,7 @@
     const updateRemarks = document.getElementById('updateRemakrs')
     const deleteTransaction = document.querySelectorAll('.form-button-action .btn-danger');
     const printRemarks = document.getElementById('btnPrint')
+    const printTracking = document.querySelectorAll('button[id*="print_"]')
 
     const divisionsSelect = document.getElementById('divisions')
     const bannerProgramSelect = document.getElementById('bannerProgram')
@@ -424,7 +425,24 @@
             formContainer.appendChild(clonedForm);
         });
     }
-
+    if(printTracking) {
+        function printSpecificURL(path) {
+            var url = path; // Replace with the URL you want to print
+            var printWindow = window.open(url, '_blank'); // Open the URL in a new tab or window
+            printWindow.onload = function() {
+                printWindow.print(); // Trigger the print dialog once the content is fully loaded
+                printWindow.close(); // Optionally, close the window after printing
+            };
+        }
+        printTracking.forEach(pr => {
+            pr.addEventListener('click', (event) => {
+                const path = event.target.dataset.href
+                printSpecificURL(path)
+            })
+        })
+        
+    }
+    //
     if(period) {
         $('.input-daterange input').each(function() {
             $(this).daterangepicker('clearDates');

@@ -163,3 +163,15 @@ body {
         width: auto
     }
 }
+
+.logo-wrapper {
+    .logo-container {
+        .logo {
+            display: inline-block;
+            border: 1px solid;
+            border-radius: 100%;
+            padding: 5px;
+            margin-top: 40px;
+        }
+    }
+}

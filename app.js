@@ -256,8 +256,7 @@ app.use(async function(req, res, next){
   // res.locals.message = err;
   // if (err) res.locals.message = '<p class="text-danger">' + err + '</p>';
   // if (msg) res.locals.message = '<p class="text-success">' + msg + '</p>';
-
-  
+  // res.status(404).send('Page Not Found');  
   const notifications = await connection.retrieveNotifications()
   
   // Sort using Descending
@@ -277,6 +276,7 @@ app.use(async function(req, res, next){
     dafaultTransactionData: _preTransactionsData,
     purchaseRequestStatuses,
     purchaseRequestRoles,
+    path: req.url,
     path2: req.path,
     isHome: req.originalUrl,
     moment,
@@ -284,6 +284,11 @@ app.use(async function(req, res, next){
   }
   // console.log('locals', res.locals.isHome)
   // console.log(req.socket.remoteAddress )
+  // console.log(res.status(404))
+  // res.status(404).render('pages/404', {
+  //   title: 'Page not Found',
+  //   component: 'Page'
+  // });
   next();
 });
 
