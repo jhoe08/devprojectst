@@ -32,7 +32,7 @@
         <div class="notif-scroll scrollbar-outer">
           <div class="notif-center">
           <% 
-            if(notifs.ength > 0) {
+            if(notifs.length > 0) {
             notifs.forEach(notif=>{ 
               const {id, message, link, component, created_at, updated_at} = notif
               let path = `/${component}/${link}`;
