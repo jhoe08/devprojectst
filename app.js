@@ -274,6 +274,7 @@ app.use(async function(req, res, next){
     perClassification: {},
     employees: {},
     dafaultTransactionData: _preTransactionsData,
+    defaultData: _preDefaultData,
     purchaseRequestStatuses,
     purchaseRequestRoles,
     path: req.url,
@@ -909,8 +910,21 @@ app.delete('/employees/:id', restrict, async (req, res) => {
   }
 })
 
+app.get('/inventory', restrict, async function(req, res){
+  res.render('pages/inventory/', {
+    title: "Inventory"
+  })
+})
 
-// SUPERADMIN
+app.get('/documents', restrict, async function(req, res){
+  
+  res.render('pages/documents/index', {
+    title: 'Documents',
+  })
+})
+
+
+// APIs
 app.route('/api/employees')
   .all(restrict)
   .get(async (req, res) =>{
@@ -940,6 +954,12 @@ app.route('/api/transactions/:id')
     return res.status(404).json({ response: 'Employee Not Found!' });
   });
 
+app.get('/settings', restrict, async function(req, res){
+  res.render('pages/settings', {
+    title: "Setting"
+  })
+})
+
 // DEMO
 app.get('/forms/forms.html', restrict, function (req, res) {
   res.redirect('/demo/forms/forms.html');
@@ -949,6 +969,14 @@ app.get('/request', function(req, res){
     title: "Request",
     path: res.path,
   })
+})
+
+app.use(async function(req, res, next){
+  res.status(404).render('pages/404', {
+    title: 'Page not Found',
+    component: 'Page'
+  });
+  next()
 })
 
 // STARTING ON ExpressJS

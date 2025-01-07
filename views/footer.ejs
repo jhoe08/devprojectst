@@ -4,7 +4,7 @@
     <% } else if (path2 === '/employees' || path2.startsWith('/employees')) { %>
     <script src="/assets/js/components/employees.js"></script>
     <% } else { %>
-    <script>console.log('ewan ko lang <%= path2 %>')</script>  
+    <!-- <script>console.log('ewan ko lang <%= path2 %>')</script>   -->
     <% } %>
     <script>
       const transactions = $("#transactions-datatables").DataTable({
@@ -174,7 +174,6 @@
 
 
       const qrcodes = document.querySelectorAll('[data-qrcode]')
-      console.log(qrcodes.length > 0)
       if(qrcodes.length > 0){
         qrcodes.forEach(codes=>{
           const qrcode = codes.dataset.qrcode

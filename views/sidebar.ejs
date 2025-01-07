@@ -94,7 +94,33 @@
               <!-- <span class="caret"></span> -->
             </a>
           </li>
+          <li class="nav-section hidden">
+            <span class="sidebar-mini-icon">
+              <i class="fa fa-ellipsis-h"></i>
+            </span>
+            <h4 class="text-section">Inventory</h4>
+          </li>
+          <li class="nav-item <%- (path == '/employees/register') ? 'active' : '' -%> hidden">
+            <a href="/inventory">
+              <i class="fas fa-warehouse"></i>
+              <p>Dashboard</p>
+              <!-- <span class="caret"></span> -->
+            </a>
+          </li>
           
+          <li class="nav-section">
+            <span class="sidebar-mini-icon">
+              <i class="fa fa-ellipsis-h"></i>
+            </span>
+            <h4 class="text-section">Communication</h4>
+          </li>
+          <li class="nav-item <%- (path == '/employees/register') ? 'active' : '' -%>">
+            <a href="/documents">
+              <i class="fas fa-copy"></i>
+              <p>Documents</p>
+              <!-- <span class="caret"></span> -->
+            </a>
+          </li>
         </ul>
       </div>
     </div>

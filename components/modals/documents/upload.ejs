@@ -1,0 +1,51 @@
+<div class="modal modal-lg fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+          <h1 class="modal-title fs-5" id="addEmployeeLabel">Details</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-groups">
+          <div class="form-group-default">
+            <label>Communication Title</label>
+            <input type="text" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <div class="selectgroup w-100">
+              <label class="selectgroup-item">
+                <input type="radio" name="priority" value="confidential" class="selectgroup-input">
+                <span class="selectgroup-button selectgroup-button-icon"><i class="fas fa-lock"></i> Confidential</span>
+              </label>
+              <label class="selectgroup-item">
+                <input type="radio" name="priority" value="special" class="selectgroup-input">
+                <span class="selectgroup-button selectgroup-button-icon"><i class="fas fa-star"></i> Special</span>
+              </label>
+              <label class="selectgroup-item">
+                <input type="radio" name="priority" value="urgent" class="selectgroup-input">
+                <span class="selectgroup-button selectgroup-button-icon"><i class="fas fa-exclamation-triangle"></i> Urgent</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Attachments</label>
+            <div class="custom-file-upload">
+              <input id="file-upload" type="file" name="fileUpload" multiple  class="hidden"/>
+              <label for="file-upload" id="file-drag">
+                Drag and Drop files here to Upload
+                <br />OR<br />
+                <span id="file-upload-btn" class="button">Browse File</span>
+              </label>
+
+              <div class="files">
+                <ul></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        

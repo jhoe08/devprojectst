@@ -1,0 +1,60 @@
+.custom-file-upload {
+    .button {
+        background: transparent;
+        border: 2px solid #555bcd;
+        border-radius: 3px;
+        color: #555bcd;
+        display: inline-block;
+        font-size: 15px;
+        letter-spacing: 0.02em;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    #file-drag {
+        border: 2px dashed #dadada;
+        border-radius: 7px;
+        color: #555;
+        cursor: pointer;
+        display: block;
+        font-weight: bold;
+        margin: 1em 0;
+        padding: 1em;
+        text-align: center;
+        transition: background 0.3s, color 0.3s;
+    }
+    
+    #file-drag:hover {
+        background: #f2f2f2;
+    }
+    
+    #file-drag:hover,
+    #file-drag.hover {
+        border-color: #585858;
+        color: #585858;
+    }
+
+    .files {
+        
+        ul {
+            padding: 0;
+            list-style: none;
+            li {
+                padding: 5px;
+                position: relative;
+                span {
+                    display: block;
+                    font-style: italic;
+                }
+                i {
+                    position: absolute;
+                    right: 20px;
+                    transform: translate(50%, 50%);
+                    top: 13px;
+                }
+            }
+        }
+    }
+}
