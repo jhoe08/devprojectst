@@ -21,6 +21,8 @@ const hash = require('pbkdf2-password')()
 const bcrypt = require('bcrypt')
 const saltRounds = 10
 const cron = require('node-cron');
+const multer = require('multer');
+const fs = require('fs');
 
 
 const _express = require('./admin/express');
@@ -36,7 +38,7 @@ const { count, table } = require('console');
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
-const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText} = utils
+const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros} = utils
 
 const _preDefaultData = {
     blood_type: ['N/A','O+','O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
@@ -282,6 +284,7 @@ app.use(async function(req, res, next){
     isHome: req.originalUrl,
     moment,
     statusText,
+    addLeadingZeros
   }
   // console.log('locals', res.locals.isHome)
   // console.log(req.socket.remoteAddress )
@@ -304,6 +307,35 @@ function restrict(req, res, next) {
   // If authenticated, proceed to the next middleware
   return next();
 }
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+      const uploadDir = './uploads';
+      if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir); // Create the uploads directory if it doesn't exist
+      }
+      cb(null, uploadDir); // Save files in the 'uploads' directory
+  },
+  filename: (req, file, cb) => {
+      // Rename the file using a unique name
+      const ext = path.extname(file.originalname);
+      const newFileName = `file_${Date.now()}_${Math.floor(Math.random() * 1000)}${ext}`;
+      cb(null, newFileName); // Rename the file
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// POST route for multiple file upload
+app.post('/upload', upload.array('fileToUpload[]'), (req, res) => {
+  if (req.files && req.files.length > 0) {
+      // Send response with the new file names
+      const fileNames = req.files.map(file => file.filename);
+      res.json({ files: fileNames });
+  } else {
+      res.status(400).json({ error: 'No files uploaded' });
+  }
+});
 
 app.get('/', restrict, async function(req, res){
   const getTotalApprovedBudget = await connection.getTotalApprovedBudget()
@@ -347,14 +379,14 @@ app.get('/template', async function(req, res) {
     employees: []
   });
   // Rendered HTML
-  res.send(renderedHtml)
+  res.status(200).send(renderedHtml)
 })
 
 app.get('/template2', async function(req, res) {
   let renderedHtml = await ejs.renderFile(path.join(__dirname, 'components', 'charts', 'pie.ejs'), { });
   renderedHtml += await ejs.renderFile(path.join(__dirname, 'components', 'notifications', 'index.ejs'), 
   { message: "HAHAHHA"  });
-  res.send(renderedHtml)
+  res.status(200).send(renderedHtml)
 })
 
 // Endpoint to get the countNotif value
@@ -468,7 +500,7 @@ app.post('/verify', async (req, res) => {
 })
 
 app.get('/register', function(req, res){
-  // res.send(req.params)
+  // res.status(200).send(req.params)
   let {username} = req.params
   let {blood_type, civil_status} = _preDefaultData
 
@@ -761,7 +793,7 @@ app.get('/remarks/:id', restrict, async (req, res) => {
     const remarks = await connection.getRemarksByRefid(transid);
     const transactions = await connection.getTransactionById(transid)
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'partials', 'activity-feed.ejs'), { remarks, moment, transactions, path: req.url});
-    res.send(renderedHtml)
+    res.status(200).send(renderedHtml)
   } catch (error) {
     console.error('Error rendering EJS part:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -917,12 +949,49 @@ app.get('/inventory', restrict, async function(req, res){
 })
 
 app.get('/documents', restrict, async function(req, res){
-  
+  const results = await connection.getDocumentTrackerData()
   res.render('pages/documents/index', {
     title: 'Documents',
+    displayData: results,
   })
 })
 
+// DOCUMENTS
+app.post('/documents/create', restrict, async function(req, res){
+  try {
+    const data = JSON.stringify(req.body)
+    // console.log(data)
+    const results = await connection.createDocumentTracker(data)
+    res.status(200).json({ message: 'New Document is being on Track', response: results})
+  } catch (error) {
+    console.error('Error addding new notification on transaction:', error);
+    res.status(400).send('Error addding notification on transaction:', error);
+  }
+})
+
+app.get('/documents/:id', restrict, async function(req, res){
+  
+  const {id} = req.params
+  const results = await connection.retrieveDocuments('documents', JSON.stringify(req.params))
+  const employees = await connection.retrieveEmployee()
+  
+  console.log(employees)
+
+  res.render('pages/documents/input', {
+    title: "Document", 
+    displayData: results[0], 
+    employeesData: employees,
+  })
+})
+// ENDOF DOCUMENTS
+
+// To Be Feature
+app.get('/calendar', restrict, async function(req, res){
+  
+  res.render('pages/documents/calendar', {
+    title: 'Calendar',
+  })
+})
 
 // APIs
 app.route('/api/employees')

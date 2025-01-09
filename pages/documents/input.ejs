@@ -1,0 +1,252 @@
+<!-- Header Template -->
+<%- include('../../views/header') -%>
+<%
+    console.log(displayData)
+    const { id, title, priority, created_at, updated_at } = displayData
+    const requestID = addLeadingZeros(id)
+    const trackerid = `${moment(created_at).format('YYYYMMDD')}-${requestID}`
+
+%>
+<div class="wrapper">
+    <%- include('../../views/sidebar') -%>
+
+    <div class="main-panel">
+        <%- include('../../views/main-header') -%>
+
+        <div class="container">
+          <div class="page-inner">
+            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+              <div class="col-md-1 mr-4">
+                <div id="transid-<%- trackerid -%>" data-qrcode="<%- trackerid -%>" class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- trackerid -%>"></div>
+              </div>
+              <div class="col-md-8">
+                  <h3 class="fw-bold mb-3">
+                    <span><%- title -%></span><br>
+                    <small>No. <%=trackerid%></small><br>
+                    <small>DA RFO VII - Office of the Director</small>
+                  </h3>
+              </div>
+              <div class="ms-md-auto py-2 py-md-0">
+                <a href="#" class="btn btn-label-info btn-round me-2" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add New Remarks</a>
+                <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#mailToDocumentTracker"><i class="fas fa-paper-plane"></i> Send</a>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <!-- <h4 class="card-title">List of Employees</h4> -->
+                    <div class="card-head-row card-tools-still-right">
+                      <div class="card-title">Attachments</div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="form-group">
+                      <div class="custom-file-upload">
+                        <input id="file-upload" type="file" name="fileUpload" multiple  class="hidden"/>
+                        <label for="file-upload" id="file-drag">
+                          <span id="file-upload-btn" class="button">Browse File</span>
+                        </label>
+          
+                        <div class="files">
+                          <ul></ul>
+                        </div>
+                        <div id="message"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-action">
+                    <button class="btn btn-info" id="uploadDocumentBtn"><i class="fas fa-upload"></i> Upload</button>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-header">
+                    <div class="card-head-row card-tools-still-right">
+                      <div class="card-title">Recent Activity</div>
+                      <div class="card-tools">
+                        <button id="refreshActivity" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Refresh">
+                          <span class="fa fa-sync-alt"></span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <ol class="activity-feed mb-0">
+                      <li class="feed-item feed-item-black pb-0 d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Out of office">
+                        <div class="d-flex">
+                          <span class="user fs-3 mr-3"><i class="fas fa-door-open"></i></span>
+                          <div class="">
+                            <time class="date" datetime="March 13th 2024, 12:00:00 am">
+                              <%=moment(created_at).format('LLL hh:mm:ss')%>
+                            </time>
+                            <span class="text">
+                              <span class="badge badge-black mr-3">Draft</span>
+                              Created
+                            </span>
+                          </div>
+                        </div>
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <div class="card-head-row card-tools-still-right">
+                      <div class="card-title">Details</div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="form-group">
+                      <label class="form-label">Time to comply</label>
+                      <div class="row">
+                        <div class="col-6">
+                          <div class="form-group-default">
+                            <label>From</label>
+                            <input id="complyFrom" type="date" class="form-control">
+                          </div>
+                        </div>
+                        <div class="col-6">
+                          <div class="form-group-default">
+                            <label>To</label>
+                            <input id="complyTo" type="date" class="form-control">
+                          </div>
+                        </div>
+                        <div class="col-12 hidden">
+                          <label>Send To</label>
+                          <div class="form-group-default">
+                            <label>Email</label>
+                            <input id="emailsToSend" type="email" class="form-control">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group hidden col-md-6">
+                      <label class="form-label col-12">Employees</label>
+                      <div class="selectgroup selectgroup-pills hidden">
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="24" class="selectgroup-input">
+                          <span class="selectgroup-button">Heads</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="48" class="selectgroup-input">
+                          <span class="selectgroup-button">2 Days</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="72" class="selectgroup-input">
+                          <span class="selectgroup-button">3 Days</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="96" class="selectgroup-input">
+                          <span class="selectgroup-button">4 Days</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="120" class="selectgroup-input">
+                          <span class="selectgroup-button">5 Days</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="144" class="selectgroup-input">
+                          <span class="selectgroup-button">6 Days</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="168" class="selectgroup-input">
+                          <span class="selectgroup-button">7 Days</span>
+                        </label>
+                      </div>
+                      <div class="row">
+                        <div class="col-12">
+                          <div class="form-group-default">
+                            <label>Groups</label>
+                            <select class="form-select" id="formGroupDefaultSelect" size="6" multiple>
+                            <%
+                              employeesData.forEach(employee => {
+                                const { firstname, middlename, lastname, contacts } = employee
+                                const { email } = JSON.parse(contacts)
+                            %>
+                              <option title="<%= [firstname, middlename, lastname].join(' ') %>" value="<%=email%>"><%= [firstname, middlename, lastname].join(' ') %></option>
+                            <%
+                              })
+                            %>
+                              
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group hidden">
+                      <label>Send To</label>
+                      <select name="divisions" multiple class="form-select">
+                        <option title="RTD 1" value="RTD 1" selected>RTD 1</option>
+                        <option title="RTD 2" value="RTD 2" selected>RTD 2</option>
+                        <%
+                          const {divisions} = dafaultTransactionData
+                          divisions.forEach(division=> { 
+                            if(division) { 
+                        %>
+                              <option title=" <%= division %>" value="<%= division %>">Division <%= division %></option>
+                            <% } 
+                          }); 
+                        %>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="card-action hidden">
+                    <button class="btn btn-info" id="sendDocumentBtn"><i class="fas fa-paper-plane"></i> Send</button>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-header">
+                    <div class="card-head-row card-tools-still-right">
+                      <div class="card-title">Recieved By</div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="form-group">
+                      <div class="selectgroup selectgroup-pills">
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="24" class="selectgroup-input">
+                          <span class="selectgroup-button">Joegie Paquibot Wagwag</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="48" class="selectgroup-input">
+                          <span class="selectgroup-button">2 Days</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="72" class="selectgroup-input">
+                          <span class="selectgroup-button">3 Days</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="96" class="selectgroup-input">
+                          <span class="selectgroup-button">4 Days</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="120" class="selectgroup-input">
+                          <span class="selectgroup-button">5 Days</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="144" class="selectgroup-input">
+                          <span class="selectgroup-button">6 Days</span>
+                        </label>
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="168" class="selectgroup-input">
+                          <span class="selectgroup-button">7 Days</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<!-- Employee Modal: Create -->
+<%- include('../../components/modals/documents/mailto') -%>
+<!-- Footer Template -->
+<%- include('../../views/footer') -%>

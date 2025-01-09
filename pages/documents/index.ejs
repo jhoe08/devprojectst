@@ -15,7 +15,7 @@
                 </div>
                 <div class="ms-md-auto py-2 py-md-0">
                     <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="employees" data-column="8">Manage</a>
-                    <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#addEmployeeModal"><i class="fas fa-plus"></i> Add New</a>
+                    <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#createDocumentTracker"><i class="fas fa-plus"></i> Add New</a>
                 </div>
             </div>
             <div class="row">
@@ -35,7 +35,7 @@
                   <div class="card-body">
                     <div class="table-responsive">
                       <table
-                        id="documents"
+                        id="documentsDataTables"
                         class="display table table-striped table-hover"
                       >
                         <thead>
@@ -43,7 +43,7 @@
                             <th>Title</th>
                             <th>Priority</th>
                             <th>Time</th>
-                            <th>Division</th>
+                            <th>Created By</th>
                             <th>Action</th>
                           </tr>
                         </thead>
@@ -52,14 +52,33 @@
                             <th>Title</th>
                             <th>Priority</th>
                             <th>Time</th>
-                            <th>Division</th>
+                            <th>Created By</th>
                             <th>Action</th>
                           </tr>
                         </tfoot>
                         <tbody>
+                          <%
+                            if(displayData.length > 0) {
+                              displayData.forEach(function(data){
+                                const {id, title, priority, status, created_at, created_by} = data
+                          %>
+                            <tr data-document="<%=JSON.stringify(data)%>">
+                              <td><%=title%></td>
+                              <td><span class="text-uppercase badge badge-<%=priority=='special' ? 'info' : (priority=='confidential' ? 'danger' : 'warning') %>"><%=priority%></span></td>
+                              <td><span class="badge badge-count"><%=status%></span> <%=moment(created_at).format('LLL @H:m:s')%></td>
+                              <td><%=created_by%></td>
+                              <td>
+                                <a href="/documents/<%=id%>" data-id="<%=id%>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="View">
+                                  <i class="fa fa-eye"></i>
+                                </a>
+                              </td>
+                            </tr>
+                          <% }) } else { %>
                           <tr>
                             <td class="text-center" colspan="5">No Available Records</td>
                           </tr>
+                          <% } %>
+                          
                         </tbody>
                       </table>
                     </div>
@@ -71,7 +90,7 @@
         </div>
       </div>
     </div>
-<!-- Employee Modal: Upload -->
-<%- include('../../components/modals/documents/upload') -%>
+<!-- Employee Modal: Create -->
+<%- include('../../components/modals/documents/create') -%>
 <!-- Footer Template -->
 <%- include('../../views/footer') -%>

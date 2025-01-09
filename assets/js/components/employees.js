@@ -89,7 +89,7 @@
             gender: gender.value
           }
         }
-  
+        // into JSON format
         let {experience, contacts, others} = data
         experience = JSON.stringify(experience)
         contacts = JSON.stringify(contacts)

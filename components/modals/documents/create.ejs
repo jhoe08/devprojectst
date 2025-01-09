@@ -1,0 +1,107 @@
+<div class="modal modal-lg fade" id="createDocumentTracker" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+          <h1 class="modal-title fs-5" id="addEmployeeLabel">Details</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-groups">
+          <div class="form-group-default">
+            <label>Communication Title</label>
+            <input type="text" class="form-control" id="communicationTitle">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <div class="selectgroup w-100">
+              <label class="selectgroup-item">
+                <input type="radio" name="priority" value="confidential" class="selectgroup-input">
+                <span class="selectgroup-button selectgroup-button-icon text-danger"><i class="fas fa-lock"></i> Confidential</span>
+              </label>
+              <label class="selectgroup-item">
+                <input type="radio" name="priority" value="special" class="selectgroup-input" checked>
+                <span class="selectgroup-button selectgroup-button-icon text-info"><i class="fas fa-star"></i> Special</span>
+              </label>
+              <label class="selectgroup-item">
+                <input type="radio" name="priority" value="urgent" class="selectgroup-input">
+                <span class="selectgroup-button selectgroup-button-icon text-warning"><i class="fas fa-exclamation-triangle"></i> Urgent</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-group hidden">
+            <label class="form-label">Attachments</label>
+            <div class="custom-file-upload">
+              <input id="file-upload" type="file" name="fileUpload" multiple  class="hidden"/>
+              <label for="file-upload" id="file-drag">
+                <span id="file-upload-btn" class="button">Browse File</span>
+              </label>
+
+              <div class="files">
+                <ul></ul>
+              </div>
+            </div>
+          </div>
+          <div class="form-group hidden">
+            <label class="form-label col-12">Time to comply</label>
+            <div class="selectgroup selectgroup-pills">
+              <label class="selectgroup-item">
+                <input type="checkbox" name="period" value="24" class="selectgroup-input">
+                <span class="selectgroup-button">1 Day</span>
+              </label>
+              <label class="selectgroup-item">
+                <input type="checkbox" name="period" value="48" class="selectgroup-input">
+                <span class="selectgroup-button">2 Days</span>
+              </label>
+              <label class="selectgroup-item">
+                <input type="checkbox" name="period" value="72" class="selectgroup-input">
+                <span class="selectgroup-button">3 Days</span>
+              </label>
+              <label class="selectgroup-item">
+                <input type="checkbox" name="period" value="96" class="selectgroup-input">
+                <span class="selectgroup-button">4 Days</span>
+              </label>
+              <label class="selectgroup-item">
+                <input type="checkbox" name="period" value="120" class="selectgroup-input">
+                <span class="selectgroup-button">5 Days</span>
+              </label>
+              <label class="selectgroup-item">
+                <input type="checkbox" name="period" value="144" class="selectgroup-input">
+                <span class="selectgroup-button">6 Days</span>
+              </label>
+              <label class="selectgroup-item">
+                <input type="checkbox" name="period" value="168" class="selectgroup-input">
+                <span class="selectgroup-button">7 Days</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-group hidden">
+            <label>Division</label>
+            <select name="divisions" multiple class="form-select">
+              <option title="RTD 1" value="RTD 1" selected>RTD 1</option>
+              <option title="RTD 2" value="RTD 2" selected>RTD 2</option>
+              <%
+                const {divisions} = dafaultTransactionData
+                divisions.forEach(division=> { 
+                  if(division) { 
+              %>
+                    <option title=" <%= division %>" value="<%= division %>">Division <%= division %></option>
+                  <% } 
+                }); 
+              %>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <% if(logonUser){
+            const { username } = JSON.parse(logonUser) %>
+        <input id="created_by" type="hidden" value="<%=username??'justtest-'%>">
+        <% } %>
+        
+        <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal"><i class="icon-close"></i> Close</button>
+        <a href="#" class="btn button btn-primary" id="createDocumentTrackerBtn"><i class="icon-user-follow"></i> Create</a>
+    </div>
+    </div>
+  </div>
+</div>
+        

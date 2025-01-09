@@ -318,28 +318,6 @@ const databaseUtils = {
     }),
     putRemarks: (id) => new Promise((resolve, reject) => {
     }),
-    // Trapping Injectors
-    // { id: 1234 } or { refid: 1234 }
-    retrieveData: (table, filter, where) => new Promise((resolve, reject) => {
-        if(!filter) { filter = '*';}
-        let query = `SELECT ${filter} FROM ${prefix}.${table}`
-        if(where) {
-            query += " WHERE"
-            query += Object.entries(where)
-            .map(([key, value]) => {
-                if (value === '' || value === null) return ` ${key} IS NULL`;
-                return ` ${key}='${value}'`
-            })
-            .join(' AND');
-        }
-        connection.query(query, (error, results) => {
-            if (error) {
-                reject(error)
-            } else {
-                resolve(results)
-            }
-        })
-    }),
     retrieveEmployee: async (data, username) => {
         if (data) {
             data = JSON.parse(data)
@@ -359,14 +337,31 @@ const databaseUtils = {
 
         return await databaseUtils.retrieveData('transid')
     },
+    getDataById: (table, data) => new Promise((resolve, reject) => {
+        data = JSON.parse(data)
+
+        let key = Object.keys(data)
+        let value = Object.values(data)
+
+        let query = `SELECT * FROM ${prefix}.${table} WHERE ${key}=${value}`
+        console.log(query)
+        connection.query(query, (error, results) => {
+            if (error) {
+                reject(error)
+            } else {
+                resolve(results)
+            }
+        })
+    }),
+    // CREATE DATA
     storeData: (table, data) => new Promise((resolve, reject) => {
         
-        data = JSON.parse(data )
+        data = JSON.parse(data)
 
         let keys = Object.keys(data)
         let values = Object.values(data);
 
-        let query = `INSERT INTO ${table} (`
+        let query = `INSERT INTO ${prefix}.${table} (`
         query += (keys.join(', ', keys));
         query += ") VALUES (";
         // query += '"' + (values.join('", "', values)) +'"';
@@ -410,6 +405,29 @@ const databaseUtils = {
         }
     
     },
+    // READ DATA
+    // Trapping Injectors
+    // { id: 1234 } or { refid: 1234 }
+    retrieveData: (table, filter, where) => new Promise((resolve, reject) => {
+        if(!filter) { filter = '*';}
+        let query = `SELECT ${filter} FROM ${prefix}.${table}`
+        if(where) {
+            query += " WHERE"
+            query += Object.entries(where)
+            .map(([key, value]) => {
+                if (value === '' || value === null) return ` ${key} IS NULL`;
+                return ` ${key}='${value}'`
+            })
+            .join(' AND');
+        }
+        connection.query(query, (error, results) => {
+            if (error) {
+                reject(error)
+            } else {
+                resolve(results)
+            }
+        })
+    }),
     // AMEND
     amendEmployee: async (data) =>{
         return await databaseUtils.amendData('employees', data)
@@ -434,6 +452,20 @@ const databaseUtils = {
         data = JSON.parse(data)
         data = JSON.stringify({...data, created_at: convertDate(new Date())})
         return await databaseUtils.storeData('notifications', data)
+    },
+    createDocumentTracker: async (data) => {
+        const now = convertDate(new Date())
+        data = JSON.parse(data)
+        data = JSON.stringify({...data, created_at: now, updated_at: now })
+        return await databaseUtils.storeData('documents', data) 
+    },
+    getDocumentTrackerData: async (data) => {
+        if (data) {
+            data = JSON.parse(data)
+            return await databaseUtils.retrieveData('documents', '*', data)
+        }
+        
+        return await databaseUtils.retrieveData('documents')
     },
     // endof NOTIFICATIONS
     getDataFromLast7Days: async (table, column) => {
@@ -462,6 +494,10 @@ const databaseUtils = {
                 else resolve(results);
             });
         });
+    },
+
+    retrieveDocuments: async (table, data) => {
+        return await databaseUtils.getDataById(table, data)
     },
     // Sample
     divisions: (division) => {

@@ -3,9 +3,9 @@
     <script src="/assets/js/components/transactions.js"></script>
     <% } else if (path2 === '/employees' || path2.startsWith('/employees')) { %>
     <script src="/assets/js/components/employees.js"></script>
-    <% } else { %>
-    <!-- <script>console.log('ewan ko lang <%= path2 %>')</script>   -->
-    <% } %>
+    <% } else if (path2.startsWith('/documents')) { %>
+      <script src="/assets/js/components/documents.js"></script>
+      <% } %>
     <script>
       const transactions = $("#transactions-datatables").DataTable({
         "order": [[0, 'asc']],
@@ -185,5 +185,6 @@
       
 
     </script>
+    
   </body>
 </html>

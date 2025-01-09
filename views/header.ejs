@@ -41,9 +41,10 @@
       // console.log(formatter.format(amount));
       
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="/assets/js/core/qrcode.min.js"></script>
+    <!-- <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script> -->
+
     <script type="module" src="/assets/js/head.js"></script>
-    <!-- <script src="/assets/js/plugin/moment/moment.min.js"></script> -->
     <!-- CSS Files -->
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/assets/css/plugins.min.css" />
@@ -56,5 +57,19 @@
     <link rel="stylesheet" href="/assets/css/timer.css" />
     <link rel="stylesheet" href="/assets/css/animation.css" />
     <link rel="stylesheet" href="/assets/css/print.css" />
+    <script>
+
+      document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        if(calendarEl){
+          var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth'
+          });
+          calendar.render();
+        }
+        
+      });
+
+    </script>
   </head>
   <body data-env="<%=ENVIRONMENT%>" data-testmode="<%=TEST_MODE%>" data-currentuser="<%=logonUser%>">   
