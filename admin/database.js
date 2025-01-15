@@ -205,8 +205,7 @@ const databaseUtils = {
         })
     }),
     putTransactions: async (data) => {
-        console.log('putTransactions')
-        console.log(data)
+        return await databaseUtils.amendData('transactions', data)
     },
     hideToDisplay: async (component, id) => {
         try {
@@ -353,6 +352,7 @@ const databaseUtils = {
             }
         })
     }),
+    ////////////////////////////////////////////////////////////////
     // CREATE DATA
     storeData: (table, data) => new Promise((resolve, reject) => {
         
@@ -391,6 +391,7 @@ const databaseUtils = {
                     .map(([key, value]) => `${key}='${value}'`)
                     .join(' AND ');
 
+            console.log(query)
             // Execute the query
             return new Promise((resolve, reject) => {
                 connection.query(query, (error, results) => {
@@ -408,6 +409,7 @@ const databaseUtils = {
     // READ DATA
     // Trapping Injectors
     // { id: 1234 } or { refid: 1234 }
+    // filter = column_name
     retrieveData: (table, filter, where) => new Promise((resolve, reject) => {
         if(!filter) { filter = '*';}
         let query = `SELECT ${filter} FROM ${prefix}.${table}`
@@ -420,6 +422,7 @@ const databaseUtils = {
             })
             .join(' AND');
         }
+        console.log(query)
         connection.query(query, (error, results) => {
             if (error) {
                 reject(error)
@@ -428,7 +431,15 @@ const databaseUtils = {
             }
         })
     }),
-    // AMEND
+    retrieveDatas: (tables, filter, where) => new Promise((resolve, reject) => {
+        // SELECT doc.*, act.*
+        // FROM transto.documents AS doc
+        // INNER JOIN transto.documents_activity AS act ON doc.id = act.refid
+        // WHERE act.refid = 3;
+
+    }),
+    ///////////////////////////////////////////////////////////////
+    // UPDATE
     amendEmployee: async (data) =>{
         return await databaseUtils.amendData('employees', data)
     },
@@ -467,6 +478,20 @@ const databaseUtils = {
         
         return await databaseUtils.retrieveData('documents')
     },
+    updateDocumentTrackerStatus: async(data) => {
+        return await databaseUtils.amendData('documents', data)
+    },
+    createDocumentTrackerActivity: async (data) => {
+        return await databaseUtils.storeData('documents_activity', data)
+    },
+    getDocumentTrackerActivity: async (data) => {
+        if (data) {
+            data = JSON.parse(data)
+            return await databaseUtils.retrieveData('documents_activity', '*', data)
+        }
+        
+        return await databaseUtils.retrieveData('documents_activity')
+    },
     // endof NOTIFICATIONS
     getDataFromLast7Days: async (table, column) => {
         // const query = `SELECT * FROM ${prefix}.${table} WHERE ${column} >= CURDATE() - INTERVAL 7 DAY;`
@@ -486,8 +511,9 @@ const databaseUtils = {
             });
         });
     },
-    getCurrentUserRole: async (employeeid) => {
-        const query = ` SELECT role FROM users WHERE user_id = ${employeeid};`
+
+    getCurrentUserRole: async (employeeid, columnName='role_name') => {
+        const query = `SELECT ${columnName} FROM transto.roles WHERE employee_ids LIKE '%${employeeid}%'`
         return new Promise((resolve, reject) => {
             connection.query(query, (error, results) => {
                 if (error) reject(error);

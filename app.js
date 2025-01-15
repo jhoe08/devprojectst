@@ -23,6 +23,8 @@ const saltRounds = 10
 const cron = require('node-cron');
 const multer = require('multer');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
+
 
 
 const _express = require('./admin/express');
@@ -95,13 +97,14 @@ const _preTransactionsData = {
   classification: ['', 'Catering Services','Consumables','Food & Accommodation','Freight & Handling','Goods','Infrastructure','Machineries & Equipment','Motor Vehicle','Repair & Maintenance','Services(JO/COS)','Training','Training & Representation', 'Others'],
   banner_program: ['', 'Corn','GASS','HVCDP','Livestock','NUPAP','Organic','Rice','SAAD','STO', 'Others'],
   bac_unit : ['', 'BAC 1', 'BAC 2', 'Others'],
-  divisions: ['', "ADMIN", "AMAD", "FOD", "ILD", "PMED", "RAED", "REGULATORY", "RESEARCH","Others"],
+  divisions: ['', "ADMIN", "AMAD", "FOD", "ILD", "ICT", "PMED", "RAED", "REGULATORY", "RESEARCH","Others"],
   abbrev: [
     {
       "ADMIN": "Administrative and Finance Division",
       "AMAD": "Agribusiness and Marketing Assistance Division",
       "FOD": "Field Operations Division",
       "ILD": "Integrated Laboratory Division",
+      "ICT": "Information and Communications Technology",
       "PMED": "Planning, Monitoring and Evaluation Division",
       "RAED": "Regional Agricultural Engineering Division",
       "REG": "Regulartory Division",
@@ -178,6 +181,60 @@ const purchaseRequestRoles = [
   }
 ];
 
+const department = {
+  divisions: {
+    "ORED": {
+      stands: "Office of Regional Executive Director",
+      email: "",
+      admin: "",
+    }, 
+    "ADMIN": {
+      stands: "Administrative and Finance Division",
+      email: "",
+      admin: "",
+    },
+    "AMAD": {
+      stands: "Agribusiness and Marketing Assistance Division",
+      email: "",
+      admin: "",
+    },
+    "FOD": {
+      stands: "Field Operations Division",
+      email: "",
+      admin: "",
+    },
+    "ILD": {
+      stands: "Integrated Laboratory Division",
+      email: "",
+      admin: "",
+    },
+    "ICT": {
+      stands: "Information and Communications Technology",
+      "email": "wagwag.joegie@gmail.com",
+      "admin": "",
+    },
+    "PMED": {
+      stands: "Planning, Monitoring and Evaluation Division",
+      "email": "game.mrjhon8@gmail.com",
+      "admin": "",
+    },
+    "RAED": {
+      stands: "Regional Agricultural Engineering Division",
+      "email": "",
+      "admin": "",
+    },
+    "REGULATORY": {
+      stands: "Regulartory Division",
+      "email": "",
+      "admin": "",
+    },
+    "RESEARCH": {
+      stands: "Research Division",
+      "email": "",
+      "admin": "",
+    }
+  }
+}
 // console.log(purchaseRequestRoles);
 
 
@@ -216,6 +273,8 @@ app.use('/modules', express.static(modulesPath))
 app.use('/client', express.static(clientPath))
 app.use('/assets', express.static(viewsAssets))
 app.use('/employees', express.static(viewsAssets))
+app.use('/uploads', express.static('uploads'));
+
 // ============================================
 // login
 // ============================================
@@ -250,6 +309,16 @@ task.start()
 // task.stop()
 // ENDOFCRONJOBS
 
+// EMAIL
+let transporter = nodemailer.createTransport({
+  service: 'gmail',  // Gmail service
+    auth: {
+      user: process.env.APP_EMAIL,  // Your Gmail address
+      pass: process.env.APP_PASS      // Your App Password (not your main Gmail password)
+    }
+});
+// endof EMAIL
+
 app.use(async function(req, res, next){
   // const err = req.session.error;
   // const msg = req.session.success;
@@ -260,19 +329,29 @@ app.use(async function(req, res, next){
   // if (msg) res.locals.message = '<p class="text-success">' + msg + '</p>';
   // res.status(404).send('Page Not Found');  
   const notifications = await connection.retrieveNotifications()
+  // const {employeeid} = req.session.user
   
   // Sort using Descending
   notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  let role = ''
+  const { employeeid } = req.session?.user || {};
+  if(employeeid) {
+    role = await connection.getCurrentUserRole(employeeid)
+    role = role[0].role_name
+    
+  }
 
   res.locals = {
     ENVIRONMENT: process.env.NODE_ENV,
     TEST_MODE: process.env.TEST_MODE,
     TEST_UNIT: process.env.TEST_UNIT,
-    SESSION_USER: req.session.user,
+    SESSION_USER: req.session?.user || {},
+    DEPARTMENT: JSON.stringify(department),
     // NOTIFICATIONS: countNotif,
     // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications)
     NOTIFICATIONS: JSON.stringify(notifications),
     logonUser: JSON.stringify(req.session.user),
+    currentRole: role ?? 'developer',
     perClassification: {},
     employees: {},
     dafaultTransactionData: _preTransactionsData,
@@ -307,7 +386,7 @@ function restrict(req, res, next) {
   // If authenticated, proceed to the next middleware
   return next();
 }
-
+// FILE UPLOADS
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
       const uploadDir = './uploads';
@@ -325,6 +404,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+// endof FILE UPLOADS
 
 // POST route for multiple file upload
 app.post('/upload', upload.array('fileToUpload[]'), (req, res) => {
@@ -490,7 +570,7 @@ app.post('/verify', async (req, res) => {
     if (employees.length != 0) {
       res.status(200).json({ message: 'Account found!',  response: employees });
     } else {
-      res.status(200).json({ message: 'Account not found!',  response: employees });
+      res.status(404).json({ message: 'Account not found!',  response: employees });
     }
     
   } catch (error) {
@@ -655,7 +735,7 @@ app.post('/transactions/new', restrict, async (req, res) => {
 app.put('/transactions/update', restrict, async (req, res) => {
   try {
     const transactions = await connection.putTransactions( JSON.stringify(req.body) );
-    res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
+    res.status(200).json({ message: 'Transaction Successfully Updated!', response: transactions });
   } catch (error) {
     console.error('Error addding transaction:', error);
     res.status(500).send('Internal Server Error');
@@ -948,6 +1028,7 @@ app.get('/inventory', restrict, async function(req, res){
   })
 })
 
+// DOCUMENTS
 app.get('/documents', restrict, async function(req, res){
   const results = await connection.getDocumentTrackerData()
   res.render('pages/documents/index', {
@@ -956,7 +1037,12 @@ app.get('/documents', restrict, async function(req, res){
   })
 })
 
-// DOCUMENTS
+app.get('/documents/template/newEmail', restrict, function(req, res) {
+  res.render('pages/emails/new', {
+    title: 'Template on New Email'
+  })
+})
+
 app.post('/documents/create', restrict, async function(req, res){
   try {
     const data = JSON.stringify(req.body)
@@ -969,20 +1055,93 @@ app.post('/documents/create', restrict, async function(req, res){
   }
 })
 
+app.post('/documents/sendsssss', restrict, async function(req, res){
+  try {
+    const {subject, to, html} = req.body
+    console.log({subject, to, html})
+    // Set up email data
+    let mailOptions = {
+      from: `"DA RFO7" <${process.env.APP_EMAIL}>`, // Sender address
+      to, // List of recipients
+      subject, // Subject line
+      html // HTML body
+    };
+    console.log({data, mailOptions})
+    // Send email
+  //  const result = await transporter.sendMail(mailOptions, (error, info) => {
+  //     if (error) {
+  //       return console.log('Error sending email:', error);
+  //     }
+  //     console.log('Email sent:', info.response);
+  //   });
+    // console.log(data)
+    const result = await transporter.sendMail(mailOptions)
+    res.status(200).json({ message: 'Sending emails...', response: result})
+  } catch (error) {
+    res.status(500).send('Failed to send email', error);
+  }
+})
+
+app.post('/documents/send', restrict, async function(req, res) {
+  try {
+    const { subject, to, html, id, timetocomply } = req.body;
+    console.log(req.body);
+
+    let mailOptions = {
+      from: `"DA RFO7" <${process.env.APP_EMAIL}>`,
+      to,
+      subject,
+      html
+    };
+
+    const updateDocumentStatus = {
+      set: {
+        status: 'outgoing',
+        updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      },
+      where: {
+        id
+      }
+    }
+
+    const createDocument = {
+      refid: id,
+      message: html, 
+      reciever: to,
+      timetocomply: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+    }
+
+    // Use async/await for email sending
+    const info = await transporter.sendMail(mailOptions);
+    const updateDocumentTrackerStatus = await connection.updateDocumentTrackerStatus(JSON.stringify(updateDocumentStatus))
+    const updateDocumentTrackerActivity = await connection.createDocumentTrackerActivity(JSON.stringify(createDocument))
+    console.log('Email sent:', info.response);
+    
+    res.status(200).json({ message: 'Email sent successfully', response: info });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Failed to send email');
+  }
+});
+
 app.get('/documents/:id', restrict, async function(req, res){
   
   const {id} = req.params
   const results = await connection.retrieveDocuments('documents', JSON.stringify(req.params))
+  const activities = await connection.getDocumentTrackerActivity(JSON.stringify({refid:id}))
   const employees = await connection.retrieveEmployee()
   
-  console.log(employees)
+  // console.log(employees)
 
-  res.render('pages/documents/input', {
+  res.render('pages/documents/id', {
     title: "Document", 
     displayData: results[0], 
+    activities,
     employeesData: employees,
   })
 })
+
 // ENDOF DOCUMENTS
 
 // To Be Feature

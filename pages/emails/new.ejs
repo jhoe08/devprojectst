@@ -1,0 +1,140 @@
+
+<style>
+    .document-container:before,
+    .document-container:after {
+        content: "";
+        position: absolute;
+        background-image: url(/assets/img/border.png);
+        background-repeat: no-repeat;
+        background-size: contain;
+        width: 100%;
+        height: 190px;
+    }
+    .document-container:before {
+        top: 0;
+        left: 0;
+    }
+
+    .document-container:after {
+        bottom: 0;
+        right: 0;
+        transform: rotate(180deg);
+    }
+
+    .da-pilipinas .logo,
+    .da-logo .logo {
+        width: 80px;
+    }
+    .document-container {
+        width: 8in;
+        height: 11in;
+        position: relative;
+    }
+    .wrapper {
+        padding: 0 60px;
+        padding-top: 50px;
+    }
+    .heading {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    .heading > * {
+        margin: 0;
+    }
+    .republic, 
+    .contacts {
+        font-weight: normal;
+    }
+    /* .address {
+        font-size: 11px;
+    } */
+
+    /*  */
+
+    h1 {
+        font-size: 14px;
+    }
+    h2 {
+        font-size: 12px;
+    }
+    h3 {
+        font-size: 10px;
+    }
+    h4 {
+        font-size: 11px;
+    }
+    .row {
+        display: flex;
+    }
+    .row > * {
+        flex: 0 0 auto;
+    }
+    .col-3 {
+        width: 25%;
+    }
+    .col-4 {
+        width: 33.33333333%;
+    }
+    .col-5 {
+        width: 41.66666667%;
+    }
+    .col-6 {
+        width: 50%;
+    }
+    .d-flex {
+        display: flex;
+    }
+    .justify-space {
+        justify-content: space-evenly;
+    }
+    .text-center {
+        text-align: center;
+    }
+    .text-uppercase {
+        text-transform: uppercase;
+    }
+    .text-bold {
+        font-weight: bold;
+    }
+    .hidden {
+        display: none !important;
+    }
+    .border {
+        border: 1px solid #dfdfdf
+    }
+
+    /* Printing */
+    .document-container {
+        visibility: visible;
+        overflow: visible;
+    }
+</style>
+<div class="document-container border">
+    <div class="letter">
+        <header class="wrapper row">
+            <div class="col-4 d-flex justify-space">
+                <div class="da-pilipinas"><img class="logo" src="/assets/img/bagong-pilipinas.png" /></div>
+                <div class="da-logo text-center"><img class="logo" src="/assets/img/da-logo.png" /><img class="hidden" src="/assets/img/da-tagline.png" /></div>
+            </div>
+            <div class="col-6 heading text-center">
+                <h4 class="republic">Republic of the Phillippines</h4>
+                <h2 class="field hidden">Regional Field Office No. VII</h2>
+                <h1 class="office">Office of the Regional Executive Director</h1>
+                <h4 class="address">DA-RFO7 Complex, Highway Maguikay, Mandaue City 6014, Cebu</h4>
+                <h4 class="contacts">Tel. No. (032) 268-5187; Email: redsoffice7@gmail.com</h4>
+            </div>
+            <div class="col-2 d-flex justify-space">
+        
+            </div>
+        </header>
+        <main class="wrapper">
+            <div class="dateOfPrint">January 14, 2025</div>
+            <div class="row text-uppercase text-bold">
+                Advisory
+            </div>
+        </main>
+        <footer class="wrapper"></footer>
+    </div>
+</div>
