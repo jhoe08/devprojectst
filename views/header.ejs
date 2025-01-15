@@ -72,4 +72,7 @@
 
     </script>
   </head>
-  <body data-env="<%=ENVIRONMENT%>" data-testmode="<%=TEST_MODE%>" data-currentuser="<%=JSON.stringify(SESSION_USER)%>">
+  <%
+    const {employeeid, username } = SESSION_USER
+  %>
+  <body data-env="<%=ENVIRONMENT%>" data-testmode="<%=TEST_MODE%>" data-currentuser="<%=JSON.stringify({employeeid, username})%>">

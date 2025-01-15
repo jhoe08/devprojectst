@@ -1,8 +1,8 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
 <%
-    console.log(displayData)
     const { id, title, priority, created_at, updated_at, created_by } = displayData
+    const { username } = SESSION_USER
     const requestID = addLeadingZeros(id)
     const trackerid = `${moment(created_at).format('YYYYMMDD')}-${requestID}`
 
@@ -29,7 +29,9 @@
               <div class="ms-md-auto py-2 py-md-0">
                 <a href="#" class="btn btn-primary btn-border btn-round me-2" id="printDocumentTracekerBtn"><i class="fas fa-print"></i> Print</a>
                 <a href="#" class="btn btn-label-info btn-round me-2" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add New Remarks</a>
+                <% if(created_by == username) {%>
                 <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#mailToDocumentTrackerModal"><i class="fas fa-envelope"></i> Email</a>
+                <% } %>
               </div>
             </div>
             

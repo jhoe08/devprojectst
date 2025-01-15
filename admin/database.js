@@ -12,6 +12,8 @@ const tables = {
     employee: 'employees',
     transaction: 'transid',
     remark: 'remarks',
+    document: 'documents',
+
 }
 const TEST_UNIT = process.env.TEST_UNIT
 
@@ -464,6 +466,19 @@ const databaseUtils = {
         data = JSON.stringify({...data, created_at: convertDate(new Date())})
         return await databaseUtils.storeData('notifications', data)
     },
+    getDocumentTrackerAnalysis: () => new Promise((resolve, reject) =>{
+        const query = `SELECT 
+                        COUNT(*) AS total_rows,
+                        SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft_rows,
+                        SUM(CASE WHEN status = 'outgoing' THEN 1 ELSE 0 END) AS outgoing_rows,
+                        SUM(CASE WHEN status = 'replied' THEN 1 ELSE 0 END) AS replied_rows
+                        FROM ${prefix}.${tables.document};`
+        console.log(query)
+        return connection.query(query, (error, results) => {
+            if (error) { reject(error) }
+            else { resolve(results) }
+        })
+    }),
     createDocumentTracker: async (data) => {
         const now = convertDate(new Date())
         data = JSON.parse(data)

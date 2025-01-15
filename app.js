@@ -337,15 +337,60 @@ app.use(async function(req, res, next){
   const { employeeid } = req.session?.user || {};
   if(employeeid) {
     role = await connection.getCurrentUserRole(employeeid)
-    role = role[0].role_name
+    role = role[0]?.role_name ?? 'user'
     
   }
+
+  const defaultNullUser = {
+    employeeid: '777',
+    firstname: 'Just',
+    middlename: 'asdw',
+    lastname: 'Test',
+    extname: 'asdw',
+    birthdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+    username: 'justtest',
+    password: 'hay1122',
+    experience: {
+      lists: [{
+        office: 'DA - RFO7',
+        division: 'FOD',
+        banner: 'SAAD Program',
+        salary: '123456',
+        status: true,
+        enddate: 'present',
+        position: 'Data Controller X',
+        startdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+        employment: 'Permanent',
+        arrangements: 'On-site', 
+      }],
+    },
+    contacts: {
+      email: 'justtest@gmail.com',
+      mobile: '09913983598',
+    },
+    others: {
+      civilstatus: 'Married',
+      gender: 'Male'
+    }
+  }
+  
+  let { experience, contacts, others } = defaultNullUser
+  experience = JSON.stringify(experience)
+  contacts = JSON.stringify(contacts)
+  others = JSON.stringify(others)
+
+  defaultNullUser.experience = experience
+  defaultNullUser.contacts = contacts
+  defaultNullUser.others = others
+
+  // console.log('SESSION', req.session?.user || JSON.parse(JSON.stringify(defaultNullUser)))
 
   res.locals = {
     ENVIRONMENT: process.env.NODE_ENV,
     TEST_MODE: process.env.TEST_MODE,
     TEST_UNIT: process.env.TEST_UNIT,
-    SESSION_USER: req.session?.user || {},
+    SESSION_USER: req.session?.user || defaultNullUser,
+    defaultNullUser,
     DEPARTMENT: JSON.stringify(department),
     // NOTIFICATIONS: countNotif,
     // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications)
@@ -1031,9 +1076,12 @@ app.get('/inventory', restrict, async function(req, res){
 // DOCUMENTS
 app.get('/documents', restrict, async function(req, res){
   const results = await connection.getDocumentTrackerData()
+  const analysisData = await connection.getDocumentTrackerAnalysis()
+  console.log(analysisData)
   res.render('pages/documents/index', {
     title: 'Documents',
     displayData: results,
+    analysisData: analysisData[0],
   })
 })
 

@@ -180,9 +180,9 @@ if(emailDocumentTracker) {
     document.getElementById("selectedEmails").textContent = "Selected values: " + selectedEmails.join(", ");
 
     const emailBody = `
-    <h3>${documentTitle.innerHTML}</h3>
-    <time>${timetocomply.value}</time>
-    <prestyle="font: small / 1.5 Arial, Helvetica, sans-serif;">${mailMessage.value}</pre>
+    <h3>Title: ${documentTitle.innerHTML}</h3>
+    <time>Time to Comply: ${moment(timetocomply.value).format('LLL hh:mm:ss')}</time>
+    <pre style="font: small / 1.5 Arial, Helvetica, sans-serif;">${mailMessage.value}</pre>
     `
 
     const { id } = JSON.parse(documentData.dataset.document)
