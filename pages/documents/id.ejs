@@ -64,7 +64,7 @@
                   </div>
                 </div>
                 
-                <div class="card">
+                <div class="card hidden">
                   <div class="card-header">
                     <div class="card-head-row card-tools-still-right">
                       <div class="card-title">Recieved By</div>
@@ -98,18 +98,21 @@
                     <ol class="activity-feed mb-0">
                   <%
                     activities.forEach(activity=>{ 
-                      const { id, refid, message, reciever, timetocomply } = activity
+                      const { id, refid, message, reciever, timetocomply, created_at, created_by } = activity
                   %>
-                      <li class="feed-item feed-item-success d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Email Sent">
+                      <li class="feed-item feed-item-<%=timetocomply?'success':'info'%> d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="<%=timetocomply?'Email Sent':'Replied'%>">
                         <div class="d-flex">
-                          <span class="user fs-3 mr-3"><i class="fas fa-door-open"></i></span>
+                          <span class="user fs-3 mr-3"><i class="fas fa-<%=timetocomply?'envelope':'comments'%>"></i></span>
                           <div class="">
-                            <time class="date" datetime="March 13th 2024, 12:00:00 am">
-                              <%=moment(timetocomply).format('LLL hh:mm:ss')%>
+                            <time class="date" datetime="<%=moment(created_at || timetocomply).format('MMMM D YYYY, h:mm:ss a')%>">
+                              <%=moment(created_at ?? timetocomply).format('MMMM D YYYY, h:mm:ss a')%>
                             </time>
                             <span class="text">
                               <span class="badge badge-black mr-3"></span>
-                              Sent to <%=reciever%>
+                              <%- timetocomply 
+                              ? 'Sent to ' + reciever 
+                                  : message + ' by <strong class="text-capitalize">' + created_by + '</strong>' 
+                              %>
                             </span>
                           </div>
                         </div>
@@ -119,8 +122,8 @@
                         <div class="d-flex">
                           <span class="user fs-3 mr-3"><i class="fas fa-door-open"></i></span>
                           <div class="">
-                            <time class="date" datetime="March 13th 2024, 12:00:00 am">
-                              <%=moment(created_at).format('LLL hh:mm:ss')%>
+                            <time class="date" datetime="<%=moment(created_at).format('MMMM D YYYY, h:mm:ss a')%>">
+                              <%=moment(created_at).format('MMMM D YYYY, h:mm:ss a')%>
                             </time>
                             <span class="text">
                               <span class="badge badge-black mr-3">Draft</span>

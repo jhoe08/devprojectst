@@ -13,9 +13,9 @@
           let outgoPercentage = (Number(outgoing_rows) / total_rows) * 100
           let repliPercentage = (Number(replied_rows) / total_rows) * 100
 
-          draftPercentage = draftPercentage.toFixed(2)
-          outgoPercentage = outgoPercentage.toFixed(2)
-          repliPercentage = repliPercentage.toFixed(2)
+          draftPercentage = draftPercentage.toFixed(0)
+          outgoPercentage = outgoPercentage.toFixed(0)
+          repliPercentage = repliPercentage.toFixed(0)
         %>
 
         <div class="container" data-analysis="<%=JSON.stringify({ total_rows, draft_rows, outgoing_rows, replied_rows })%>">

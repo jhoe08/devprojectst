@@ -1,21 +1,53 @@
 const createDocument = '/documents/create'
 const activityDocument = '/documents/activity'
 const sendDocument = '/documents/send'
+
 const createDocumentTrackerBtn =  document.getElementById('createDocumentTrackerBtn')
 const uploadDocumentBtn = document.getElementById('uploadDocumentBtn')
 const addMoreEmail = document.getElementById('addMoreEmail')
 const emailsToSend = document.getElementById('emailsToSend')
+const createActivityBtn = document.getElementById('createActivityBtn')
 
 const emailDocumentTracker = document.getElementById('emailDocumentTracker')
 const printDocumentTracekerBtn = document.getElementById('printDocumentTracekerBtn')
 
 const documentData = document.getElementById('documentData')
+const created_by = document.getElementById('created_by')
 
 const myHeaders = new Headers();
       myHeaders.append("Content-Type", "application/json");
 
 const selectedEmails = []
 
+function datetimeformat(string) {
+  // Create a new Date object for the current date and time
+  const currentDate = new Date(string);
+
+  // Define an array of month names for better readability
+  const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+  ];
+
+  // Get the full month name, day of the month, and year
+  const monthName = months[currentDate.getMonth()];
+  const day = currentDate.getDate();
+  const year = currentDate.getFullYear();
+
+  // Get the time (hours, minutes, seconds)
+  const hours = currentDate.getHours();
+  const minutes = currentDate.getMinutes();
+  const seconds = currentDate.getSeconds();
+
+  // Format the time to always show 2 digits for minutes and seconds
+  const formattedTime = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+  // Combine date and time into a single string
+  const formattedDateTime = `${monthName} ${day}, ${year} ${formattedTime}`;
+
+  return formattedDateTime;
+
+}
 
 // SELECT MULTIPLE OPTION
 document.querySelectorAll('select[multiple] option').forEach(function(option) {
@@ -166,11 +198,15 @@ if(addMoreEmail) {
 }
 
 if(emailDocumentTracker) {
+  const body = document.querySelector('body')
+
   emailDocumentTracker.addEventListener('click', function(){
     const documentTitle = document.getElementById('documentTitle')
     const timetocomply = document.getElementById('timetocomply')
     const mailMessage = document.getElementById('mailMessage')
     const selectedOptions = emailsToSend.selectedOptions
+
+    const { username } = JSON.parse(body.dataset.currentuser)
 
     for (let option of selectedOptions) {
       if(option.value) {
@@ -179,20 +215,54 @@ if(emailDocumentTracker) {
     }
     document.getElementById("selectedEmails").textContent = "Selected values: " + selectedEmails.join(", ");
 
-    const emailBody = `
-    <h3>Title: ${documentTitle.innerHTML}</h3>
-    <time>Time to Comply: ${moment(timetocomply.value).format('LLL hh:mm:ss')}</time>
-    <pre style="font: small / 1.5 Arial, Helvetica, sans-serif;">${mailMessage.value}</pre>
-    `
+    const emailBody = `<div class="wrapper" style="overflow: hidden;">
+      <div class="row reciever" style="display: flex; margin-bottom: 20px;">
+          <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%; margin-right: 4em;">
+              <strong style="font-weight: 600; text-transform: uppercase;">For: </strong>
+          </div>
+          <div class="col-5" style="flex: 0 0 auto; width: 41.66666667%;">${selectedEmails}</div>
+      </div>
+      <div class="row sender" style="display: flex; margin-bottom: 20px;">
+          <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%; margin-right: 4em;">
+              <strong style="font-weight: 600; text-transform: uppercase;">From: </strong>
+          </div>
+          <div class="col-10" style="flex: 0 0 auto; width: 83.33333333%;">Regional Executive Director</div>
+      </div>
+      <div class="row subject" style="display: flex; margin-bottom: 20px;">
+          <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%; margin-right: 4em;">
+              <strong style="font-weight: 600; text-transform: uppercase;">Subject: </strong>
+          </div>
+          <div class="col-10" style="flex: 0 0 auto; width: 83.33333333%;">${documentTitle.innerHTML}</div>
+      </div>
+      <div class="message" style="margin-bottom: 20px;">
+          <div style="width: 100%;">Kindly confirm receipt of this communication and provide any updates.</div>
+          <div style="width: 100%;">${ timetocomply.value ? 'Time to Comply: ' + datetimeformat(timetocomply.value) : ""}</div>
+      </div>
+      <div class="additional" style="display: flex; margin-bottom: 20px;">
+          <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%; margin-right: 4em;">
+              <strong style="font-weight: 600; text-transform: uppercase;">Additional Message: </strong>
+          </div>
+          <div style="flex: 0 0 auto; width: 83.33333333%;">${ mailMessage.value }</div>
+      </div>
+      <footer>
+          <h3 style="margin: 0 2px;">OFFICE OF THE REGIONAL EXECUTIVE DIRECTOR</h3>
+          <h4 style="margin: 0 2px;">Department of Agriculture</h4>
+          <p style="margin: 0 2px;">Regional Field Office No. VII</p>
+          <p style="margin: 0 2px;">DA-RFO 7 Complex, Highway Maguikay, Mandaue City 6014, Cebu</p>
+          <p style="margin: 0 2px;">Tel. No. (032) 268-5187; Email: redsoffice7@gmail.com</p>
+      </footer>
+    </div>`
 
     const { id } = JSON.parse(documentData.dataset.document)
 
     const data = {
-      subject: "ORED: New Document has arrived.",
+      subject: "You have a new communication from the Regional Directors office",
       to: selectedEmails.join(", "),
       html: emailBody, 
       id,
-      timetocomply: timetocomply.value
+      timetocomply: timetocomply.value,
+      created_at: new Date(),
+      created_by: username,
     }
     const requestOptions = {
       method: 'POST',
@@ -205,6 +275,56 @@ if(emailDocumentTracker) {
     console.log(requestOptions)
 
     fetch(sendDocument, requestOptions)
+    .then(response => {
+      if (!response.ok) {
+        // throw new Error('Network response was not ok');
+        notifyCustom('bell', 'System Error', 'Network response was not ok!', 'danger')
+      }
+      return response.json();
+    })
+    .then(data => {
+      if(!data) {
+        notifyCustom('bell', 'Error', 'Failed to send the Communication', 'danger')
+        return
+      }
+      emailDocumentTracker.innerHTML = '<i class="fas fa-spinner"></i> Sending'
+      setTimeout(() => {
+        emailDocumentTracker.innerHTML = '<i class="fas fa-check"></i> Sent'
+        emailDocumentTracker.classList.add('disabled')
+      }, 5000);
+      // window.location.href = `/documents/${insertId}`
+    })
+    .catch(error => {
+        notifyCustom('bell', 'Failed to fetch data', error, 'danger')
+    });
+  })
+}
+
+if(createActivityBtn) {
+  createActivityBtn.addEventListener('click', function(){
+    const { id } = JSON.parse(documentData.dataset.document)
+    const activityApi = `/documents/${id}/activity`
+    const activityRemark = document.getElementById('activityRemark')
+
+
+    const data = {
+      refid: id, 
+      message: activityRemark.value,
+      created_at: new Date(),
+      created_by: created_by.value
+    }
+
+    const requestOptions = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    };
+
+    console.log(requestOptions)
+
+    fetch(activityApi, requestOptions)
     .then(response => {
       if (!response.ok) {
         // throw new Error('Network response was not ok');

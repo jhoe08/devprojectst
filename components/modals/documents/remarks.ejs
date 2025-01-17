@@ -8,17 +8,12 @@
         <div class="modal-body">
           <div class="form-group form-group-default">
             <label>Remarks</label>
-            <textarea class="form-control" id="comment" rows="5" required></textarea>
+            <textarea class="form-control" id="activityRemark" rows="5" required></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <% if(logonUser){
-              const { username } = JSON.parse(logonUser) %>
-          <input id="created_by" type="hidden" value="<%=username??'justtest-'%>">
-          <% } %>
-          
           <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal"><i class="icon-close"></i> Close</button>
-          <a href="#" class="btn button btn-primary" id="createDocumentTrackerBtn"><i class="fas fa-comment"></i> Add Remarks</a>
+          <a href="#" class="btn button btn-primary" id="createActivityBtn"><i class="fas fa-comment"></i> Add Remarks</a>
       </div>
       </div>
     </div>

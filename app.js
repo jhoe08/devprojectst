@@ -1086,7 +1086,7 @@ app.get('/documents', restrict, async function(req, res){
 })
 
 app.get('/documents/template/newEmail', restrict, function(req, res) {
-  res.render('pages/emails/new', {
+  res.render('pages/emails/new2', {
     title: 'Template on New Email'
   })
 })
@@ -1132,7 +1132,7 @@ app.post('/documents/sendsssss', restrict, async function(req, res){
 
 app.post('/documents/send', restrict, async function(req, res) {
   try {
-    const { subject, to, html, id, timetocomply } = req.body;
+    const { subject, to, html, id, timetocomply, created_by } = req.body;
     console.log(req.body);
 
     let mailOptions = {
@@ -1152,17 +1152,19 @@ app.post('/documents/send', restrict, async function(req, res) {
       }
     }
 
-    const createDocument = {
+    const createActivity = {
       refid: id,
       message: html, 
       reciever: to,
-      timetocomply: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      timetocomply: moment(timetocomply).format('YYYY-MM-DD HH:mm:ss'),
+      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      created_by,
     }
-
+    console.log(createActivity)
     // Use async/await for email sending
     const info = await transporter.sendMail(mailOptions);
     const updateDocumentTrackerStatus = await connection.updateDocumentTrackerStatus(JSON.stringify(updateDocumentStatus))
-    const updateDocumentTrackerActivity = await connection.createDocumentTrackerActivity(JSON.stringify(createDocument))
+    const updateDocumentTrackerActivity = await connection.createDocumentTrackerActivity(JSON.stringify(createActivity))
     console.log('Email sent:', info.response);
     
     res.status(200).json({ message: 'Email sent successfully', response: info });
@@ -1180,14 +1182,21 @@ app.get('/documents/:id', restrict, async function(req, res){
   const activities = await connection.getDocumentTrackerActivity(JSON.stringify({refid:id}))
   const employees = await connection.retrieveEmployee()
   
-  // console.log(employees)
-
   res.render('pages/documents/id', {
     title: "Document", 
     displayData: results[0], 
-    activities,
+    activities: activities.sort((a, b) => b.id - a.id),
     employeesData: employees,
   })
+})
+
+app.post('/documents/:id/activity', restrict, async function(req, res){
+  try { 
+    const results = await connection.createDocumentTrackerActivity(JSON.stringify(req.body))
+    res.status(200).json({ message: 'New remarks is added', response: results})
+  } catch (error) {
+    res.status(400).send('Error addding remarks:', error);
+  }
 })
 
 // ENDOF DOCUMENTS

@@ -76,3 +76,7 @@
     const {employeeid, username } = SESSION_USER
   %>
   <body data-env="<%=ENVIRONMENT%>" data-testmode="<%=TEST_MODE%>" data-currentuser="<%=JSON.stringify({employeeid, username})%>">
+  <% if(SESSION_USER){
+    const { username } = SESSION_USER %>
+    <input id="created_by" type="hidden" value="<%=username??'justtest-'%>">
+  <% } %>

@@ -188,15 +188,16 @@ table {
         overflow: visible !important;
         visibility: visible  !important;
         position: absolute;
-        right: -60px;
+        right: -85px;
         top: 110px;
 
         #trackingCode {
+            color: #000;
             text-align: center;
             position: relative;
             overflow: inherit !important;
             visibility: initial !important;
-            font-size: 12px;
+            font-size: 10px;
         }
     }
   }
