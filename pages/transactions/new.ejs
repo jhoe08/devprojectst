@@ -17,7 +17,7 @@
                 <div class="ms-md-auto py-2 py-md-0">
                     <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
                     <% if (transactions) { %>
-                    <a id="updateTransactions" href="#" class="btn btn-primary btn-round"><i class="fas fa-save"></i> Update</a>
+                    <a id="updateTransactions" href="#" class="btn btn-primary btn-round" data-username="<%=logonUser?.username??'developer'%>"><i class="fas fa-save"></i> Update</a>
                     <% } else { %>
                     <a id="createTransactions" href="#" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Create</a>
                     <% } %>

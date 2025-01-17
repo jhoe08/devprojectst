@@ -137,7 +137,6 @@ table {
         }
     }
 }
-
 @media print {
     * { 
         overflow: hidden;
@@ -171,26 +170,35 @@ table {
         }
     }
 
-    /* All your print styles go here */
-    /* .sidebar,
-    .main-header {
-      display: none !important;
+    div.documents.qrcode {
+        overflow: visible !important;
+        visibility: visible  !important;
+        position: absolute;
+        right: 20px;
+        top: 50px;
+        * {
+            position: relative;
+            overflow: inherit !important;
+            visibility: initial !important;
+            width: 100px;
+        }
     }
-    
-    .main-panel,
-    .main-header {
-        width: 100%;
-    }
-    .main-panel .container {
-        margin-top: 0;
-    }
-    .documentToPrint {
-        background-color: red;
-        margin-top: 0;
-    }
-    .documentBody {
-        padding: 0 .5in;
-    }
- */
 
+    .unsalan {
+        overflow: visible !important;
+        visibility: visible  !important;
+        position: absolute;
+        right: -85px;
+        top: 110px;
+
+        #trackingCode {
+            color: #000;
+            text-align: center;
+            position: relative;
+            overflow: inherit !important;
+            visibility: initial !important;
+            font-size: 10px;
+        }
+    }
   }
+

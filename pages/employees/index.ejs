@@ -1,5 +1,8 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
+<% 
+  const { role_name } = currentRole
+%>
 <div class="wrapper">
     <%- include('../../views/sidebar') -%>
 
@@ -9,14 +12,16 @@
         <div class="container">
             <div class="page-inner">
                 <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
-                    <div>
-                        <h3 class="fw-bold mb-3"><%- title -%></h3>
-                        <h6 class="op-7 mb-2">Lists of individuals working on the Department</h6>
-                    </div>
-                    <div class="ms-md-auto py-2 py-md-0">
-                        <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="employees" data-column="8">Manage</a>
-                        <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#addEmployeeModal"><i class="fas fa-plus"></i> Add New</a>
-                    </div>
+                  <div>
+                    <h3 class="fw-bold mb-3"><%- title -%></h3>
+                    <h6 class="op-7 mb-2">Lists of individuals working on the Department</h6>
+                  </div>
+                  <div class="ms-md-auto py-2 py-md-0">
+                    <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="employees" data-column="8">Manage</a>
+                  <% if (role_name=='superadmin') { %>
+                    <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#addEmployeeModal"><i class="fas fa-plus"></i> Add New</a>
+                  <% } %>
+                  </div>
                 </div>
                 <div class="row">
                     <div class="col-md-12">

@@ -1,2 +1,8 @@
+# DO NOT INCLUDE .ENV
+# IT IS HOLDING IMPORTANT DATA THAN YOUR LIFE
+.env
+
 # Don't include module
 node_modules/
+
+uploads/

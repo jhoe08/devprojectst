@@ -503,6 +503,29 @@ function initial(string) {
   return string.chartAt(0) + '.'
 }
 
+function addLeadingZeros(number) {
+  // Convert the number to a string to count its digits
+  const numStr = number.toString();
+  const numDigits = numStr.length;
+  
+  // Determine how many leading zeros to add
+  if (numDigits === 1) {
+    return "0000" + number; // Add 4 leading zeros for single-digit
+  } else if (numDigits === 2) {
+    return "000" + number;  // Add 3 leading zeros for two digits
+  } else if (numDigits === 3) {
+    return "00" + number;   // Add 2 leading zeros for three digits
+  } else if (numDigits === 4) {
+    return "0" + number;    // Add 1 leading zero for four digits
+  } else {
+    return number.toString(); // No leading zeros for five or more digits
+  }
+}
+
+function validateEmail(email) {
+  const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+  return emailPattern.test(email);
+}
 
 
 // Initial call to set the time
@@ -512,7 +535,7 @@ function initial(string) {
 // setInterval(refreshDiv, 1000);
 
 // Initial call to fetch the notification
-fetchNotificationCount()
+// fetchNotificationCount() // Enable this shits
 
 // Periodically check for updated notif`ication count (e.g., every 5 seconds)
-setInterval(fetchNotificationCount, 5000); // Adjust interval as needed
+// setInterval(fetchNotificationCount, 5000); // Adjust interval as needed  // Enable this shits

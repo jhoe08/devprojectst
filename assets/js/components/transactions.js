@@ -192,7 +192,10 @@
             let bannerProgramValue = bannerProgram.value
             let bacUnitValue = bacUnit.value
 
-            if(bidNoticeTitleValue === '' || budgetValue != 0 || requisitionerValue === '') return;
+            if(bidNoticeTitleValue === '' || budgetValue <= 0 || requisitionerValue === '') {
+                notifyCustom('bell', 'Empty Fieldsssssssssss', 'Please fill up those fields and try again.')
+                return
+            };
             const myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
             
@@ -207,8 +210,8 @@
                 banner_program: bannerProgramValue, 
                 bac_unit: bacUnitValue,
                 remarks: {
-                    createby: 'JustJoe',
-                    message: 'remarksValue'
+                    updatedBy: updateTransactions.dataset.username,
+                    message: new Date()
                 } 
             };
 
@@ -221,6 +224,10 @@
             if(!fundSource.classList.contains('updated')) delete data.fund_source
             if(!bannerProgram.classList.contains('updated')) delete data.banner_program
             if(!bacUnit.classList.contains('updated')) delete data.bac_unit
+
+            // let { remarks } = data
+            // remarks = JSON.stringify(remarks)
+            // data.remarks = remarks
             
             const requestOptions = {
                 method: 'PUT',
@@ -242,21 +249,22 @@
                 if(!data) {
                     notifyCustom('bell', 'Error', 'Failed to update the Transaction', 'danger')
                 }
-
-                let {message, response } = data
-                let {insertId} = response
+                console.log(data)
+                // let {message, response } = data
+                // let {insertId} = response
+                
                 
                 notifyCustom('bell', `${message}`, `Transaction ID#${insertId}`, 'success')
                
                 // Clearing the fields
-                bidNoticeTitle.value = ''
-                prClassification.value = ''
-                requisitioner.value = ''
-                division.value = ''
-                budget.value = ''
-                fundSource.value = ''
-                bannerProgram.value = ''
-                bacUnit.value = ''
+                // bidNoticeTitle.value = ''
+                // prClassification.value = ''
+                // requisitioner.value = ''
+                // division.value = ''
+                // budget.value = ''
+                // fundSource.value = ''
+                // bannerProgram.value = ''
+                // bacUnit.value = ''
 
             })
             .catch(error => {

@@ -46,7 +46,7 @@
 <script src="/assets/js/demo.js"></script>
 <script src="/assets/js/misc.js"></script>
 <script src="/assets/js/scanner.js"></script>
-
+<script src="/assets/js/upload.js"></script>
 <script>
     function handleLeave(evt, item, legend) {
         legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
@@ -70,7 +70,6 @@
     }
 
     const colors = generateHexColors(13);
-    console.log('<%=path%>' )
     if('<%=path%>' == '' || '<%=path%>' == '/') {
       let classification = {}
       try {

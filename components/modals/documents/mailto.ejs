@@ -1,0 +1,62 @@
+<%
+  let { divisions } = JSON.parse(DEPARTMENT)
+  // Check if divisions is a string and needs parsing
+  if (typeof divisions === 'string') {
+    divisions = JSON.parse(divisions);  // Parse if it's a string
+  }
+
+  keys = Object.keys(divisions);  // Get the keys of the divisions object
+  divisions = Object.entries(divisions)
+  value = Object.values(divisions)
+%>
+
+<div class="modal modal-lg fade" id="mailToDocumentTrackerModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5">Details</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Time to comply</label>
+            <div class="form-group-default">
+              <label>Set date and time</label>
+              <input id="timetocomply" type="datetime-local" class="form-control">
+            </div>
+          </div>
+          <div class="form-group form-group-default">
+            <label>Message</label>
+            <textarea class="form-control" id="mailMessage" rows="5" required></textarea>
+          </div>
+          <div class="form-group form-group-default">
+            <label class="form-label">Divisions</label>
+            <select id="emailsToSend" name="divisions" multiple class="form-select" size="6">
+              <!-- HERE HERE HERE HERE -->
+            <% 
+              divisions.forEach(([key, value]) => {
+                const {stands, email, admin} = value 
+            %>
+              <option title="<%=stands%>" value="<%=email%>"><%=stands%></option>
+            <% }) %>
+            </select>
+          </div>
+          <div class="form-group form-group-default">
+            <label>Email</label>
+            <input id="addMoreEmail" type="email" class="form-control" placeholder="Add more email here">
+          </div>
+          <div id="selectedEmails"></div>
+        </div>
+        <div class="modal-footer">
+          <% if(logonUser){
+              const { username } = JSON.parse(logonUser) %>
+          <input id="created_by" type="hidden" value="<%=username??'justtest-'%>">
+          <% } %>
+          
+          <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal"><i class="icon-close"></i> Close</button>
+          <a href="#" class="btn button btn-primary" id="emailDocumentTracker"><i class="fas fa-paper-plane"></i> Email</a>
+      </div>
+      </div>
+    </div>
+  </div>
+          

@@ -1,0 +1,146 @@
+<!-- Header Template -->
+<%- include('../../views/header') -%>
+<div class="wrapper">
+    <%- include('../../views/sidebar') -%>
+
+    <div class="main-panel">
+        <%- include('../../views/main-header') -%>
+
+        <%
+          let { total_rows, draft_rows, outgoing_rows, replied_rows } = analysisData
+
+          let draftPercentage = (Number(draft_rows) / total_rows) * 100
+          let outgoPercentage = (Number(outgoing_rows) / total_rows) * 100
+          let repliPercentage = (Number(replied_rows) / total_rows) * 100
+
+          draftPercentage = draftPercentage.toFixed(0)
+          outgoPercentage = outgoPercentage.toFixed(0)
+          repliPercentage = repliPercentage.toFixed(0)
+        %>
+
+        <div class="container" data-analysis="<%=JSON.stringify({ total_rows, draft_rows, outgoing_rows, replied_rows })%>">
+          <div class="page-inner">
+            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+                <div>
+                    <h3 class="fw-bold mb-3"><%- title -%></h3>
+                    <h6 class="op-7 mb-2">Lists of Digital Documents</h6>
+                </div>
+                <div class="ms-md-auto py-2 py-md-0">
+                    <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="employees" data-column="8">Manage</a>
+                    <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#createDocumentTracker"><i class="fas fa-plus"></i> Add New</a>
+                </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <div class="card">
+                  <div class="card-body p-3 text-center">
+                    <div class="text-end text-success">
+                      <%=draftPercentage%>%
+                      <i class="fa fa-chevron-up"></i>
+                    </div>
+                    <div class="h1 m-0"><%=draft_rows%></div>
+                    <div class="text-muted mb-3">Incoming</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card">
+                  <div class="card-body p-3 text-center">
+                    <div class="text-end text-danger">
+                      <%=outgoPercentage%>%
+                      <i class="fa fa-chevron-down"></i>
+                    </div>
+                    <div class="h1 m-0"><%=outgoing_rows%></div>
+                    <div class="text-muted mb-3">Outgoing</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card">
+                  <div class="card-body p-3 text-center">
+                    <div class="text-end text-success">
+                      <%=repliPercentage%>%
+                      <i class="fa fa-chevron-up"></i>
+                    </div>
+                    <div class="h1 m-0"><%=replied_rows%></div>
+                    <div class="text-muted mb-3">New Replies</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card">
+                  <div class="card-header">
+                    <!-- <h4 class="card-title">List of Employees</h4> -->
+                    <div class="card-head-row card-tools-still-right">
+                      <div class="card-title">List of <%=title%></div>
+                      <div class="card-tools">
+                        <button id="refreshEmployees" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card" data-component="employees">
+                          <span class="fa fa-sync-alt"></span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table
+                        id="documentsDataTables"
+                        class="display table table-striped table-hover"
+                      >
+                        <thead>
+                          <tr>
+                            <th>Title</th>
+                            <th>Priority</th>
+                            <th>Time</th>
+                            <th>Created By</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tfoot>
+                          <tr class="text-uppercase">
+                            <th>Title</th>
+                            <th>Priority</th>
+                            <th>Time</th>
+                            <th>Created By</th>
+                            <th>Action</th>
+                          </tr>
+                        </tfoot>
+                        <tbody>
+                          <%
+                            if(displayData.length > 0) {
+                              displayData.forEach(function(data){
+                                const {id, title, priority, status, created_at, created_by} = data
+                          %>
+                            <tr data-document="<%=JSON.stringify(data)%>">
+                              <td><%=title%></td>
+                              <td><span class="badge badge-<%=priority=='special' ? 'info' : (priority=='confidential' ? 'danger' : 'warning') %>"><%=priority%></span></td>
+                              <td><span class="badge badge-<%=status=='draft' ? 'count' : (status=='outgoing' ? 'success' : 'warning') %>"><%=status%></span> <%=moment(created_at).format('LLL @H:m:s')%></td>
+                              <td><%=created_by%></td>
+                              <td>
+                                <a href="/documents/<%=id%>" data-id="<%=id%>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="View">
+                                  <i class="fa fa-eye"></i>
+                                </a>
+                              </td>
+                            </tr>
+                          <% }) } else { %>
+                          <tr>
+                            <td class="text-center" colspan="5">No Available Records</td>
+                          </tr>
+                          <% } %>
+                          
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<!-- Employee Modal: Create -->
+<%- include('../../components/modals/documents/create') -%>
+<!-- Footer Template -->
+<%- include('../../views/footer') -%>

@@ -1,0 +1,149 @@
+<!-- Header Template -->
+<%- include('../../views/header') -%>
+<%
+    const { id, title, priority, created_at, updated_at, created_by } = displayData
+    const { username } = SESSION_USER
+    const requestID = addLeadingZeros(id)
+    const trackerid = `${moment(created_at).format('YYYYMMDD')}-${requestID}`
+
+%>
+<div class="wrapper">
+    <div class="hidden" id="documentData" data-document="<%=JSON.stringify(displayData)%>"></div>
+    <%- include('../../views/sidebar') -%>
+
+    <div class="main-panel">
+        <%- include('../../views/main-header') -%>
+        <div class="container">
+          <div class="page-inner">
+            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+              <div class="col-md-1 mr-4">
+                <div id="transid-<%- trackerid -%>" data-qrcode="<%- trackerid -%>" class="qrcode documents" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- trackerid -%>"></div>
+              </div>
+              <div class="col-md-8">
+                  <h3 class="fw-bold mb-3 unsalan">
+                    <span id="documentTitle" title="Document Title"><%- title -%></span><br>
+                    <small id="trackingCode">No. <%=trackerid%></small><br>
+                    <small>DA RFO VII - Office of the Director</small>
+                  </h3>
+              </div>
+              <div class="ms-md-auto py-2 py-md-0">
+                <a href="#" class="btn btn-primary btn-border btn-round me-2" id="printDocumentTracekerBtn"><i class="fas fa-print"></i> Print</a>
+                <a href="#" class="btn btn-label-info btn-round me-2" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add New Remarks</a>
+                <% if(created_by == username) {%>
+                <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#mailToDocumentTrackerModal"><i class="fas fa-envelope"></i> Email</a>
+                <% } %>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <!-- <h4 class="card-title">List of Employees</h4> -->
+                    <div class="card-head-row card-tools-still-right">
+                      <div class="card-title">Attachments</div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="form-group">
+                      <div class="custom-file-upload">
+                        <input id="file-upload" type="file" name="fileUpload" multiple  class="hidden"/>
+                        <label for="file-upload" id="file-drag">
+                          <span id="file-upload-btn" class="button">Browse File</span>
+                        </label>
+          
+                        <div class="files">
+                          <ul></ul>
+                        </div>
+                        <div id="message"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-action">
+                    <button class="btn btn-info" id="uploadDocumentBtn"><i class="fas fa-upload"></i> Upload</button>
+                  </div>
+                </div>
+                
+                <div class="card hidden">
+                  <div class="card-header">
+                    <div class="card-head-row card-tools-still-right">
+                      <div class="card-title">Recieved By</div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="form-group">
+                      <div class="selectgroup selectgroup-pills">
+                        <label class="selectgroup-item">
+                          <input type="checkbox" name="period" value="24" class="selectgroup-input">
+                          <span class="selectgroup-button">Joegie Paquibot Wagwag</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <div class="card-head-row card-tools-still-right">
+                      <div class="card-title">Recent Activity</div>
+                      <div class="card-tools">
+                        <button id="refreshActivity" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Refresh">
+                          <span class="fa fa-sync-alt"></span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <ol class="activity-feed mb-0">
+                  <%
+                    activities.forEach(activity=>{ 
+                      const { id, refid, message, reciever, timetocomply, created_at, created_by } = activity
+                  %>
+                      <li class="feed-item feed-item-<%=timetocomply?'success':'info'%> d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="<%=timetocomply?'Email Sent':'Replied'%>">
+                        <div class="d-flex">
+                          <span class="user fs-3 mr-3"><i class="fas fa-<%=timetocomply?'envelope':'comments'%>"></i></span>
+                          <div class="">
+                            <time class="date" datetime="<%=moment(created_at || timetocomply).format('MMMM D YYYY, h:mm:ss a')%>">
+                              <%=moment(created_at ?? timetocomply).format('MMMM D YYYY, h:mm:ss a')%>
+                            </time>
+                            <span class="text">
+                              <span class="badge badge-black mr-3"></span>
+                              <%- timetocomply 
+                              ? 'Sent to ' + reciever 
+                                  : message + ' by <strong class="text-capitalize">' + created_by + '</strong>' 
+                              %>
+                            </span>
+                          </div>
+                        </div>
+                      </li>
+                  <% }) %>
+                      <li class="feed-item feed-item-black pb-0 d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Draft Document">
+                        <div class="d-flex">
+                          <span class="user fs-3 mr-3"><i class="fas fa-door-open"></i></span>
+                          <div class="">
+                            <time class="date" datetime="<%=moment(created_at).format('MMMM D YYYY, h:mm:ss a')%>">
+                              <%=moment(created_at).format('MMMM D YYYY, h:mm:ss a')%>
+                            </time>
+                            <span class="text">
+                              <span class="badge badge-black mr-3">Draft</span>
+                              Created by <%=created_by%>
+                            </span>
+                          </div>
+                        </div>
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<!-- Employee Modal: Create -->
+<%- include('../../components/modals/documents/mailto') -%>
+<!-- Employee Modal: Remarks -->
+<%- include('../../components/modals/documents/remarks') -%>
+<!-- Footer Template -->
+<%- include('../../views/footer') -%>

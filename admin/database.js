@@ -12,6 +12,8 @@ const tables = {
     employee: 'employees',
     transaction: 'transid',
     remark: 'remarks',
+    document: 'documents',
+
 }
 const TEST_UNIT = process.env.TEST_UNIT
 
@@ -205,8 +207,7 @@ const databaseUtils = {
         })
     }),
     putTransactions: async (data) => {
-        console.log('putTransactions')
-        console.log(data)
+        return await databaseUtils.amendData('transactions', data)
     },
     hideToDisplay: async (component, id) => {
         try {
@@ -318,28 +319,6 @@ const databaseUtils = {
     }),
     putRemarks: (id) => new Promise((resolve, reject) => {
     }),
-    // Trapping Injectors
-    // { id: 1234 } or { refid: 1234 }
-    retrieveData: (table, filter, where) => new Promise((resolve, reject) => {
-        if(!filter) { filter = '*';}
-        let query = `SELECT ${filter} FROM ${prefix}.${table}`
-        if(where) {
-            query += " WHERE"
-            query += Object.entries(where)
-            .map(([key, value]) => {
-                if (value === '' || value === null) return ` ${key} IS NULL`;
-                return ` ${key}='${value}'`
-            })
-            .join(' AND');
-        }
-        connection.query(query, (error, results) => {
-            if (error) {
-                reject(error)
-            } else {
-                resolve(results)
-            }
-        })
-    }),
     retrieveEmployee: async (data, username) => {
         if (data) {
             data = JSON.parse(data)
@@ -359,14 +338,32 @@ const databaseUtils = {
 
         return await databaseUtils.retrieveData('transid')
     },
+    getDataById: (table, data) => new Promise((resolve, reject) => {
+        data = JSON.parse(data)
+
+        let key = Object.keys(data)
+        let value = Object.values(data)
+
+        let query = `SELECT * FROM ${prefix}.${table} WHERE ${key}=${value}`
+        console.log(query)
+        connection.query(query, (error, results) => {
+            if (error) {
+                reject(error)
+            } else {
+                resolve(results)
+            }
+        })
+    }),
+    ////////////////////////////////////////////////////////////////
+    // CREATE DATA
     storeData: (table, data) => new Promise((resolve, reject) => {
         
-        data = JSON.parse(data )
+        data = JSON.parse(data)
 
         let keys = Object.keys(data)
         let values = Object.values(data);
 
-        let query = `INSERT INTO ${table} (`
+        let query = `INSERT INTO ${prefix}.${table} (`
         query += (keys.join(', ', keys));
         query += ") VALUES (";
         // query += '"' + (values.join('", "', values)) +'"';
@@ -396,6 +393,7 @@ const databaseUtils = {
                     .map(([key, value]) => `${key}='${value}'`)
                     .join(' AND ');
 
+            console.log(query)
             // Execute the query
             return new Promise((resolve, reject) => {
                 connection.query(query, (error, results) => {
@@ -410,7 +408,40 @@ const databaseUtils = {
         }
     
     },
-    // AMEND
+    // READ DATA
+    // Trapping Injectors
+    // { id: 1234 } or { refid: 1234 }
+    // filter = column_name
+    retrieveData: (table, filter, where) => new Promise((resolve, reject) => {
+        if(!filter) { filter = '*';}
+        let query = `SELECT ${filter} FROM ${prefix}.${table}`
+        if(where) {
+            query += " WHERE"
+            query += Object.entries(where)
+            .map(([key, value]) => {
+                if (value === '' || value === null) return ` ${key} IS NULL`;
+                return ` ${key}='${value}'`
+            })
+            .join(' AND');
+        }
+        console.log(query)
+        connection.query(query, (error, results) => {
+            if (error) {
+                reject(error)
+            } else {
+                resolve(results)
+            }
+        })
+    }),
+    retrieveDatas: (tables, filter, where) => new Promise((resolve, reject) => {
+        // SELECT doc.*, act.*
+        // FROM transto.documents AS doc
+        // INNER JOIN transto.documents_activity AS act ON doc.id = act.refid
+        // WHERE act.refid = 3;
+
+    }),
+    ///////////////////////////////////////////////////////////////
+    // UPDATE
     amendEmployee: async (data) =>{
         return await databaseUtils.amendData('employees', data)
     },
@@ -435,6 +466,47 @@ const databaseUtils = {
         data = JSON.stringify({...data, created_at: convertDate(new Date())})
         return await databaseUtils.storeData('notifications', data)
     },
+    getDocumentTrackerAnalysis: () => new Promise((resolve, reject) =>{
+        const query = `SELECT 
+                        COUNT(*) AS total_rows,
+                        SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft_rows,
+                        SUM(CASE WHEN status = 'outgoing' THEN 1 ELSE 0 END) AS outgoing_rows,
+                        SUM(CASE WHEN status = 'replied' THEN 1 ELSE 0 END) AS replied_rows
+                        FROM ${prefix}.${tables.document};`
+        console.log(query)
+        return connection.query(query, (error, results) => {
+            if (error) { reject(error) }
+            else { resolve(results) }
+        })
+    }),
+    createDocumentTracker: async (data) => {
+        const now = convertDate(new Date())
+        data = JSON.parse(data)
+        data = JSON.stringify({...data, created_at: now, updated_at: now })
+        return await databaseUtils.storeData('documents', data) 
+    },
+    getDocumentTrackerData: async (data) => {
+        if (data) {
+            data = JSON.parse(data)
+            return await databaseUtils.retrieveData('documents', '*', data)
+        }
+        
+        return await databaseUtils.retrieveData('documents')
+    },
+    updateDocumentTrackerStatus: async(data) => {
+        return await databaseUtils.amendData('documents', data)
+    },
+    createDocumentTrackerActivity: async (data) => {
+        return await databaseUtils.storeData('documents_activity', data)
+    },
+    getDocumentTrackerActivity: async (data) => {
+        if (data) {
+            data = JSON.parse(data)
+            return await databaseUtils.retrieveData('documents_activity', '*', data)
+        }
+        
+        return await databaseUtils.retrieveData('documents_activity')
+    },
     // endof NOTIFICATIONS
     getDataFromLast7Days: async (table, column) => {
         // const query = `SELECT * FROM ${prefix}.${table} WHERE ${column} >= CURDATE() - INTERVAL 7 DAY;`
@@ -454,14 +526,19 @@ const databaseUtils = {
             });
         });
     },
-    getCurrentUserRole: async (employeeid) => {
-        const query = ` SELECT role FROM users WHERE user_id = ${employeeid};`
+
+    getCurrentUserRole: async (employeeid, columnName='role_name') => {
+        const query = `SELECT ${columnName} FROM transto.roles WHERE employee_ids LIKE '%${employeeid}%'`
         return new Promise((resolve, reject) => {
             connection.query(query, (error, results) => {
                 if (error) reject(error);
                 else resolve(results);
             });
         });
+    },
+
+    retrieveDocuments: async (table, data) => {
+        return await databaseUtils.getDataById(table, data)
     },
     // Sample
     divisions: (division) => {
