@@ -470,10 +470,19 @@ const databaseUtils = {
         const query = `SELECT 
                         COUNT(*) AS total_rows,
                         SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft_rows,
-                        SUM(CASE WHEN status = 'outgoing' THEN 1 ELSE 0 END) AS outgoing_rows,
-                        SUM(CASE WHEN status = 'replied' THEN 1 ELSE 0 END) AS replied_rows
+                        SUM(CASE WHEN status = 'outgoing' THEN 1 ELSE 0 END) AS outgoing_rows
                         FROM ${prefix}.${tables.document};`
-        console.log(query)
+        // console.log(query)
+        return connection.query(query, (error, results) => {
+            if (error) { reject(error) }
+            else { resolve(results) }
+        })
+    }),
+    getDocumentTrackerActivityReplies: () => new Promise((resolve, reject) =>{
+        const query = ` SELECT 
+                            COUNT(*) AS total_rows,
+                            SUM(CASE WHEN timetocomply IS NULL THEN 1 ELSE 0 END) AS replies
+                        FROM transto.documents_activity`
         return connection.query(query, (error, results) => {
             if (error) { reject(error) }
             else { resolve(results) }

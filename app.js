@@ -1076,12 +1076,16 @@ app.get('/inventory', restrict, async function(req, res){
 // DOCUMENTS
 app.get('/documents', restrict, async function(req, res){
   const results = await connection.getDocumentTrackerData()
-  const analysisData = await connection.getDocumentTrackerAnalysis()
-  console.log(analysisData)
+  let analysisData = await connection.getDocumentTrackerAnalysis()
+  let analysisDataReplies = await connection.getDocumentTrackerActivityReplies()
+  // console.log(analysisData)
+  analysisData = analysisData[0]
+  analysisDataReplies = analysisDataReplies[0]
+
   res.render('pages/documents/index', {
     title: 'Documents',
     displayData: results,
-    analysisData: analysisData[0],
+    analysis: {analysisData, analysisDataReplies},
   })
 })
 
@@ -1241,7 +1245,7 @@ app.route('/api/transactions/:id')
 
 app.get('/settings', restrict, async function(req, res){
   res.render('pages/settings', {
-    title: "Setting"
+    title: "Settings"
   })
 })
 

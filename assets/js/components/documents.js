@@ -215,42 +215,58 @@ if(emailDocumentTracker) {
     }
     document.getElementById("selectedEmails").textContent = "Selected values: " + selectedEmails.join(", ");
 
-    const emailBody = `<div class="wrapper" style="overflow: hidden;">
-      <div class="row reciever" style="display: flex; margin-bottom: 20px;">
-          <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%; margin-right: 4em;">
-              <strong style="font-weight: 600; text-transform: uppercase;">For: </strong>
-          </div>
-          <div class="col-5" style="flex: 0 0 auto; width: 41.66666667%;">${selectedEmails}</div>
-      </div>
-      <div class="row sender" style="display: flex; margin-bottom: 20px;">
-          <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%; margin-right: 4em;">
-              <strong style="font-weight: 600; text-transform: uppercase;">From: </strong>
-          </div>
-          <div class="col-10" style="flex: 0 0 auto; width: 83.33333333%;">Regional Executive Director</div>
-      </div>
-      <div class="row subject" style="display: flex; margin-bottom: 20px;">
-          <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%; margin-right: 4em;">
-              <strong style="font-weight: 600; text-transform: uppercase;">Subject: </strong>
-          </div>
-          <div class="col-10" style="flex: 0 0 auto; width: 83.33333333%;">${documentTitle.innerHTML}</div>
-      </div>
-      <div class="message" style="margin-bottom: 20px;">
-          <div style="width: 100%;">Kindly confirm receipt of this communication and provide any updates.</div>
-          <div style="width: 100%;">${ timetocomply.value ? 'Time to Comply: ' + datetimeformat(timetocomply.value) : ""}</div>
-      </div>
-      <div class="additional" style="display: flex; margin-bottom: 20px;">
-          <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%; margin-right: 4em;">
-              <strong style="font-weight: 600; text-transform: uppercase;">Additional Message: </strong>
-          </div>
-          <div style="flex: 0 0 auto; width: 83.33333333%;">${ mailMessage.value }</div>
-      </div>
-      <footer>
-          <h3 style="margin: 0 2px;">OFFICE OF THE REGIONAL EXECUTIVE DIRECTOR</h3>
-          <h4 style="margin: 0 2px;">Department of Agriculture</h4>
-          <p style="margin: 0 2px;">Regional Field Office No. VII</p>
-          <p style="margin: 0 2px;">DA-RFO 7 Complex, Highway Maguikay, Mandaue City 6014, Cebu</p>
-          <p style="margin: 0 2px;">Tel. No. (032) 268-5187; Email: redsoffice7@gmail.com</p>
-      </footer>
+    const emailBody = `<div class="wrapper" style="overflow: hidden; width: 794px;">
+        <header class="row" style="margin-bottom: -120px;">
+            <img src="https://raw.githubusercontent.com/jhoe08/devprojectst/refs/heads/main/assets/img/border.png" style="width: 100%;">
+        </header>
+        <main style="padding: 0 40px;">
+            <div class="row reciever" style="display: flex; margin-bottom: 20px;">
+                <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%;">
+                    <strong style="font-weight: 600; text-transform: uppercase;">For: </strong>
+                </div>
+                <div class="col-10" style="flex: 0 0 auto; width: 83.33333333%;">${selectedEmails}</div>
+            </div>
+            <div class="row sender" style="display: flex; margin-bottom: 20px;">
+                <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%;">
+                    <strong style="font-weight: 600; text-transform: uppercase;">From: </strong>
+                </div>
+                <div class="col-10" style="flex: 0 0 auto; width: 83.33333333%;">Regional Executive Director</div>
+            </div>
+            <div class="row subject" style="display: flex; margin-bottom: 20px;">
+                <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%;">
+                    <strong style="font-weight: 600; text-transform: uppercase;">Subject: </strong>
+                </div>
+                <div class="col-10" style="flex: 0 0 auto; width: 83.33333333%;">${documentTitle.innerHTML}</div>
+            </div>
+            <div class="row timetocomply" style="display: flex; margin-bottom: 20px;">
+                <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%;">
+                    <strong style="font-weight: 600; text-transform: uppercase;">Time to Comply: </strong>
+                </div>
+                <div class="col-10" style="flex: 0 0 auto; width: 83.33333333%;">${datetimeformat(timetocomply.value)}</div>
+            </div>
+            <div class="message" style="margin-bottom: 20px;">
+                <div style="width: 100%;">Kindly confirm receipt of this communication and provide any updates.</div>
+            </div>
+            <div class="additional" style="display: flex; margin-bottom: 20px;">
+                <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%;">
+                    <strong style="font-weight: 600; text-transform: uppercase;">Additional Message: </strong>
+                </div>
+                <div style="flex: 0 0 auto;width: 83.33333333%; margin: 0; font-family: initial;">${ mailMessage.value }</div>
+            </div>
+        </main>
+        <footer style="display: flex;">
+            <div class="col-4 mr-4" style="flex: 0 0 auto; width: 33.33333333%; display: flex; justify-content: space-around; align-items: center;">
+                <img src="https://raw.githubusercontent.com/jhoe08/devprojectst/refs/heads/main/assets/img/bagong-pilipinas.png" width="100vw">
+                <img src="https://raw.githubusercontent.com/jhoe08/devprojectst/refs/heads/main/assets/img/da-logo.png" width="100vw">
+            </div>
+            <div class="col-8" style="flex: 0 0 auto; width: 66.66666667%;">
+                <h3 style="margin: 0 2px;">OFFICE OF THE REGIONAL EXECUTIVE DIRECTOR</h3>
+                <h1 style="margin: 0 2px; font-weight: 100;">Department of Agriculture</h1>
+                <h3 style="margin: 0 2px;">Regional Field Office No. VII</h3>
+                <p style="margin: 0 2px;">DA-RFO 7 Complex, Highway Maguikay, Mandaue City 6014, Cebu</p>
+                <p style="margin: 0 2px;">Tel. No. (032) 268-5187; Email: redsoffice7@gmail.com</p>
+            </div>
+        </footer>
     </div>`
 
     const { id } = JSON.parse(documentData.dataset.document)
@@ -342,7 +358,8 @@ if(createActivityBtn) {
         emailDocumentTracker.innerHTML = '<i class="fas fa-check"></i> Sent'
         emailDocumentTracker.classList.add('disabled')
       }, 5000);
-      // window.location.href = `/documents/${insertId}`
+      notifyCustom('bell', 'Success', 'Posted comment successfully!', 'danger')
+
     })
     .catch(error => {
         notifyCustom('bell', 'Failed to fetch data', error, 'danger')

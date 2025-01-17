@@ -7,18 +7,21 @@
         <%- include('../../views/main-header') -%>
 
         <%
-          let { total_rows, draft_rows, outgoing_rows, replied_rows } = analysisData
+          const { analysisData, analysisDataReplies } = analysis
+          let { total_rows, draft_rows, outgoing_rows } = analysisData
+          let { total_rows: totalReplies, replies } = analysisDataReplies
 
           let draftPercentage = (Number(draft_rows) / total_rows) * 100
           let outgoPercentage = (Number(outgoing_rows) / total_rows) * 100
-          let repliPercentage = (Number(replied_rows) / total_rows) * 100
+
+          let repliPercentage = (Number(replies) / totalReplies) * 100
 
           draftPercentage = draftPercentage.toFixed(0)
           outgoPercentage = outgoPercentage.toFixed(0)
           repliPercentage = repliPercentage.toFixed(0)
         %>
 
-        <div class="container" data-analysis="<%=JSON.stringify({ total_rows, draft_rows, outgoing_rows, replied_rows })%>">
+        <div class="container" data-analysis="<%=JSON.stringify({ total_rows, draft_rows, outgoing_rows, replies })%>">
           <div class="page-inner">
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
                 <div>
@@ -62,7 +65,7 @@
                       <%=repliPercentage%>%
                       <i class="fa fa-chevron-up"></i>
                     </div>
-                    <div class="h1 m-0"><%=replied_rows%></div>
+                    <div class="h1 m-0"><%=replies%></div>
                     <div class="text-muted mb-3">New Replies</div>
                   </div>
                 </div>

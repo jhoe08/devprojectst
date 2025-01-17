@@ -4,7 +4,7 @@
     var {blood_type, civil_status, citizenship, gender } = defaultData
     var {divisions, banner_program} = dafaultTransactionData
 
-    var {employeeid, firstname, middlename, lastname, extname, birthdate, experience, contacts, others, username} = employees
+    var {employeeid, firstname, middlename, lastname, extname, birthdate, experience, contacts, others, username} = employees || defaultNullUser
     if(experience) { 
         var { lists } = JSON.parse(experience)
         var {office, division, banner, salary, startdate, enddate, position, employment } = lists[0] 
