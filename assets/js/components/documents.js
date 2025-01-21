@@ -8,6 +8,7 @@ const addMoreEmail = document.getElementById('addMoreEmail')
 const emailsToSend = document.getElementById('emailsToSend')
 const createActivityBtn = document.getElementById('createActivityBtn')
 
+const mailToDocumentTrackerBtn = document.getElementById('mailToDocumentTrackerBtn')
 const emailDocumentTracker = document.getElementById('emailDocumentTracker')
 const printDocumentTracekerBtn = document.getElementById('printDocumentTracekerBtn')
 
@@ -48,6 +49,9 @@ function datetimeformat(string) {
   return formattedDateTime;
 
 }
+
+const isAllFieldsFilled = (...fields) => fields.every(field => field.value !== "");
+
 
 // SELECT MULTIPLE OPTION
 document.querySelectorAll('select[multiple] option').forEach(function(option) {
@@ -197,13 +201,32 @@ if(addMoreEmail) {
   });
 }
 
+if(mailToDocumentTrackerBtn) {
+  // Resets the button when it fails to do the task
+  mailToDocumentTrackerBtn.addEventListener('click', function(){
+    emailDocumentTracker.innerHTML = '<i class="fas fa-paper-plane"></i> Email'
+    // emailDocumentTracker.classList.add('disabled')
+  })
+}
+
 if(emailDocumentTracker) {
   const body = document.querySelector('body')
+  const documentTitle = document.getElementById('documentTitle')
+  const timetocomply = document.getElementById('timetocomply')
+  const mailMessage = document.getElementById('mailMessage')
+
+  const inputs = [documentTitle, timetocomply, mailMessage]
+
+  // Function to toggle the button disabled state
+  const toggleButtonState = () => {
+    emailDocumentTracker.disabled = !isAllFieldsFilled(...inputs);
+  };
+  
+  // Add event listeners to each input field
+  inputs.forEach(input => input.addEventListener('input', toggleButtonState));
 
   emailDocumentTracker.addEventListener('click', function(){
-    const documentTitle = document.getElementById('documentTitle')
-    const timetocomply = document.getElementById('timetocomply')
-    const mailMessage = document.getElementById('mailMessage')
+    
     const selectedOptions = emailsToSend.selectedOptions
 
     const { username } = JSON.parse(body.dataset.currentuser)
@@ -215,11 +238,19 @@ if(emailDocumentTracker) {
     }
     document.getElementById("selectedEmails").textContent = "Selected values: " + selectedEmails.join(", ");
 
-    const emailBody = `<div class="wrapper" style="overflow: hidden; width: 794px;">
-        <header class="row" style="margin-bottom: -120px;">
+    const emailBody = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Email</title>
+</head>
+<body>
+    <div class="wrapper" style="overflow: hidden; width: 794px;">
+        <div class="header row" style="margin-bottom: -120px;">
             <img src="https://raw.githubusercontent.com/jhoe08/devprojectst/refs/heads/main/assets/img/border.png" style="width: 100%;">
-        </header>
-        <main style="padding: 0 40px;">
+        </div>
+        <div class="main" style="padding: 0 40px;">
             <div class="row reciever" style="display: flex; margin-bottom: 20px;">
                 <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%;">
                     <strong style="font-weight: 600; text-transform: uppercase;">For: </strong>
@@ -244,18 +275,18 @@ if(emailDocumentTracker) {
                 </div>
                 <div class="col-10" style="flex: 0 0 auto; width: 83.33333333%;">${datetimeformat(timetocomply.value)}</div>
             </div>
+            <div class="additional" style="display: flex; margin-bottom: 20px;">
+                <div class="col-2 mr-4 hidden" style="display: none; flex: 0 0 auto; width: 16.66666667%;">
+                    <strong style="font-weight: 600; text-transform: uppercase;">Additional Message: </strong>
+                </div>
+                <div style="flex: 0 0 auto; width: 100%; margin: 0; font-family: inherit;">${ mailMessage.value }</div>
+            </div>
             <div class="message" style="margin-bottom: 20px;">
                 <div style="width: 100%;">Kindly confirm receipt of this communication and provide any updates.</div>
             </div>
-            <div class="additional" style="display: flex; margin-bottom: 20px;">
-                <div class="col-2 mr-4" style="flex: 0 0 auto; width: 16.66666667%;">
-                    <strong style="font-weight: 600; text-transform: uppercase;">Additional Message: </strong>
-                </div>
-                <div style="flex: 0 0 auto;width: 83.33333333%; margin: 0; font-family: initial;">${ mailMessage.value }</div>
-            </div>
-        </main>
-        <footer style="display: flex;">
-            <div class="col-4 mr-4" style="flex: 0 0 auto; width: 33.33333333%; display: flex; justify-content: space-around; align-items: center;">
+        </div>
+        <div class="footer" style="display: flex;">
+            <div class="col-4 mr-4" style="flex: 0 0 auto; width: 33.33333333%;display: flex;justify-content: space-around;align-items: center;">
                 <img src="https://raw.githubusercontent.com/jhoe08/devprojectst/refs/heads/main/assets/img/bagong-pilipinas.png" width="100vw">
                 <img src="https://raw.githubusercontent.com/jhoe08/devprojectst/refs/heads/main/assets/img/da-logo.png" width="100vw">
             </div>
@@ -266,8 +297,10 @@ if(emailDocumentTracker) {
                 <p style="margin: 0 2px;">DA-RFO 7 Complex, Highway Maguikay, Mandaue City 6014, Cebu</p>
                 <p style="margin: 0 2px;">Tel. No. (032) 268-5187; Email: redsoffice7@gmail.com</p>
             </div>
-        </footer>
-    </div>`
+        </div>
+    </div>
+</body>
+</html>`
 
     const { id } = JSON.parse(documentData.dataset.document)
 
@@ -289,7 +322,9 @@ if(emailDocumentTracker) {
     };
 
     console.log(requestOptions)
-
+    emailDocumentTracker.innerHTML = '<i class="fas fa-spinner"></i> Sending'
+    emailDocumentTracker.classList.add('disabled')
+    
     fetch(sendDocument, requestOptions)
     .then(response => {
       if (!response.ok) {
@@ -303,12 +338,9 @@ if(emailDocumentTracker) {
         notifyCustom('bell', 'Error', 'Failed to send the Communication', 'danger')
         return
       }
-      emailDocumentTracker.innerHTML = '<i class="fas fa-spinner"></i> Sending'
       setTimeout(() => {
         emailDocumentTracker.innerHTML = '<i class="fas fa-check"></i> Sent'
-        emailDocumentTracker.classList.add('disabled')
-      }, 5000);
-      // window.location.href = `/documents/${insertId}`
+      }, 3000);
     })
     .catch(error => {
         notifyCustom('bell', 'Failed to fetch data', error, 'danger')

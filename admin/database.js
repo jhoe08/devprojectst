@@ -466,6 +466,8 @@ const databaseUtils = {
         data = JSON.stringify({...data, created_at: convertDate(new Date())})
         return await databaseUtils.storeData('notifications', data)
     },
+    // endof NOTIFICATIONS
+    // DOCUMENTS
     getDocumentTrackerAnalysis: () => new Promise((resolve, reject) =>{
         const query = `SELECT 
                         COUNT(*) AS total_rows,
@@ -516,7 +518,20 @@ const databaseUtils = {
         
         return await databaseUtils.retrieveData('documents_activity')
     },
-    // endof NOTIFICATIONS
+    getDocumentTrackerID: async (params) => {
+        const data = params.split('-')
+        let id = Number(data[1])
+        let date = moment(data[0]).format('YYYYMMDD')
+
+        const result = await databaseUtils.retrieveData('documents', '*', {id})
+        if(result.length > 0) {
+            const { created_at } = JSON.parse(JSON.stringify(result[0]))
+            return (date===moment(created_at).format('YYYYMMDD')) ? JSON.stringify(result[0]) : false
+        }
+       
+        return false
+    },
+    // endof DOCUMENTS
     getDataFromLast7Days: async (table, column) => {
         // const query = `SELECT * FROM ${prefix}.${table} WHERE ${column} >= CURDATE() - INTERVAL 7 DAY;`
         const query = ` SELECT 
@@ -549,6 +564,12 @@ const databaseUtils = {
     retrieveDocuments: async (table, data) => {
         return await databaseUtils.getDataById(table, data)
     },
+
+    postSettings: async(table, data) => {
+        console.log('postSettings', data)
+        return await databaseUtils.storeData(table, data)
+    },
+    
     // Sample
     divisions: (division) => {
         let lists = ["ILD", "PMED", "FOD", "ADMIN", "RESEARCH", "REGULATORY", "AMAD", "RAED", "Others"]

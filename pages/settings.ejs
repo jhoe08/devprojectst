@@ -17,42 +17,77 @@
           </div>
           <div class="ms-md-auto py-2 py-md-0">
             <a href="#" class="btn btn-label-info btn-round me-2 hidden">Manage</a>
-            <a href="/transactions/scan" class="btn btn-primary btn-round"><i class="fas fa-qrcode"></i> Scan Transaction</a>
+            <a id="saveSettings" href="#" class="btn btn-primary btn-round"><i class="fas fa-cloud"></i> Save Settings</a>
           </div>
         </div>
 
         <div class="row">
-          <div class="col-5 col-md-4">
+          <div class="col-3 col-md-2">
             <div class="nav flex-column nav-pills nav-secondary nav-pills-no-bd nav-pills-icons" id="v-pills-tab-with-icon" role="tablist" aria-orientation="vertical">
-              <a class="nav-link active" id="v-pills-home-tab-icons" data-bs-toggle="pill" href="#v-pills-home-icons" role="tab" aria-controls="v-pills-home-icons" aria-selected="true">
+              <a class="nav-link active" id="v-pills-site-tab-icons" data-bs-toggle="pill" href="#v-pills-site-icons" role="tab" aria-controls="v-pills-home-icons" aria-selected="true">
                 <i class="icon-home"></i>
-                Site Info
+                Site
               </a>
-              <a class="nav-link" id="v-pills-profile-tab-icons" data-bs-toggle="pill" href="#v-pills-profile-icons" role="tab" aria-controls="v-pills-profile-icons" aria-selected="false" tabindex="-1">
-                <i class="fas fa-cloud"></i>
+              <a class="nav-link" id="v-pills-settings-tab-icons" data-bs-toggle="pill" href="#v-pills-settings-icons" role="tab" aria-controls="v-pills-profile-icons" aria-selected="false" tabindex="-1">
+                <i class="fas fa-sitemap"></i>
+                Divisions
+              </a>
+              <a class="nav-link" id="v-pills-api-tab-icons" data-bs-toggle="pill" href="#v-pills-api-icons" role="tab" aria-controls="v-pills-profile-icons" aria-selected="false" tabindex="-1">
+                <i class="fas fa-globe"></i>
                 API
               </a>
+              
             </div>
           </div>
-          <div class="col-7 col-md-8">
+          <div class="col-9 col-md-10">
             <div class="tab-content" id="v-pills-with-icon-tabContent">
-              <div class="tab-pane fade show active" id="v-pills-home-icons" role="tabpanel" aria-labelledby="v-pills-home-tab-icons">
-                <p>
-                  Far far away, behind the word mountains, far from
-                  the countries Vokalia and Consonantia, there live
-                  the blind texts. Separated they live in
-                  Bookmarksgrove right at the coast of the
-                  Semantics, a large language ocean.
-                </p>
-
-                <p>
-                  A small river named Duden flows by their place and
-                  supplies it with the necessary regelialia. It is a
-                  paradisematic country, in which roasted parts of
-                  sentences fly into your mouth.
-                </p>
+              <div class="tab-pane fade show active" id="v-pills-site-icons" role="tabpanel" aria-labelledby="v-pills-home-tab-icons">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="card">
+                      <div class="card-header">
+                        <div class="card-head-row card-tools-still-right">
+                          <h4 class="card-title">Site Settings</h4>
+                        </div>
+                      </div>
+                      <div class="card-body">
+                        <div class="form-group form-group-default">
+                          <label>Name</label>
+                          <input id="site_name" type="text" class="form-control">
+                        </div>
+                        <div class="form-group form-group-default">
+                          <label>Tagline</label>
+                          <input id="site_tagline" type="text" class="form-control">
+                        </div>
+                        <div class="form-group form-group-default">
+                          <label>Address</label>
+                          <input id="site_address" type="text" class="form-control">
+                        </div>
+                        <div class="row">
+                          <div class="col-md-6 ">
+                            <div class="col-md-6 form-group form-group-default">
+                              <label>Email</label>
+                              <input id="site_email" type="text" class="form-control">
+                            </div>
+                            
+                          </div>
+                          <div class="col-md-6 ">
+                            <div class="col-md-6 form-group form-group-default">
+                              <label>Phone</label>
+                              <input id="site_phone" type="text" class="form-control">
+                            </div>
+                          </div>
+                          
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                   
+                  </div>
+                </div>
               </div>
-              <div class="tab-pane fade" id="v-pills-profile-icons" role="tabpanel" aria-labelledby="v-pills-profile-tab-icons">
+              <div class="tab-pane fade" id="v-pills-api-icons" role="tabpanel" aria-labelledby="v-pills-profile-tab-icons">
                 <div class="card-body">
                   <ul class="nav nav-pills nav-secondary nav-pills-no-bd" id="pills-tab-without-border" role="tablist">
                     <li class="nav-item submenu" role="presentation">
@@ -116,6 +151,51 @@
                         dragged her into their agency, where they abused her
                         for their
                       </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="v-pills-settings-icons" role="tabpanel" aria-labelledby="v-pills-settings-tab-icons">
+                <div class="card-body">
+                  <div class="card">
+                    <div class="card-header">
+                        <div class="card-head-row card-tools-still-right">
+                            <h4 class="card-title">Divisions</h4>
+                            <div class="card-tools transcations-code text-uppercase form-group-add">
+                                <button id="addMoreFieldButton" class="btn btn-icon btn-link btn-primary btn-xs">
+                                  <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="card-body" id="divisionFields">
+                        <div class="row">
+                            <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
+                                <div class="form-group form-group-default form-group-minus">
+                                    <label for="minusButton">Remove</label>
+                                    <button id="minusButton" class="form-control fas fa-minus"></button>
+                                </div>
+                            </div>
+                            <div class="col-md-2 ml-0">
+                              <div class="form-group form-group-default">
+                                <label for="division_abbrv">Abbreviation</label>
+                                <input id="division_abbrv" name="division_abbrv" type="text" class="form-control text-uppercase" value="">
+                              </div>
+                            </div>
+                            <div class="col-md-5">
+                              <div class="form-group form-group-default">
+                                <label for="division_name">Division Name</label>
+                                <input id="division_name" name="division_name" type="text" class="form-control" value="">
+                              </div>
+                            </div>
+                            <div class="col-md-4">
+                              <div class="form-group form-group-default">
+                                <label for="division_email">Division Email</label>
+                                <input id="division_email" name="division_email" type="email" class="form-control" value="">
+                              </div>
+                            </div>
+                        </div>
                     </div>
                   </div>
                 </div>

@@ -11,7 +11,7 @@
   /* Default icon styling */
   .hourglass {
     opacity: 0;
-    animation: fadeInOut 3s infinite ease-in-out;
+    animation: fadeInOut 4s infinite ease-in-out;
     position:absolute;
   }
   
@@ -50,5 +50,8 @@
   
   .hourglass:nth-child(3) {
     animation-delay: 2s;
+  }
+  .hourglass:nth-child(4) {
+    animation-delay: 3s;
   }
   

@@ -15,6 +15,16 @@
   }
 }
 
+.template-email {
+  .wrapper {
+    min-height: auto;
+    height: auto;
+  }
+  .footer {
+    display: none;
+  }
+}
+
 .fa-spinner {
   animation: spin 1s linear infinite;
 }

@@ -703,21 +703,27 @@ app.get('/transactions', restrict, async (req, res) => {
   try {
     const transactions = await connection.retrieveTransactions();
     const discardedTransaction = await connection.getListOfDiscarded('transactions');
-    const {data} = discardedTransaction[0]
-    const discardedTransactionIds = data
-    // Filter out the discarded transactions from the original transactions
-    const filteredTransactions = transactions.filter(transaction => !discardedTransactionIds.includes(transaction.product_id)); // Adjust this if your transaction object has a different identifier
-    // console.log(filteredTransactions)
+    // console.log('discardedTransaction', discardedTransaction.length)
+
+    let filteredTransactions = transactions; // Default to the original transactions
+
+    if (discardedTransaction.length > 0) { 
+        const { data: discardedTransactionIds } = discardedTransaction[0]; 
+        filteredTransactions = transactions.filter(transaction => !discardedTransactionIds.includes(transaction.product_id)); // Adjust this if your transaction object has a different identifier 
+    }
+
+    console.log('filteredTransactions', filteredTransactions);
 
     res.render('pages/transactions/index', { 
-      title: 'Transactions',
-      transactions: filteredTransactions, 
-      moment: moment,
-      connection: connection,
-      predata: _preTransactionsData,
-      path: req.url,
-      peso
+        title: 'Transactions',
+        transactions: filteredTransactions, // Use filteredTransactions here
+        moment: moment,
+        connection: connection,
+        predata: _preTransactionsData,
+        path: req.url,
+        peso
     }); // Pass the data to the template
+
   } catch (error) {
     console.error('Error fetching products:', error);
     res.status(500).send('Internal Server Error');
@@ -1103,7 +1109,7 @@ app.post('/documents/create', restrict, async function(req, res){
     res.status(200).json({ message: 'New Document is being on Track', response: results})
   } catch (error) {
     console.error('Error addding new notification on transaction:', error);
-    res.status(400).send('Error addding notification on transaction:', error);
+    res.status(400).send({ message: 'Error addding notification on transaction:', response: error});
   }
 })
 
@@ -1232,21 +1238,44 @@ app.route('/api/transactions/:id')
   .all(restrict)
   .get(async (req, res) => {
     const { id } = req.params;
-    if (!Number(id)) {
-      return res.status(400).json({ response: 'Invalid ID format' });
-    }
+    // if (!Number(id)) {
+    //   return res.status(400).json({ response: 'Invalid ID format' });
+    // }
 
-    const employee = await connection.getTransactionById(id);
-    if (employee) {
-      return res.status(200).json({ response: employee });
+    const transaction = await connection.getTransactionById(id);
+    if (transaction) {
+      return res.status(200).json({ response: transaction });
     }
-    return res.status(404).json({ response: 'Employee Not Found!' });
+    return res.status(404).json({ response: 'Transaction Not Found!' });
+  });
+app.route('/api/documents/:id')
+  .all(restrict)
+  .get(async (req, res) => {
+    const { id } = req.params;
+    // First check the id
+    const results = await connection.getDocumentTrackerID(id)
+    const { created_at } = JSON.parse(results)
+    // Then, validate the creation date
+
+    return res.status(400).json({ response: JSON.parse(results) }); 
   });
 
 app.get('/settings', restrict, async function(req, res){
   res.render('pages/settings', {
     title: "Settings"
   })
+})
+
+app.post('/settings', restrict, async function(req, res){
+  try {
+    const settings = {
+      settings: JSON.stringify(req.body)
+    }
+    const results = await connection.postSettings('settings', JSON.stringify(settings))
+    res.status(200).json({ message: 'Settings updated!', response: results})
+  } catch (error) {
+    res.status(400).json({ message: `Error saving settings: ${error}`, response: {} });
+  } 
 })
 
 // DEMO

@@ -90,23 +90,54 @@ if(text) {
 
 
 
-async function fetchTransactionById(transactionId) {
+async function fetchTransactionByIdWorking(id) {
     try {
-      const response = await fetch(`/api/transactions/${transactionId}`); // Assuming your API endpoint is like this
-      const data = await response.json(); // Parse JSON response
-  
-      if (response.ok) {
+        const response = await fetch(`/api/transactions/${id}`); // Assuming your API endpoint is like this
+        const data = await response.json(); // Parse JSON response
+
+        if (response.ok) {
         // If the request is successful, log or process the employee data
-        console.log('Transaction Data:', data.response);
         return data.response; // Return employee data
-      } else {
+        } else {
         // If the employee is not found or there's another issue
         console.error('Error:', data.response);
         return null;
-      }
+        }
     } catch (error) {
-      // Handle errors like network issues
-      console.error('Error fetching employee data:', error);
-      return null;
+        // Handle errors like network issues
+        console.error('Error fetching data:', error);
+        return null;
     }
-  }
+}
+
+async function fetchTransactionById(id) {
+    try {
+        // Attempt to fetch data from the transactions API
+        let response = await fetch(`/api/transactions/${id}`);
+
+        // Parse the JSON response
+        const data = await response.json();
+
+        // If the first fetch is not successful or returns no data, try fetching from the documents API
+        if (!data) {
+            console.log('No transaction found, attempting to fetch document...');
+            response = await fetch(`/api/documents/${id}`);
+        }
+
+     
+
+        // Check if the response is successful
+        if (response.ok) {
+            // Return the response data if successful
+            return data.response;
+        } else {
+            // Handle errors (e.g., document not found)
+            console.error('Error:', data.response || 'Unknown error');
+            return null;
+        }
+    } catch (error) {
+        // Handle network or other unexpected errors
+        console.error('Error fetching data:', error);
+        return null;
+    }
+}

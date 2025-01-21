@@ -30,7 +30,7 @@
                 <a href="#" class="btn btn-primary btn-border btn-round me-2" id="printDocumentTracekerBtn"><i class="fas fa-print"></i> Print</a>
                 <a href="#" class="btn btn-label-info btn-round me-2" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add New Remarks</a>
                 <% if(created_by == username) {%>
-                <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#mailToDocumentTrackerModal"><i class="fas fa-envelope"></i> Email</a>
+                <a href="#" class="btn btn-primary btn-round" id="mailToDocumentTrackerBtn" data-bs-toggle="modal" data-bs-target="#mailToDocumentTrackerModal"><i class="fas fa-envelope"></i> Email</a>
                 <% } %>
               </div>
             </div>
@@ -105,15 +105,17 @@
                           <span class="user fs-3 mr-3"><i class="fas fa-<%=timetocomply?'envelope':'comments'%>"></i></span>
                           <div class="">
                             <time class="date" datetime="<%=moment(created_at || timetocomply).format('MMMM D YYYY, h:mm:ss a')%>">
-                              <%=moment(created_at ?? timetocomply).format('MMMM D YYYY, h:mm:ss a')%>
+                              <%=moment(created_at).format('MMMM D YYYY, h:mm:ss a')%>
                             </time>
                             <span class="text">
                               <span class="badge badge-black mr-3"></span>
                               <%- timetocomply 
-                              ? 'Sent to ' + reciever 
-                                  : message + ' by <strong class="text-uppercase">' + created_by + '</strong>' 
-                              %>
+                                  ? 'Sent to ' + reciever 
+                                  : message + ' by <strong class="text-uppercase">' + created_by + '</strong>' %>
                             </span>
+                            <%- timetocomply 
+                                ? '<div class="template-email">' + message + '</div>' 
+                                : '' %>
                           </div>
                         </div>
                       </li>
