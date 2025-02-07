@@ -2,8 +2,11 @@
 <%- include('../../views/header') -%>
 <% 
   const { role_name } = currentRole
+  const { experience } = SESSION_USER
+  const { lists } = JSON.parse(experience)
+  const { office, salary, startdate, enddate, position, division } = lists[0] 
 %>
-<div class="wrapper">
+<div class="wrapper" data-role="<%=currentRole%>" data-position="<%=position%>">
     <%- include('../../views/sidebar') -%>
 
     <div class="main-panel">
@@ -18,7 +21,7 @@
                   </div>
                   <div class="ms-md-auto py-2 py-md-0">
                     <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="employees" data-column="8">Manage</a>
-                  <% if (role_name=='superadmin') { %>
+                  <% if (currentRole=='SuperAdmin') { %>
                     <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#addEmployeeModal"><i class="fas fa-plus"></i> Add New</a>
                   <% } %>
                   </div>
@@ -104,12 +107,14 @@
                                           <a href="/employees/<%= employeeid %>/update" data-transid="<%= employeeid %>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Edit Employee">
                                             <i class="fa fa-edit"></i>
                                           </a>
-                                          <button  data-bs-toggle="tooltip" title="Add Role" class="btn btn-link btn-warning">
-                                            <i class="fa fa-user" data-bs-toggle="modal" data-bs-target="#rolesModal" ></i>
+                                          <button data-bs-toggle="modal" data-bs-target="#rolesModal"  data-bs-toggle="tooltip" title="Add Role" class="btn btn-link btn-warning">
+                                            <i class="fa fa-user" ></i>
                                           </button>
+                                        <% if(role_name=='superadmin') { %>
                                           <button data-id="<%= employeeid %>" data-name="<%= [firstname, middlename ? middlename.charAt(0) + '.' : '', lastname, extname].filter(Boolean).join(' ') %>" type="button" data-bs-toggle="tooltip" title="Delete?" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_<%= employeeid %>">
                                             <i class="fa fa-times"></i>
                                           </button>
+                                        <% } %>
                                         </div>
                                       </td>
                                     </tr>

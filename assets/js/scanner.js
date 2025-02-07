@@ -6,6 +6,7 @@ const output = document.getElementById('qrCodeData');
 const text = document.getElementById('qrCodeText')
 
 let transIDs = [];
+let tempQRCodes = []
 const btnRemarks = document.getElementById('createRemarks')
         
 
@@ -73,19 +74,57 @@ if(video && output) {
 }
 
 if(text) {
-    setInterval(async function(){
-        const qrNumber = text.value
-        if(!transIDs.includes(qrNumber) && qrNumber !== "") {
-            const data = await fetchTransactionById(qrNumber)
-            const {approved_budget, bid_notice_title, product_id} = data
-            if(data.length > 0) {
-                transIDs.push(qrNumber)
-                addNewRow(data)
-                btnRemarks.dataset.transid = JSON.stringify(transIDs)   
-                text.value = ''
+    // setInterval(async function(){
+    //     const qrNumber = text.value
+    //     if(!transIDs.includes(qrNumber) && qrNumber !== "") {
+    //         const data = await fetchTransactionById(qrNumber)
+    //         const {approved_budget, bid_notice_title, product_id} = data
+    //         if(data.length > 0) {
+    //             transIDs.push(qrNumber)
+    //             addNewRow(data)
+    //             btnRemarks.dataset.transid = JSON.stringify(transIDs)   
+    //             text.value = ''
+    //         }
+    //     }
+    // }, 2000)
+    let isFetching = false;
+
+    setInterval(async function() {
+        if (isFetching) return;
+        isFetching = true;
+
+        try {
+            const qrNumber = text.value;
+            if (!tempQRCodes.includes(qrNumber) && qrNumber !== "") {
+                const data = await fetchQRCode(qrNumber);
+                const { response, component } = data;
+
+                let tempTitle, tempCreatedBy = '';
+                if (component === "transactions") {
+                    ({ bid_notice_title: tempTitle, requisitioner: tempCreatedBy } = response);
+                } else if (component === "documents") {
+                    ({ title: tempTitle, created_by: tempCreatedBy } = response);
+                }
+
+                const tempData = { component, tempTitle, tempCreatedBy };
+                console.log(tempData)
+                // console.log(data && data.length > 0)
+                if (data) {
+                    tempQRCodes.push(qrNumber);
+                    addNewRow(tempData);
+                    btnRemarks.dataset.transid = JSON.stringify(tempQRCodes);
+                    text.value = '';
+                }
+                console.log(tempQRCodes)
             }
+        } catch (error) {
+            console.error("Error fetching or processing QR code:", error);
+        } finally {
+            isFetching = false;
         }
-    }, 1000)
+    }, 2000);
+
+    
 }
 
 
@@ -124,8 +163,6 @@ async function fetchTransactionById(id) {
             response = await fetch(`/api/documents/${id}`);
         }
 
-     
-
         // Check if the response is successful
         if (response.ok) {
             // Return the response data if successful
@@ -141,3 +178,38 @@ async function fetchTransactionById(id) {
         return null;
     }
 }
+
+async function fetchQRCode(id) {
+    try {
+        const response = await fetch(`/api/qrcode/${id}`); // Assuming your API endpoint is like this
+        const data = await response.json(); // Parse JSON response
+        if (response.ok) {
+            const {response, component} = data
+            return {response, component}
+        } else {
+            // If the employee is not found or there's another issue
+            console.error('Error:', data.response);
+            return null;
+        }
+    } catch (error) {
+        // Handle errors like network issues
+        console.error('Error fetching data:', error);
+        return null;
+    }
+}
+
+
+        const transactionsIDs = $("#basic-datatables").DataTable()
+
+      function addNewRow(data) {
+        // alert(data)
+        // console.log(data)
+        const { component, tempTitle, tempCreatedBy } = data
+        const newRowData = [
+            tempTitle,           // Product ID
+            component,     // Notice Title
+            tempCreatedBy,        // Initiator
+        ];
+        // console.log('asdadadasdasdasdadad', newRowData)
+        transactionsIDs.row.add(newRowData).draw();
+      }

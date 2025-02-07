@@ -7,7 +7,8 @@
     <script src="/assets/js/components/documents.js"></script>
     <% } else if (path2.startsWith('/settings')) { %>
     <script src="/assets/js/components/settings.js"></script>
-    <% } %>
+    <% } else if (path2.startsWith('/qrscanner')) %>
+    <script src="/assets/js/scanner.js"></script>
     
     <script>
       const transactions = $("#transactions-datatables").DataTable({
@@ -102,21 +103,21 @@
       // });
 
 
-      const transactionsIDs = $("#basic-datatables").DataTable()
+      // const transactionsIDs = $("#basic-datatables").DataTable()
 
-      function addNewRow(data) {
-        // alert(data)
-        // console.log(data)
-        const { approved_budget, bid_notice_title, product_id, requisitioner } = data[0]
-        const newRowData = [
-          product_id,           // Product ID
-          bid_notice_title,     // Notice Title
-          requisitioner,        // Initiator
-          peso(approved_budget),      // Approved Budget
-        ];
-        // console.log('asdadadasdasdasdadad', newRowData)
-        transactionsIDs.row.add(newRowData).draw();
-      }
+      // function addNewRow(data) {
+      //   // alert(data)
+      //   // console.log(data)
+      //   const { approved_budget, bid_notice_title, product_id, requisitioner } = data[0]
+      //   const newRowData = [
+      //     product_id,           // Product ID
+      //     bid_notice_title,     // Notice Title
+      //     requisitioner,        // Initiator
+      //     peso(approved_budget),      // Approved Budget
+      //   ];
+      //   // console.log('asdadadasdasdasdadad', newRowData)
+      //   transactionsIDs.row.add(newRowData).draw();
+      // }
 
       document.querySelectorAll('.toggle-vis').forEach((el) => {
         el.addEventListener('click', function (e) {

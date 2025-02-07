@@ -37,6 +37,7 @@ const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { exit } = require('process');
 const { count, table } = require('console');
+const { permission } = require('node:process');
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
@@ -131,10 +132,14 @@ const purchaseRequestStatuses = [
 ];
 
 const purchaseRequestRoles = [
-  // {
-  //   role: "Requester (Initiator)",
-  //   description: "The individual or department that identifies the need for a product or service and submits the purchase request."
-  // },
+  {
+    role: "Reciever",
+    description: "The individual or department that identifies as someone to recieve the purchase request."
+  },
+  {
+    role: "Requester (Initiator)",
+    description: "The individual or department that identifies the need for a product or service and submits the purchase request."
+  },
   {
     role: "Approver",
     description: "The person who reviews and approves the purchase request before it moves forward in the process."
@@ -233,10 +238,83 @@ const department = {
       "email": "",
       "admin": "",
     }
+  },
+  permissions: {
+    can: ["create", "read", "update", "delete"],
+    roles: [{
+      role: "Admin",
+      permissions: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true
+      }
+    },{
+      role: "Editor",
+      permissions: {
+        create: true,
+        read: true,
+        update: true,
+        delete: false
+      }
+    },{
+      role: "Viewer",
+      permissions: {
+        create: false,
+        read: true,
+        update: false,
+        delete: false
+      }
+    },{
+      role: "Contributor",
+      permissions: {
+        create: true,
+        read: true,
+        update: false,
+        delete: false
+      }
+    },{
+      role: "Moderator",
+      permissions: {
+        create: false,
+        read: true,
+        update: true,
+        delete: true
+      }
+    },{
+      role: "Manager",
+      permissions: {
+        create: false,
+        read: true,
+        update: true,
+        delete: true
+      }
+    },{
+      role: "Support",
+      permissions: {
+        create: false,
+        read: true,
+        update: true,
+        delete: false
+      }
+    }],
+    
+
   }
 }
 // console.log(purchaseRequestRoles);
 
+
+
+function findAminByEmail(department, emailToFind) {
+  for(let division in department.divisions) {
+    const divisionData = department.divisions[division]
+    if(divisionData.email === emailToFind) {
+      return divisionData.admin
+    } 
+  }
+  return "Admin not found"
+}
 
 let transid = []
 
@@ -384,8 +462,10 @@ app.use(async function(req, res, next){
   defaultNullUser.others = others
 
   // console.log('SESSION', req.session?.user || JSON.parse(JSON.stringify(defaultNullUser)))
+  const fullUrl = req.protocol + '://' + req.get('host');
 
   res.locals = {
+    HOST: fullUrl,
     ENVIRONMENT: process.env.NODE_ENV,
     TEST_MODE: process.env.TEST_MODE,
     TEST_UNIT: process.env.TEST_UNIT,
@@ -452,10 +532,26 @@ const upload = multer({ storage: storage });
 // endof FILE UPLOADS
 
 // POST route for multiple file upload
-app.post('/upload', upload.array('fileToUpload[]'), (req, res) => {
+app.post('/upload', upload.array('fileToUpload[]'), async (req, res) => {
+  console.log('assssssssssssssssssssss', req.body.refid)
   if (req.files && req.files.length > 0) {
       // Send response with the new file names
       const fileNames = req.files.map(file => file.filename);
+
+      if(req.body.refid) {
+        const { refid } = req.body
+        const updateDocumentAttachements = {
+          set: {
+            attachments: fileNames,
+            updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+          },
+          where: {
+            id: refid
+          }
+        }
+        await connection.updateDocumentTrackerStatus(JSON.stringify(updateDocumentAttachements))
+      }
+
       res.json({ files: fileNames });
   } else {
       res.status(400).json({ error: 'No files uploaded' });
@@ -1079,6 +1175,12 @@ app.get('/inventory', restrict, async function(req, res){
   })
 })
 
+app.get('/qrscanner', restrict, async function(req, res){
+  res.render('pages/scanner', {
+    title: "Scan QR Code"
+  })
+})
+
 // DOCUMENTS
 app.get('/documents', restrict, async function(req, res){
   const results = await connection.getDocumentTrackerData()
@@ -1142,14 +1244,23 @@ app.post('/documents/sendsssss', restrict, async function(req, res){
 
 app.post('/documents/send', restrict, async function(req, res) {
   try {
-    const { subject, to, html, id, timetocomply, created_by } = req.body;
+    const { subject, to, html, id, timetocomply, created_by, attachments } = req.body;
     console.log(req.body);
+
+    const files = JSON.parse(attachments)
+    const mappedAttachments = files.map(filePath => {
+      return {
+        filename: filePath.split('/').pop(),
+        path: filePath,
+      };
+    });
 
     let mailOptions = {
       from: `"DA RFO7" <${process.env.APP_EMAIL}>`,
       to,
       subject,
-      html
+      html,
+      mappedAttachments,
     };
 
     const updateDocumentStatus = {
@@ -1161,20 +1272,36 @@ app.post('/documents/send', restrict, async function(req, res) {
         id
       }
     }
-
+  
     const createActivity = {
       refid: id,
       message: html, 
       reciever: to,
+      attachments,
       timetocomply: moment(timetocomply).format('YYYY-MM-DD HH:mm:ss'),
       created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
       created_by,
     }
-    console.log(createActivity)
+
+    let emails = to.split(', ')
+    let t_username = []
+    emails.forEach(email=>{
+      const admin = findAminByEmail(department, email)
+      t_username.push(admin)
+    })
+
+    const notifications = {
+      message: `New Email from ORED`,
+      link: id,
+      component: 'documents',
+      concerning: JSON.stringify(t_username)
+    }
+
     // Use async/await for email sending
     const info = await transporter.sendMail(mailOptions);
     const updateDocumentTrackerStatus = await connection.updateDocumentTrackerStatus(JSON.stringify(updateDocumentStatus))
     const updateDocumentTrackerActivity = await connection.createDocumentTrackerActivity(JSON.stringify(createActivity))
+    const sendNotification = await connection.postNotifications(JSON.stringify(notifications))
     console.log('Email sent:', info.response);
     
     res.status(200).json({ message: 'Email sent successfully', response: info });
@@ -1186,19 +1313,45 @@ app.post('/documents/send', restrict, async function(req, res) {
 });
 
 app.get('/documents/:id', restrict, async function(req, res){
-  
-  const {id} = req.params
-  const results = await connection.retrieveDocuments('documents', JSON.stringify(req.params))
-  const activities = await connection.getDocumentTrackerActivity(JSON.stringify({refid:id}))
-  const employees = await connection.retrieveEmployee()
-  
-  res.render('pages/documents/id', {
-    title: "Document", 
-    displayData: results[0], 
-    activities: activities.sort((a, b) => b.id - a.id),
-    employeesData: employees,
-  })
+  try {
+    const {id} = req.params
+    const results = await connection.retrieveDocuments('documents', JSON.stringify(req.params))
+    const activities = await connection.getDocumentTrackerActivity(JSON.stringify({refid:id}))
+    const employees = await connection.retrieveEmployee()
+    
+    res.render('pages/documents/id', {
+      title: "Document", 
+      displayData: results[0], 
+      activities: activities.sort((a, b) => b.id - a.id),
+      employeesData: employees,
+    })
+  } catch (error) {
+    console.error('Error on displaying the document:', error);
+    res.status(404).render('pages/404', {
+      title: "Document", 
+      component: "Document"
+    });
+  }
 })
+
+// app.put('/document/:id', restrict, async function(req, res) {
+//   try {
+//     const updateDocumentData = {
+//       set: {
+//         attachments,
+//         updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+//       },
+//       where: {
+//         id
+//       }
+//     }
+//     // const transactions = await connection.updateDocumentTrackerStatus( updateDocumentData );
+//     res.status(200).json({ message: 'Document Successfully Updated!', response: transactions });
+//   } catch (error) {
+//     console.error('Failed to update the Document: ', error);
+//     res.status(500).send('Failed to update the Document');
+//   }
+// })
 
 app.post('/documents/:id/activity', restrict, async function(req, res){
   try { 
@@ -1260,9 +1413,32 @@ app.route('/api/documents/:id')
     return res.status(400).json({ response: JSON.parse(results) }); 
   });
 
+app.route('/api/qrcode/:id')
+   .all(restrict)
+   .get(async (req, res) => {
+    const {id} = req.params
+
+    let results = await connection.getTransactionById(id)
+    
+    if(results.length > 0) { 
+      results = JSON.stringify(results[0])
+      return res.status(200).json({ response: JSON.parse(results), component: 'transactions' });  
+    } else {
+      results = await connection.getDocumentTrackerID(id)
+      if(results.length > 0) {
+        return res.status(200).json({ response: JSON.parse(results), component: 'documents' });  
+      }
+    }
+
+    return res.status(400).json({ response: 'No data related to the QR Code', component: false });  
+   })
+
+
 app.get('/settings', restrict, async function(req, res){
+  const results = await connection.getSettings()
   res.render('pages/settings', {
-    title: "Settings"
+    title: "Settings",
+    results: JSON.parse(JSON.stringify(results))
   })
 })
 

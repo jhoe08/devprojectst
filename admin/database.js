@@ -143,7 +143,7 @@ const databaseUtils = {
             }
         });
     }),
-    getTransactionById: (id) => new Promise((resolve, reject) => {
+    getTransactionById2: (id) => new Promise((resolve, reject) => {
         connection.query(`SELECT * FROM ${prefix}.transid WHERE product_id=${id}`, (error, results) => {
             if (error) {
                 reject(error);
@@ -152,6 +152,10 @@ const databaseUtils = {
             }
         });
     }),
+    getTransactionById: async (id) => {
+        let data = {product_id:id}
+        return await databaseUtils.retrieveData('transid', '*', data)
+    },
     getEmployeeById: (id) => new Promise((resolve, reject) => {
         connection.query(`SELECT * FROM ${prefix}.employees WHERE employeeid=${id}`, (error, results) => {
             error ? reject(error) : resolve(results);
@@ -570,6 +574,14 @@ const databaseUtils = {
         return await databaseUtils.storeData(table, data)
     },
     
+    getSettings: async(data) => {
+        if (data) {
+            data = JSON.parse(data)
+            return await databaseUtils.retrieveData('settings', '*', data)
+        }
+        
+        return await databaseUtils.retrieveData('settings')
+    },
     // Sample
     divisions: (division) => {
         let lists = ["ILD", "PMED", "FOD", "ADMIN", "RESEARCH", "REGULATORY", "AMAD", "RAED", "Others"]

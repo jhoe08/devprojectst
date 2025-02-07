@@ -27,6 +27,8 @@
     const employment = document.getElementById('employment')
     const startdate = document.getElementById('startdate')
 
+    const setRoles = document.getElementById('setRoles')
+
     if (predataRegisterEmployee) {
       predataRegisterEmployee.addEventListener('click', function(){
         fields.forEach(field =>{
@@ -280,4 +282,39 @@
         })
       })
     }
+    if (setRoles) {
+      
+    }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Get references to the select input and checkboxes container
+    const rolesSelect = document.getElementById('roles');
+    const permissionsContainer = document.getElementById('permissions-container');
+    if(!rolesSelect) return
+    // Handle change event on role select input
+    rolesSelect.addEventListener('change', function () {
+      const selectedRole = rolesSelect.value;
+      
+      // Find the corresponding role data based on the selected role
+      const selectedRoleData = rolesSelect.querySelector('option:checked');
+      // const selectedRoleData = selectedRole.dataset.permissions
+      if (selectedRoleData) {
+        let selectedPermissions = selectedRoleData.dataset.permissions;
+        selectedPermissions = JSON.parse(selectedPermissions)
+        console.log(selectedPermissions)
+
+        // Loop through the checkboxes and update their checked status based on the permissions
+        const checkboxes = permissionsContainer.querySelectorAll('.selectgroup-input');
+        checkboxes.forEach(checkbox => {
+          const permission = checkbox.value;
+          // If the permission is in the selected role's permissions, check the box
+          checkbox.checked = selectedPermissions[permission]
+        });
+      }
+    });
+
+    // Trigger the change event once on page load to initialize the checkboxes for the default role
+    rolesSelect.dispatchEvent(new Event('change'));
+  });
+
 })()

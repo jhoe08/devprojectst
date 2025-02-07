@@ -53,30 +53,7 @@ function datetimeformat(string) {
 const isAllFieldsFilled = (...fields) => fields.every(field => field.value !== "");
 
 
-// SELECT MULTIPLE OPTION
-document.querySelectorAll('select[multiple] option').forEach(function(option) {
-  option.addEventListener('mousedown', function(e) {
-      e.preventDefault();
 
-      var parent = this.parentElement;
-      var originalScrollTop = parent.scrollTop;
-
-      // console.log(originalScrollTop);
-
-      // Toggle the 'selected' property
-      this.selected = !this.selected;
-
-      // Focus on the parent (the <select> element)
-      parent.focus();
-
-      // Reset the scroll position after the selection change
-      setTimeout(function() {
-          parent.scrollTop = originalScrollTop;
-      }, 0);
-
-      return false;
-  });
-});
 
 if(createDocumentTrackerBtn) {
   createDocumentTrackerBtn.addEventListener('click', ()=>{
@@ -144,6 +121,7 @@ if(uploadDocumentBtn) {
   
     const fileInput = document.getElementById('file-upload');
     const files = fileInput.files; // Get the selected files
+    const {id} = uploadDocumentBtn.dataset
   
     if (files.length > 0) {
         const formData = new FormData();
@@ -152,11 +130,11 @@ if(uploadDocumentBtn) {
         for (let i = 0; i < files.length; i++) {
             formData.append('fileToUpload[]', files[i]);
         }
-  
+        formData.append('refid', id)
         // Send the files to the server using Fetch API
         fetch('/upload', {
             method: 'POST',
-            body: formData
+            body: formData,
         })
         .then(response => response.json())
         .then(data => {
@@ -166,7 +144,7 @@ if(uploadDocumentBtn) {
               notifyCustom('bell', 'File Uploaded', `File name ${file}`, 'success')
             });
 
-            document.getElementById('message').setAttribute('files', JSON.stringify(arr) ) 
+            document.getElementById('attachments').setAttribute('files', JSON.stringify(arr) ) 
         })
         .catch(error => {
             notifyCustom('exclamation', 'File Upload', `Error uploading the files ${error}`, 'danger')
@@ -237,6 +215,8 @@ if(emailDocumentTracker) {
       }
     }
     document.getElementById("selectedEmails").textContent = "Selected values: " + selectedEmails.join(", ");
+    let attachments = document.getElementById("attachments")
+    attachments = attachments.getAttribute('files')
 
     const emailBody = `<!DOCTYPE html>
 <html lang="en">
@@ -309,6 +289,7 @@ if(emailDocumentTracker) {
       to: selectedEmails.join(", "),
       html: emailBody, 
       id,
+      attachments,
       timetocomply: timetocomply.value,
       created_at: new Date(),
       created_by: username,
