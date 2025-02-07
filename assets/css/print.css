@@ -151,53 +151,26 @@ table {
             margin-top: 0;
         }
     }
-
-    .documentToPrint { 
-        margin: 0;
-        page-break-after:always;
-
-        * {
-            overflow: visible;
-            visibility: visible;
-        }
-
-        #trackingSheetTable {
-            td {
-                white-space: pre;
-                color: #fff;
-                visibility: hidden;
-            }
-        }
-    }
-
-    div.documents.qrcode {
+    div.print-qrcode {
         overflow: visible !important;
-        visibility: visible  !important;
+        visibility: visible !important;
         position: absolute;
-        right: 20px;
-        top: 50px;
+        right: 40px;
+        top: 40px;
         * {
-            position: relative;
             overflow: inherit !important;
-            visibility: initial !important;
+            visibility: inherit !important;
+        }
+        small {
+            overflow: inherit !important;
+            visibility: inherit !important;
+            display: block !important;
             width: 100px;
-        }
-    }
-
-    .unsalan {
-        overflow: visible !important;
-        visibility: visible  !important;
-        position: absolute;
-        right: -85px;
-        top: 110px;
-
-        #trackingCode {
-            color: #000;
-            text-align: center;
-            position: relative;
-            overflow: inherit !important;
-            visibility: initial !important;
             font-size: 10px;
+            margin-top: 5px;
+        }
+        img {
+            width: 100px !important;
         }
     }
   }

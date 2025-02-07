@@ -527,6 +527,30 @@ function validateEmail(email) {
   return emailPattern.test(email);
 }
 
+// SELECT MULTIPLE OPTION
+document.querySelectorAll('select[multiple] option').forEach(function(option) {
+  option.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+
+      var parent = this.parentElement;
+      var originalScrollTop = parent.scrollTop;
+
+      // console.log(originalScrollTop);
+
+      // Toggle the 'selected' property
+      this.selected = !this.selected;
+
+      // Focus on the parent (the <select> element)
+      parent.focus();
+
+      // Reset the scroll position after the selection change
+      setTimeout(function() {
+          parent.scrollTop = originalScrollTop;
+      }, 0);
+
+      return false;
+  });
+});
 
 // Initial call to set the time
 // refreshDiv();

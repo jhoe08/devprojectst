@@ -5,7 +5,7 @@ let state = {};
 // state management
 function updateState(newState) {
   state = { ...state, ...newState };
-  console.log(state);
+  // console.log(state);
 }
 
 // event handlers
@@ -66,4 +66,62 @@ function renderFileList() {
     </li>`;
   });
   $(".custom-file-upload ul").html(fileMap);
+}
+
+function previewFile() {
+
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const files = event.target.files;
+            const previewContainer = document.getElementById('previewContainer');
+            
+            previewContainer.innerHTML = ''; // Clear previous previews
+
+            Array.from(files).forEach(file => {
+                const fileType = file.type;
+                
+                // Check for image file types
+                if (fileType.startsWith('image')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.maxWidth = '200px'; // Optional styling
+                        previewContainer.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+                // Check for video file types
+                else if (fileType.startsWith('video')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const video = document.createElement('video');
+                        video.src = e.target.result;
+                        video.controls = true;
+                        video.style.maxWidth = '200px'; // Optional styling
+                        previewContainer.appendChild(video);
+                    };
+                    reader.readAsDataURL(file);
+                }
+                // Check for PDF file types
+                else if (fileType === 'application/pdf') {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const pdfPreview = document.createElement('embed');
+                        pdfPreview.src = e.target.result;
+                        pdfPreview.type = 'application/pdf';
+                        pdfPreview.style.width = '200px'; // Optional styling
+                        pdfPreview.style.height = '300px'; // Optional styling
+                        previewContainer.appendChild(pdfPreview);
+                    };
+                    reader.readAsDataURL(file);
+                }
+                // Handle other file types (e.g., text files, etc.)
+                else {
+                    const fileName = document.createElement('p');
+                    fileName.textContent = `File: ${file.name}`;
+                    previewContainer.appendChild(fileName);
+                }
+            });
+        });
+
 }

@@ -1,6 +1,9 @@
+<%
+
+%>
 <!-- Header Template -->
 <%- include('../views/header') -%>
-<div class="wrapper">
+<div class="wrapper" <%=results%>>
   <%- include('../views/sidebar') -%>
 
   <div class="main-panel">
@@ -28,15 +31,18 @@
                 <i class="icon-home"></i>
                 Site
               </a>
-              <a class="nav-link" id="v-pills-settings-tab-icons" data-bs-toggle="pill" href="#v-pills-settings-icons" role="tab" aria-controls="v-pills-profile-icons" aria-selected="false" tabindex="-1">
+              <a class="nav-link" id="v-pills-division-tab-icons" data-bs-toggle="pill" href="#v-pills-division-icons" role="tab" aria-controls="v-pills-profile-icons" aria-selected="false" tabindex="-1">
                 <i class="fas fa-sitemap"></i>
                 Divisions
+              </a>
+              <a class="nav-link" id="v-pills-access-tab-icons" data-bs-toggle="pill" href="#v-pills-access-icons" role="tab" aria-controls="v-pills-access-icons" aria-selected="false" tabindex="-1">
+                <i class="fas fa-universal-access"></i>
+                Access
               </a>
               <a class="nav-link" id="v-pills-api-tab-icons" data-bs-toggle="pill" href="#v-pills-api-icons" role="tab" aria-controls="v-pills-profile-icons" aria-selected="false" tabindex="-1">
                 <i class="fas fa-globe"></i>
                 API
               </a>
-              
             </div>
           </div>
           <div class="col-9 col-md-10">
@@ -87,7 +93,7 @@
                   </div>
                 </div>
               </div>
-              <div class="tab-pane fade" id="v-pills-api-icons" role="tabpanel" aria-labelledby="v-pills-profile-tab-icons">
+              <div class="tab-pane fade" id="v-pills-api-icons" role="tabpanel" aria-labelledby="v-pills-division-tab-icons">
                 <div class="card-body">
                   <ul class="nav nav-pills nav-secondary nav-pills-no-bd" id="pills-tab-without-border" role="tablist">
                     <li class="nav-item submenu" role="presentation">
@@ -155,7 +161,7 @@
                   </div>
                 </div>
               </div>
-              <div class="tab-pane fade" id="v-pills-settings-icons" role="tabpanel" aria-labelledby="v-pills-settings-tab-icons">
+              <div class="tab-pane fade" id="v-pills-division-icons" role="tabpanel" aria-labelledby="v-pills-division-tab-icons">
                 <div class="card-body">
                   <div class="card">
                     <div class="card-header">
@@ -187,6 +193,78 @@
                               <div class="form-group form-group-default">
                                 <label for="division_name">Division Name</label>
                                 <input id="division_name" name="division_name" type="text" class="form-control" value="">
+                              </div>
+                            </div>
+                            <div class="col-md-4">
+                              <div class="form-group form-group-default">
+                                <label for="division_email">Division Email</label>
+                                <input id="division_email" name="division_email" type="email" class="form-control" value="">
+                              </div>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="v-pills-access-icons" role="tabpanel" aria-labelledby="v-pills-division-tab-icons">
+                <div class="card-body">
+                  <div class="card">
+                    <div class="card-header">
+                        <div class="card-head-row card-tools-still-right">
+                            <h4 class="card-title">Access</h4>
+                            <div class="card-tools transcations-code text-uppercase form-group-add">
+                                <button id="addMoreFieldButton" class="btn btn-icon btn-link btn-primary btn-xs">
+                                  <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="card-body" id="divisionFields">
+                        <div class="row">
+                            <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
+                                <div class="form-group form-group-default form-group-minus">
+                                    <label for="minusButton">Remove</label>
+                                    <button id="minusButton" class="form-control fas fa-minus"></button>
+                                </div>
+                            </div>
+                            <div class="col-md-2 ml-0">
+                              <div class="form-group form-group-default">
+                                <label for="division_abbrv">Components</label>
+                                <select class="form-select" id="components">
+                                  <option title="Dashboard" value="Dashboard" >Dashboard</option>
+                                  <option title="Transactions" value="Transactions" >Transactions</option>
+                                  <option title="Employees" value="Employees" >Employees</option>
+                                  <option title="Communications" value="Communications" >Communications</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="col-md-5">
+                              <div class="form-group form-group-default">
+                                <label for="division_name">Permissions</label>
+                                <div id="permissions-container" class="selectgroup selectgroup-pills">
+                
+                                  <label class="selectgroup-item">
+                                    <input type="checkbox" name="value" value="create" class="selectgroup-input">
+                                    <span class="selectgroup-button">create</span>
+                                  </label>
+                                
+                                  <label class="selectgroup-item">
+                                    <input type="checkbox" name="value" value="read" class="selectgroup-input">
+                                    <span class="selectgroup-button">read</span>
+                                  </label>
+                                
+                                  <label class="selectgroup-item">
+                                    <input type="checkbox" name="value" value="update" class="selectgroup-input">
+                                    <span class="selectgroup-button">update</span>
+                                  </label>
+                                
+                                  <label class="selectgroup-item">
+                                    <input type="checkbox" name="value" value="delete" class="selectgroup-input">
+                                    <span class="selectgroup-button">delete</span>
+                                  </label>
+                                
+                              </div>
                               </div>
                             </div>
                             <div class="col-md-4">

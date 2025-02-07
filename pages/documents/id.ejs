@@ -1,7 +1,7 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
 <%
-    const { id, title, priority, created_at, updated_at, created_by } = displayData
+    const { id, title, priority, created_at, updated_at, created_by, attachments } = displayData
     const { username } = SESSION_USER
     const requestID = addLeadingZeros(id)
     const trackerid = `${moment(created_at).format('YYYYMMDD')}-${requestID}`
@@ -16,11 +16,12 @@
         <div class="container">
           <div class="page-inner">
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
-              <div class="col-md-1 mr-4">
+              <div class="col-md-1 mr-4 text-center print-qrcode">
                 <div id="transid-<%- trackerid -%>" data-qrcode="<%- trackerid -%>" class="qrcode documents" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- trackerid -%>"></div>
+                <small class="hidden">No. <%- trackerid -%></small>
               </div>
               <div class="col-md-8">
-                  <h3 class="fw-bold mb-3 unsalan">
+                  <h3 class="fw-bold mb-3">
                     <span id="documentTitle" title="Document Title"><%- title -%></span><br>
                     <small id="trackingCode">No. <%=trackerid%></small><br>
                     <small>DA RFO VII - Office of the Director</small>
@@ -51,16 +52,25 @@
                         <label for="file-upload" id="file-drag">
                           <span id="file-upload-btn" class="button">Browse File</span>
                         </label>
-          
-                        <div class="files">
-                          <ul></ul>
-                        </div>
-                        <div id="message"></div>
+                        <div class="files" data-files="<%=attachments%>"><ul>
+                          <% if(attachments)  { 
+                            const files = attachments.split(',') 
+                            files.forEach((file, index) => { %>
+                              <li key="<%= index %>">
+                                <i class="icon fs-1 fas fa-file-pdf"></i>
+                                <%=file%>
+                                <span class="file-size">85.9 KB</span>
+                                <i class="fs-5 fas fa-times"></i>
+                              </li>
+                          <% }) } %>
+                          
+                        </ul></div>
+                        <div id="attachments"></div>
                       </div>
                     </div>
                   </div>
                   <div class="card-action">
-                    <button class="btn btn-info" id="uploadDocumentBtn"><i class="fas fa-upload"></i> Upload</button>
+                    <button class="btn btn-info" id="uploadDocumentBtn" data-id="<%=id%>"><i class="fas fa-upload"></i> Upload</button>
                   </div>
                 </div>
                 
@@ -98,12 +108,12 @@
                     <ol class="activity-feed mb-0">
                   <%
                     activities.forEach(activity=>{ 
-                      const { id, refid, message, reciever, timetocomply, created_at, created_by } = activity
+                      const { id, refid, message, reciever, attachments, timetocomply, created_at, created_by } = activity
                   %>
                       <li class="feed-item feed-item-<%=timetocomply?'success':'info'%> d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="<%=timetocomply?'Email Sent':'Replied'%>">
                         <div class="d-flex">
                           <span class="user fs-3 mr-3"><i class="fas fa-<%=timetocomply?'envelope':'comments'%>"></i></span>
-                          <div class="">
+                          <div class="details">
                             <time class="date" datetime="<%=moment(created_at || timetocomply).format('MMMM D YYYY, h:mm:ss a')%>">
                               <%=moment(created_at).format('MMMM D YYYY, h:mm:ss a')%>
                             </time>
@@ -116,6 +126,23 @@
                             <%- timetocomply 
                                 ? '<div class="template-email">' + message + '</div>' 
                                 : '' %>
+                            <ul data-attachments="<%=attachments%>">
+                              <%
+                              try {
+                                const fileString = attachments;
+                                const fileArray = JSON.parse(fileString);
+                                
+                                fileArray.forEach(file => { 
+                                const url = HOST +'/uploads/'+ file
+                              %>
+                                <li><%= url %></li>
+                              <%  });
+                              } catch (e) { %>
+                                <strong>Invalid JSON format: ", e.message</strong>
+                              <% }
+                              %>
+                            </ul>
+                           
                           </div>
                         </div>
                       </li>
