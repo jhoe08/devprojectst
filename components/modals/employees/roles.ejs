@@ -33,15 +33,21 @@
               </div>
             </div>
             <div class="form-group">
-                <label>New Role</label>
-                <% if(purchaseRequestRoles) { %>
-                    <select class="form-select" multiple id="roles">
-                    <% purchaseRequestRoles.forEach(roles =>{
-                    const {role, description} = roles; %>
-                        <option title="<%= role %>" value="<%= role %>"><%= role %></option>
-                    <% }) %>
-                    </select>
-                <% } %>
+              <label>Components:</label>
+              <div id="components-container" class="selectgroup selectgroup-pills">
+                <label class="selectgroup-item">
+                  <input type="checkbox" name="value" value="Employees" class="selectgroup-input">
+                  <span class="selectgroup-button">Communications</span>
+                </label>
+                <label class="selectgroup-item">
+                  <input type="checkbox" name="value" value="Employees" class="selectgroup-input">
+                  <span class="selectgroup-button">Employees</span>
+                </label>
+                <label class="selectgroup-item">
+                  <input type="checkbox" name="value" value="Transactions" class="selectgroup-input" checked>
+                  <span class="selectgroup-button">Transactions</span>
+                </label>
+              </div>
             </div>
           </div>
         </div>

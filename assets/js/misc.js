@@ -1,60 +1,6 @@
 
 // let notifyIcon = ['check', 'close', 'exclamation', 'bell'];
-const exampleModal = document.getElementById('viewTransactionModal')
-if (exampleModal) {
-  exampleModal.addEventListener('show.bs.modal', event => {
-    // Button that triggered the modal
-    const button = event.relatedTarget
-    // Extract info from data-bs-* attributes
-    const recipient = button.getAttribute('data-bs-whatever')
-    const transaction = JSON.parse(button.parentNode.dataset.transaction)
-    // console.log(transaction)
 
-    let {approved_budget, bac_unit, banner_program, bid_notice_title, division, fund_source, pr_classification, pr_date,  product_id, requisitioner, trans_code} = transaction
-
-    // const {}
-    // If necessary, you could initiate an Ajax request here
-    // and then do the updating in a callback.
-
-    // Update the modal's content.
-    const modalTitle = exampleModal.querySelector('.modal-title')
-
-    // pr_date = moment(pr_date).format('MMM Do YYYY')
-
-    const modalBodyTitle = exampleModal.querySelector('.modal-body h3')
-    const modalClassification = exampleModal.querySelector('.modal-body .badge-count')
-    const modalBACUnit = exampleModal.querySelector('.modal-body .badge-danger')
-    const modalBannerProgram = exampleModal.querySelector('.modal-body .badge-info')
-    const modalPRDate= exampleModal.querySelector('.modal-body .badge-black')
-    const modalFundSource = exampleModal.querySelector('.modal-body .btn-border.btn-round span')
-    const modalBudget = exampleModal.querySelector('.modal-body .btn-round')
-    const modalRequisitioner = exampleModal.querySelector('.modal-body .text-muted')
-    const modalFooterLink = exampleModal.querySelector('.modal-footer a')
-    const modalQRCode = exampleModal.querySelector('.qrcode')
-    modalQRCode.innerHTML = ''
-    modalQRCode.setAttribute('id', `transid-${recipient}`)
-
-    // approved_budget = parseInt(approved_budget)
-    // approved_budget = formatter.format(formatter.format(amount))
-
-    modalTitle.textContent = `Transaction ID #${recipient}`
-    modalClassification.textContent = pr_classification
-    modalBACUnit.textContent = bac_unit
-    modalBannerProgram.textContent = banner_program
-    modalPRDate.textContent = dateFormat(pr_date)
-    modalBodyTitle.textContent = bid_notice_title
-    modalBudget.textContent = peso(approved_budget)
-    modalFundSource.textContent =  fund_source
-    modalRequisitioner.innerHTML = `<i class="fas fa-user-circle"></i> ${requisitioner} — <span class="badge badge-warning">${division}</span> `
-
-
-    new QRCode("transid-"+recipient, recipient);
-
-    modalFooterLink.setAttribute('href', `/transactions/${recipient}/view`)
-
-    // modalBodyInput.value = recipient
-  })
-}
 let views = document.querySelectorAll('#basic-datatables .form-button-action .btn-primary');
 if (views) {
   views.forEach(view=>{
@@ -552,6 +498,36 @@ document.querySelectorAll('select[multiple] option').forEach(function(option) {
   });
 });
 
+
+function formatNumberWithCommas(event) {
+  // Get the input element
+  const input = event.target;
+
+  // Remove any non-numeric characters (excluding commas)
+  let value = input.value.replace(/[^0-9]/g, '');
+
+  // Check if the value is not empty or just spaces
+  if (value === '') {
+    input.value = '';
+    return;
+  }
+
+  // Format the number with commas
+  value = parseInt(value, 10).toLocaleString();
+
+  // Update the input value with the formatted number
+  input.value = value;
+}
+
+const numberInputs = document.querySelectorAll('input[data-type="number"]');
+
+// Add event listener to each input
+numberInputs.forEach(input => {
+  input.addEventListener('input', formatNumberWithCommas);
+});
+
+
+// DO NOT FUCKING DELETE THIS CODE
 // Initial call to set the time
 // refreshDiv();
 

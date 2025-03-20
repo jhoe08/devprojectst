@@ -4,6 +4,7 @@ let moment = require('moment')
 const misc = require("./misc")
 const {isValidJSON} = require("./utils");
 const { reject } = require('bcrypt/promises');
+const { connect } = require('../routes/root');
 
 const { hashPassword, registerUser, loginUser } = misc
 
@@ -40,6 +41,10 @@ function isEmpty(value) {
     if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return true;
     return false;
   }
+function toSentenceCase(str) {
+    if (typeof str !== 'string') return str; // Ensure input is a string
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
 
 const databaseUtils = {
     getDistinct: (column, table) => new Promise((resolve, reject) =>{
@@ -334,6 +339,19 @@ const databaseUtils = {
     retrieveEmployeeByUsername: async (username) => {
         return await databaseUtils.retrieveData('employees', '*', {username})
     },
+    retrieveEmployeeIdsWithRole: async () => {
+        const query = ` SELECT emp.employeeid, rol.role_name
+                        FROM transto.employees AS emp
+                        INNER JOIN transto.roles AS rol
+                        ON CONCAT('[', rol.employee_ids, ']') LIKE CONCAT('%', emp.employeeid, '%');`
+
+        return new Promise((resolve, reject) => {
+            connection.query(query, (error, results) => {
+                if (error) reject(error);
+                else resolve(results);
+            });
+        });
+    },
     retrieveTransactions: async (data) => {
         if (data) {
             data = JSON.parse(data)
@@ -387,6 +405,15 @@ const databaseUtils = {
     amendData: async (table, data) => {
         try {
             let { set, where } = JSON.parse(data);
+            set = Object.fromEntries(
+                Object.entries(set).map(([key, value]) => {
+                    // Check if value is a string, and apply TRIM
+                    if (typeof value === 'string') {
+                        return [key, (value.trim()).toLowerCase()   ];
+                    }
+                    return [key, value]; // Leave other types unchanged
+                })
+            );
             // Construct SQL query
             let query = `UPDATE ${prefix}.${table} SET `;
                 query += Object.entries(set)
@@ -467,7 +494,7 @@ const databaseUtils = {
     },
     postNotifications: async (data) => {
         data = JSON.parse(data)
-        data = JSON.stringify({...data, created_at: convertDate(new Date())})
+        data = JSON.stringify({...data, created_at: convertDate(new Date()), updated_at: convertDate(new Date()) })
         return await databaseUtils.storeData('notifications', data)
     },
     // endof NOTIFICATIONS
@@ -554,7 +581,9 @@ const databaseUtils = {
             });
         });
     },
-
+    getRoles: async() => {
+        return await databaseUtils.retrieveData('roles')
+    },
     getCurrentUserRole: async (employeeid, columnName='role_name') => {
         const query = `SELECT ${columnName} FROM transto.roles WHERE employee_ids LIKE '%${employeeid}%'`
         return new Promise((resolve, reject) => {

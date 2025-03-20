@@ -27,6 +27,7 @@
     const employment = document.getElementById('employment')
     const startdate = document.getElementById('startdate')
 
+    const roleInputEnter = document.getElementById('roleInputEnter')
     const setRoles = document.getElementById('setRoles')
 
     if (predataRegisterEmployee) {
@@ -72,7 +73,6 @@
             lists: [{
               office: companyname.value,
               division: division.value,
-              banner: banner.value,
               salary: salary.value,
               status: true,
               enddate: 'present',
@@ -162,7 +162,6 @@
             lists: [{
               office: companyname.value,
               division: division.value,
-              banner: banner.value,
               salary: salary.value,
               status: true,
               enddate: 'present',
@@ -282,8 +281,35 @@
         })
       })
     }
-    if (setRoles) {
-      
+    if (roleInputEnter) {
+      roleInputEnter.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+          // Get the input value and trim whitespace
+        let inputText = event.target.value.trim();
+        
+        if (inputText) {
+          // Split the text by commas (if any)
+          let items = inputText.split(',').map(item => item.trim());
+          
+          // Access the list element where items will be added
+          const list = document.getElementById('listRoles');
+          
+          // Iterate through the items and add them to the list
+          items.forEach(item => {
+            listRoles.setAttribute('data-roles', roleNames);
+            let html = `<label class="selectgroup-item">
+                          <input type="checkbox" name="roles" value="${item}" class="selectgroup-input">
+                          <span class="selectgroup-button">${item}</span>
+                        </label>`
+            list.innerHTML += html;
+          });
+
+            // Clear the input field after adding
+            event.target.value = '';
+        }
+      }
+    });
+    
     }
 
   document.addEventListener('DOMContentLoaded', function () {

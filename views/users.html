@@ -1,10 +1,112 @@
-<%- include('header.html') -%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Divisions and Sections</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .section-row {
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
 
-<h1>Users</h1>
-<ul id="users">
-  <% users.forEach(function(user){ %>
-    <li><%= user.name %> &lt;<%= user.email %>&gt;</li>
-  <% }) %>
-</ul>
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2">FOD (Field Operations Division)</th>
+      </tr>
+      <tr>
+        <th>Sections</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="section-row">
+        <td>RICE: Rice Program</td>
+      </tr>
+      <tr class="section-row">
+        <td>LIVESTOCK: Livestock Program</td>
+      </tr>
+      <tr class="section-row">
+        <td>CORN: Corn Program</td>
+      </tr>
+      <tr class="section-row">
+        <td>HVCDP: High Value-Crops Development Program</td>
+      </tr>
+      <tr class="section-row">
+        <td>OAP: Organic Agriculture Program</td>
+      </tr>
+      <tr class="section-row">
+        <td>NUPAP: National Urban and Peri-Urban Agriculture Program</td>
+      </tr>
+      <tr class="section-row">
+        <td>PATCOCEBU: Patco-Cebu</td>
+      </tr>
+      <tr class="section-row">
+        <td>PATCOBOHOL: Patco-Bohol</td>
+      </tr>
+      <tr class="section-row">
+        <td>PATCONEGROSOR: Patco-Negros Oriental</td>
+      </tr>
+      <tr class="section-row">
+        <td>PATCOSIQUIJOR: Patco-Siquijor</td>
+      </tr>
+      <tr class="section-row">
+        <td>SAAD: Special Area of Agriculture Development</td>
+      </tr>
+      <tr class="section-row">
+        <td>IDS: Institutional Development Services</td>
+      </tr>
+    </tbody>
+  </table>
 
-<%- include('footer.html') -%>
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2">ILD (Integrated Laboratory Division)</th>
+      </tr>
+      <tr>
+        <th>Sections</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="section-row">
+        <td>SOILS: Regional Soils Laboratory</td>
+      </tr>
+      <tr class="section-row">
+        <td>RADDL: Regional Animal Disease Diagnostic Laboratory</td>
+      </tr>
+      <tr class="section-row">
+        <td>RCPC: Regional Crop Protection Center</td>
+      </tr>
+      <tr class="section-row">
+        <td>FCAL: Feed Chemical Analysis Laboratory</td>
+      </tr>
+      <tr class="section-row">
+        <td>RVPL: Regional Vaccine Production Laboratory</td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>

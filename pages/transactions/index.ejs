@@ -16,8 +16,9 @@
               </div>
               <div class="ms-md-auto py-2 py-md-0">
                 <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="transactions" data-column="11">Manage</a>
+                <% if (currentRole=='SuperAdmin') { %>
                 <a href="/transactions/new" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Add New</a>
-                <!-- data-bs-toggle="modal" data-bs-target="#addTransactionModal" -->
+                <% } %>
               </div>
             </div>
             <div class="row">
@@ -79,7 +80,9 @@
                               </tr>
                             </tfoot>
                             <tbody>
+
                               <% 
+                                
                                 for(var i=0; i < transactions.length; i++) { 
                                   var {pr_date, approved_budget, product_id, pr_classification, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code } = transactions[i]
                                   
@@ -91,16 +94,18 @@
                                   var cleanBudget = budget.replace(/,/g, '');
 
                                   budget = parseFloat(cleanBudget)
+                                  fund_source = JSON.parse(fund_source)
+                                  fund_source = (Object.keys(fund_source).length === 0) ? '-' : fund_source.map(item => `${item.division}-${item.section}`).join(', ');
                               %>
                                
-                                <tr data-transaction="<%= JSON.stringify(transactions[i]) %>">
+                                <tr data-index="<%= i %>">
                                   <td data-head="Product ID"><%= product_id %></td>
                                   <td data-head="Notice Title"><%= bid_notice_title %></td>
                                   <td data-head="Requistioner"><%= requisitioner %></td>
                                   <td data-head="Division"><%= division %></td>
                                   <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>"><%= date %></td>
                                   <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>" class="align-right"><%= budget %></td>
-                                  <td data-head="Fund Sources"><%= fund_source %></td>
+                                  <td data-head="Fund Sources"><%- fund_source -%></td>
                                   <td data-head="Codes"><%- trans_code -%></td>
                                   <td data-head="Banner"><%= banner_program %></td>
                                   <td data-head="Classification"><%= pr_classification %></th>
@@ -110,15 +115,19 @@
                                       <button data-transid="<%= product_id %>" type="button" class="btn btn-link  btn-primary" data-bs-toggle="modal" data-bs-target="#viewTransactionModal" data-bs-whatever="<%= product_id %>" data-original-title="Edit Task">
                                         <i class="fa fa-eye"></i>
                                       </button>
+                                      <% if(!currentRole.includes(['Contributor', 'Viewer'])) { %>
                                       <a href="/transactions/<%= product_id %>/edit" data-transid="<%= product_id %>" type="button"  class="btn btn-link btn-primary btn-lg" data-original-title="Edit Transaction" data-bs-toggle="tooltip" data-bs-placement="top" data-title="Edit Transaction">
                                         <i class="fa fa-edit"></i>
                                       </a>
+                                      <% } %>
                                       <button data-href="/transactions/<%= product_id %>/print" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-warning" data-original-title="Print"  id="print_<%= product_id %>">
                                         <i class="fas fa-print"></i>
                                       </button>
+                                      <% if (currentRole=='SuperAdmin') { %>
                                       <button data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_demo_<%= product_id %>">
                                         <i class="fa fa-times"></i>
                                       </button>
+                                      <% } %>
                                     </div>
                                   </td>
                                 </tr>

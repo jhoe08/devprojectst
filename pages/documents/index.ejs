@@ -89,24 +89,30 @@
                     <div class="table-responsive">
                       <table
                         id="documentsDataTables"
-                        class="display table table-striped table-hover"
+                        class="datatables display table table-striped table-hover"
+                        data-sort="desc"
+                        data-hide-columns="0,3"
                       >
                         <thead>
                           <tr>
-                            <th>Title</th>
-                            <th>Priority</th>
-                            <th>Time</th>
-                            <th>Created By</th>
-                            <th>Action</th>
+                            <th data-id="0">ID</th>
+                            <th data-id="1">Title</th>
+                            <th data-id="2">Priority</th>
+                            <th data-id="3">Attachments</th>
+                            <th data-id="4">Created At</th>
+                            <th data-id="5">Created By</th>
+                            <th data-id="6">Action</th>
                           </tr>
                         </thead>
                         <tfoot>
                           <tr class="text-uppercase">
-                            <th>Title</th>
-                            <th>Priority</th>
-                            <th>Time</th>
-                            <th>Created By</th>
-                            <th>Action</th>
+                            <th data-id="0">ID</th>
+                            <th data-id="1">Title</th>
+                            <th data-id="2">Priority</th>
+                            <th data-id="3">Attachments</th>
+                            <th data-id="4">Created At</th>
+                            <th data-id="5">Created By</th>
+                            <th data-id="6">Action</th>
                           </tr>
                         </tfoot>
                         <tbody>
@@ -116,12 +122,14 @@
                                 const {id, title, priority, status, created_at, created_by} = data
                           %>
                             <tr data-document="<%=JSON.stringify(data)%>">
-                              <td><%=title%></td>
-                              <td><span class="badge badge-<%=priority=='special' ? 'info' : (priority=='confidential' ? 'danger' : 'warning') %>"><%=priority%></span></td>
-                              <td><span class="badge badge-<%=status=='draft' ? 'count' : (status=='outgoing' ? 'success' : 'warning') %>"><%=status%></span> <%=moment(created_at).format('LLL @H:m:s')%></td>
-                              <td><%=created_by%></td>
-                              <td>
-                                <a href="/documents/<%=id%>" data-id="<%=id%>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="View">
+                              <td data-id="0"><%= id %></td>
+                              <td data-id="1"><%= title %></td>
+                              <td data-id="2"><span class="badge badge-<%=priority=='special' ? 'info' : (priority=='confidential' ? 'danger' : 'warning') %>"><%= priority %></span></td>
+                              <td data-id="3">Attachments</td>
+                              <td data-id="4"><span class="badge badge-<%=status=='draft' ? 'count' : (status=='outgoing' ? 'success' : 'warning') %>"><%=status%></span> <%= moment(created_at).format('LLL @H:m:s') %></td>
+                              <td data-id="5"><%= created_by %></td>
+                              <td data-id="6">
+                                <a href="/documents/<%= id %>" data-id="<%=id%>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="View">
                                   <i class="fa fa-eye"></i>
                                 </a>
                               </td>

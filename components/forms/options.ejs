@@ -1,0 +1,11 @@
+<% const spaces = (classes == 'division') ? '' : (classes == 'section') ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' : (classes == 'unit') ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' : '' 
+    stands = spaces + '' + stands
+%>
+<option
+    class="<%= classes %>"
+    value="<%= key %>" 
+    <%= (dataset) ? `data-${dataset[0]}=${dataset[1]}` : '' %>
+    <%= (filtered===key) ? 'selected' : '' %>
+    >
+    <%- stands %>
+</option> 

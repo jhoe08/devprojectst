@@ -3,7 +3,7 @@
 <% var {employeeid, firstname, lastname, middlename, birthdate, experience, username, contacts} = employee %>
 <% if(experience) { 
     var { lists } = JSON.parse(experience)
-    var { office, salary, startdate, enddate, position, division } = lists[0] 
+    var { office, salary, startdate, enddate, position, division, banner } = lists[0] 
  } 
  if(contacts) {
     var {email, mobile} = JSON.parse(contacts)
@@ -23,7 +23,7 @@
                     <img src="https://bootdey.com/img/Content/avatar/avatar7.png" class="rounded-circle avatar-xl img-thumbnail" alt="profile-image">
         
                     <h4 class="mb-0"><%= firstname +" "+ lastname %></h4>
-                    <p class="text-muted">@<%= username??'no username' %></p>
+                    <p class="text-muted"><%= (username) ? `@${username}` : '' %></p>
         
                     <button type="button" class="btn btn-success btn-xs waves-effect mb-2 waves-light">Follow</button>
                     <button type="button" class="btn btn-danger btn-xs waves-effect mb-2 waves-light">Message</button>
@@ -88,16 +88,15 @@
                             <% if(experience) { %> 
                                 <% var { lists } = JSON.parse(experience)
                                     for(var i=0; i < lists.length; i++) { 
-                                    var { office, salary, startdate, enddate, position, office } = lists[i]
+                                    var { office, salary, startdate, enddate, position, office, banner } = lists[i]
                                         %>
                                 <li class="timeline-sm-item" data-exclusive="<%= enddate %>">
                                     <span class="timeline-sm-date"><%= moment(startdate).format('YYYY') %> - <%= (enddate == 'present') ? enddate :  moment(enddate).format('YY') %></span>
                                     <h5 class="mt-0 mb-1"><%= position %> <%= salary %></h5>
-                                    <p><%= office %></p>
-                                    <p class="text-muted mt-2">Everyone realizes why a new common language
-                                        would be desirable: one could refuse to pay expensive translators.
-                                        To achieve this, it would be necessary to have uniform grammar,
-                                        pronunciation and more common words.</p>
+                                    <p><%= [office, division, banner].join(', ') %></p>
+                                    <div class="text-muted mt-2">
+                                        <!-- Description Here! -->
+                                    </div>
         
                                 </li>
                                 <% } %>

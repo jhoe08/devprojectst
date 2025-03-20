@@ -1,388 +1,340 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
 <% 
-    var {blood_type, civil_status, citizenship, gender } = defaultData
-    var {divisions, banner_program} = dafaultTransactionData
+  var {blood_type, civil_status, citizenship, gender} = defaultData 
+  <!-- var {divisions, banner_program} = dafaultTransactionData -->
+  let { directors, divisions, permissions } = JSON.parse(DEPARTMENT) 
+  var roles=JSON.parse(roles) 
+  var {employeeid, firstname, middlename, lastname, extname, birthdate, experience, contacts, others, username} = employees || defaultNullUser
 
-    var {employeeid, firstname, middlename, lastname, extname, birthdate, experience, contacts, others, username} = employees || defaultNullUser
-    if(experience) { 
-        var { lists } = JSON.parse(experience)
-        var {office, division, banner, salary, startdate, enddate, position, employment } = lists[0] 
-        var employeeDivision = division
-        var employeeBanner = banner
-    }
-    if(contacts) {
-        var {email, mobile} = JSON.parse(contacts)
-    }
-    if(others) {
-        <!-- var {gender, civilstatus} = JSON.parse(others) -->
-        var {gender: employeeGender, civilstatus: employeeCivilStatus} = JSON.parse(others)
-    }
+  directors = Object.entries(directors)
+  divisions = Object.entries(divisions)
+  
+  if(experience) { 
+    var {lists} = JSON.parse(experience)
+    var {office, division: e_division, banner: employeeBanner, salary, startdate, enddate, position, employment} = lists[0]
+  } 
+  if(contacts) { 
+    var {email, mobile} = JSON.parse(contacts) 
+  } 
+  if(others) { <!-- var {gender, civilstatus}=JSON.parse(others) -->
+    var {gender: e_gender, civilstatus: e_civilStatus} = JSON.parse(others)
+  }
+
 %>
 
-<div class="wrapper">
-    <%- include('../../views/sidebar') -%>
+    <div class="wrapper">
+      <%- include('../../views/sidebar') -%>
 
-    <div class="main-panel">
-        <%- include('../../views/main-header') -%>
+        <div class="main-panel">
+          <%- include('../../views/main-header') -%>
 
-        <div class="container">
-            <div class="page-inner" id="formEmployee">
+            <div class="container">
+              <div class="page-inner" id="formEmployee">
                 <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
-                    <div>
-                        <h3 class="fw-bold mb-3"><%- title -%></h3>
-                        <h6 class="op-7 mb-2">Add individual working on the Department</h6>
-                    </div>
-                    <div class="ms-md-auto py-2 py-md-0">
-                        <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
-                        <% if(employeeid) { %>
-                            <a href="#" class="btn btn-primary btn-round" id="updateEmployee"><i class="fas fa-user-check"></i> Update</a>
-                        <% } else { %>
-                            <a href="#" class="btn btn-primary btn-round" id="registerEmployee"><i class="fas fa-plus"></i> Register</a>
+                  <div>
+                    <h3 class="fw-bold mb-3"><%- title -%></h3>
+                    <h6 class="op-7 mb-2">Add individual working on the Department</h6>
+                  </div>
+                  <div class="ms-md-auto py-2 py-md-0">
+                    <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
+                    <% if(employeeid) { %>
+                      <a href="#" class="btn btn-primary btn-round" id="updateEmployee"><i
+                          class="fas fa-user-check"></i> Update</a>
+                      <% } else { %>
+                        <a href="#" class="btn btn-primary btn-round" id="registerEmployee"><i class="fas fa-plus"></i>
+                          Register</a>
                         <% } %>
-                    </div>
+                  </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="d-flex align-items-center">
-                                    <h4 class="card-title"><%= employees ? 'Employee Data' : 'Employees List' %></h4>
-                                </div>
-                            </div>
-                          <div id="form-fields" class="card-body">
+                  <div class="col-md-6">
+                    <div class="card">
+                      <div class="card-header">
+                        <div class="d-flex align-items-center">
+                          <h4 class="card-title">
+                            <%= employees ? 'Details' : 'Employees List' %>
+                          </h4>
+                        </div>
+                      </div>
+                      <div id="form-fields" class="card-body">
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                <div class="form-group form-group-default">
-                                    <label>First Name</label>
-                                    <input
-                                    id="firstname"
-                                    name="firstname"
-                                    type="text"
-                                    class="form-control"
-                                    placeholder="Juan"
-                                    autocomplete="none"
-                                    value="<%= firstname || '' %>"
-                                    />
-                                </div>
-                                </div>
-                                <div class="col-md-6">
-                                <div class="form-group form-group-default">
-                                    <label>Last Name</label>
-                                    <input
-                                    id="lastname"
-                                    name="lastname"
-                                    type="text"
-                                    class="form-control"
-                                    placeholder="Tamad"
-                                    autocomplete="none"
-                                    value="<%= lastname || '' %>"
-                                    />
-                                </div>
-                                </div>
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="form-group form-group-default">
+                              <label>First Name</label>
+                              <input id="firstname" name="firstname" type="text" class="form-control sentence"
+                                placeholder="Juan" autocomplete="none" value="<%= firstname || '' %>" />
                             </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                <div class="form-group form-group-default">
-                                    <label>Middle Name</label>
-                                    <input
-                                    id="middlename"
-                                    name="middlename"
-                                    type="text"
-                                    class="form-control"
-                                    placeholder="Cruz"
-                                    autocomplete="none"
-                                    value="<%= middlename || '' %>"
-                                    />
-                                </div>
-                                </div>
-                                <div class="col-md-6">
-                                <div class="form-group form-group-default">
-                                    <label>Date of Birth</label>
-                                    <input
-                                    id="dob"
-                                    name="dob"
-                                    type="date"
-                                    class="form-control"
-                                    placeholder=""
-                                    autocomplete="none"
-                                    value="<%= moment(birthdate).format('YYYY-MM-DD') || '' %>"
-                                    />
-                                </div>
-                                </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group form-group-default">
+                              <label>Last Name</label>
+                              <input id="lastname" name="lastname" type="text" class="form-control sentence"
+                                placeholder="Tamad" autocomplete="none" value="<%= lastname || '' %>" />
                             </div>
-                            <div class="form-group pl-0 pt-0 pr-0">
-                                <label class="form-label">Name Extension</label>
-                                <div class="selectgroup w-100">
-                                    <label class="selectgroup-item">
-                                    <input
-                                    type="radio"
-                                    name="nameExtension"
-                                    value=""
-                                    class="selectgroup-input"
-                                    <%= extname || 'checked' %>
-                                    />
-                                    <span class="selectgroup-button">N/A</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input
-                                        type="radio"
-                                        name="nameExtension"
-                                        value="Jr"
-                                        class="selectgroup-input"
-                                        <%= extname == 'Jr' ? 'checked' : '' %>
-                                        />
-                                        <span class="selectgroup-button">JR</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input
-                                        type="radio"
-                                        name="nameExtension"
-                                        value="Sr"
-                                        class="selectgroup-input"
-                                        <%= extname == 'Sr' ? 'checked' : '' %>
-                                        />
-                                        <span class="selectgroup-button">SR</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input
-                                        type="radio"
-                                        name="nameExtension"
-                                        value="I"
-                                        class="selectgroup-input"
-                                        <%= extname == 'I' ? 'checked' : '' %>
-                                        />
-                                        <span class="selectgroup-button">I</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input
-                                        type="radio"
-                                        name="nameExtension"
-                                        value="II"
-                                        class="selectgroup-input"
-                                        <%= extname == 'II' ? 'checked' : '' %>
-                                        />
-                                        <span class="selectgroup-button">II</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input
-                                        type="radio"
-                                        name="nameExtension"
-                                        value="III"
-                                        class="selectgroup-input"
-                                        <%= extname == 'III' ? 'checked' : '' %>
-                                        />
-                                        <span class="selectgroup-button">III</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input
-                                        type="radio"
-                                        name="nameExtension"
-                                        value="IV"
-                                        class="selectgroup-input"
-                                        <%= extname == 'IV' ? 'checked' : '' %>
-                                        />
-                                        <span class="selectgroup-button">IV</span>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                <div class="form-group form-group-default">
-                                    <label>Email Address:</label>
-                                    <input
-                                    id="emailadd"
-                                    name="emailadd"
-                                    type="email"
-                                    class="form-control"
-                                    autocomplete="none"
-                                    value="<%= email || '' %>"
-                                    />
-                                </div>
-                                </div>
-                                <div class="col-md-6">
-                                <div class="form-group form-group-default">
-                                    <label>Mobile #</label>
-                                    <input
-                                    id="mobile"
-                                    name="mobile"
-                                    type="tel"
-                                    class="form-control"
-                                    autocomplete="none"
-                                    value="<%= mobile || '' %>"
-                                    />
-                                </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                <div class="form-group-default">
-                                    <label>Gender</label>
-                                    <select
-                                        class="form-select"
-                                        id="gender"
-                                        name="gender"
-                                    >
-                                    <% gender.forEach(status=> { %>
-                                        <option value="<%= status %>" <%= status === employeeGender ? 'selected' : '' %>>
-                                            <%= status %>
-                                        </option><% }); %>
-                                    </select>
-                                </div>
-                                </div>
-                                <div class="col-md-6">
-                                <div class="form-group-default">
-                                    <label>Civil Status</label>
-                                    <select
-                                    class="form-select"
-                                    id="civilstatus"
-                                    name="civilstatus"
-                                    >
-                                    <% civil_status.forEach(status=> { %>
-                                    <option value="<%= status %>" <%= status === employeeCivilStatus ? 'selected' : '' %>><%= status %></option>
-                                    <% }); %>
-                                    </select>
-                                </div>
-                                </div>
-                            </div>
-
                           </div>
                         </div>
-                        
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="d-flex align-items-center">
-                                    <h4 class="card-title">Experience</h4>
-                                </div>
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="form-group form-group-default">
+                              <label>Middle Name</label>
+                              <input id="middlename" name="middlename" type="text" class="form-control sentence"
+                                placeholder="Cruz" autocomplete="none" value="<%= middlename || '' %>" />
                             </div>
-                          <div class="card-body">
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group form-group-default">
+                              <label>Date of Birth</label>
+                              <input id="dob" name="dob" type="date" class="form-control sentence" placeholder=""
+                                autocomplete="none" value="<%= moment(birthdate).format('YYYY-MM-DD') || '' %>" />
+                            </div>
+                          </div>
+                        </div>
+                        <div class="form-group pl-0 pt-0 pr-0">
+                          <label class="form-label">Name Extension</label>
+                          <div class="selectgroup w-100">
+                            <label class="selectgroup-item">
+                              <input type="radio" name="nameExtension" value="" class="selectgroup-input" <%=extname
+                                || 'checked' %>
+                              />
+                              <span class="selectgroup-button">N/A</span>
+                            </label>
+                            <label class="selectgroup-item">
+                              <input type="radio" name="nameExtension" value="Jr" class="selectgroup-input"
+                                <%=extname=='Jr' ? 'checked' : '' %>
+                              />
+                              <span class="selectgroup-button">JR</span>
+                            </label>
+                            <label class="selectgroup-item">
+                              <input type="radio" name="nameExtension" value="Sr" class="selectgroup-input"
+                                <%=extname=='Sr' ? 'checked' : '' %>
+                              />
+                              <span class="selectgroup-button">SR</span>
+                            </label>
+                            <label class="selectgroup-item">
+                              <input type="radio" name="nameExtension" value="I" class="selectgroup-input"
+                                <%=extname=='I' ? 'checked' : '' %>
+                              />
+                              <span class="selectgroup-button">I</span>
+                            </label>
+                            <label class="selectgroup-item">
+                              <input type="radio" name="nameExtension" value="II" class="selectgroup-input"
+                                <%=extname=='II' ? 'checked' : '' %>
+                              />
+                              <span class="selectgroup-button">II</span>
+                            </label>
+                            <label class="selectgroup-item">
+                              <input type="radio" name="nameExtension" value="III" class="selectgroup-input"
+                                <%=extname=='III' ? 'checked' : '' %>
+                              />
+                              <span class="selectgroup-button">III</span>
+                            </label>
+                            <label class="selectgroup-item">
+                              <input type="radio" name="nameExtension" value="IV" class="selectgroup-input"
+                                <%=extname=='IV' ? 'checked' : '' %>
+                              />
+                              <span class="selectgroup-button">IV</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="form-group form-group-default">
+                              <label>Email Address:</label>
+                              <input id="emailadd" name="emailadd" type="email" class="form-control" autocomplete="none"
+                                value="<%= email || '' %>" />
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group form-group-default">
+                              <label>Mobile #</label>
+                              <input id="mobile" name="mobile" type="tel" class="form-control sentence"
+                                autocomplete="none" value="<%= mobile || '' %>" placeholder="09123456789" />
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="form-group-default">
+                              <label>Gender</label>
+                              <select class="form-select text-capitalize" id="gender" name="gender" <%=e_gender%>>
+                                <% gender.forEach(sex=> { 
+                                  sex = sex.toLowerCase() %>
+                                  <option value="<%= sex %>" <%=sex===e_gender ? 'selected' : '' %>>
+                                    <%= sex %>
+                                  </option>
+                                  <% }); %>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group-default">
+                              <label>Civil Status</label>
+                              <select class="form-select text-capitalize" id="civilstatus" name="civilstatus">
+                                <% civil_status.forEach(status=> { 
+                                  status = status.toLowerCase() %>
+                                  <option value="<%= status %>" <%=status===e_civilStatus ? 'selected' : '' %>><%=
+                                      status %>
+                                  </option>
+                                  <% }); %>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card">
+                      <div class="card-header">
+                        <div class="d-flex align-items-center">
+                          <h4 class="card-title">Experience</h4>
+                        </div>
+                      </div>
+                      <div class="card-body">
+                        <div class="col-md-12">
+                          <div class="row">
+                            <div class="col-md-6">
+                              <div class="form-group form-group-default">
+                                <label>Office</label>
+                                <input id="companyname" name="companyname" type="text" class="form-control uppercase"
+                                  placeholder="DA RFO7" autocomplete="none" value="<%= office || 'DA RFO7' %>" />
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="form-group form-group-default">
+                                <label>Employee ID</label>
+                                <input id="employeeid" name="employeeid" type="number" class="form-control sentence"
+                                  placeholder="" min="0" autocomplete="none" value="<%= employeeid || '' %>"
+                                  <%=employeeid ? 'readonly' : '' %>
+                                />
+                              </div>
+                            </div>
                             <div class="col-md-12">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                    <div class="form-group form-group-default">
-                                        <label>Office</label>
-                                        <input
-                                        id="companyname"
-                                        name="companyname"
-                                        type="text"
-                                        class="form-control"
-                                        placeholder="DA RFO7"
-                                        autocomplete="none"
-                                        value="<%= office || '' %>"
-                                        />
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                    <div class="form-group form-group-default">
-                                        <label>Employee ID</label>
-                                        <input
-                                        id="employeeid"
-                                        name="employeeid"
-                                        type="number"
-                                        class="form-control"
-                                        placeholder=""
-                                        min="0"
-                                        autocomplete="none"
-                                        value="<%= employeeid || '' %>"
-                                        <%= employeeid ? 'readonly' : '' %>
-                                        />
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                    <div class="form-group form-group-default">
-                                        <label>Division</label>
-                                        <select
-                                            class="form-select"
-                                            id="division"
-                                            name="division"
-                                        >
-                                        <% divisions.forEach(division=> { %><option value="<%= division %>" <%= (employeeDivision == division) ?'selected':'' %>><%= division %></option><% }); %>
-                                        </select>
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                    <div class="form-group form-group-default">
-                                        <label>Banner</label>
-                                        <select
-                                            class="form-select"
-                                            id="banner"
-                                            name="banner"
-                                        >
-                                        <% banner_program.forEach(banner=> { %><option value="<%= banner %>" <%= (employeeBanner == banner) ?'selected':'' %>><%= banner %></option><% }); %>
-                                        </select>
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                    <div class="form-group form-group-default">
-                                        <label>Position</label>
-                                        <input
-                                        id="position"
-                                        name="position"
-                                        type="text"
-                                        class="form-control"
-                                        placeholder=""
-                                        autocomplete="none"
-                                        value="<%= position || '' %>"
-                                        />
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                    <div class="form-group form-group-default">
-                                        <label>Employment</label>
-                                        <select
-                                            class="form-select"
-                                            id="employment"
-                                            name="employment"
-                                        >
-                                        <% var {appointments} = defaultData
-                                        appointments.forEach(appointment=> { %>
-                                        <option value="<%= appointment.type %>" <%= (employment == appointment.type) ?'selected':'' %>><%= appointment.type %></option>
-                                        <% }); %>
-                                        </select>
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                    <div class="form-group form-group-default">
-                                        <label>Salary</label>
-                                        <input
-                                        id="salary"
-                                        name="salary"
-                                        type="number"
-                                        class="form-control"
-                                        placeholder=""
-                                        autocomplete="none"
-                                        value="<%= salary || '' %>"
-                                        />
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                    <div class="form-group form-group-default">
-                                        <label>Date Started</label>
-                                        <input
-                                        id="startdate"
-                                        name="startdate"
-                                        type="date"
-                                        class="form-control"
-                                        placeholder=""
-                                        autocomplete="none"
-                                        value="<%= moment(startdate).format('YYYY-MM-DD') || '' %>"
-                                        />
-                                    </div>
-                                    </div>
-                                </div>
+                              <div class="form-group form-group-default">
+                                <label>Division</label>
+                                <select class="form-select" id="division" name="division">
+                                  <!-- Director and Technical Directors -->
+                                  <% 
+                                  const directorsArray = directors.flatMap(([key, director]) => {
+                                    if (key === "RTDs") {
+                                      return Object.entries(director).map(([subKey, subDirector]) => ({
+                                        key: subKey,
+                                        stands: subDirector.stands,
+                                        classes: "technical-directors",
+                                        filtered: subKey,
+                                      }));
+                                    }
+                                    return [{
+                                      key,
+                                      stands: director.stands,
+                                      classes: "director",
+                                      filtered: key,
+                                    }];
+                                  });
+                                  
+                                  directorsArray.forEach(({ key, stands, classes, filtered }) => { %>
+                                    <%- include('../../components/forms/options', { key, stands, classes, filtered: e_division, dataset:[] }) %>
+                                  <% }); %>
+                                  <optgroup label="Divisions">
+                                  <!-- Divisions Here -->
+                                  <% divisions.forEach(([key, division]) => { 
+                                    const { stands, sections } = division; %>
+
+                                    <%- include('../../components/forms/options', { key, stands, classes: 'division',  filtered: e_division, dataset:[] }) %>
+                                    <% 
+                                      Object.entries(sections).forEach(([keySect, section]) => { 
+                                        const { stands: sectStands, sections:banners } = section;
+                                        underDivision = Object.entries(section)
+                                      %>
+                                      <%- include('../../components/forms/options', { key: keySect, stands: sectStands,  classes: 'section', filtered: e_division, dataset:[] }) %>
+                                      <% if(banners) {
+                                        Object.entries(banners).forEach(([keyBan, banner]) => { 
+                                          const { stands:banStands } = banner;
+                                        %>
+                                        <%- include('../../components/forms/options', { key: keyBan, stands: banStands, classes: 'unit', filtered: e_division, dataset:[] }) %>
+                                      <% }) } %>
+                                    <% }); %>
+                                  <% }) %>
+                                  </optgroup>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="form-group form-group-default">
+                                <label>Position</label>
+                                <input id="position" name="position" type="text" class="form-control uppercase"
+                                  placeholder="" autocomplete="none" value="<%= position || '' %>" />
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="form-group form-group-default">
+                                <label>Employment</label>
+                                <select class="form-select" id="employment" name="employment">
+                                  <% var {appointments}=defaultData
+                                     appointments.forEach(appointment=> { %>
+                                    <option value="<%= appointment.type %>" <%=(employment==appointment.type)
+                                      ?'selected':'' %>><%= appointment.type %>
+                                    </option>
+                                    <% }); %>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="form-group form-group-default">
+                                <label>Salary</label>
+                                <input id="salary" name="salary" type="number" class="form-control sentence"
+                                  placeholder="" autocomplete="none" value="<%= salary || '' %>" />
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="form-group form-group-default">
+                                <label>Date Started</label>
+                                <input id="startdate" name="startdate" type="date" class="form-control sentence"
+                                  placeholder="" autocomplete="none"
+                                  value="<%= moment(startdate).format('YYYY-MM-DD') || '' %>" />
+                              </div>
                             </div>
                           </div>
                         </div>
+                      </div>
                     </div>
+                    <div class="card">
+                      <div class="card-header">
+                        <div class="d-flex align-items-center">
+                          <h4 class="card-title">Roles</h4>
+                        </div>
+                      </div>
+                      <div class="card-body">
+                        <div class="form-group form-group-default">
+                          <label>Enter a Role</label>
+                          <input type="text" class="form-control" placeholder="Role" id="roleInputEnter">
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label hidden">Select Roles</label>
+                          <% roles.sort((a, b) => a.role_name.localeCompare(b.role_name)); %>
+                          <div id="listRoles" class="selectgroup selectgroup-pills" data-roles="<%= roles.map(role => role.role_name).join(',') %>">
+                            <% roles.forEach(role=> { 
+                               const {role_name} = role %>
+                              <label class="selectgroup-item">
+                                <input type="checkbox" name="roles" value="<%= role_name %>" class="selectgroup-input">
+                                <span class="selectgroup-button"><%= role_name %></span>
+                              </label>
+                              <% }) %>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
             </div>
-        </div>
 
+        </div>
     </div>
-</div>
-<!-- Header Template -->
-<%- include('../../views/footer') -%>
+    <!-- Header Template -->
+    <%- include('../../views/footer') -%>
