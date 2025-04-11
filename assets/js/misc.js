@@ -375,18 +375,26 @@ function notifyCustom(type, title, message, status) {
 }
 
 function fieldsUpdated(container) {
-  const fields = document.querySelectorAll(`${container} .form-control, ${container} .form-select, ${container} .selectgroup-input`);
+  const fields = document.querySelectorAll(`${container} .form-control, ${container} .form-select, ${container} input[type="checkbox"]`);
 
   fields.forEach(field => {
-      field.addEventListener('input', function() {
-          this.classList.toggle('updated', !!this.value);
-      });
-  
+    // console.dir(field.tagName)
+      if (field.tagName === 'INPUT') {
+        field.addEventListener('input', function() {
+            this.classList.toggle('updated', !!this.value);
+        });
+      }
       // For select elements, listen for the 'change' event
-      if (field.tagName === 'select') {
+      if (field.tagName === 'SELECT') {
           field.addEventListener('change', function() {
               this.classList.toggle('updated', !!this.value);
           });
+      }
+      // For checkbox elements, listen for the 'input' event
+      if (field.tagName === 'INPUT' && field.type === 'checkbox') {
+        field.addEventListener('input', function() {
+          field.closest('.selectgroup').classList.toggle('updated', !!this.value);
+        });
       }
   });
 }
@@ -473,6 +481,10 @@ function validateEmail(email) {
   return emailPattern.test(email);
 }
 
+function isActive(currentPath, pathToCheck) {
+  return (currentPath === pathToCheck) ? 'active' : '';
+}
+
 // SELECT MULTIPLE OPTION
 document.querySelectorAll('select[multiple] option').forEach(function(option) {
   option.addEventListener('mousedown', function(e) {
@@ -525,6 +537,7 @@ const numberInputs = document.querySelectorAll('input[data-type="number"]');
 numberInputs.forEach(input => {
   input.addEventListener('input', formatNumberWithCommas);
 });
+
 
 
 // DO NOT FUCKING DELETE THIS CODE

@@ -41,7 +41,7 @@ const { permission } = require('node:process');
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
-const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros, searchKey, toCapitalize} = utils
+const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros, searchKey, toCapitalize, isActive} = utils
 
 const _preDefaultData = {
     blood_type: ['N/A','O+','O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
@@ -707,26 +707,14 @@ let transporter = nodemailer.createTransport({
 // endof EMAIL
 
 app.use(async function(req, res, next){
-  // const err = req.session.error;
-  // const msg = req.session.success;
-  // delete req.session.error;
-  // delete req.session.success;
-  // res.locals.message = err;
-  // if (err) res.locals.message = '<p class="text-danger">' + err + '</p>';
-  // if (msg) res.locals.message = '<p class="text-success">' + msg + '</p>';
-  // res.status(404).send('Page Not Found');  
+
+  var components = ['Transactions', 'Employees', 'Documents']
+
   const notifications = await connection.retrieveNotifications()
-  // const {employeeid} = req.session.user
+  const employees = await connection.retrieveEmployee()
   
   // Sort using Descending
   notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  let role = ''
-  const { employeeid } = req.session?.user || {};
-  if(employeeid) {
-    role = await connection.getCurrentUserRole(employeeid)
-    role = role[0]?.role_name ?? 'user'
-    
-  }
 
   const defaultNullUser = {
     employeeid: 70712,
@@ -758,9 +746,18 @@ app.use(async function(req, res, next){
     others: {
       civilstatus: 'Married',
       gender: 'Male'
-    }
+    },
+    components: ['Transactions', 'Employees', 'Documents']
   }
   
+  let role = ''
+  const { employeeid, components:availComponents } = req.session?.user || defaultNullUser;
+  if(employeeid) {
+    role = await connection.getCurrentUserRole(employeeid)
+    role = (role[0]?.role_name).toLowerCase() ?? 'user'
+    
+  }
+
   let { experience, contacts, others } = defaultNullUser
   experience = JSON.stringify(experience)
   contacts = JSON.stringify(contacts)
@@ -773,6 +770,8 @@ app.use(async function(req, res, next){
   // console.log('SESSION', req.session?.user || JSON.parse(JSON.stringify(defaultNullUser)))
   const fullUrl = req.protocol + '://' + req.get('host');
 
+  
+
   res.locals = {
     HOST: fullUrl,
     ENVIRONMENT: process.env.NODE_ENV,
@@ -782,18 +781,19 @@ app.use(async function(req, res, next){
     defaultNullUser,
     DEPARTMENT: JSON.stringify(department),
     // NOTIFICATIONS: countNotif,
-    // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications)
+    // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications) // *** DO NOT REMOVE
     NOTIFICATIONS: JSON.stringify(notifications),
     logonUser: JSON.stringify(req.session.user),
     currentRole: role ?? 'developer',
     perClassification: {},
-    employees: {},
+    employees,
     dafaultTransactionData: _preTransactionsData,
     defaultData: _preDefaultData,
     purchaseRequestStatuses,
     purchaseRequestRoles,
     path: req.url,
     path2: req.path,
+    currentPath: req.path,
     isHome: req.originalUrl,
     moment,
     peso,
@@ -801,6 +801,20 @@ app.use(async function(req, res, next){
     addLeadingZeros,
     searchKey,
     toCapitalize,
+    isActive,
+    userAvailComponents: (component) => {
+      // Single component
+      if (typeof component === 'string') {
+        return availComponents.includes(component);
+      }
+  
+      // Multiple components
+      if (Array.isArray(component)) {
+        return availComponents.every(c => components.includes(c));
+      }
+  
+      return false;
+    },
   }
   // console.log('locals', res.locals.isHome)
   // console.log(req.socket.remoteAddress )
@@ -946,7 +960,17 @@ app.get('/api/notifications', async (req, res) => {
 });
 
 app.get('/404', (req, res) => {
-  res.status(404).render('pages/404');
+  res.status(404).render('pages/404', {
+    title: 'Page Not Found',
+    component: 'Page'
+  });
+});
+
+app.get('/unauthorized', (req, res) => {
+  res.status(404).render('pages/unauthorize', {
+    title: 'Page Not Found',
+    component: 'Page'
+  });
 });
 
 app.get('/login', (req, res) => {
@@ -1633,13 +1657,23 @@ app.get('/documents/:id', restrict, async function(req, res){
     const results = await connection.retrieveDocuments('documents', JSON.stringify(req.params))
     const activities = await connection.getDocumentTrackerActivity(JSON.stringify({refid:id}))
     const employees = await connection.retrieveEmployee()
+    if (results.length > 0) {
+      const { username } = res.locals.SESSION_USER
+      var { priority, created_by } = results[0]
+      if (priority === 'confidential' && created_by !== username) {
+        res.render('pages/unauthorize', {
+          title: "Unauthorized Access", 
+        })
+      } else { 
+        res.render('pages/documents/id', {
+          title: "Document", 
+          displayData: results[0], 
+          activities: activities.sort((a, b) => b.id - a.id),
+          employeesData: employees,
+        })
+      }
+    }
     
-    res.render('pages/documents/id', {
-      title: "Document", 
-      displayData: results[0], 
-      activities: activities.sort((a, b) => b.id - a.id),
-      employeesData: employees,
-    })
   } catch (error) {
     console.error('Error on displaying the document:', error);
     res.status(404).render('pages/404', {
@@ -1752,16 +1786,22 @@ app.route('/api/qrcode/:id')
 app.get('/settings', restrict, async function(req, res){
   const results = await connection.getSettings()
   let employees = await connection.retrieveEmployee()
+  const { username } = res.locals.SESSION_USER
   employees.sort((a, b) => 
     a.lastname.toLowerCase() < b.lastname.toLowerCase() ? -1 : 
     (a.lastname.toLowerCase() > b.lastname.toLowerCase() ? 1 : 0)
   );
-  console.log(employees)
-  res.render('pages/settings', {
-    title: "Settings",
-    settings: JSON.parse(JSON.stringify(results)),
-    employees: JSON.parse(JSON.stringify(employees))
-  })
+  if(username === 'justtest') { // user is admin
+    res.render('pages/settings', {
+      title: "Settings",
+      settings: JSON.parse(JSON.stringify(results)),
+      employees: JSON.parse(JSON.stringify(employees))
+    })
+  }
+  res.status(404).render('pages/unauthorize', {
+    title: 'Page Not Found',
+    component: 'Page'
+  });
 })
 
 app.post('/settings', restrict, async function(req, res){

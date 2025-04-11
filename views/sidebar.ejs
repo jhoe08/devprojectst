@@ -29,7 +29,7 @@
     <div class="sidebar-wrapper scrollbar scrollbar-inner">
       <div class="sidebar-content">
         <ul class="nav nav-secondary" data-current-url="<%- path -%>">
-          <li class="nav-item <%- (path == '') ? 'active' : '' -%>">
+          <li class="nav-item <%= isActive(currentPath, '/') %>">
             <a
               href="/"
               aria-expanded="false"
@@ -38,7 +38,7 @@
               <p>Dashboard</p>
             </a>
           </li>
-          <li class="nav-item <%- (path == '/qrscanner') ? 'active' : '' -%>">
+          <li class="nav-item <%= isActive(currentPath, '/qrscanner') %>">
             <a
               href="/qrscanner"
               aria-expanded="false"
@@ -47,40 +47,52 @@
               <p>Scan QR Code</p>
             </a>
           </li>
-          <li class="nav-section">
+          <li class="nav-item <%= isActive(currentPath, '/media') %>">
+            <a
+              href="/media"
+              aria-expanded="false"
+            >
+              <i class="fas fa-file-image"></i>
+              <p>Media</p>
+            </a>
+          </li>
+          <% if (userAvailComponents('Transactions') ) { %>
+          <li class="nav-section" <%=userAvailComponents('Transactions')%>>
             <span class="sidebar-mini-icon">
               <i class="fa fa-ellipsis-h"></i>
             </span>
             <h4 class="text-section">Transactions</h4>
           </li>
-          <li class="nav-item <%- (path == '/transactions') ? 'active' : '' -%>">
+          <li class="nav-item <%= isActive(currentPath, '/transactions') %>">
             <a href="/transactions">
               <i class="fas fa-file"></i>
               <p>Lists</p>
               <!-- <span class="caret"></span> -->
             </a>
           </li>
-          <li class="nav-item <%- (path == '/transactions/new') ? 'active' : '' -%>">
+          <li class="nav-item <%= isActive(currentPath, '/transactions/new') %>">
             <a href="/transactions/new">
               <i class="fas fa-plus"></i>
               <p>Add New</p>
               <!-- <span class="caret"></span> -->
             </a>
           </li>
-          <li class="nav-item <%- (path == '/transactions/scan') ? 'active' : '' -%>">
+          <li class="nav-item <%= isActive(currentPath, '/transactions/scan') %>">
             <a href="/transactions/scan">
               <i class="fas fa-qrcode"></i>
               <p>Scan QRCode</p>
               <!-- <span class="caret"></span> -->
             </a>
           </li>
+          <% } %>
+          <% if (userAvailComponents('Employees') ) { %>
           <li class="nav-section">
             <span class="sidebar-mini-icon">
               <i class="fa fa-ellipsis-h"></i>
             </span>
             <h4 class="text-section">Employees</h4>
           </li>
-          <li class="nav-item <%- (path == '/employees') ? 'active' : '' -%>">
+          <li class="nav-item <%= isActive(currentPath, '/employees') %>">
             <a href="/employees">
               <i class="fas fa-user-friends"></i>
               <p>Lists</p>
@@ -88,7 +100,7 @@
             </a>
           </li>
           <% if (ENVIRONMENT == 'testing') { %>
-          <li class="nav-item <%- (path == '/employees/new') ? 'active' : '' -%>">
+          <li class="nav-item <%= isActive(currentPath, '/employees/new') %>">
             <a href="/employees/new">
               <i class="fas fa-user-plus"></i>
               <p>Add New</p>
@@ -97,7 +109,7 @@
           </li>
           <% } %> 
           <% if(!currentRole.includes(['Contributor', 'Viewer'])) { %>
-          <li class="nav-item <%- (path == '/employees/register') ? 'active' : '' -%>">
+          <li class="nav-item <%= isActive(currentPath, '/employees/register') %>">
             <a href="/employees/register">
               <i class="fas fa-upload"></i>
               <p>Register</p>
@@ -105,13 +117,15 @@
             </a>
           </li>
           <% } %>
+          <% } %> <!-- endof if (userAvailComponents('Transactions') -->
+          
           <li class="nav-section hidden">
             <span class="sidebar-mini-icon">
               <i class="fa fa-ellipsis-h"></i>
             </span>
             <h4 class="text-section">Inventory</h4>
           </li>
-          <li class="nav-item <%- (path == '/employees/register') ? 'active' : '' -%> hidden">
+          <li class="nav-item <%= isActive(currentPath, '/inventory') %> hidden">
             <a href="/inventory">
               <i class="fas fa-warehouse"></i>
               <p>Dashboard</p>
@@ -123,12 +137,12 @@
             <span class="sidebar-mini-icon">
               <i class="fa fa-ellipsis-h"></i>
             </span>
-            <h4 class="text-section">Communication</h4>
+            <h4 class="text-section">Documents</h4>
           </li>
-          <li class="nav-item <%- (path == '/employees/register') ? 'active' : '' -%>">
+          <li class="nav-item <%= isActive(currentPath, '/documents') %>">
             <a href="/documents">
               <i class="fas fa-copy"></i>
-              <p>Documents</p>
+              <p>Lists</p>
               <!-- <span class="caret"></span> -->
             </a>
           </li>
@@ -137,3 +151,5 @@
     </div>
   </div>
   <!-- End Sidebar -->
+
+  

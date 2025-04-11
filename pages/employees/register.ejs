@@ -5,7 +5,7 @@
   <!-- var {divisions, banner_program} = dafaultTransactionData -->
   let { directors, divisions, permissions } = JSON.parse(DEPARTMENT) 
   var roles=JSON.parse(roles) 
-  var {employeeid, firstname, middlename, lastname, extname, birthdate, experience, contacts, others, username} = employees || defaultNullUser
+  var {employeeid, firstname, middlename, lastname, extname, birthdate, experience, contacts, others, username, components:selectedComponents} = employees || defaultNullUser
 
   directors = Object.entries(directors)
   divisions = Object.entries(divisions)
@@ -20,6 +20,8 @@
   if(others) { <!-- var {gender, civilstatus}=JSON.parse(others) -->
     var {gender: e_gender, civilstatus: e_civilStatus} = JSON.parse(others)
   }
+  
+  var components = ['Transactions', 'Employees', 'Documents']
 
 %>
 
@@ -192,7 +194,7 @@
                     <div class="card">
                       <div class="card-header">
                         <div class="d-flex align-items-center">
-                          <h4 class="card-title">Experience</h4>
+                          <h4 class="card-title">Add New Experience</h4>
                         </div>
                       </div>
                       <div class="card-body">
@@ -303,6 +305,39 @@
                         </div>
                       </div>
                     </div>
+                  <% if(currentRole === 'superadmin') { %>
+                    <div class="card">
+                      <div class="card-header">
+                        <div class="d-flex align-items-center">
+                          <h4 class="card-title">Pages</h4>
+                        </div>
+                      </div>
+                      <div class="card-body">
+                        <div class="form-group">
+                          <label class="form-label hidden">Select pages visible</label>
+                          <% components.sort((a, b) => a.localeCompare(b)); %>
+                          <div id="componentsList" class="selectgroup selectgroup-pills">
+                            <% 
+                              if (employeeid || selectedComponents) {
+                                var selectedValues = JSON.parse(selectedComponents) || [];
+                              }
+                            %>
+                            <% components.forEach(function(component) { %>
+                              <label class="selectgroup-item">
+                                <input 
+                                  type="checkbox" 
+                                  name="components" 
+                                  value="<%= component %>" 
+                                  class="selectgroup-input" 
+                                  <%= (selectedValues && selectedValues.includes(component)) ? 'checked' : '' %>
+                                >
+                                <span class="selectgroup-button"><%= component %></span>
+                              </label>
+                            <% }) %>
+                          </div>
+                        </div>                        
+                      </div>
+                    </div>
                     <div class="card">
                       <div class="card-header">
                         <div class="d-flex align-items-center">
@@ -310,13 +345,12 @@
                         </div>
                       </div>
                       <div class="card-body">
-                        <div class="form-group form-group-default">
+                        <div class="form-group form-group-default hidden">
                           <label>Enter a Role</label>
                           <input type="text" class="form-control" placeholder="Role" id="roleInputEnter">
                         </div>
                         <div class="form-group">
                           <label class="form-label hidden">Select Roles</label>
-                          <% roles.sort((a, b) => a.role_name.localeCompare(b.role_name)); %>
                           <div id="listRoles" class="selectgroup selectgroup-pills" data-roles="<%= roles.map(role => role.role_name).join(',') %>">
                             <% roles.forEach(role=> { 
                                const {role_name} = role %>
@@ -329,6 +363,7 @@
                         </div>
                       </div>
                     </div>
+                  <% } %>
                   </div>
                 </div>
               </div>

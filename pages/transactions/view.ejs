@@ -1,18 +1,17 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
 <%
-      if(logonUser) {
-        logonUser = JSON.stringify(logonUser)
-        const { experience } = logonUser || {}
-        if(experience) {
-            const { lists } = JSON.parse(experience)
-            const { position, division: employeeDivision } = lists[0] || {}
+if(logonUser) {
+  logonUser = JSON.stringify(logonUser)
+  const { experience } = logonUser || {}
+  if(experience) {
+      const { lists } = JSON.parse(experience)
+      const { position, division: employeeDivision } = lists[0] || {}
 
-            console.log(`asd ${division}`)
-        }
+      console.log(`asd ${division}`)
+  }
 
-      }
-    %>
+} %>
 <% if(transactions) { %>
 <div class="wrapper">
     <%- include('../../views/sidebar') -%>
@@ -211,8 +210,13 @@
                     <div class="card-body">
                       <div class="form-group form-group-default">
                         <label>Select</label>
-                        <select class="form-select" multiple>
-                          <option value="Accounting Section">Accounting Section</option>
+                        <select class="form-select">
+                          <% employees.forEach(employee => { 
+                            var {employeeid, firstname, lastname, middlename} = employee 
+                            var fullname = `${lastname}, ${firstname} ${middlename}` %>
+                            <option value="<%= employeeid  %>"><%= fullname %></option>
+                          <% }) %>
+                          <!-- <option value="Accounting Section">Accounting Section</option>
                           <option value="BAC Secretariat">BAC Secretariat</option>
                           <option value="Canvassers">Canvassers</option>
                           <option value="Division Chief">Division Chief</option>
@@ -224,7 +228,7 @@
                           <option value="Procurement Section">Procurement Section</option>
                           <option value="RTD">RTD</option>
                           <option value="Supplier">Supplier</option>
-                          <option value="Cashering Unit">Cashering Unit</option>
+                          <option value="Cashering Unit">Cashering Unit</option> -->
                         </select>
                         
                       </div>
@@ -267,6 +271,6 @@
 <!-- <script> 
   new QRCode(`transid-<%- transactions.product_id %>`, `<%- transactions.product_id %>`); 
 </script> -->
-<% } %>
+<% } %> endof IF transactions
 <!-- Footer Template -->
 <%- include('../../views/footer') -%>

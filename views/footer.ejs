@@ -39,13 +39,14 @@
         "pageLength": -1,
         "ordering": false,
         "paging": false,
+        responsive: true
       });
 
       let tables = $("#justTables").DataTable();
       const transactions = $("#transactions-datatables").DataTable({
         "order": [[0, 'desc']],
         columnDefs: [{
-            render: (data, type, row) => '<div><span data-head="Classification" class="badge badge-count mr-3">' + row[9] + '</span><span data-head="Banner"  class="badge badge-info">' + row[8] + '</span></div><div class="mb-0">'+ data +'</div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div>',
+            render: (data, type, row) => '<div><span data-head="Classification" class="badge badge-count mr-3">' + row[9] + '</span></div><div class="mb-0">'+ data +'</div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div>',
             targets: 1
           }, {
             render: (data, type, row) => `${data} <br><span data-head="Division" class="badge badge-warning">${row[3]}<span>`,
@@ -83,8 +84,9 @@
           // });
         }, 
       })
+      
       // const employeesHiddenColumns = []
-      const employeesHiddenColumns = [2, 5, 8] 
+      const employeesHiddenColumns = [2,5,6,8] 
       let employees = $("#employees").DataTable({
         
         layout: {

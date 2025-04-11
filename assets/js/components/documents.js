@@ -83,7 +83,7 @@ if(createDocumentTrackerBtn) {
       priority: priority.value,
       source: source.value,
       source_name: name.value,
-      status: 'draft',
+      status: (priority.value === 'confidential' ? 'locked' :'draft'),
       created_by: created_by.value,
     }
     

@@ -200,7 +200,7 @@
                         </div>
                         
                     </div>
-                    <div class="card-body" id="divisionFields">
+                    <div class="card-body table-responsive" id="divisionFields">
                       <table class="basicDatatables table table-striped table-hover">
                         <thead>
                           <tr class="text-uppercase">
@@ -388,26 +388,30 @@
                             <i class="fa fa-plus"></i>
                             Add Row
                           </a>
+                          <a href="#" class="btn btn-primary btn-round ms-auto" data-bs-toggle="modal" data-bs-target="#primaryModal">
+                            <i class="fa fa-plus"></i>
+                            Add Row
+                          </a>
                       </div>
                   </div>
                   <div class="card-body" id="sheetsFields">
                     <table class="basicDatatables table table-striped table-hover">
                       <thead>
                         <tr class="text-uppercase">
-                          <th>Groups</th>
-                          <th>Employees</th>
+                          <th>ID</th>
+                          <th>Name</th>
                           <th>Actions</th>
                         </tr>
                       </thead>
                       <tfoot>
                         <tr class="text-uppercase">
-                          <td>Groups</td>
-                          <td>Employees</td>
+                          <td>ID</td>
+                          <td>Name</td>
                           <td>Actions</td>
                         </tr>
                       </tfoot>
                       <tbody>
-
+                        
                       </tbody>
                     </table>
                   </div>
@@ -426,5 +430,13 @@
 <%- include('../components/modals/employees/lists') -%>
 <%- include('../components/modals/settings/settings') -%>
 <%- include('../components/modals/settings/roles') -%>
+<%- include('../components/modals/modal', {
+  target: 'primaryModal', 
+  title: "Add New Role", 
+  fields: [
+    {id: "roleID", title: "ID", type: "text", hidden: true},
+    {id: "roleName", title: "Name", type: "text"},
+  ],
+  button: {id: "submit", title: "Submit"}}) -%>
 <!-- Footer Template  -->
 <%- include('../views/footer') -%>

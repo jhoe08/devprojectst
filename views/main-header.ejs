@@ -3,7 +3,7 @@
   const { email } = JSON.parse(contacts)
   const { gender } = JSON.parse(others)
 
-  const profilePic = (gender=='Male') ? 'profile-1' : 'profile-2'
+  const profilePic = (gender=='Male') ? 'profile-1' : (gender=='Female') ? 'profile-2' : 'profile-unknown'
 %>
 <div class="main-header" data-currentuser="<%=JSON.stringify({ username, firstname, email })%>">
     <div class="main-header-logo">

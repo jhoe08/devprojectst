@@ -29,7 +29,7 @@ body {
     transform: skew(0deg, 10deg);
     margin: 0 auto;
     text-align: center;
-    width: 400px
+    width: 500px
 }
 
 .error-wrapper .error-container .error .error-title {

@@ -80,6 +80,9 @@ const utils = {
       return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
     return str;
+  },
+  isActive(currentPath, pathToCheck) {
+    return (currentPath === pathToCheck) ? 'active' : '';
   }
 }
 

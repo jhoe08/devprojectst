@@ -5,7 +5,6 @@
     const { username } = SESSION_USER
     const requestID = addLeadingZeros(id)
     const trackerid = `${moment(created_at).format('YYYYMMDD')}-${requestID}`
-
 %>
 <div class="wrapper">
     <div class="hidden" id="documentData" data-document="<%=JSON.stringify(displayData)%>"></div>
