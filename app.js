@@ -41,7 +41,7 @@ const { permission } = require('node:process');
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
-const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros} = utils
+const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros, searchKey, toCapitalize, isActive} = utils
 
 const _preDefaultData = {
     blood_type: ['N/A','O+','O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
@@ -187,57 +187,366 @@ const purchaseRequestRoles = [
 ];
 
 const department = {
-  divisions: {
-    "ORED": {
-      stands: "Office of Regional Executive Director",
+  directors: {
+    ORED: {
+      stands: "Office of the Regional Executive Director",
       email: "",
       admin: "",
-    }, 
+      responsible: "Dir. Angel C. Enriquez, CESO III",
+      acting: "",
+    },
+    RTDs: {
+      RTDRR: {
+        stands: "Regional Technical Director for Research and Regulations ",
+        email: "",
+        admin: "",
+        responsible: "Wilberto O. Castillo",
+        acting: "",
+      }, 
+      RTDO: {
+        stands: "Regional Technical Director for Operations",
+        email: "",
+        admin: "",
+        responsible: "Engr. Cirilo N. Namoc",
+        acting: "",
+      }
+    }
+  },
+  divisions: {
     "ADMIN": {
       stands: "Administrative and Finance Division",
       email: "",
       admin: "",
+      responsible: "Melquiades B. Ibarra, Ph.D",
+      acting: "",
+      sections: {
+        HRMS: {
+          stands: "Human Resource Management Section",
+          email: "",
+          admin: "",
+          responsible: "Maria Isabel A. Martinez",
+          acting: "",
+        },
+        GS: {
+          stands: "General Services Section",
+          email: "",
+          admin: "",
+          responsible: "Anecita A. Sespeñe",
+          acting: "",
+        },
+        ACCOUNTING: {
+          stands: "Accounting Section",
+          email: "",
+          admin: "",
+          responsible: "Mark Rey T. Paguray",
+          acting: "",
+        },
+        INFORMATION: {
+          stands: "Information Section",
+          email: "",
+          admin: "",
+          responsible: "Cheryl M. Dela Victoria",
+          acting: "",
+        },
+        BUDGET: {
+          stands: "Budget Section",
+          email: "",
+          admin: "",
+          responsible: "Rosalie S. Gallego",
+          acting: "",
+        }
+      }
     },
-    "AMAD": {
-      stands: "Agribusiness and Marketing Assistance Division",
+    "ICTD": {
+      stands: "Information and Communications Technology Division",
       email: "",
       admin: "",
-    },
-    "FOD": {
-      stands: "Field Operations Division",
-      email: "",
-      admin: "",
-    },
-    "ILD": {
-      stands: "Integrated Laboratory Division",
-      email: "",
-      admin: "",
-    },
-    "ICT": {
-      stands: "Information and Communications Technology",
-      "email": "wagwag.joegie@gmail.com",
-      "admin": "",
+      responsible: "Annearth V. Maribojoc",
+      acting: "",
+      sections: {
+        IPPTS: {
+          stands: "ICT Planning, Policy, and Training Section",
+          email: "",
+          admin: "",
+        },
+        GEOSEC: {
+          stands: "Geoinformatics Section",
+          email: "",
+          admin: "",
+        },
+        NMTSS: {
+          stands: "Network Management and Technical Support Section",
+          email: "lemoref@gmail.com",
+          admin: "",
+          responsible: "Feromel Magalso, Ian Roy Butron",
+          acting: "",
+        },
+        DPCS: {
+          stands: "Data Privacy and Cybersecurity Section",
+          email: "",
+          admin: "",
+        },
+        SDS: {
+          stands: "Systems Development Section",
+          email: "red.mrjhon8@gmail.com",
+          admin: "",
+          responsible: "Wrongrammer",
+          acting: "",
+        },
+        DMS: {
+          stands: "Database Management Section",
+          email: "",
+          admin: "",
+          acting: "",
+        }
+      }
     },
     "PMED": {
       stands: "Planning, Monitoring and Evaluation Division",
-      "email": "game.mrjhon8@gmail.com",
-      "admin": "",
-    },
-    "RAED": {
-      stands: "Regional Agricultural Engineering Division",
       "email": "",
       "admin": "",
+      responsible: "Elvin J. Milleza",
+      acting: "",
+      sections: {
+        PPS: {
+          stands: "Planning and Programming Section",
+          email: "",
+          admin: "",
+        },
+        PDS: {
+          stands: "Project Development Section",
+          email: "",
+          admin: "",
+        },
+        MES: {
+          stands: "Monitoring and Evaluation Section",
+          email: "",
+          admin: "",
+        },
+      }
     },
     "REGULATORY": {
       stands: "Regulartory Division",
       "email": "",
       "admin": "",
+      sections: {
+        RLICASS: {
+          stands: "Registration/Licensing/Inspection Certification/Accreditation Service Section",
+          email: "",
+          admin: "",
+        },
+        QCIS: {
+          stands: "Quality Control and Inspection Section",
+          email: "",
+          admin: "",
+        },
+        PPADMSEWS: {
+          stands: "Plant Pest and Animal Disease Monitoring Surveillance and Early Warning Section",
+          email: "",
+          admin: "",
+        },
+      }
     },
     "RESEARCH": {
       stands: "Research Division",
       "email": "",
       "admin": "",
-    }
+      sections: {
+        TPCS: {
+          stands: "Technology Packaging and Commercialization Section",
+          email: "",
+          admin: "",
+        },
+        SRDC: {
+          stands: "Siquijor Research Development Center",
+          email: "",
+          admin: "",
+        },
+        SWRDC: {
+          stands: "Soil Water Research and Development Center",
+          email: "",
+          admin: "",
+        },
+        SCFRDSS: {
+          stands: "Southern Cebu Farming System R&D Satellite Station",
+          email: "",
+          admin: "",
+        },
+        CRDC: {
+          stands: "Carmen Research and Development Center",
+          email: "",
+          admin: "",
+        },
+        BES: {
+          stands: "Bohol Experiment Station",
+          email: "",
+          admin: "",
+        },
+        CES: {
+          stands: "Cebu Experiment Station",
+          email: "",
+          admin: "",
+        },
+        USF: {
+          stands: "Ubay Stock Farm",
+          email: "",
+          admin: "",
+        },
+        BAPC: {
+          stands: "Bohol Agricultural Promotion Center",
+          email: "",
+          admin: "",
+        },
+        NORDC: {
+          stands: "Negros Oriental Research and Development Center",
+          email: "",
+          admin: "",
+        },
+      }
+    },
+    "ILD": {
+      stands: "Integrated Laboratory Division",
+      email: "",
+      admin: "",
+      sections: {
+        SOILS: {
+          stands: "Regional Soils Laboratory",
+          email: "",
+          admin: "",
+        },
+        RADDL: {
+          stands: "Regional Animal Disease Diagnostic Laboratory",
+          email: "",
+          admin: "",
+        },
+        RCPC: {
+          stands: "Regional Crop Protection Center",
+          email: "",
+          admin: "",
+        },
+        FCAL: {
+          stands: "Feed Chemical Analysis Laboratory",
+          email: "",
+          admin: "",
+        },
+        RVPL: {
+          stands: "Regional Vaccine Production Laboratory",
+          email: "",
+          admin: "",
+        }
+      }
+    },
+    "AMAD": {
+      stands: "Agribusiness and Marketing Assistance Division",
+      email: "",
+      admin: "",
+      sections: {
+        AGRIBUSINESS: {
+          stands: "AgriBusiness Promotion Section",
+          email: "",
+          admin: "",
+        },
+        MARKET: {
+          stands: "Market Development Section",
+          email: "",
+          admin: "",
+        },
+        SUPPORT: {
+          stands: "AgriBusiness Industry Support Section",
+          email: "",
+          admin: "",
+        }
+      }
+    },
+    "FOD": {
+      stands: "Field Operations Division",
+      email: "",
+      admin: "",
+      sections: {
+        RICE: {
+          stands: "Rice Program",
+          email: "",
+          admin: "",
+        },
+        LIVESTOCK: {
+          stands: "Livestock Program",
+          email: "",
+          admin: "",
+        },
+        CORN: {
+          stands: "Corn Program",
+          email: "",
+          admin: "",
+        },
+        HVCDP: {
+          stands: "High Value-Crops Development Program",
+          email: "",
+          admin: "",
+        },
+        OAP: {
+          stands: "Organic Agriculture Program",
+          email: "",
+          admin: "",
+        },
+        NUPAP: {
+          stands: "National Urban and Peri-Urban Agriculture Program",
+          email: "",
+          admin: "",
+        },
+        PATCOCEBU: {
+          stands: "Patco-Cebu",
+          email: "",
+          admin: "",
+        },
+        PATCOBOHOL: {
+          stands: "Patco-BOHOL",
+          email: "",
+          admin: "",
+        },
+        PATCONEGROSOR: {
+          stands: "Patco-Negros Oriental",
+          email: "",
+          admin: "",
+        },
+        PATCOSIQUIJOR: {
+          stands: "Patco-Siquijor",
+          email: "",
+          admin: "",
+        },
+        SAAD: {
+          stands: "Special Area of Agriculture Development",
+          email: "",
+          admin: "",
+        },
+        IDS: {
+          stands: "Institutional Development Services",
+          email: "",
+          admin: "",
+        },
+      }
+    },
+    "RAED": {
+      stands: "Regional Agricultural Engineering Division",
+      "email": "",
+      "admin": "",
+      sections: {
+        EPDSS: {
+          stands: "Engineering Plans, Design and Specifications Section",
+          email: "",
+          admin: "",
+        },
+        PPMS: {
+          stands: "Program and Project Management Section",
+          email: "",
+          admin: "",
+        },
+        SRES: {
+          stands: "Standard Regulation and Enforcement Section",
+          email: "",
+          admin: "",
+        }
+      }
+    },
   },
   permissions: {
     can: ["create", "read", "update", "delete"],
@@ -300,7 +609,7 @@ const department = {
     }],
     
 
-  }
+  },
 }
 // console.log(purchaseRequestRoles);
 
@@ -398,32 +707,20 @@ let transporter = nodemailer.createTransport({
 // endof EMAIL
 
 app.use(async function(req, res, next){
-  // const err = req.session.error;
-  // const msg = req.session.success;
-  // delete req.session.error;
-  // delete req.session.success;
-  // res.locals.message = err;
-  // if (err) res.locals.message = '<p class="text-danger">' + err + '</p>';
-  // if (msg) res.locals.message = '<p class="text-success">' + msg + '</p>';
-  // res.status(404).send('Page Not Found');  
+
+  var components = ['Transactions', 'Employees', 'Documents']
+
   const notifications = await connection.retrieveNotifications()
-  // const {employeeid} = req.session.user
+  const employees = await connection.retrieveEmployee()
   
   // Sort using Descending
   notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  let role = ''
-  const { employeeid } = req.session?.user || {};
-  if(employeeid) {
-    role = await connection.getCurrentUserRole(employeeid)
-    role = role[0]?.role_name ?? 'user'
-    
-  }
 
   const defaultNullUser = {
-    employeeid: '777',
+    employeeid: 70712,
     firstname: 'Just',
-    middlename: 'asdw',
-    lastname: 'Test',
+    middlename: 'The',
+    lastname: 'Tester',
     extname: 'asdw',
     birthdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
     username: 'justtest',
@@ -449,9 +746,18 @@ app.use(async function(req, res, next){
     others: {
       civilstatus: 'Married',
       gender: 'Male'
-    }
+    },
+    components: ['Transactions', 'Employees', 'Documents']
   }
   
+  let role = ''
+  const { employeeid, components:availComponents } = req.session?.user || defaultNullUser;
+  if(employeeid) {
+    role = await connection.getCurrentUserRole(employeeid)
+    role = (role[0]?.role_name).toLowerCase() ?? 'user'
+    
+  }
+
   let { experience, contacts, others } = defaultNullUser
   experience = JSON.stringify(experience)
   contacts = JSON.stringify(contacts)
@@ -464,6 +770,8 @@ app.use(async function(req, res, next){
   // console.log('SESSION', req.session?.user || JSON.parse(JSON.stringify(defaultNullUser)))
   const fullUrl = req.protocol + '://' + req.get('host');
 
+  
+
   res.locals = {
     HOST: fullUrl,
     ENVIRONMENT: process.env.NODE_ENV,
@@ -473,22 +781,40 @@ app.use(async function(req, res, next){
     defaultNullUser,
     DEPARTMENT: JSON.stringify(department),
     // NOTIFICATIONS: countNotif,
-    // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications)
+    // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications) // *** DO NOT REMOVE
     NOTIFICATIONS: JSON.stringify(notifications),
     logonUser: JSON.stringify(req.session.user),
     currentRole: role ?? 'developer',
     perClassification: {},
-    employees: {},
+    employees,
     dafaultTransactionData: _preTransactionsData,
     defaultData: _preDefaultData,
     purchaseRequestStatuses,
     purchaseRequestRoles,
     path: req.url,
     path2: req.path,
+    currentPath: req.path,
     isHome: req.originalUrl,
     moment,
+    peso,
     statusText,
-    addLeadingZeros
+    addLeadingZeros,
+    searchKey,
+    toCapitalize,
+    isActive,
+    userAvailComponents: (component) => {
+      // Single component
+      if (typeof component === 'string') {
+        return availComponents.includes(component);
+      }
+  
+      // Multiple components
+      if (Array.isArray(component)) {
+        return availComponents.every(c => components.includes(c));
+      }
+  
+      return false;
+    },
   }
   // console.log('locals', res.locals.isHome)
   // console.log(req.socket.remoteAddress )
@@ -549,7 +875,21 @@ app.post('/upload', upload.array('fileToUpload[]'), async (req, res) => {
             id: refid
           }
         }
-        await connection.updateDocumentTrackerStatus(JSON.stringify(updateDocumentAttachements))
+        // If the Document is Updated successfully
+        // it will now generate a new remarks
+        const result = await connection.updateDocumentTrackerStatus(JSON.stringify(updateDocumentAttachements))
+        if(result) {
+          const { username } = res.locals.SESSION_USER
+          const createActivity = {
+            refid,
+            message: "File attachments have been successfully added.", 
+            reciever: "N/A",
+            attachments: fileNames,
+            created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+            created_by: username,
+          }
+          await connection.createDocumentTrackerActivity(JSON.stringify(createActivity))
+        }
       }
 
       res.json({ files: fileNames });
@@ -564,14 +904,17 @@ app.get('/', restrict, async function(req, res){
   const getCardsData = await connection.cardsData()
   const getDataFromLast7Days = await connection.getDataFromLast7Days('remarks', 'date')
 
-  const result = getCardsData.reduce((acc, { table_name, row_count, total_sum }) => {
+  const charts = getCardsData.reduce((acc, { table_name, row_count, total_sum }) => {
     acc[table_name] = { row_count, total_sum };
     return acc;
   }, {});
+  
   const perPRClassification = getPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
     acc[pr_classification] = item_count;
     return acc;
   }, {});
+
+  console.log('charts', perPRClassification)
   
   res.render('pages/index', {
     title: "Dashboard",
@@ -582,7 +925,7 @@ app.get('/', restrict, async function(req, res){
     totalApprovedBudget: JSON.stringify(getTotalApprovedBudget[0]),
     perClassification: JSON.stringify(perPRClassification),
     tableDashboard: JSON.stringify(getDataFromLast7Days),
-    cardsData: result,
+    cardsData: charts,
   });
 });
 
@@ -617,7 +960,17 @@ app.get('/api/notifications', async (req, res) => {
 });
 
 app.get('/404', (req, res) => {
-  res.status(404).render('pages/404');
+  res.status(404).render('pages/404', {
+    title: 'Page Not Found',
+    component: 'Page'
+  });
+});
+
+app.get('/unauthorized', (req, res) => {
+  res.status(404).render('pages/unauthorize', {
+    title: 'Page Not Found',
+    component: 'Page'
+  });
 });
 
 app.get('/login', (req, res) => {
@@ -808,7 +1161,7 @@ app.get('/transactions', restrict, async (req, res) => {
         filteredTransactions = transactions.filter(transaction => !discardedTransactionIds.includes(transaction.product_id)); // Adjust this if your transaction object has a different identifier 
     }
 
-    console.log('filteredTransactions', filteredTransactions);
+    // console.log('filteredTransactions', filteredTransactions);
 
     res.render('pages/transactions/index', { 
         title: 'Transactions',
@@ -954,10 +1307,10 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
     const remarks = await connection.getRemarksByRefid(transid)
         
     if(transactions[0]) {
-      res.render('pages/transactions/remarks', { 
+      res.render('pages/transactions/view', { 
         title: 'Transactions: Remarks',
         transactions: transactions[0],
-        remarks: remarks,
+        remarks: remarks.sort((a, b) => b.id - a.id),
         moment: moment,
         path: res.url,
         peso, isValidJSON
@@ -1031,24 +1384,33 @@ app.get('/remarks/:id', restrict, async (req, res) => {
 app.post('/remarks/new', restrict, async (req, res) => {
   try {
     const data = JSON.parse(JSON.stringify(req.body))
-    let currentUser = req.session.user
+    const { username } = res.locals.SESSION_USER
 
-    if(res.locals.ENVIRONMENT === 'development' && currentUser === undefined) currentUser = { username: 'justtest' };
-    const updatedRemarks = { ...data, user: currentUser.username };
+    // if(res.locals.ENVIRONMENT === 'development' && currentUser === undefined) currentUser = { username: 'justtest' };
+    const updatedRemarks = { ...data, user: username };
 
     console.log(updatedRemarks)
     const remarks = await connection.postRemarks( JSON.stringify(updatedRemarks) );
     if(remarks?.affectedRows){
       const {refid, comment, status} = updatedRemarks
-      const data = {
-        "message": `New remark is added #${refid}!`,
-        "link": refid, 
-        "component": "remarks",
-        // "created_at": convertDate(new Date())
-      }
-      await connection.postNotifications(JSON.stringify(data))
+      let refids = JSON.parse(refid);
+
+      refids.forEach( async (id) => {
+        const transactions = await connection.getTransactionById(id)
+        const {requisitioner} = transactions[0]
+
+        console.log('transactions', transactions)
+
+        const data = {
+          message: `New remark is added under ${id}!`,
+          link: id, 
+          component: 'remarks',
+          concerning: requisitioner,
+        }
+        await connection.postNotifications(JSON.stringify(data))
+      })
     }
-    res.status(201).json({ message: 'New remarks is added successfully!', response: remarks });
+    res.status(200).json({ message: 'New remarks is added successfully!', response: remarks });
   } catch (error) {
     console.error('Error addding new remarks on transaction:', error);
     res.status(500).send('Error addding new remarks on transaction:', error);
@@ -1076,17 +1438,13 @@ app.post('/transcodes/new', restrict, async (req, res) => {
   }
 })
 app.get('/employees', restrict, async (req, res) => {
-  const employees = await connection.retrieveEmployee();
+  const employees = await connection.retrieveEmployee()
+  const roles = await connection.retrieveEmployeeIdsWithRole()
   // console.log(employees)
   res.render('pages/employees/index', {
-    defaultData: _preDefaultData,
-    dafaultTransactionData: _preTransactionsData,
-    sampleEmployee,
     title: 'Employees',
-    employees: employees,
-    moment,
-    peso,
-    path: res.url,
+    employees: JSON.stringify(employees),
+    roles,
   })
 })
 
@@ -1102,11 +1460,13 @@ app.get('/employees/new', restrict, function(req, res){
 app.get('/employees/:id', restrict, async function(req, res){
   try {
     if(req.params.id == 'register') {
+      let roles = await connection.getRoles()
       res.render('pages/employees/register', {
         defaultData: _preDefaultData,
         title: 'Register Employee',
         path: res.url,
         moment,
+        roles: JSON.stringify(roles),
       })
     } else {
       const employee = await connection.getEmployeeById(req.params.id);
@@ -1133,20 +1493,26 @@ app.get('/employees/:id', restrict, async function(req, res){
   
 })
 
-app.get('/employees/register', restrict, function(req, res){
+app.get('/employees/register', restrict, async function(req, res){
+  let roles = await connection.getRoles()
+
   res.render('pages/employees/register', {
     defaultData: _preDefaultData,
     title: 'Register Employee',
-    path: res.url
+    path: res.url,
+    roles: JSON.stringify(roles),
   })
 })
 
 app.get('/employees/:id/update', restrict, async function(req, res){
   const employeeid = req.params.id;
   const employee = await connection.getEmployeeById(employeeid)
+  let roles = await connection.getRoles()
+
   res.render('pages/employees/register', {
     defaultData: _preDefaultData,
-    employees: employee[0], 
+    employees: employee[0],
+    roles: JSON.stringify(roles),
     title: 'Update Employee',
     path: res.url,
     moment,
@@ -1215,33 +1581,6 @@ app.post('/documents/create', restrict, async function(req, res){
   }
 })
 
-app.post('/documents/sendsssss', restrict, async function(req, res){
-  try {
-    const {subject, to, html} = req.body
-    console.log({subject, to, html})
-    // Set up email data
-    let mailOptions = {
-      from: `"DA RFO7" <${process.env.APP_EMAIL}>`, // Sender address
-      to, // List of recipients
-      subject, // Subject line
-      html // HTML body
-    };
-    console.log({data, mailOptions})
-    // Send email
-  //  const result = await transporter.sendMail(mailOptions, (error, info) => {
-  //     if (error) {
-  //       return console.log('Error sending email:', error);
-  //     }
-  //     console.log('Email sent:', info.response);
-  //   });
-    // console.log(data)
-    const result = await transporter.sendMail(mailOptions)
-    res.status(200).json({ message: 'Sending emails...', response: result})
-  } catch (error) {
-    res.status(500).send('Failed to send email', error);
-  }
-})
-
 app.post('/documents/send', restrict, async function(req, res) {
   try {
     const { subject, to, html, id, timetocomply, created_by, attachments } = req.body;
@@ -1277,7 +1616,7 @@ app.post('/documents/send', restrict, async function(req, res) {
       refid: id,
       message: html, 
       reciever: to,
-      attachments,
+      attachments: attachments,
       timetocomply: moment(timetocomply).format('YYYY-MM-DD HH:mm:ss'),
       created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
       created_by,
@@ -1318,13 +1657,23 @@ app.get('/documents/:id', restrict, async function(req, res){
     const results = await connection.retrieveDocuments('documents', JSON.stringify(req.params))
     const activities = await connection.getDocumentTrackerActivity(JSON.stringify({refid:id}))
     const employees = await connection.retrieveEmployee()
+    if (results.length > 0) {
+      const { username } = res.locals.SESSION_USER
+      var { priority, created_by } = results[0]
+      if (priority === 'confidential' && created_by !== username) {
+        res.render('pages/unauthorize', {
+          title: "Unauthorized Access", 
+        })
+      } else { 
+        res.render('pages/documents/id', {
+          title: "Document", 
+          displayData: results[0], 
+          activities: activities.sort((a, b) => b.id - a.id),
+          employeesData: employees,
+        })
+      }
+    }
     
-    res.render('pages/documents/id', {
-      title: "Document", 
-      displayData: results[0], 
-      activities: activities.sort((a, b) => b.id - a.id),
-      employeesData: employees,
-    })
   } catch (error) {
     console.error('Error on displaying the document:', error);
     res.status(404).render('pages/404', {
@@ -1436,10 +1785,23 @@ app.route('/api/qrcode/:id')
 
 app.get('/settings', restrict, async function(req, res){
   const results = await connection.getSettings()
-  res.render('pages/settings', {
-    title: "Settings",
-    results: JSON.parse(JSON.stringify(results))
-  })
+  let employees = await connection.retrieveEmployee()
+  const { username } = res.locals.SESSION_USER
+  employees.sort((a, b) => 
+    a.lastname.toLowerCase() < b.lastname.toLowerCase() ? -1 : 
+    (a.lastname.toLowerCase() > b.lastname.toLowerCase() ? 1 : 0)
+  );
+  if(username === 'justtest') { // user is admin
+    res.render('pages/settings', {
+      title: "Settings",
+      settings: JSON.parse(JSON.stringify(results)),
+      employees: JSON.parse(JSON.stringify(employees))
+    })
+  }
+  res.status(404).render('pages/unauthorize', {
+    title: 'Page Not Found',
+    component: 'Page'
+  });
 })
 
 app.post('/settings', restrict, async function(req, res){

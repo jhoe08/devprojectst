@@ -1,181 +1,316 @@
-    <!-- Header Template -->
-    <%- include('../../views/header') -%>
-    <div class="wrapper">
-        <%- include('../../views/sidebar') -%>
+<!-- Header Template -->
+<%- include('../../views/header') -%>
+<%
+  let { directors, divisions } = JSON.parse(DEPARTMENT)
+  const { employeeid, username, firstname, lastname, middlename } = SESSION_USER || defaultNullUser
+  const fullname = [firstname, middlename, lastname].join(' ')
+  const middleNameInitial = `${middlename[0]}.`
 
-        <div class="main-panel">
-        <%- include('../../views/main-header') -%>
-        
-        <div class="container" >
-            <div class="page-inner">
-                <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
-                <div>
-                    <h3 class="fw-bold mb-3"><%- title -%></h3>
-                    <h6 class="op-7 mb-2">Add new request like Purchase Request, Travel Order, and etc...
-                    </h6>
-                </div>
-                <div class="ms-md-auto py-2 py-md-0">
-                    <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
-                    <% if (transactions) { %>
-                    <a id="updateTransactions" href="#" class="btn btn-primary btn-round" data-username="<%=logonUser?.username??'developer'%>"><i class="fas fa-save"></i> Update</a>
-                    <% } else { %>
-                    <a id="createTransactions" href="#" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Create</a>
-                    <% } %>
-                    </div>
-                </div>
-                <!-- <form id="createTransactionForm" method="post"> -->
+  directors = Object.entries(directors)
+  divisions = Object.entries(divisions)
 
-                <div class="row">
-                    <div class="col-md-12 col-lg-12 col-xl-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-head-row card-tools-still-right">
-                                    <h4 class="card-title">Transaction Details</h4>
-                                    <div class="card-tools transcations-code text-uppercase"></div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div id="lastestModificationsTransactions">
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group form-group-default">
-                                                <label for="bidNoticeTitle">Bid Notice Title</label>
-                                                <textarea id="bidNoticeTitle" name="bidNoticeTitle" class="form-control" rows="3"><%- transactions?.bid_notice_title %></textarea>
-                                            </div>
-                                            <div class="form-group form-group-default">
-                                                <label for="prClassification">Classification</label>  
-                                                <% var classification = predata.classification %>
-                                                <select id="prClassification" name="prClassification" class="form-select">
-                                                    <% for(var i=0; i < classification.length; i++) { %>
-                                                    <option value="<%= classification[i] %>" <%- (transactions?.pr_classification == classification[i]) ?'selected':''  %>><%= classification[i] %></option>
-                                                    <% } %>
-                                                </select>
-                                            </div>
-                                            
-                                        </div>
-                                        <div class="col-md-6">
-                                        <% 
-                                            var budget = 0
-                                            var cleanBudget = 0
-                                            if (transactions) {
-                                            budget = transactions?.approved_budget
-                                            cleanBudget = budget.replace(/,/g, '');
-                                            budget = parseFloat(cleanBudget)
-                                            }
-                                        %>
-                                        <div class="form-group form-group-default" data-budget="<%-budget%>">
-                                            <label for="budget">PR Budget</label>
-                                            <div class="input-group">
-                                            <span class="input-group-text">₱</span>
-                                            
-                                            <input id="budget" name="budget" type="number" class="form-control mt-0" value="<%-budget%>">
-                                            </div>
-                                        </div>
-                                    </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group form-group-default">
-                                                <label for="fundSource">Fund Source [Charging To:]</label>
-                                                <div class="input-group">
-                                                    <input id="fundSource" name="fundSource" class="form-control" value="<%- transactions?.fund_source %>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group form-group-default" data-user="<%= JSON.stringify(logonUser) %>">
-                                                <label for="bidNoticeTitle">Requisitioner</label>
-                                                <div class="input-icon">
-                                                    <span class="input-icon-addon">
-                                                        <i class="fa fa-user"></i>
-                                                    </span>
-                                                    <input id="requisitioner" name="requisitioner" type="text" class="form-control" placeholder="Juan Tamad" <% if (transactions || logonUser) {%>value="<%- transactions?.requisitioner || (logonUser?.firstname+' '+logonUser?.lastname) %>"<% } %>>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group form-group-default">
-                                                <label for="bacUnit">BAC Unit</label>  
-                                                <% var bacUnit = predata.bac_unit %>
-                                                <select id="bacUnit" name="bacUnit" class="form-select">
-                                                    <% for(var i=0; i < bacUnit.length; i++) { %>
-                                                    <option value="<%= bacUnit[i] %>" <%- (transactions?.bac_unit == bacUnit[i]) ?'selected':'' %>><%= bacUnit[i] %></option>
-                                                    <% } %>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- <div class="card-action">
-                                    <button id="btnSubmit" class="btn btn-success">Submit</button>
-                                    <button class="btn btn-danger">Cancel</button>
-                                </div> -->
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12 col-lg-12 col-xl-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-head-row card-tools-still-right">
-                                    <h4 class="card-title">Fund Source [Charging To:]</h4>
-                                    <div class="card-tools transcations-code text-uppercase form-group-add">
-                                        <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
-                                            <span class="fa fa-plus"></span>
-                                          </button>
-                                    </div>
-                                </div>
-                                
-                            </div>
-                            <div class="card-body" id="chargingTo">
-                                <div class="row">
-                                    <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
-                                        <div class="form-group form-group-default form-group-minus">
-                                            <label for="minusButton">Rmv</label>
-                                            <button id="minusButton" class="form-control fas fa-minus-circle"></button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 ml-0">
-                                        <% 
-                                            const { experience } = logonUser || {}
-                                            if(experience) {
-                                                const { lists } = JSON.parse(experience)
-                                                const { position, division: employeeDivision } = lists[0] || {}
-                                            }
-                                        %>
-                                        <div class="form-group form-group-default">
-                                            <label for="divisions">Division</label>
-                                            <% var divisions = predata.divisions %>
-                                            <select id="divisions" name="divisions" class="form-select">
-                                            <% divisions.forEach(division=>{  %>
-                                                <option value="<%= division %>" <%- transactions?.division == division ? 'selected':'' -%>><%= division %></option>
-                                            <%  }) %>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group form-group-default">
-                                            <label for="bannerProgram">Banner Program</label>  
-                                            <% var bannerProgram = predata.banner_program %>
-                                            <select id="bannerProgram" name="bannerProgram" class="form-select">
-                                                <% for(var i=0; i < bannerProgram.length; i++) { %>
-                                                <option value="<%= bannerProgram[i] %>" <%- (transactions?.banner_program == bannerProgram[i]) ?'selected':'' %>><%= bannerProgram[i] %></option>
-                                                <% } %>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group form-group-default">
-                                            <label for="unitCount">Amount</label>
-                                            <div class="input-icon">
-                                                <input id="unitCount" name="unitCount" type="number" class="form-control" value="">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  var requested_by = [firstname, middleNameInitial, lastname].join(' ')
+  var fund_source = '{}'
+  if(transactions) {
+    var {requisitioner:requested_by, division: e_division, fund_source } = transactions
+  }
+%>
+<div class="wrapper" data-null-user="<%=fullname%>">
+  <%- include('../../views/sidebar') -%>
+
+  <div class="main-panel">
+    <%- include('../../views/main-header') -%>
+    
+    <div class="container" >
+      <div class="page-inner">
+        <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+          <div>
+              <h3 class="fw-bold mb-3"><%- title -%></h3>
+              <h6 class="op-7 mb-2">Add new request like Purchase Request, Travel Order, and etc...
+              </h6>
+          </div>
+          <div class="ms-md-auto py-2 py-md-0">
+            <% if (transactions) { %>
+            <a id="updateTransactions" href="#" class="btn btn-primary btn-round"><i class="fas fa-save"></i> Update</a>
+            <% } else { %>
+            <a id="createTransactions" href="#" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Create</a>
+            <% } %>
+          </div>
         </div>
+        <div class="row">
+          <div class="col-md-12 col-lg-12 col-xl-6">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Tracking Sheet</h4>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <div class="selectgroup w-100">
+                    <label class="selectgroup-item">
+                      <input type="radio" name="trackingSheet" value="public_bidding" class="selectgroup-input">
+                      <span class="selectgroup-button">Public Bidding</span>
+                    </label>
+                    <label class="selectgroup-item">
+                      <input type="radio" name="trackingSheet" value="small_value" class="selectgroup-input" checked>
+                      <span class="selectgroup-button">Small Value</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Transaction Details</h4>
+                  <div class="card-tools transcations-code text-uppercase"></div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="lastestModificationsTransactions">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="form-group form-group-default">
+                        <label for="bidNoticeTitle">Bid Notice Title</label>
+                        <textarea id="bidNoticeTitle" name="bidNoticeTitle" class="form-control" rows="3"><%- transactions?.bid_notice_title %></textarea>
+                      </div>
+                      
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group form-group-default">
+                        <label for="prClassification">Classification</label>  
+                        <% var classification = predata.classification %>
+                        <select id="prClassification" name="prClassification" class="form-select">
+                          <% for(var i=0; i < classification.length; i++) { %>
+                          <option value="<%= classification[i] %>" <%- (transactions?.pr_classification == classification[i]) ?'selected':''  %>><%= classification[i] %></option>
+                          <% } %>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                    <% 
+                      var budget = 0
+                      var cleanBudget = 0
+                      if (transactions) {
+                      budget = transactions?.approved_budget
+                      cleanBudget = budget.replace(/,/g, '');
+                      budget = parseFloat(cleanBudget)
+                      }
+                    %>
+                        <div class="form-group form-group-default" data-budget="<%-budget%>">
+                          <label for="budget">Approved Budget of the Contract</label>
+                          <div class="input-group">
+                          <span class="input-group-text">₱</span>
+                          
+                          <input id="budget" name="budget" data-type="number" type="text" class="form-control mt-0" value="<%-budget%>">
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-6">
+                        <div class="form-group form-group-default">
+                          <label for="bidNoticeTitle">Requisitioner</label>
+                          <div class="input-icon">
+                            <span class="input-icon-addon"><i class="fa fa-user"></i></span>
+                            <input id="requisitioner" name="requisitioner" type="text" class="form-control" placeholder="Juan Tamad" value="<%=requested_by%>">
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                          <div class="form-group form-group-default">
+                              <label for="bacUnit">BAC Unit</label>  
+                              <% var bacUnit = predata.bac_unit %>
+                              <select id="bacUnit" name="bacUnit" class="form-select">
+                                  <% for(var i=0; i < bacUnit.length; i++) { %>
+                                  <option value="<%= bacUnit[i] %>" <%- (transactions?.bac_unit == bacUnit[i]) ?'selected':'' %>><%= bacUnit[i] %></option>
+                                  <% } %>
+                              </select>
+                          </div>
+                      </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12 col-lg-12 col-xl-6">
+              <div class="card">
+                  <div class="card-header">
+                      <div class="card-head-row card-tools-still-right">
+                          <h4 class="card-title">Fund Source [Charging To:]</h4>
+                          <div class="card-tools transcations-code text-uppercase form-group-add">
+                              <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
+                                  <span class="fa fa-plus"></span>
+                                </button>
+                          </div>
+                      </div>
+                  </div>
+                  <% 
+                    var totalCount = 0
+                    fund_source = JSON.parse(fund_source)
+                  %>
+               
+                  <div class="card-body" id="chargingTo" data-transactions="<%= JSON.stringify(transactions) %>">
+                 
+                  <% if(Array.isArray(fund_source)) {
+
+                    fund_source.forEach((funds, key) => { 
+                      var {division:e_division, section, amount} = funds 
+                      totalCount += parseFloat(amount);
+                      %>
+                    <div id="charging_<%= key %>" class="row" data-id="<%= key %>">
+                      <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
+                          <div class="form-group form-group-default form-group-minus">
+                              <label for="minusButton_<%= key %>">Rmv</label>
+                              <button id="minusButton_<%= key %>" class="form-control fas fa-minus-circle"></button>
+                          </div>
+                      </div>
+                      <div class="col-md-8 ml-0">
+                          <div class="divisions form-group form-group-default">
+                            <label for="division">Division</label>
+                            <select class="form-select" id="division_<%= key %>" name="division">
+                              <!-- Director and Technical Directors -->
+                              <% 
+                              const directorsArray = directors.flatMap(([key, director]) => {
+                                if (key === "RTDs") {
+                                  return Object.entries(director).map(([subKey, subDirector]) => ({
+                                    key: subKey,
+                                    stands: subDirector.stands,
+                                    classes: "technical-directors",
+                                    filtered: subKey,
+                                  }));
+                                }
+                                return [{
+                                  key,
+                                  stands: director.stands,
+                                  classes: "director",
+                                  filtered: key,
+                                }];
+                              });
+                              
+                              directorsArray.forEach(({ key, stands, classes, filtered }) => { %>
+                                <%- include('../../components/forms/options', { key, stands, classes, filtered: e_division, dataset:'' }) %>
+                              <% }); %>
+                              <!-- Divisions Here -->
+                              <optgroup label="Divisions">
+                              <% divisions.forEach(([key, division]) => { 
+                                const { stands, sections } = division; %>
+                                <%- include('../../components/forms/options', { key, stands, classes: 'division',  filtered: e_division, dataset:'' }) %>
+                                <% 
+                                  Object.entries(sections).forEach(([keySect, section]) => { 
+                                    const { stands: sectStands, sections:banners } = section;
+                                    const dataset = ['division', key]; 
+                                    underDivision = Object.entries(section)
+                                  %>
+                                  <%- include('../../components/forms/options', { key: keySect, stands: sectStands,  classes: `section`, filtered: e_division, dataset }) %>
+                                  <% if(banners) {
+                                    Object.entries(banners).forEach(([keyBan, banner]) => { 
+                                      const { stands:banStands } = banner;
+                                    %>
+                                    <%- include('../../components/forms/options', { key: keyBan, stands: banStands, classes: 'unit', filtered: e_division, dataset:'' }) %>
+                                  <% }) } %>
+                                <% }); %>
+                              <% }) %>
+                              </optgroup>
+                            </select>
+                          </div>
+                      </div>
+                      <div class="col-md-3">
+                        <div class="form-group form-group-default">
+                          <label for="unitCount">Amount</label>
+                          <div class="input-icon">
+                            <input id="unitCount_<%= key %>" name="unitCount" data-type="number" type="text" class="form-control" value="<%= amount %>">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% }) } else { %>
+                    <div id="charging_0" class="row" data-id="0">
+                      <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
+                          <div class="form-group form-group-default form-group-minus">
+                              <label for="minusButton_0">Rmv</label>
+                              <button id="minusButton_0" class="form-control fas fa-minus-circle"></button>
+                          </div>
+                      </div>
+                      <div class="col-md-8 ml-0">
+                          <div class="divisions form-group form-group-default">
+                            <label for="division">Division</label>
+                            <select class="form-select" id="division_0" name="division">
+                              <!-- Director and Technical Directors -->
+                              <% 
+                              const directorsArray = directors.flatMap(([key, director]) => {
+                                if (key === "RTDs") {
+                                  return Object.entries(director).map(([subKey, subDirector]) => ({
+                                    key: subKey,
+                                    stands: subDirector.stands,
+                                    classes: "technical-directors",
+                                    filtered: subKey,
+                                  }));
+                                }
+                                return [{
+                                  key,
+                                  stands: director.stands,
+                                  classes: "director",
+                                  filtered: key,
+                                }];
+                              });
+                              
+                              directorsArray.forEach(({ key, stands, classes, filtered }) => { %>
+                                <%- include('../../components/forms/options', { key, stands, classes, filtered: e_division, dataset:'' }) %>
+                              <% }); %>
+                              <!-- Divisions Here -->
+                              <optgroup label="Divisions">
+                              <% divisions.forEach(([key, division]) => { 
+                                const { stands, sections } = division; %>
+                                <%- include('../../components/forms/options', { key, stands, classes: 'division',  filtered: e_division, dataset:'' }) %>
+                                <% 
+                                  Object.entries(sections).forEach(([keySect, section]) => { 
+                                    const { stands: sectStands, sections:banners } = section;
+                                    const dataset = ['division', key]; 
+                                    underDivision = Object.entries(section)
+                                  %>
+                                  <%- include('../../components/forms/options', { key: keySect, stands: sectStands,  classes: `section`, filtered: e_division, dataset }) %>
+                                  <% if(banners) {
+                                    Object.entries(banners).forEach(([keyBan, banner]) => { 
+                                      const { stands:banStands } = banner;
+                                    %>
+                                    <%- include('../../components/forms/options', { key: keyBan, stands: banStands, classes: 'unit', filtered: e_division, dataset:'' }) %>
+                                  <% }) } %>
+                                <% }); %>
+                              <% }) %>
+                              </optgroup>
+                            </select>
+                          </div>
+                      </div>
+                      <div class="col-md-3">
+                        <div class="form-group form-group-default">
+                          <label for="unitCount">Amount</label>
+                          <div class="input-icon">
+                            <input id="unitCount_0" name="unitCount" data-type="number" type="text" class="form-control" value="">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% } %>
+                  </div>
+                  <div class="card-action p-1.25">
+                    <div class="row">
+                      <div class="col-md-9"></div>
+                      <div class="col-md-3">
+                        <div class="form-group form-group-default mb-0">
+                          <label for="totalCount">Total</label>
+                          <div class="input-icon">
+                            <input id="totalCount" name="totalCount" data-type="number" type="text" class="form-control" value="<%= totalCount %>">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <!-- Footer Template -->
-    <%- include('../../views/footer') -%>
+</div>
+<!-- Footer Template -->
+<%- include('../../views/footer') -%>

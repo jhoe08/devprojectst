@@ -1,11 +1,10 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
 <%
-    const { id, title, priority, created_at, updated_at, created_by, attachments } = displayData
+    const { id, title, priority, source, source_name, created_at, updated_at, created_by, attachments } = displayData
     const { username } = SESSION_USER
     const requestID = addLeadingZeros(id)
     const trackerid = `${moment(created_at).format('YYYYMMDD')}-${requestID}`
-
 %>
 <div class="wrapper">
     <div class="hidden" id="documentData" data-document="<%=JSON.stringify(displayData)%>"></div>
@@ -22,9 +21,12 @@
               </div>
               <div class="col-md-8">
                   <h3 class="fw-bold mb-3">
-                    <span id="documentTitle" title="Document Title"><%- title -%></span><br>
+                    <span>
+                      <span id="documentTitle" title="Document Title"><%- title -%></span>
+                      <span class="badge badge-count"><%= source %></span>
+                    </span><br>
                     <small id="trackingCode">No. <%=trackerid%></small><br>
-                    <small>DA RFO VII - Office of the Director</small>
+                    <small><%= source == 'internal' ? 'DA RFO VII - Office of the Director' : source_name %></small>
                   </h3>
               </div>
               <div class="ms-md-auto py-2 py-md-0">
@@ -112,16 +114,19 @@
                   %>
                       <li class="feed-item feed-item-<%=timetocomply?'success':'info'%> d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="<%=timetocomply?'Email Sent':'Replied'%>">
                         <div class="d-flex">
-                          <span class="user fs-3 mr-3"><i class="fas fa-<%=timetocomply?'envelope':'comments'%>"></i></span>
+                          <span class="user fs-3 mr-3 hidden"><i class="fas fa-<%=timetocomply?'envelope':'comments'%>"></i></span>
                           <div class="details">
-                            <time class="date" datetime="<%=moment(created_at || timetocomply).format('MMMM D YYYY, h:mm:ss a')%>">
-                              <%=moment(created_at).format('MMMM D YYYY, h:mm:ss a')%>
-                            </time>
+                            <div class="d-flex">
+                              <strong><%= created_by %></strong>
+                              <time class="date" datetime="<%=moment(created_at || timetocomply).format('MMMM D YYYY, h:mm:ss a')%>">
+                                <%=moment(created_at).format('MMMM D YYYY, h:mm:ss a')%>
+                              </time>
+                            </div>
                             <span class="text">
                               <span class="badge badge-black mr-3"></span>
                               <%- timetocomply 
                                   ? 'Sent to ' + reciever 
-                                  : message + ' by <strong class="text-uppercase">' + created_by + '</strong>' %>
+                                  : message %>
                             </span>
                             <%- timetocomply 
                                 ? '<div class="template-email">' + message + '</div>' 
@@ -129,16 +134,17 @@
                             <ul data-attachments="<%=attachments%>">
                               <%
                               try {
-                                const fileString = attachments;
-                                const fileArray = JSON.parse(fileString);
+                                const fileString = attachments.split(",");
+                                const fileArray = fileString;
                                 
                                 fileArray.forEach(file => { 
+                                const type = file.split('.')[1]
                                 const url = HOST +'/uploads/'+ file
                               %>
-                                <li><%= url %></li>
+                                <li><a href="<%= url %>"><i class="fas fa-file-<%= type %>"></i></a></li>
                               <%  });
                               } catch (e) { %>
-                                <strong>Invalid JSON format: ", e.message</strong>
+                                <strong>Invalid JSON format: <%- e.message %></strong>
                               <% }
                               %>
                             </ul>
@@ -149,7 +155,7 @@
                   <% }) %>
                       <li class="feed-item feed-item-black pb-0 d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Draft Document">
                         <div class="d-flex">
-                          <span class="user fs-3 mr-3"><i class="fas fa-door-open"></i></span>
+                          <span class="user fs-3 mr-3 hidden"><i class="fas fa-door-open"></i></span>
                           <div class="">
                             <time class="date" datetime="<%=moment(created_at).format('MMMM D YYYY, h:mm:ss a')%>">
                               <%=moment(created_at).format('MMMM D YYYY, h:mm:ss a')%>

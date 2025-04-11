@@ -1,9 +1,20 @@
 <%
+  let { directors, divisions } = JSON.parse(DEPARTMENT)
+  // Check if divisions is a string and needs parsing
+  if (typeof divisions === 'string') {
+    divisions = JSON.parse(divisions);  // Parse if it's a string
+  }
+
+  keys = Object.keys(divisions);  // Get the keys of the divisions object
+  divisions = Object.entries(divisions)
+  directors = Object.entries(directors)
+  value = Object.values(divisions)
 
 %>
+
 <!-- Header Template -->
 <%- include('../views/header') -%>
-<div class="wrapper" <%=results%>>
+<div class="wrapper">
   <%- include('../views/sidebar') -%>
 
   <div class="main-panel">
@@ -33,11 +44,19 @@
               </a>
               <a class="nav-link" id="v-pills-division-tab-icons" data-bs-toggle="pill" href="#v-pills-division-icons" role="tab" aria-controls="v-pills-profile-icons" aria-selected="false" tabindex="-1">
                 <i class="fas fa-sitemap"></i>
-                Divisions
+                Organization
+              </a>
+              <a class="nav-link" id="v-pills-roles-tab-icons" data-bs-toggle="pill" href="#v-pills-roles-icons" role="tab" aria-controls="v-pills-roles-icons" aria-selected="false" tabindex="-1">
+                <i class="fas fa-users"></i>
+                User Roles
               </a>
               <a class="nav-link" id="v-pills-access-tab-icons" data-bs-toggle="pill" href="#v-pills-access-icons" role="tab" aria-controls="v-pills-access-icons" aria-selected="false" tabindex="-1">
                 <i class="fas fa-universal-access"></i>
                 Access
+              </a>
+              <a class="nav-link" id="v-pills-access-tab-icons" data-bs-toggle="pill" href="#v-tracking-sheet-icons" role="tab">
+                <i class="fas fa-map-signs"></i>
+                Tracking Sheets
               </a>
               <a class="nav-link" id="v-pills-api-tab-icons" data-bs-toggle="pill" href="#v-pills-api-icons" role="tab" aria-controls="v-pills-profile-icons" aria-selected="false" tabindex="-1">
                 <i class="fas fa-globe"></i>
@@ -57,6 +76,13 @@
                         </div>
                       </div>
                       <div class="card-body">
+                        <div class="custom-file-upload">
+                          <input id="file-upload" type="file" name="fileUpload" multiple  class="hidden"/>
+                          <label for="file-upload" id="file-drag">
+                            <span id="file-upload-btn" class="button">Browse a Logo</span>
+                          </label>
+                          <div id="attachments"></div>
+                        </div>
                         <div class="form-group form-group-default">
                           <label>Name</label>
                           <input id="site_name" type="text" class="form-control">
@@ -161,74 +187,111 @@
                   </div>
                 </div>
               </div>
-              <div class="tab-pane fade" id="v-pills-division-icons" role="tabpanel" aria-labelledby="v-pills-division-tab-icons">
+              <div class="tab-pane fade" id="v-pills-division-icons" role="tabpanel">
                 <div class="card-body">
                   <div class="card">
                     <div class="card-header">
                         <div class="card-head-row card-tools-still-right">
-                            <h4 class="card-title">Divisions</h4>
-                            <div class="card-tools transcations-code text-uppercase form-group-add">
-                                <button id="addMoreFieldButton" class="btn btn-icon btn-link btn-primary btn-xs">
-                                  <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
+                            <h4 class="card-title">Organization</h4>
+                            <button class="btn btn-primary btn-round ms-auto" id="addMoreFieldButton">
+                              <i class="fa fa-plus"></i>
+                              Add Row
+                            </button>
                         </div>
                         
                     </div>
-                    <div class="card-body" id="divisionFields">
-                        <div class="row">
-                            <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
-                                <div class="form-group form-group-default form-group-minus">
-                                    <label for="minusButton">Remove</label>
-                                    <button id="minusButton" class="form-control fas fa-minus"></button>
+                    <div class="card-body table-responsive" id="divisionFields">
+                      <table class="basicDatatables table table-striped table-hover">
+                        <thead>
+                          <tr class="text-uppercase">
+                            <th>Abbreviation</th>
+                            <th>Division Name</th>
+                            <th title="Responsible Person">Person</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tfoot>
+                          <tr class="text-uppercase">
+                            <th>Abbreviation</th>
+                            <th>Division Name</th>
+                            <th title="Responsible Person">Person</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                          </tr>
+                        </tfoot>
+                        <tbody>
+                          <% 
+                            const renderRow = (key, stands, email, type, responsible) => {
+                              const data = {key, stands, email, type, responsible}
+                          %>
+                            <tr class="<%= type %>">
+                              <td><%- type === 'section' ? '<i class="icon-sm unicode">∟</i> ' : type === 'division' ? '<i class="icon-sm far fa-folder-open"></i> ' : type === 'unit' ? '<i class="icon-sm fas fa-flag"></i>' : '<i class="icon-sm far fa-building"></i>' -%> <%= key %></td>
+                              <td><%= stands %></td>
+                              <td><%= responsible ?? '' %></td>
+                              <td><%= email %></td>
+                              <td>
+                                <div class="form-button-action" data-transid="1">
+                                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Edit <%= type.charAt(0).toUpperCase() + type.slice(1) %>">
+                                    <a href="#settingsModal" class="btn btn-link btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#settingsModal" data-modalTitle="Edit <%= type.charAt(0).toUpperCase() + type.slice(1) %>" data-modalBody="<%=JSON.stringify(data)%>">
+                                      <i class="fa fa-edit"></i>
+                                    </a>
+                                  </span>
+                                  <% if (false) { %>
+                                  <a href="#delete" class="btn btn-link btn-danger btn-lg" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete <%= type.charAt(0).toUpperCase() + type.slice(1) %>">
+                                    <i class="fa fa-trash"></i>
+                                  </a>
+                                  <% } %>
                                 </div>
-                            </div>
-                            <div class="col-md-2 ml-0">
-                              <div class="form-group form-group-default">
-                                <label for="division_abbrv">Abbreviation</label>
-                                <input id="division_abbrv" name="division_abbrv" type="text" class="form-control text-uppercase" value="">
-                              </div>
-                            </div>
-                            <div class="col-md-5">
-                              <div class="form-group form-group-default">
-                                <label for="division_name">Division Name</label>
-                                <input id="division_name" name="division_name" type="text" class="form-control" value="">
-                              </div>
-                            </div>
-                            <div class="col-md-4">
-                              <div class="form-group form-group-default">
-                                <label for="division_email">Division Email</label>
-                                <input id="division_email" name="division_email" type="email" class="form-control" value="">
-                              </div>
-                            </div>
-                        </div>
+                              </td>
+                            </tr>
+                          <% } %>
+
+                          <% directors.forEach(([key, director]) => {
+                            const { stands, email, sections, responsible} = director; 
+                            if(key == 'ORED') renderRow(key, stands, email, 'director', responsible );
+                          }) %>
+                          <% divisions.forEach(([key, division]) => { 
+                            const { stands, email, sections, responsible} = division; 
+                            renderRow(key, stands, email, 'division', responsible );
+
+                            // Iterate through under-sections
+                            Object.entries(sections).forEach(([underKey, underSection]) => {
+                              const { stands: underStands, email: underEmail, responsible: underResponsible, sections: units } = underSection;
+                              renderRow(underKey, underStands, underEmail, 'section', underResponsible);
+
+                              if(units) {
+                                Object.entries(units).forEach(([unitKey, unit]) => {
+                                  const { stands: unitStand, email: unitEmail, responsible: unitResponsible } = unit;
+                                  renderRow(unitKey, unitStand, unitEmail, 'unit', unitResponsible);
+    
+                                });
+                              }
+                            });
+                          }) %>
+                        </tbody>
+                        
+                      </table>
                     </div>
                   </div>
                 </div>
               </div>
-              <div class="tab-pane fade" id="v-pills-access-icons" role="tabpanel" aria-labelledby="v-pills-division-tab-icons">
+              <div class="tab-pane fade" id="v-pills-access-icons" role="tabpanel">
                 <div class="card-body">
                   <div class="card">
                     <div class="card-header">
                         <div class="card-head-row card-tools-still-right">
                             <h4 class="card-title">Access</h4>
-                            <div class="card-tools transcations-code text-uppercase form-group-add">
-                                <button id="addMoreFieldButton" class="btn btn-icon btn-link btn-primary btn-xs">
-                                  <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
+                            <button class="btn btn-primary btn-round ms-auto" id="addMoreFieldButton">
+                              <i class="fa fa-plus"></i>
+                              Add Row
+                            </button>
                         </div>
                         
                     </div>
-                    <div class="card-body" id="divisionFields">
+                    <div class="card-body" id="accessFields">
                         <div class="row">
-                            <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
-                                <div class="form-group form-group-default form-group-minus">
-                                    <label for="minusButton">Remove</label>
-                                    <button id="minusButton" class="form-control fas fa-minus"></button>
-                                </div>
-                            </div>
-                            <div class="col-md-2 ml-0">
+                            <div class="col-lg-3 col-md-6 ml-0">
                               <div class="form-group form-group-default">
                                 <label for="division_abbrv">Components</label>
                                 <select class="form-select" id="components">
@@ -239,42 +302,118 @@
                                 </select>
                               </div>
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-lg-7 col-md-7">
                               <div class="form-group form-group-default">
-                                <label for="division_name">Permissions</label>
-                                <div id="permissions-container" class="selectgroup selectgroup-pills">
-                
-                                  <label class="selectgroup-item">
-                                    <input type="checkbox" name="value" value="create" class="selectgroup-input">
-                                    <span class="selectgroup-button">create</span>
-                                  </label>
-                                
-                                  <label class="selectgroup-item">
-                                    <input type="checkbox" name="value" value="read" class="selectgroup-input">
-                                    <span class="selectgroup-button">read</span>
-                                  </label>
-                                
-                                  <label class="selectgroup-item">
-                                    <input type="checkbox" name="value" value="update" class="selectgroup-input">
-                                    <span class="selectgroup-button">update</span>
-                                  </label>
-                                
-                                  <label class="selectgroup-item">
-                                    <input type="checkbox" name="value" value="delete" class="selectgroup-input">
-                                    <span class="selectgroup-button">delete</span>
-                                  </label>
-                                
-                              </div>
+                                <label for="division_email">Employees</label>
+                                <div class="avatar-group" style="margin-top: 4px;">
+                                  
+                                  <div class="avatar avatar-xs" data-bs-toggle="tooltip" data-bs-placement="top" title="Siya Ako">
+                                    <img src="../assets/img/mlane.jpg" alt="..." class="avatar-img rounded-circle border border-white">
+                                  </div>
+                                  <div class="avatar avatar-xs" data-bs-toggle="tooltip" data-bs-placement="top" title="Ako Siya">
+                                    <span class="avatar-title rounded-circle border border-white">CF</span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                            <div class="col-md-4">
-                              <div class="form-group form-group-default">
-                                <label for="division_email">Division Email</label>
-                                <input id="division_email" name="division_email" type="email" class="form-control" value="">
+                            <div class="col-lg-2 col-md-2">
+                              <div class="form-group form-group-default form-group-minus">
+                                <label for="addModalEmployeeBtn">Options</label>
+                                <div class="d-flex justify-content-evenly">
+                                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Remove">
+                                    <button id="removeModalEmployeeBtn" class="form-control fas fa-minus"></button>
+                                  </span>
+                                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                                    <button id="addModalEmployeeBtn" class="form-control fas fa-edit" data-bs-target="#addModalEmployee"  data-bs-toggle="modal"></button>
+                                  </span>
+                                </div>
                               </div>
                             </div>
                         </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+              <div id="v-tracking-sheet-icons" class="tab-pane fade">
+                <div class="card">
+                  <div class="card-header">
+                      <div class="card-head-row card-tools-still-right">
+                          <h4 class="card-title">Sheets</h4>
+                          <button class="btn btn-primary btn-round ms-auto" id="addMoreFieldButton">
+                            <i class="fa fa-plus"></i>
+                            Add Row
+                          </button>
+                      </div>
+                      
+                  </div>
+                  <div class="card-body" id="sheetsFields">
+                    <div class="row">
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th scope="col">Title</th>
+                            <th scope="col">Template</th>
+                            <th scope="col">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Small Value</td>
+                            <td><span class="badge badge-info">Default</span></td>
+                            <td>
+                              <span class="badge badge-count"><i class="fas fa-eye"></i> View</span>
+                              <span class="badge badge-danger"><i class="fas fa-edit"></i> Edit</span>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Public Bidding</td>
+                            <td><span class="badge badge-info">Default</span></td>
+                            <td>
+                              <span class="badge badge-count"><i class="fas fa-eye"></i> View</span>
+                              <span class="badge badge-danger"><i class="fas fa-edit"></i> Edit</span>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="v-pills-roles-icons" class="tab-pane fade" role="tabpanel">
+                <div class="card">
+                  <div class="card-header">
+                      <div class="card-head-row card-tools-still-right">
+                          <h4 class="card-title">User Roles</h4>
+                          <a href="#" class="btn btn-primary btn-round ms-auto" data-bs-toggle="modal" data-bs-target="#rolesModal">
+                            <i class="fa fa-plus"></i>
+                            Add Row
+                          </a>
+                          <a href="#" class="btn btn-primary btn-round ms-auto" data-bs-toggle="modal" data-bs-target="#primaryModal">
+                            <i class="fa fa-plus"></i>
+                            Add Row
+                          </a>
+                      </div>
+                  </div>
+                  <div class="card-body" id="sheetsFields">
+                    <table class="basicDatatables table table-striped table-hover">
+                      <thead>
+                        <tr class="text-uppercase">
+                          <th>ID</th>
+                          <th>Name</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tfoot>
+                        <tr class="text-uppercase">
+                          <td>ID</td>
+                          <td>Name</td>
+                          <td>Actions</td>
+                        </tr>
+                      </tfoot>
+                      <tbody>
+                        
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -288,5 +427,16 @@
   </div>
   <!-- End Custom template -->
 </div>
+<%- include('../components/modals/employees/lists') -%>
+<%- include('../components/modals/settings/settings') -%>
+<%- include('../components/modals/settings/roles') -%>
+<%- include('../components/modals/modal', {
+  target: 'primaryModal', 
+  title: "Add New Role", 
+  fields: [
+    {id: "roleID", title: "ID", type: "text", hidden: true},
+    {id: "roleName", title: "Name", type: "text"},
+  ],
+  button: {id: "submit", title: "Submit"}}) -%>
 <!-- Footer Template  -->
 <%- include('../views/footer') -%>

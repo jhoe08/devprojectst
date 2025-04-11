@@ -1,0 +1,48 @@
+<div class="form-group form-group-default">
+    <label>Division</label>
+    <select class="form-select" id="division" name="division">
+      <!-- Director and Technical Directors -->
+      <% 
+      const directorsArray = directors.flatMap(([key, director]) => {
+        if (key === "RTDs") {
+          return Object.entries(director).map(([subKey, subDirector]) => ({
+            key: subKey,
+            stands: subDirector.stands,
+            classes: "technical-directors",
+            filtered: subKey,
+          }));
+        }
+        return [{
+          key,
+          stands: director.stands,
+          classes: "director",
+          filtered: key,
+        }];
+      });
+      
+      directorsArray.forEach(({ key, stands, classes, filtered }) => { %>
+        <%- include('../../components/forms/options', { key, stands, classes, filtered: e_division, dataset:[] }) %>
+      <% }); %>
+      <optgroup label="Divisions">
+      <!-- Divisions Here -->
+      <% divisions.forEach(([key, division]) => { 
+        const { stands, sections } = division; %>
+
+        <%- include('../../components/forms/options', { key, stands, classes: 'division',  filtered: e_division, dataset:[] }) %>
+        <% 
+          Object.entries(sections).forEach(([keySect, section]) => { 
+            const { stands: sectStands, sections:banners } = section;
+            underDivision = Object.entries(section)
+          %>
+          <%- include('../../components/forms/options', { key: keySect, stands: sectStands,  classes: 'section', filtered: e_division, dataset:[] }) %>
+          <% if(banners) {
+            Object.entries(banners).forEach(([keyBan, banner]) => { 
+              const { stands:banStands } = banner;
+            %>
+            <%- include('../../components/forms/options', { key: keyBan, stands: banStands, classes: 'unit', filtered: e_division, dataset:[] }) %>
+          <% }) } %>
+        <% }); %>
+      <% }) %>
+      </optgroup>
+    </select>
+  </div>

@@ -27,8 +27,10 @@
     const employment = document.getElementById('employment')
     const startdate = document.getElementById('startdate')
 
+    const roleInputEnter = document.getElementById('roleInputEnter')
     const setRoles = document.getElementById('setRoles')
-
+    
+    
     if (predataRegisterEmployee) {
       predataRegisterEmployee.addEventListener('click', function(){
         fields.forEach(field =>{
@@ -61,6 +63,11 @@
   
       
       registerEmployee.addEventListener('click', function(){
+        var checkedComponents = document.querySelectorAll('input[name="components"]:checked');
+        var checkedComponentsValues = Array.from(checkedComponents).map(function(checkbox) {
+            return checkbox.value;
+        });
+      
         const data = {
           employeeid: employeeid.value,
           firstname: firstname.value,
@@ -72,7 +79,6 @@
             lists: [{
               office: companyname.value,
               division: division.value,
-              banner: banner.value,
               salary: salary.value,
               status: true,
               enddate: 'present',
@@ -89,7 +95,8 @@
           others: {
             civilstatus: civilstatus.value,
             gender: gender.value
-          }
+          },
+          components: JSON.stringify(checkedComponentsValues)
         }
         // into JSON format
         let {experience, contacts, others} = data
@@ -151,7 +158,12 @@
 
       updateEmployee.addEventListener('click', function(){
         extname = document.querySelector('input[name="nameExtension"]:checked')
+        var checkedComponents = document.querySelectorAll('input[name="components"]:checked');
+        var checkedComponentsValues = Array.from(checkedComponents).map(function(checkbox) {
+            return checkbox.value;
+        });
 
+        // console.log( checkedComponentsValues )
         const data = {
           firstname: firstname.value,
           middlename: middlename.value,
@@ -162,7 +174,6 @@
             lists: [{
               office: companyname.value,
               division: division.value,
-              banner: banner.value,
               salary: salary.value,
               status: true,
               enddate: 'present',
@@ -179,7 +190,8 @@
           others: {
             civilstatus: civilstatus.value,
             gender: gender.value
-          }
+          },
+          components: JSON.stringify(checkedComponentsValues)
         }
 
         let {experience, contacts, others} = data
@@ -189,6 +201,8 @@
         if(!lastname.classList.contains('updated')) delete data.lastname
         if(!extname.classList.contains('updated')) delete data.extname
         if(!dob.classList.contains('updated')) delete data.birthdate
+        if(!checkedComponents.closest('.selectgroup').classList.contains('updated')) delete data.checkedComponents
+    
         
         data.experience = JSON.stringify(experience)
         data.contacts = JSON.stringify(contacts)
@@ -282,8 +296,35 @@
         })
       })
     }
-    if (setRoles) {
-      
+    if (roleInputEnter) {
+      roleInputEnter.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+          // Get the input value and trim whitespace
+        let inputText = event.target.value.trim();
+        
+        if (inputText) {
+          // Split the text by commas (if any)
+          let items = inputText.split(',').map(item => item.trim());
+          
+          // Access the list element where items will be added
+          const list = document.getElementById('listRoles');
+          
+          // Iterate through the items and add them to the list
+          items.forEach(item => {
+            listRoles.setAttribute('data-roles', roleNames);
+            let html = `<label class="selectgroup-item">
+                          <input type="checkbox" name="roles" value="${item}" class="selectgroup-input">
+                          <span class="selectgroup-button">${item}</span>
+                        </label>`
+            list.innerHTML += html;
+          });
+
+            // Clear the input field after adding
+            event.target.value = '';
+        }
+      }
+    });
+    
     }
 
   document.addEventListener('DOMContentLoaded', function () {

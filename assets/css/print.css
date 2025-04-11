@@ -40,12 +40,6 @@
                 text-transform: uppercase;
                 font-size: 1em;
             }
-            h1 {
-                /* font-size: 1.2em; */
-            }
-            h2 {
-                /* font-size: 1em; */
-            }
             h3 {
                 font-size: .7em;
             }
@@ -142,6 +136,16 @@ table {
         overflow: hidden;
         visibility: hidden;
     } 
+    /* PR Print page */
+    .documentToPrint {
+        overflow: visible !important;
+        visibility: visible !important;
+
+        * {
+            overflow: inherit !important;
+            visibility: inherit !important;
+        }
+    }
 
     .main-panel,
     .main-header {
@@ -151,6 +155,7 @@ table {
             margin-top: 0;
         }
     }
+    /* Document Tracker page */
     div.print-qrcode {
         overflow: visible !important;
         visibility: visible !important;

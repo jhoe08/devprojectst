@@ -1,0 +1,24 @@
+<div class="modal fade" id="<%= target %>" tabindex="-1" aria-labelledby="<%= target %>Label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="<%= target %>Label">
+          <%= title %>:
+        </h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <% fields.forEach(function(field) { %>
+          <div class="form-group form-group-default <%= field.hidden ? 'hidden': '' %>">
+            <label for="<%= field.id %>"><%= field.title %>:</label>
+            <input id="<%= field.id %>" type="<%= field.type %>" class="form-control">
+          </div>
+        <% }) %>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal">Close</button>
+        <a id="<%= button.id %>" href="#" type="button" class="btn button btn-primary" data-transid=""><%= button.title %></a>
+      </div>
+    </div>
+  </div>
+</div>

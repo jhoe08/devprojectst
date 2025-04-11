@@ -1,18 +1,17 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
 <%
-      if(logonUser) {
-        logonUser = JSON.stringify(logonUser)
-        const { experience } = logonUser || {}
-        if(experience) {
-            const { lists } = JSON.parse(experience)
-            const { position, division: employeeDivision } = lists[0] || {}
+if(logonUser) {
+  logonUser = JSON.stringify(logonUser)
+  const { experience } = logonUser || {}
+  if(experience) {
+      const { lists } = JSON.parse(experience)
+      const { position, division: employeeDivision } = lists[0] || {}
 
-            console.log(`asd ${division}`)
-        }
+      console.log(`asd ${division}`)
+  }
 
-      }
-    %>
+} %>
 <% if(transactions) { %>
 <div class="wrapper">
     <%- include('../../views/sidebar') -%>
@@ -91,24 +90,59 @@
                         </div>
                         <div class="separator-dashed"></div>
                         <div class="d-flex">
-                          <div class="avatar">
-                            <span class="avatar-title rounded-circle border border-white bg-info">₱</span>
-                          </div>
-                          <div class="flex-1 ms-3 pt-1">
-                            <h6 class="text-uppercase fw-bold mb-1">
-                              <%
-                                var {approved_budget : budget} = transactions 
-                                var cleanBudget = budget.replace(/,/g, '');
+                          <div class="col-md-6 d-flex abc">
+                            <div class="avatar">
+                              <span class="avatar-title rounded-circle border border-white bg-info">₱</span>
+                            </div>
+                            <div class="flex-1 ms-3 pt-1">
+                              <h6 class="text-uppercase fw-bold mb-1">
+                                <%
+                                  var {approved_budget : budget, fund_source} = transactions 
+                                  var cleanBudget = budget.replace(/,/g, '');
+  
+                                  budget = parseFloat(cleanBudget)
+                                  fund_source = JSON.parse(fund_source)
+                                  
+                                  var result = 'N/A'
+                                  if(Array.isArray(fund_source)) {
+                                    result = fund_source.map(item => `${item.division}-${item.section}`).join(', ');
+                                  }
+                                %>
 
-                                budget = parseFloat(cleanBudget)
-                              %>
-                              <%- peso(budget) -%>
-                              <span class="text-warning ps-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Fund Source"><%- transactions.fund_source -%></span>
-                            </h6>
-                            <span class="text-muted">Purchase Request Budget</span>
+                                <%- peso(budget) -%>
+                                <span  class="text-warning ps-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Fund Source">
+                                  <%- result -%>
+                                </span>
+                              </h6>
+                              <span class="text-muted">Approved Budget of the Contract</span>
+                            </div>
+                            <div class="float-end pt-1">
+                              <small class="text-muted"></small>
+                            </div>
                           </div>
-                          <div class="float-end pt-1">
-                            <small class="text-muted"></small>
+                          <div class="col-md-6 d-flex approved" data-approvedBudget="">
+                            <div class="avatar">
+                              <span class="avatar-title rounded-circle border border-white bg-info"><i class="fas fa-thumbs-up"></i></span>
+                            </div>
+                            <div class="flex-1 ms-3 pt-1">
+                              <h6 class="text-uppercase fw-bold mb-1">
+                                <%
+                                  var {approved_budget : budget} = transactions 
+                                  var cleanBudget = budget.replace(/,/g, '');
+                                
+                                  budget = parseFloat(cleanBudget)
+                                  const discount = budget * .10
+                                  budget = budget - discount
+                                %>
+                                <%- peso(budget) -%>
+                              </h6>
+                              <span class="text-muted">Estimate Budget</span>
+                            </div>
+                            <div class="float-end pt-1">
+                              <button  data-bs-toggle="modal" data-bs-target="#approvedBudgetModal" id="addBudget" class="btn btn-icon btn-link op-8 me-1">
+                                <i class="fas fa-plus-circle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Set Approved Budget"></i>
+                              </button>
+                            </div>
                           </div>
                         </div>
                         <div class="separator-dashed"></div>
@@ -166,6 +200,43 @@
                   <div class="card">
                     <div class="card-header">
                       <div class="card-head-row card-tools-still-right">
+                        <div class="card-title">Next Responsible Person</div>
+                        <button class="btn btn-primary btn-round ms-auto" id="forwardBtn">
+                          <i class="fa fa-forward"></i>
+                          Forward
+                        </button>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <div class="form-group form-group-default">
+                        <label>Select</label>
+                        <select class="form-select">
+                          <% employees.forEach(employee => { 
+                            var {employeeid, firstname, lastname, middlename} = employee 
+                            var fullname = `${lastname}, ${firstname} ${middlename}` %>
+                            <option value="<%= employeeid  %>"><%= fullname %></option>
+                          <% }) %>
+                          <!-- <option value="Accounting Section">Accounting Section</option>
+                          <option value="BAC Secretariat">BAC Secretariat</option>
+                          <option value="Canvassers">Canvassers</option>
+                          <option value="Division Chief">Division Chief</option>
+                          <option value="End-User">End-User</option>
+                          <option value="General Services Section">General Services Section</option>
+                          <option value="Inspectors">Inspectors</option>
+                          <option value="RAED">RAED</option>
+                          <option value="RED">RED</option>
+                          <option value="Procurement Section">Procurement Section</option>
+                          <option value="RTD">RTD</option>
+                          <option value="Supplier">Supplier</option>
+                          <option value="Cashering Unit">Cashering Unit</option> -->
+                        </select>
+                        
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card">
+                    <div class="card-header">
+                      <div class="card-head-row card-tools-still-right">
                         <div class="card-title">Recent Activity</div>
                         <div class="card-tools">
                           <button id="refreshActivity" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card" data-transid="<%- transactions.product_id -%>" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Refresh">
@@ -194,10 +265,12 @@
 <%- include('../../components/modals/transactions/code') -%>
 <!-- Transaction: PO Number -->
 <%- include('../../components/modals/transactions/po') -%>
+<!-- Transaction: Set Approved Budget -->
+<%- include('../../components/modals/transactions/budget') -%>
 <!-- <script src="/assets/js/components/transactions.js"></script> -->
 <!-- <script> 
   new QRCode(`transid-<%- transactions.product_id %>`, `<%- transactions.product_id %>`); 
 </script> -->
-<% } %>
+<% } %> endof IF transactions
 <!-- Footer Template -->
 <%- include('../../views/footer') -%>

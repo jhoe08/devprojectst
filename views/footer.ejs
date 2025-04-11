@@ -1,20 +1,52 @@
+    <!-- Main Scripts added -->
     <%- include('scripts') -%>
-    <% if (path2 === '/transactions' || path2.startsWith('/transactions')) { %> 
+
+    <% if (path2.startsWith('/transactions')) { %> 
     <script src="/assets/js/components/transactions.js"></script>
-    <% } else if (path2 === '/employees' || path2.startsWith('/employees')) { %>
+    <% } else if (path2.startsWith('/employees')) { %>
     <script src="/assets/js/components/employees.js"></script>
     <% } else if (path2.startsWith('/documents')) { %>
     <script src="/assets/js/components/documents.js"></script>
     <% } else if (path2.startsWith('/settings')) { %>
     <script src="/assets/js/components/settings.js"></script>
-    <% } else if (path2.startsWith('/qrscanner')) %>
+    <% } else if (path2.startsWith('/qrscanner')) { %>
     <script src="/assets/js/scanner.js"></script>
-    
+    <% } else { %>
+    <script src="/assets/js/global.js"></script>
+    <% } %>
+
     <script>
+      // For All
+      $(".datatables").each(function() {
+        // Read the 'data-order' attribute to determine sorting order (asc or desc)
+        var order = $(this).data('sort') || 'asc';  // Default to 'asc' if no data-order is set
+        var hideColumns = $(this).data('hide-columns')
+        var hideColumnsArray = hideColumns ? hideColumns.split(',').map(Number) : [];
+        // Initialize the DataTable with custom options
+        $(this).DataTable({
+            ordering: true,        // Enable ordering
+            order: [[0, order]],   // Set the default sort column (column 0) and sort direction (asc or desc)
+            paging: true,          // Enable pagination
+            searching: true,       // Enable searching
+            // lengthMenu: [5, 10, 15, 20], // Number of records per page options
+            columnDefs: [
+              { visible: false, targets: hideColumnsArray }
+            ],
+        });
+    });
+
+      $(".basicDatatables").DataTable({
+        "pageLength": -1,
+        "ordering": false,
+        "paging": false,
+        responsive: true
+      });
+
+      let tables = $("#justTables").DataTable();
       const transactions = $("#transactions-datatables").DataTable({
-        "order": [[0, 'asc']],
+        "order": [[0, 'desc']],
         columnDefs: [{
-            render: (data, type, row) => '<div><span data-head="Classification" class="badge badge-count mr-3">' + row[9] + '</span><span data-head="Banner"  class="badge badge-info">' + row[8] + '</span></div><div class="mb-0">'+ data +'</div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div>',
+            render: (data, type, row) => '<div><span data-head="Classification" class="badge badge-count mr-3">' + row[9] + '</span></div><div class="mb-0">'+ data +'</div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div>',
             targets: 1
           }, {
             render: (data, type, row) => `${data} <br><span data-head="Division" class="badge badge-warning">${row[3]}<span>`,
@@ -52,8 +84,9 @@
           // });
         }, 
       })
+      
       // const employeesHiddenColumns = []
-      const employeesHiddenColumns = [2, 5, 8] 
+      const employeesHiddenColumns = [2,5,6,8] 
       let employees = $("#employees").DataTable({
         
         layout: {
@@ -149,32 +182,32 @@
         })
       }
       
-      $("#lineChart").sparkline([102, 109, 120, 99, 110, 105, 115], {
-        type: "line",
-        height: "70",
-        width: "100%",
-        lineWidth: "2",
-        lineColor: "#177dff",
-        fillColor: "rgba(23, 125, 255, 0.14)",
-      });
+      // $("#lineChart").sparkline([102, 109, 120, 99, 110, 105, 115], {
+      //   type: "line",
+      //   height: "70",
+      //   width: "100%",
+      //   lineWidth: "2",
+      //   lineColor: "#177dff",
+      //   fillColor: "rgba(23, 125, 255, 0.14)",
+      // });
 
-      $("#lineChart2").sparkline([99, 125, 122, 105, 110, 124, 115], {
-        type: "line",
-        height: "70",
-        width: "100%",
-        lineWidth: "2",
-        lineColor: "#f3545d",
-        fillColor: "rgba(243, 84, 93, .14)",
-      });
+      // $("#lineChart2").sparkline([99, 125, 122, 105, 110, 124, 115], {
+      //   type: "line",
+      //   height: "70",
+      //   width: "100%",
+      //   lineWidth: "2",
+      //   lineColor: "#f3545d",
+      //   fillColor: "rgba(243, 84, 93, .14)",
+      // });
 
-      $("#lineChart3").sparkline([105, 103, 123, 100, 95, 105, 115], {
-        type: "line",
-        height: "70",
-        width: "100%",
-        lineWidth: "2",
-        lineColor: "#ffa534",
-        fillColor: "rgba(255, 165, 52, .14)",
-      });
+      // $("#lineChart3").sparkline([105, 103, 123, 100, 95, 105, 115], {
+      //   type: "line",
+      //   height: "70",
+      //   width: "100%",
+      //   lineWidth: "2",
+      //   lineColor: "#ffa534",
+      //   fillColor: "rgba(255, 165, 52, .14)",
+      // });
 
       // For all QRCode request
       const qrcodes = document.querySelectorAll('[data-qrcode]')
@@ -189,6 +222,83 @@
       
 
     </script>
+
+    <!-- <script src="/assets/js/charts/charts.js"></script> -->
+    <script src="/assets/js/charts/multipleLine.js"></script>
+    <script src="/assets/js/charts/lineWithLegend.js"></script>
+    <script src="/assets/js/charts/pie.js"></script>
+    <script src="/assets/js/charts/doughnut.js"></script>
+    <script data-path="<%= path %>">
+      const root = document.documentElement;
+      const primaryGreen = getComputedStyle(root).getPropertyValue('--primary-green');
+      const primaryOrange = getComputedStyle(root).getPropertyValue('--primary-orange');
+      const lightGreen = getComputedStyle(root).getPropertyValue('--light-green');
+      const darkGreen = getComputedStyle(root).getPropertyValue('--dark-green');
+      const darkOrange = getComputedStyle(root).getPropertyValue('--dark-orange');
+      const neutralBeige = getComputedStyle(root).getPropertyValue('--neutral-beige');
+      const neutralDarkGray = getComputedStyle(root).getPropertyValue('--neutral-dark-gray');
+      const accentBlue = getComputedStyle(root).getPropertyValue('--accent-blue');
+      const accentYellow = getComputedStyle(root).getPropertyValue('--accent-yellow');
+
+      // This will only work if the site is a homepage
+      if('<%=path%>' === '' || '<%=path%>' === '/') {
+        var classificationData = JSON.parse('<%- perClassification || {} %>');
+        var chartClassificationLabel = Object.keys(classificationData)
+        var chartClassificationValue = Object.values(classificationData)
+
+        createPieChart("chartClassification", chartClassificationValue, chartClassificationLabel, [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow]);
+
+        createLineChartWithHtmlLegend(
+        "htmlLegendsChart",   // chartId
+        "myChartLegend",      // legend container ID
+        [                     // chartData (arrays for each dataset)
+          {
+            label: "Amount",
+            legendColor: primaryGreen,
+            values: [154, 184, 175, 203, 210, 231, 240, 278, 252, 312, 320, 374]
+          },
+          {
+            label: "Disbursement",
+            legendColor: primaryOrange,
+            values: [256, 230, 245, 287, 240, 250, 230, 295, 331, 431, 456, 521]
+          },
+          {
+            label: "ABC",
+            legendColor: lightGreen,
+            values: [542, 480, 430, 550, 530, 453, 380, 434, 568, 610, 700, 900]
+          }
+        ],
+        ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],  // chartLabels
+        [
+          [primaryGreen], // gradientColors
+          [primaryOrange],
+          [lightGreen]
+        ]
+      );
+      createDoughnutChart(
+          "doughnutChart", // ID of the canvas
+          [10, 20, 30], // Data points
+          ["Red", "Yellow", "Blue"], // Labels
+          [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow], // Colors for slices
+          {
+            legend: {
+              position: "bottom",
+            },
+            layout: {
+              padding: {
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 20,
+              },
+            },
+          }
+        );
     
+      }
+      
+
+    </script>
+
   </body>
 </html>

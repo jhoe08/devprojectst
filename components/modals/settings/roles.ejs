@@ -1,0 +1,77 @@
+<%
+  let { directors, divisions, permissions } = JSON.parse(DEPARTMENT)
+  const { roles, can } = permissions
+
+  directors = Object.entries(directors)
+  divisions = Object.entries(divisions)
+%>
+
+<div class="modal fade" id="rolesModal" tabindex="-1" aria-labelledby="rolesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="rolesModalLabel">Add New Roles</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-12">
+              <div class=" form-group form-group-default">
+                <label>Role Name</label>
+                <select class="form-select" id="role_divisions">
+                  <% const renderOption = (key, stands, type) => { 
+                    const spaces = (type == 'division') ? '&nbsp;&nbsp;&nbsp;' : (type == 'section') ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' : (type == 'unit') ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' : ''
+                    %>
+                    <option class="<%=type%>" title="<%=key%>" value="<%=key%>" ><%-`${spaces} ${stands} (${key})`%></option>
+                  <% }
+                  directors.forEach(([key, division]) => {
+                    const {stands} = division
+                    if(key == 'ORED') renderOption(key, stands, 'director' );
+                  })
+                  divisions.forEach(([key, division]) => { 
+                    const { stands, sections } = division
+                    renderOption(key, stands, 'division')
+                  
+                    Object.entries(sections).forEach(([keySect, section]) => {
+                      const { stands: sectStand, sections:units } = section
+                      renderOption(keySect, sectStand, 'section')
+    
+                      if(units) {
+                        Object.entries(units).forEach(([keyUnit, unit]) => {
+                          const { stands: unitStands} = unit
+                          renderOption(keyUnit, unitStands, 'unit')
+                        })
+                      }
+                    })
+                  }) 
+                  %>
+                </select>
+              </div>
+              <div class="form-group form-group-default">
+                <label>Employees</label>
+                <select class="form-select" id="role_employees" multiple>
+                <% employees.forEach(employee => { 
+                  const { employeeid, firstname, middlename, lastname, extname } = employee
+                  const fullname = `${lastname}, ${firstname} ${middlename}`
+                  %>
+                  <option class="<%= JSON.parse(employeeid) %> sentence" title="<%= fullname %>" value="<%= fullname %>"><%= fullname %></option>
+                <% }) %>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-12">
+              
+            </div>
+          </div>
+          <div class="form-group form-group-default">
+            <label>Capabilities</label>
+            <input id="role_capabilities" type="text" class="form-control" placeholder="">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal">Close</button>
+          <a id="setRoles" href="#" type="button" class="btn button btn-primary">Add New Role</a>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -32,13 +32,37 @@
           <div class="form-group form-group-default">
             <label class="form-label">Divisions</label>
             <select id="emailsToSend" name="divisions" multiple class="form-select" size="6">
-              <!-- HERE HERE HERE HERE -->
-            <% 
-              divisions.forEach(([key, value]) => {
-                const {stands, email, admin} = value 
-            %>
-              <option title="<%=stands%>" value="<%=email%>"><%=stands%></option>
-            <% }) %>
+            <% const renderOption = (key, stands, email, type) => { 
+              const spaces = (type == 'division') ? '&nbsp;&nbsp;&nbsp;' : (type == 'section') ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' : (type == 'unit') ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' : ''
+              %>
+              <option 
+                class="<%= type %>" 
+                title="<%- spaces + ' ' + stands %>" 
+                value="<%= email %>"
+                <%= email ? '' : 'disabled' %>
+              >
+                <%- spaces + ' ' + stands %>
+              </option>
+            <% } %>
+
+            <%
+            divisions.forEach(([key, division]) => { 
+              const { stands, email, sections } = division
+              renderOption(key, stands, email, 'division')
+            
+              Object.entries(sections).forEach(([sectKey, section]) => {
+                const { stands:sectStands, email:sectEmail, sections:units } = section
+                renderOption(sectKey, sectStands, sectEmail, 'section')
+
+                if(units) {
+                  Object.entries(units).forEach(([unitKey, unit]) => {
+                    const { stands:unitStands, email:unitEmail } = unit
+                    renderOption(unitKey, unitStands, unitEmail, 'unit')
+                  })
+                }
+              })
+            })
+             %>
             </select>
           </div>
           <div class="form-group form-group-default">
@@ -58,5 +82,5 @@
       </div>
       </div>
     </div>
-  </div>
+</div>
           

@@ -1,8 +1,8 @@
 <!-- Header Template -->
 <%- include('../views/header') -%>
 <% 
-  const {transactions} = cardsData
- 
+  const { transactions } = cardsData
+  
   // Destructuring the object
   const {
     employees: { row_count: employeesRowCount, total_sum: employeesTotalSum },
@@ -117,9 +117,15 @@
             </div>
           </div>
           <div class="col-sm-12 col-md-12 col-lg-6">
-            <%- include('../components/charts/pie') -%>
+            <%- include('../components/charts/multipleLine', { id:"prcreation", title: "Purchase Request", description: "" }) -%>
           </div>
-          <div class="col-sm-12 col-md-12 col-lg-6">
+          <div class="col-sm-12 col-md-12 col-lg-3" >
+            <%- include('../components/charts/pie', { id:"chartClassification", title: "Classification", datasets: perClassification }) -%>
+          </div>
+          <div class="col-sm-12 col-md-12 col-lg-3">
+            <%- include('../components/charts/doughnut') -%>
+          </div>
+          <div class="col-sm-12 col-md-12 col-lg-12">
             <%- include('../components/datatables/index') -%>
           </div>
         </div>

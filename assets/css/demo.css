@@ -1,3 +1,17 @@
+:root {
+  --primary-green: #2bb930;
+  --primary-orange: #FF9D27;
+  --light-green: #7ced87;
+  --dark-green: #1d9d27;
+  --light-orange: #ffb85c;
+  --dark-orange: #c56e1d;
+  --neutral-beige: #f2f2f2;
+  --neutral-dark-gray: #333333;
+  --accent-blue: #17a2b8;
+  --accent-yellow: #f8c000;
+}
+
+
 .hidden {
   display: none !important;
 }
@@ -15,6 +29,62 @@
   }
 }
 
+
+#role_divisions {
+  .section {
+    margin-left: 20px;
+  }
+  .unit {
+    margin-left: 40px;
+  }
+}
+
+.unicode {
+  position: relative;
+  top: -4px;
+  margin-left: 10px;
+  height: 80px;
+  min-width: 80px;
+  line-height: 0;
+  font-family: "arial unicode ms", "Lucida Sans Unicode", sans-serif;
+  font-size: 150%;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15sease-out;
+  -webkit-transition: all .15sease-out;
+  -moz-transition: all .15s ease-out;
+  -ms-transition: all .15s ease-out;
+  -o-transition: all .15s ease-out;
+  text-shadow: 1px 0px 1px #ccc, 0px 1px 1px #eee, 2px 1px 1px #ccc;
+  font-style: normal;
+}
+select option[disabled] {
+  text-decoration: line-through;
+}
+.director, 
+.division, 
+.section, 
+.unit {
+  .icon-sm {
+    text-shadow: 1px 0px 1px #ccc, 0px 1px 1px #eee, 2px 1px 1px #ccc;
+  }
+}
+.division .fa-folder-open {
+  margin-left: 15px;  
+}
+.section .unicode {
+  margin-left: 30px;
+}
+.unit .fa-flag {
+  margin-left: 45px;
+}
+
+.sentence, .text-capitalize {
+  text-transform: capitalize;
+}
+.uppercase {
+  text-transform: uppercase;
+}
 .template-email {
   .wrapper {
     min-height: auto;
@@ -24,7 +94,9 @@
     display: none;
   }
 }
-
+.p-1\.25 {
+  padding: 1.25rem !important;
+}
 .fa-spinner {
   animation: spin 1s linear infinite;
 }
@@ -94,6 +166,10 @@
   @media (max-width: 767px) {
     /* display: none; */
   }
+}
+
+.strikethrough {
+  text-decoration: line-through;
 }
 
 .gg-check {

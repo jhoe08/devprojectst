@@ -9,7 +9,7 @@
         <div class="form-groups">
           <div class="form-group-default">
             <label>Communication Title</label>
-            <input type="text" class="form-control" id="communicationTitle">
+            <textarea rows="6" class="form-control" name="communicationTitle" id="communicationTitle"></textarea>
           </div>
           <div class="form-group">
             <label class="form-label">Priority</label>
@@ -28,6 +28,23 @@
               </label>
             </div>
           </div>
+          <div class="form-group">
+            <label for="sourceFields" class="form-label">Source</label>
+            <div id="sourceFields" class="selectgroup w-100">
+              <label class="selectgroup-item">
+                <input type="radio" name="source" value="internal" class="selectgroup-input" checked>
+                <span class="selectgroup-button selectgroup-button-icon"><i class="fas fa-sign-in-alt"></i> Internal</span>
+              </label>
+              <label class="selectgroup-item">
+                <input type="radio" name="source" value="external" class="selectgroup-input">
+                <span class="selectgroup-button selectgroup-button-icon"><i class="fas fa-sign-out-alt"></i> External</span>
+              </label>
+            </div>
+          </div>
+          <div id="documentSourceDiv" class="form-group">
+            <label>Source Name</label>
+            <input type="text" class="form-control" id="documentSourceInput">
+          </div>  
           <div class="form-group hidden">
             <label class="form-label">Attachments</label>
             <div class="custom-file-upload">

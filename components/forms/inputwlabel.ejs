@@ -1,0 +1,18 @@
+<div class="form-group form-group-default">
+  <label for="budget"><%= label %></label>
+  <div class="input-group">
+    <span class="input-group-text">₱</span>
+    <input id="<%= input.id %>" name="<%= input.name %>" data-<%= input.dataset[0] %>="<%= input.dataset[1] %>" type="<%= type %>" class="form-control mt-0" value="<% filtered %>">
+  </div>
+</div>
+
+{
+  label: "Approved Budget of the Contract",
+  input: {
+    name: 'budget',
+    id: 'budget',
+    dataset: ['type', 'number'],
+    type: 'text',
+    value: filtered
+  }
+}
