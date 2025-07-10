@@ -16,13 +16,25 @@
     <% } %>
 
     <script>
+      function progressBar(length, progress) {
+        if (progress > 0) {
+          step = parseInt(progress)
+
+          progress = Number((progress / length) * 100).toFixed(2);
+          var html = `<div class="progress" style="height: 5px;"><div class="progress-bar" style="width: ${progress}%" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="${step}"></div></div>`
+        }
+
+        return (progress > 0) ? html : '';
+      }
+
       // For All
       $(".datatables").each(function() {
         // Read the 'data-order' attribute to determine sorting order (asc or desc)
         var order = $(this).data('sort') || 'asc';  // Default to 'asc' if no data-order is set
         var hideColumns = $(this).data('hide-columns')
         var hideColumnsArray = hideColumns ? hideColumns.split(',').map(Number) : [];
-        // Initialize the DataTable with custom options
+        // Initialize the DataTable with custom options(2 / 30) × 100 = 6.67%
+
         $(this).DataTable({
             ordering: true,        // Enable ordering
             order: [[0, order]],   // Set the default sort column (column 0) and sort direction (asc or desc)
@@ -46,7 +58,7 @@
       const transactions = $("#transactions-datatables").DataTable({
         "order": [[0, 'desc']],
         columnDefs: [{
-            render: (data, type, row) => '<div><span data-head="Classification" class="badge badge-count mr-3">' + row[9] + '</span></div><div class="mb-0">'+ data +'</div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div>',
+            render: (data, type, row) => '<div class="d-flex justify-content-between"><div><span data-head="Classification" class="badge badge-count mr-3" >' + row[9] + '</span></div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div></div><div class="mb-0">'+ data +'</div>'+progressBar(30, row[12]),
             targets: 1
           }, {
             render: (data, type, row) => `${data} <br><span data-head="Division" class="badge badge-warning">${row[3]}<span>`,
@@ -54,7 +66,7 @@
           }, {
             render: $.fn.dataTable.render.number(',', '.', 2, '₱'),
             targets: 5
-          }, { visible: false, targets: [3,7,8,9] }
+          }, { visible: false, targets: [3,7,8,9,12] }
         ],
         responsive: true,
         initComplete: function () {
@@ -84,6 +96,23 @@
           // });
         }, 
       })
+
+      // Select the <tr> you're working with
+      const allRows  = document.querySelectorAll('tr[data-step-title]');
+      allRows.forEach(row => {
+         // Get the data-step-title value
+        const stepTitle = row.getAttribute('data-step-title');
+
+        // Find the .progress-bar inside the same row
+        const progressBarDiv = row.querySelector('.progress-bar');
+
+        // Set the data-bs-title attribute to the extracted step title
+        if (progressBarDiv) {
+          progressBarDiv.setAttribute('data-bs-title', stepTitle);
+        }
+
+      })
+     
       
       // const employeesHiddenColumns = []
       const employeesHiddenColumns = [2,5,6,8] 
@@ -228,6 +257,11 @@
     <script src="/assets/js/charts/lineWithLegend.js"></script>
     <script src="/assets/js/charts/pie.js"></script>
     <script src="/assets/js/charts/doughnut.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/autonumeric@latest"></script>
+    <script>
+      new AutoNumeric('.custom-number');
+    </script>
+
     <script data-path="<%= path %>">
       const root = document.documentElement;
       const primaryGreen = getComputedStyle(root).getPropertyValue('--primary-green');
@@ -248,37 +282,52 @@
 
         createPieChart("chartClassification", chartClassificationValue, chartClassificationLabel, [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow]);
 
+        const lineChart = document.getElementById('lineChart')
+        const lineChartData = {
+          amounts: JSON.parse(lineChart.dataset.amounts),
+          disbursements: JSON.parse(lineChart.dataset.disbursements),
+          abcs: JSON.parse(lineChart.dataset.abcs),
+        };
+
         createLineChartWithHtmlLegend(
-        "htmlLegendsChart",   // chartId
+        "lineChart",   // chartId
         "myChartLegend",      // legend container ID
         [                     // chartData (arrays for each dataset)
           {
             label: "Amount",
             legendColor: primaryGreen,
-            values: [154, 184, 175, 203, 210, 231, 240, 278, 252, 312, 320, 374]
-          },
-          {
-            label: "Disbursement",
-            legendColor: primaryOrange,
-            values: [256, 230, 245, 287, 240, 250, 230, 295, 331, 431, 456, 521]
+            values: lineChartData.amounts
           },
           {
             label: "ABC",
             legendColor: lightGreen,
-            values: [542, 480, 430, 550, 530, 453, 380, 434, 568, 610, 700, 900]
-          }
+            values: lineChartData.abcs
+          },
+          {
+            label: "Disbursement",
+            legendColor: primaryOrange,
+            values: lineChartData.disbursements
+          },
         ],
-        ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],  // chartLabels
+        ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],  // chartLabels
         [
           [primaryGreen], // gradientColors
           [primaryOrange],
           [lightGreen]
         ]
       );
-      createDoughnutChart(
+        const doughnutChart = document.getElementById('doughnutChart')
+        const doughnutChartData = {
+          points: JSON.parse(doughnutChart.dataset.points),
+          labels: JSON.parse(doughnutChart.dataset.labels)
+        };
+
+        console.log(doughnutChartData.points)
+
+        createDoughnutChart(
           "doughnutChart", // ID of the canvas
-          [10, 20, 30], // Data points
-          ["Red", "Yellow", "Blue"], // Labels
+          doughnutChartData.points, // Data points
+          doughnutChartData.labels, // Labels
           [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow], // Colors for slices
           {
             legend: {
@@ -296,7 +345,117 @@
         );
     
       }
+      const verificationMessage = {
+        initial: {
+          title: "Verify Annual Procurement Plan (APP)",
+          text: "Click ‘Confirm’ to proceed with verification of the APP."
+        },
+        confirmed: {
+          title: "Verification Complete",
+          text: "The Annual Procurement Plan has been successfully validated."
+        }
+      };
+      const verificationMessage_tobe = {
+        2: { // Step 2: Division Chief
+          initial: {
+            title: "Confirm Approval",
+            text: "Please click 'Confirm' to approve this Purchase Request and continue to the next step.",
+          },
+          confirmed: {
+            title: "Approval Confirmed",
+            text: "The Purchase Request has been successfully forwarded to the next approver.",
+          }
+        },
+        3: { // Step 3: Budget
+          initial: {
+            title: "Confirm Funds Availability",
+            text: "Click 'Confirm' to complete the process.",
+          },
+          confirmed: {
+            title: "Approval Confirmed",
+            text: "Funds availability has been approved.",
+          }
+        },
+        4: { // Step 4: Procurement
+          initial: {
+            title: "Verify Annual Procurement Plan (APP)",
+            text: "Click ‘Confirm’ to proceed with verification of the APP."
+          },
+          confirmed: {
+            title: "Verification Complete",
+            text: "The Annual Procurement Plan has been successfully validated."
+          }
+        }
+      };
+
+      $(".alert_confirm").click(function (e) {
       
+        swal({
+          title: (this.classList.contains('confirm_app')) ? verificationMessage.initial.title : "Are Funds Available?" ,
+          text: (this.classList.contains('confirm_app')) ? verificationMessage.initial.text : "Click 'Confirm' to proceed.",
+          type: "warning",
+          buttons: {
+            confirm: {
+              text: "Confirm",
+              className: "btn btn-success",
+            },
+            cancel: {
+              visible: true,
+              className: "btn btn-danger",
+            },
+          },
+        }).then((Delete) => {
+          console.log('')
+          if (Delete) {
+            swal({
+              title: (this.classList.contains('confirm_app')) ? verificationMessage.confirmed.title : "Confirmation Successful",
+              text: (this.classList.contains('confirm_app')) ? verificationMessage.confirmed.text : "Funds availability has been approved.",
+              type: "success",
+              buttons: {
+                confirm: {
+                  className: "btn btn-success",
+                },
+              },
+            });
+          } else {
+            swal.close();
+          }
+        });
+      });
+    
+      $(".alert_deny").click(function (e) {
+        swal({
+          title: "Funds Not Approved",
+          text: "Click ‘Confirm’ to acknowledge that no funds are available.",
+          type: "warning",
+          buttons: {
+            confirm: {
+              text: "Confirm",
+              className: "btn btn-success",
+            },
+            cancel: {
+              visible: true,
+              className: "btn btn-danger",
+            },
+          },
+        }).then((Delete) => {
+          console.log('')
+          if (Delete) {
+            swal({
+              title: "Confirmation Received: No Funds Available",
+              text: "Please explore alternative funding sources.",
+              type: "success",
+              buttons: {
+                confirm: {
+                  className: "btn btn-success",
+                },
+              },
+            });
+          } else {
+            swal.close();
+          }
+        });
+      });
 
     </script>
 

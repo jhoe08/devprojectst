@@ -1,26 +1,28 @@
 
 <%
   let notifs = JSON.parse(NOTIFICATIONS)
-  const { username } = SESSION_USER
+  const { username } = SESSION_USER;
 
   let filteredData = notifs.filter(item => {
-    if(!item.concerning){
-      return false
-    }
-    let concerningArray
+    if (!item.concerning) return false;
+
+    let concerningArray;
     try {
-      concerningArray = JSON.parse(item.concerning)
-    } catch(e) {
-      return false
+      const parsed = JSON.parse(item.concerning);
+      if (!Array.isArray(parsed)) return false;
+      concerningArray = parsed;
+    } catch (e) {
+      return false;
     }
-    return concerningArray.includes(username)
-  })
 
-  let countNotif = notifs ? notifs.length : 0
+    return concerningArray.includes(username);
+  });
 
-  if(filteredData && filteredData.length === 0) {
-    notifs = []
-    countNotif = 0
+  let countNotif = notifs?.length || 0;
+
+  if (filteredData.length === 0) {
+    notifs = [];
+    countNotif = 0;
   }
 %>
 

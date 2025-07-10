@@ -1,30 +1,33 @@
 <% 
   const format2 = 'MMM DD YYYY hh:mm:ss';
-  const format = 'MMMM Do YYYY, h:mm:ss a'
+  const format = 'MMMM Do YYYY, h:mm:ss a';
+
+  const reversedSteps  = approval_steps.slice().reverse();
+
   for (let i = remarks.length - 1; i >= 0; i--) { 
-  const remark = remarks[i];
-  
-  if (!remark) continue; // Skip if there's no remark at all
-  
-  const { dueDate, date, status, comment, id, experience } = remark;
+    const remark = remarks[i];
+    
+    if (!remark) continue; // Skip if there's no remark at all
+    
+    const { dueDate, date, status, comment, id, experience } = remark;
 
-  if(experience) { 
-    var { lists } = JSON.parse(experience)
-    var {office, division, banner, salary, startdate, enddate, position, employment } = lists[0] 
-    var employeeDivision = division
-    var employeeBanner = banner
-  }
-  
-  // Format dates
-  const displayDate = dueDate ? moment(dueDate).fromNow() : `<a href="#" data-bs-toggle="modal" data-bs-target="#remarksModal" data-action="update">Set</a>`;
-  const now = moment()
-  const startTime = moment(date);
-  const endTime = moment(dueDate);
+    if(experience) { 
+      var { lists } = JSON.parse(experience)
+      var {office, division, banner, salary, startdate, enddate, position, employment } = lists[0] 
+      var employeeDivision = division
+      var employeeBanner = banner
+    }
+    
+    // Format dates
+    const displayDate = dueDate ? moment(dueDate).fromNow() : `<a href="#" data-bs-toggle="modal" data-bs-target="#remarksModal" data-action="update">Set</a>`;
+    const now = moment()
+    const startTime = moment(date);
+    const endTime = moment(dueDate);
 
-  const duration = moment.duration(endTime.diff(now));
-  const remainingHours = duration.hours();
-  const remainingMinutes = duration.minutes();
-  const remainingSeconds = duration.seconds();
+    const duration = moment.duration(endTime.diff(now));
+    const remainingHours = duration.hours();
+    const remainingMinutes = duration.minutes();
+    const remainingSeconds = duration.seconds();
 
   
   // Calculate duration
@@ -62,6 +65,8 @@
     default:
       tooltipHTML += 'data-bs-title="For Approval"'
   }
+
+  
 %>
 
   <% 
@@ -95,6 +100,55 @@
   <% } %>
 
 <% } %>
+
+<% reversedSteps.forEach(function(step) { 
+  if (step.id != 1 && steps.length > 0) {
+
+    const step_id = step.id
+
+    const current = steps[0]?.steps_number
+    const max = 30
+
+    const count_steps = [];
+
+    for (let i = current + 1; i <= max; i++) {
+      count_steps.push(i);
+      if (i === 7) count_steps.push(7.1); // insert custom step after 7
+    }
+
+    const hide = count_steps
+
+    function getStepsDetails(steps, stepNumber) {
+      return steps.find(step => 
+        step.steps_number === stepNumber
+      );
+    }
+
+
+    const stepsDetails = getStepsDetails(steps, step_id)
+
+    const isHidden = hide.includes(step.id) ? 'hidden' : ''
+    const status = (stepsDetails?.status == 'approved') ? 'success' : (stepsDetails?.status == 'return') ? 'danger' : 'warning'
+    const title  = (stepsDetails?.status == 'approved') ? 'Next Approver' : (stepsDetails?.status == 'return') ? 'Return to End-User' : 'Waiting for Approval'
+    
+%>
+
+  <li data-step="<%= JSON.stringify(getStepsDetails(steps, step_id)) %>" class="feed-item feed-item-black d-flex justify-content-between <%= isHidden %>" data-id="" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="<%= title %>">
+  <div class="d-flex">
+    <span class="user fs-3 mr-3"><i class="fas fa-door-open"></i></span>
+    <div class="">
+      <time class="date" datetime="<%- moment(transactions.pr_date).format(format) %>">
+        <%- moment(stepsDetails?.updated_at).format(format) %>
+      </time>
+      <span class="text">
+        <span class="badge badge-<%= status %> mr-3"><%= (step.id == stepsDetails?.steps_number) ? stepsDetails?.status : '' %></span>
+        <%= step.steps_title %>
+      </span>
+    </div>
+  </div>
+</li>
+<% } }); %>
+
 
 <!-- Remarks from published -->
 <li class="feed-item feed-item-black pb-0 d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Out of office">

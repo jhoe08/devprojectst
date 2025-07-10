@@ -31,8 +31,8 @@
             <a href="/transactions/scan" class="btn btn-primary btn-round"><i class="fas fa-qrcode"></i> Scan Transaction</a>
           </div>
         </div>
-        <div class="row">
-          <div class="col-sm-6 col-md-3">
+        <div class="row <%= ['Admin', 'SuperAdmin'].includes(currentRole) ? '' : 'hidden' %>">
+          <div class="col-sm-6 col-md-3 hidden">
             <div class="card card-stats card-round">
               <div class="card-body">
                 <div class="row align-items-center">
@@ -53,7 +53,7 @@
               </div>
             </div>
           </div>
-          <div class="col-sm-6 col-md-3">
+          <div class="col-sm-6 col-md-3 hidden">
             <div class="card card-stats card-round">
               <div class="card-body">
                 <div class="row align-items-center">
@@ -87,7 +87,7 @@
                   </div>
                   <div class="col col-stats ms-3 ms-sm-0">
                     <div class="numbers">
-                      <p class="card-category">Budget</p>
+                      <p class="card-category">Total ABC Transactions</p>
                       <h4 class="card-title" data-totalBudget="<%=transactionsTotalSum%>"><%=peso(transactionsTotalSum)%></h4>
                     </div>
                   </div>
@@ -108,7 +108,72 @@
                   </div>
                   <div class="col col-stats ms-3 ms-sm-0">
                     <div class="numbers">
-                      <p class="card-category">Completed Transaction</p>
+                      <p class="card-category">Total Disbursement</p>
+                      <h4 class="card-title">2</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row <%= ['User'].includes(currentRole) ? '' : 'hidden' %>">
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small"
+                    >
+                      <i class="fas fa-inbox"></i>
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">Transactions</p>
+                      <h4 class="card-title"><%=transactionsRowCount%></h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small text-white"
+                    >
+                      GS
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">General Service</p>
+                      <h4 class="card-title">3</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small text-white"
+                    >
+                     PS
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">Procurement</p>
                       <h4 class="card-title">1</h4>
                     </div>
                   </div>
@@ -116,14 +181,79 @@
               </div>
             </div>
           </div>
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small text-white"
+                    >
+                      BS
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">Budget</p>
+                      <h4 class="card-title">2</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small text-white"
+                    >
+                      AS
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">Accounting</p>
+                      <h4 class="card-title">1</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small text-white"
+                    >
+                      CS
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">Cashiering</p>
+                      <h4 class="card-title">1</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
           <div class="col-sm-12 col-md-12 col-lg-6">
-            <%- include('../components/charts/multipleLine', { id:"prcreation", title: "Purchase Request", description: "" }) -%>
+            <%- include('../components/charts/multipleLine', { title: "Purchase Request", description: "", datasets: {amounts:[188000,1000000,10000,15000,250000,20000,15000], abcs: [149000,0,0,0,0,0,0,0], disbursements: []} }) -%>
           </div>
-          <div class="col-sm-12 col-md-12 col-lg-3" >
-            <%- include('../components/charts/pie', { id:"chartClassification", title: "Classification", datasets: perClassification }) -%>
+          <div class="col-sm-12 col-md-6 col-lg-3" >
+            <%- include('../components/charts/pie', { id:"chartClassification", title: "PR Classification", datasets: perClassification }) -%>
           </div>
-          <div class="col-sm-12 col-md-12 col-lg-3">
-            <%- include('../components/charts/doughnut') -%>
+          <div class="col-sm-12 col-md-6 col-lg-3">
+            <%- include('../components/charts/doughnut', {title: "Distribution Analytics", datasets: {points: [10, 20, 30], labels: ['General Service', 'Accounting', 'Cashiering']} }) -%>
           </div>
           <div class="col-sm-12 col-md-12 col-lg-12">
             <%- include('../components/datatables/index') -%>

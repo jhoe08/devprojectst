@@ -41,7 +41,7 @@ const { permission } = require('node:process');
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
-const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros, searchKey, toCapitalize, isActive} = utils
+const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros, findDivisionBySection, toCapitalize, isActive} = utils
 
 const _preDefaultData = {
     blood_type: ['N/A','O+','O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
@@ -210,6 +210,18 @@ const department = {
         responsible: "Engr. Cirilo N. Namoc",
         acting: "",
       }
+    }, 
+    BACs: {
+      "BAC_1": {
+          stands: "BAC Secretariat 1",
+          email: "",
+          admin: "",
+      },
+      "BAC_2": {
+          stands: "BAC Secretariat 2",
+          email: "",
+          admin: "",
+      }
     }
   },
   divisions: {
@@ -232,6 +244,13 @@ const department = {
           email: "",
           admin: "",
           responsible: "Anecita A. Sespeñe",
+          acting: "",
+        },
+        PROCUREMENT: {
+          stands: "Procurement Section",
+          email: "",
+          admin: "",
+          responsible: "",
           acting: "",
         },
         ACCOUNTING: {
@@ -611,10 +630,50 @@ const department = {
 
   },
 }
-// console.log(purchaseRequestRoles);
 
+const funds_availability = [
+  {'STO': {'remaining_balance': 123456.60}},
+  {'GASS': {'remaining_balance': 123456.60}},
+]
 
-
+const approval_steps_svp = [
+  { "id": 1, "steps_title": "End-User" },
+  { "id": 2, "steps_title": "Division Chief" },
+  { "id": 3, "steps_title": "Budget Section" },
+  { "id": 4, "steps_title": "Procurement Section (PS)" },
+  { "id": 5, "steps_title": "BAC Secretariat" },
+  { "id": 6, "steps_title": "Procurement Section (PS)" },
+  { "id": 7, "steps_title": "Canvassers" },
+  { "id": 7.1, "steps_title": "Supplier/Contractors" },
+  { "id": 8, "steps_title": "BAC & BAC Sec." },
+  { "id": 9, "steps_title": "Procurement Section (PS)" },
+  { "id": 10, "steps_title": "RED/RTD" },
+  { "id": 11, "steps_title": "BAC Sec./ Procurement Section (PS)" },
+  { "id": 12, "steps_title": "Procurement Section (PS)" },
+  { "id": 13, "steps_title": "End-User/Program Coor./Division Chief" },
+  { "id": 14, "steps_title": "Budget Section" },
+  { "id": 15, "steps_title": "Accounting Section" },
+  { "id": 16, "steps_title": "RED/RTD" },
+  { "id": 17, "steps_title": "General Services Section" },
+  { "id": 18, "steps_title": "RED/RTD" },
+  { "id": 19, "steps_title": "BAC Sec." },
+  { "id": 20, "steps_title": "GS/RAED/End-User" },
+  { "id": 21, "steps_title": "Inspectors" },
+  { "id": 22, "steps_title": "End-Users" },
+  { "id": 23, "steps_title": "GS/End-Users" },
+  { "id": 24, "steps_title": "End-Users" },
+  { "id": 25, "steps_title": "Accounting Section" },
+  { "id": 26, "steps_title": "Division Chief" },
+  { "id": 27, "steps_title": "Cashering Unit" },
+  { "id": 28, "steps_title": "Accounting Section" },
+  { "id": 29, "steps_title": "RED/RTD/Admin Chief" },
+  { "id": 30, "steps_title": "Cashering Unit" }
+]
+function getStepsDetails(stepNumber) {
+  return approval_steps_svp.find(step => 
+    step.id === stepNumber
+  );
+}
 function findAminByEmail(department, emailToFind) {
   for(let division in department.divisions) {
     const divisionData = department.divisions[division]
@@ -712,6 +771,8 @@ app.use(async function(req, res, next){
 
   const notifications = await connection.retrieveNotifications()
   const employees = await connection.retrieveEmployee()
+  const summaryTransaction = await connection.getTransactionSummary()
+  const summaryEmployee = await connection.getEmployeeSummary()
   
   // Sort using Descending
   notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -728,8 +789,7 @@ app.use(async function(req, res, next){
     experience: {
       lists: [{
         office: 'DA - RFO7',
-        division: 'FOD',
-        banner: 'SAAD Program',
+        division: 'SAAD',
         salary: '123456',
         status: true,
         enddate: 'present',
@@ -754,8 +814,7 @@ app.use(async function(req, res, next){
   const { employeeid, components:availComponents } = req.session?.user || defaultNullUser;
   if(employeeid) {
     role = await connection.getCurrentUserRole(employeeid)
-    role = (role[0]?.role_name).toLowerCase() ?? 'user'
-    
+    role = (role[0]?.role_name) ?? 'user'
   }
 
   let { experience, contacts, others } = defaultNullUser
@@ -770,7 +829,14 @@ app.use(async function(req, res, next){
   // console.log('SESSION', req.session?.user || JSON.parse(JSON.stringify(defaultNullUser)))
   const fullUrl = req.protocol + '://' + req.get('host');
 
+  const { divisions } = department
+
+  const { experience:userExperience } = req.session.user || defaultNullUser
+  const { lists } = JSON.parse(userExperience)
+  let { division: userDivision, position } = lists[0]
+  userDivision = userDivision.toUpperCase();
   
+  // console.log(summaryTransaction)
 
   res.locals = {
     HOST: fullUrl,
@@ -781,7 +847,7 @@ app.use(async function(req, res, next){
     defaultNullUser,
     DEPARTMENT: JSON.stringify(department),
     // NOTIFICATIONS: countNotif,
-    // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications) // *** DO NOT REMOVE
+    // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications), // *** DO NOT REMOVE
     NOTIFICATIONS: JSON.stringify(notifications),
     logonUser: JSON.stringify(req.session.user),
     currentRole: role ?? 'developer',
@@ -796,10 +862,23 @@ app.use(async function(req, res, next){
     currentPath: req.path,
     isHome: req.originalUrl,
     moment,
+    approval_steps: approval_steps_svp,
+    userDesignation: {
+      division: findDivisionBySection(divisions, userDivision),
+      section: userDivision,
+      position,
+      role,
+    },
+    summary: {
+      transactions: JSON.stringify(summaryTransaction[0]),
+      employees: JSON.stringify(summaryEmployee[0])
+    },
+    stepsList: approval_steps_svp,
     peso,
+    isValidJSON,
     statusText,
     addLeadingZeros,
-    searchKey,
+    findDivisionBySection,
     toCapitalize,
     isActive,
     userAvailComponents: (component) => {
@@ -815,14 +894,69 @@ app.use(async function(req, res, next){
   
       return false;
     },
+    getEmployeeById: (id) => {
+      const data = res.locals.employees;
+      const result = data.filter(e => String(e.employeeid) === String(id));
+      const employee = result[0];
+    
+      if (!employee) {
+        console.warn(`No employee found for ID: ${id}`);
+        return JSON.stringify({ error: 'Employee not found' });
+      }
+    
+      // Parse experience
+      let experienceData = {};
+      try {
+        experienceData = JSON.parse(employee.experience);
+      } catch (err) {
+        console.error('Failed to parse experience:', employee.experience);
+      }
+    
+      // Parse contacts
+      let contactData = {};
+      try {
+        contactData = JSON.parse(employee.contacts);
+      } catch (err) {
+        console.error('Failed to parse contacts:', employee.contacts);
+      }
+    
+      const getExperiences = (index) => {
+        const item = experienceData.lists?.[index];
+        if (!item) return {}; // Handle case where index is invalid
+        return {
+          office: item.office ?? 'Not set',
+          salary: item.salary ?? 'Not set',
+          status: item.status ?? 'Not set',
+          endate: item.endate ?? 'Not set',
+          division: item.division ?? 'Not set',
+          position: item.position ?? 'Not set',
+          startdate: item.startdate ?? 'Not set',
+          employment: item.employment ?? 'Not set',
+          arrangements: item.arrangements ?? 'Not set',
+        };
+      };
+    
+      const fullname = `${employee.firstname} ${employee.middlename} ${employee.lastname}`;
+    
+      const response = {
+        ...employee,
+        fullname,
+        username: employee.username,
+        contacts: contactData,
+        firstname: employee.firstname,
+        middlename: employee.middlename,
+        lastname: employee.lastname,
+        birthdate: employee.birthdate,
+        experience: experienceData,
+        office: experienceData.lists?.[0]?.office ?? 'Unknown',
+        division: experienceData.lists?.[0]?.division ?? 'Unknown',
+        position: experienceData.lists?.[0]?.position ?? 'Unknown',
+        experiences: getExperiences(0),
+      };
+    
+      return JSON.stringify(response);
+    },     
   }
-  // console.log('locals', res.locals.isHome)
-  // console.log(req.socket.remoteAddress )
-  // console.log(res.status(404))
-  // res.status(404).render('pages/404', {
-  //   title: 'Page not Found',
-  //   component: 'Page'
-  // });
   next();
 });
 
@@ -837,6 +971,32 @@ function restrict(req, res, next) {
   // If authenticated, proceed to the next middleware
   return next();
 }
+
+function getDivisionAndPosition(experienceJson) {
+  try {
+    const parsed = JSON.parse(experienceJson);
+    const firstEntry = parsed.lists?.[0];
+
+    if (!firstEntry) {
+      console.warn("No experience entries found.");
+      return null;
+    }
+
+    const { division, position } = firstEntry;
+    return { division, position };
+
+  } catch (error) {
+    console.error("Failed to parse experience JSON:", error);
+    return null;
+  }
+}
+
+// // Example use
+// const experienceString = '{"lists": [{"office": "DA RFO7", "salary": "12333", "status": true, "enddate": "present", "division": "BUDGET", "position": "budget", "startdate": "2025-06-20", "employment": "Temporary", "arrangements": "On-site"}]}';
+
+// const result = extractDivisionAndPosition(experienceString);
+// console.log(result); // { division: "BUDGET", position: "budget" }
+
 // FILE UPLOADS
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -919,9 +1079,6 @@ app.get('/', restrict, async function(req, res){
   res.render('pages/index', {
     title: "Dashboard",
     header: "Some users", 
-    path: res.url,
-    moment,
-    peso,
     totalApprovedBudget: JSON.stringify(getTotalApprovedBudget[0]),
     perClassification: JSON.stringify(perPRClassification),
     tableDashboard: JSON.stringify(getDataFromLast7Days),
@@ -997,9 +1154,12 @@ app.post('/login', async (req, res, next) => {
 
     let userDetails = await connection.retrieveEmployeeByUsername( username )
     
+    // console.log({userDetails})
+
     if(userDetails.length !== 0) {
       userDetails = userDetails[0] ? JSON.stringify(userDetails[0]) : JSON.stringify({ message: 'Account Not Found' })
       let user = JSON.parse(userDetails)
+      const {experience} = user
   
       if(!bcrypt.compareSync(password, user.password)) {
         req.session.error = 401; // Incorrect password
@@ -1011,6 +1171,14 @@ app.post('/login', async (req, res, next) => {
       req.session.user = user
       req.session.isAuthenticated = true
       req.session.token = token
+
+     const {division, position} = getDivisionAndPosition(experience)
+
+    //  console.log({division, position})
+
+      // req.session.userDivision = division
+      // req.session.userSection = 
+      // req.session.userPosition =
   
       res.status(200).redirect('/'); // Only send one response  
     } else {
@@ -1152,8 +1320,8 @@ app.get('/transactions', restrict, async (req, res) => {
   try {
     const transactions = await connection.retrieveTransactions();
     const discardedTransaction = await connection.getListOfDiscarded('transactions');
-    // console.log('discardedTransaction', discardedTransaction.length)
-
+    const steps = await connection.getTransactionActivity()
+    
     let filteredTransactions = transactions; // Default to the original transactions
 
     if (discardedTransaction.length > 0) { 
@@ -1170,6 +1338,7 @@ app.get('/transactions', restrict, async (req, res) => {
         connection: connection,
         predata: _preTransactionsData,
         path: req.url,
+        steps: steps.sort((a, b) => b.id - a.id),
         peso
     }); // Pass the data to the template
 
@@ -1214,6 +1383,7 @@ app.get('/transactions/scan', restrict, async (req, res) => {
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
     const transactions = await connection.postTransactions( JSON.stringify(req.body) );
+
     if(transactions?.affectedRows){
       const {insertId} = transactions
       const data = {
@@ -1222,22 +1392,39 @@ app.post('/transactions/new', restrict, async (req, res) => {
         "component": "transactions",
         // "created_at": convertDate(new Date())
       }
+      await connection.postTransactionActivity(JSON.stringify({
+        steps_number: 2,
+        trans_id: insertId,
+        status: "pending",
+      }))
       const nofitifications = await connection.postNotifications(JSON.stringify(data))
     }
     // console.log('transactions', transactions)
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
   } catch (error) {
-    console.error('Error addding transaction:', error);
+    console.error('Error adding transaction:', error);
     res.status(500).send('Internal Server Error');
   }
 })
 
 app.put('/transactions/update', restrict, async (req, res) => {
   try {
+    const {set} = JSON.stringify(req.body)
+    const { username } = res.locals.SESSION_USER
+
     const transactions = await connection.putTransactions( JSON.stringify(req.body) );
+    if(set.includes('amount')) {
+      await connection.putRemarks(JSON.stringify({
+        comment: `Add quoted amount of ${set?.amount}`,
+        refid: transid,
+        status: 'selectedStatusValue',
+        user: username,
+        dueDate: 'checkedCheckboxes'
+      }))
+    }
     res.status(200).json({ message: 'Transaction Successfully Updated!', response: transactions });
   } catch (error) {
-    console.error('Error addding transaction:', error);
+    console.error('Error adding transaction:', error);
     res.status(500).send('Internal Server Error');
   }
 })
@@ -1305,7 +1492,11 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
 
     const transactions = await connection.getTransactionById(transid);
     const remarks = await connection.getRemarksByRefid(transid)
-        
+    
+    const steps = await connection.getTransactionActivityId(JSON.stringify({trans_id: transid}))
+    
+    console.log(steps.sort((a, b) => b.id - a.id))
+
     if(transactions[0]) {
       res.render('pages/transactions/view', { 
         title: 'Transactions: Remarks',
@@ -1313,7 +1504,9 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
         remarks: remarks.sort((a, b) => b.id - a.id),
         moment: moment,
         path: res.url,
-        peso, isValidJSON
+        query: transid,
+        steps: steps.sort((a, b) => b.id - a.id),
+        
       }); // Pass the data to the template
 
       console.log('req.session.user', req.session.user)
@@ -1321,13 +1514,17 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
       res.render('pages/404', {
         title: '404 Transaction Not Found',
         referer: req.referer,
-        component: 'Transaction'
+        component: 'Transaction',
+        steps
       });
     }
   } catch (error) {
-      console.error('Error deleting transaction:', error);
+      console.error('Error displaying transaction:', error);
       // res.status(500).send('Internal Server Error');
-      res.status(404).render('pages/404');
+      res.status(404).render('pages/404', {
+        title: "404 Page not found",
+        component: "Transaction"
+      });
   }
 })
 
@@ -1369,52 +1566,90 @@ app.delete('/transactions/:id', restrict, async (req, res) => {
 
 app.get('/remarks/:id', restrict, async (req, res) => {
   try {
-    const transid = req.params.id;
-    const remarks = await connection.getRemarksByRefid(transid);
-    const transactions = await connection.getTransactionById(transid)
-    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'partials', 'activity-feed.ejs'), { remarks, moment, transactions, path: req.url});
-    res.status(200).send(renderedHtml)
+    const transId = req.params.id;
+
+    const remarks = await connection.getRemarksByRefid(transId);
+    const transactions = await connection.getTransactionById(transId);
+    const steps = await connection.getTransactionActivity()
+
+    console.log({remarks, transactions})
+
+    if (!remarks || !transactions) {
+      console.warn('Missing remarks or transactions data for transId:', transId);
+    }
+
+    // const renderedHtml = await ejs.renderFile(
+    //   path.join(__dirname, 'views', 'partials', 'activity-feed.ejs'),
+    //   {
+    //     remarks,
+    //     transactions,
+    //     steps: steps.sort((a, b) => b.id - a.id),
+    //   }
+    // );
+
+    // res.status(200).send(renderedHtml);
+    res.render('views/partials/activity-feed.ejs', {
+      remarks,
+      transactions,
+      steps: steps.sort((a, b) => b.id - a.id),
+    })
+    // res.render(renderedHtml)
   } catch (error) {
-    console.error('Error rendering EJS part:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error rendering EJS activity feed:', error);
+    res.status(500).json({ error: 'Failed to render activity feed' });
   }
 
 })
 
 app.post('/remarks/new', restrict, async (req, res) => {
   try {
-    const data = JSON.parse(JSON.stringify(req.body))
-    const { username } = res.locals.SESSION_USER
+  const data = req.body;
+  const { username } = res.locals.SESSION_USER;
+  const updatedRemarks = { ...data, user: username };
 
-    // if(res.locals.ENVIRONMENT === 'development' && currentUser === undefined) currentUser = { username: 'justtest' };
-    const updatedRemarks = { ...data, user: username };
+  console.log('Updated Remarks:', updatedRemarks);
 
-    console.log(updatedRemarks)
-    const remarks = await connection.postRemarks( JSON.stringify(updatedRemarks) );
-    if(remarks?.affectedRows){
-      const {refid, comment, status} = updatedRemarks
-      let refids = JSON.parse(refid);
+  const remarks = await connection.postRemarks(JSON.stringify(updatedRemarks));
 
-      refids.forEach( async (id) => {
-        const transactions = await connection.getTransactionById(id)
-        const {requisitioner} = transactions[0]
+  if (remarks?.affectedRows) {
+    const { refid } = updatedRemarks;
 
-        console.log('transactions', transactions)
+    const handleNotification = async (id) => {
+      const transactions = await connection.getTransactionById(id);
+      if (!transactions?.length) {
+        console.error('No transactions found for id:', id);
+        return;
+      }
 
-        const data = {
-          message: `New remark is added under ${id}!`,
-          link: id, 
-          component: 'remarks',
-          concerning: requisitioner,
-        }
-        await connection.postNotifications(JSON.stringify(data))
-      })
+      const { requisitioner } = transactions[0];
+      console.log('transactions:', transactions);
+
+      const notificationPayload = {
+        message: `New remark is added under ${id}!`,
+        link: id,
+        component: 'remarks',
+        concerning: requisitioner,
+      };
+
+      await connection.postNotifications(JSON.stringify(notificationPayload));
+    };
+
+    if (Array.isArray(refid)) {
+      for (const id of refid) {
+        await handleNotification(id);
+      }
+    } else {
+      await handleNotification(refid);
     }
-    res.status(200).json({ message: 'New remarks is added successfully!', response: remarks });
-  } catch (error) {
-    console.error('Error addding new remarks on transaction:', error);
-    res.status(500).send('Error addding new remarks on transaction:', error);
+
+    res.status(200).json({ message: 'New remark added successfully!', response: remarks });
+  } else {
+    res.status(200).json({ message: 'Failed to post new remark!' });
   }
+} catch (error) {
+  console.error('Error adding new remark:', error);
+  res.status(500).send('Error adding new remark');
+}
 })
 
 app.post('/notifications/new', restrict, async (req, res) => {
@@ -1721,6 +1956,64 @@ app.get('/calendar', restrict, async function(req, res){
   })
 })
 
+// Express route to approve a step
+app.post("/approve", async (req, res) => {
+  // const { trans_id: prId, steps_number:stepNumber, updated_by:approverName } = req.body;
+  const { trans_id, steps_number, updated_by } = req.body;
+  const steps = getStepsDetails(steps_number) 
+
+  console.log('steps', steps?.steps_title)
+
+  try {
+    // console.log([trans_id, steps_number, updated_by]) 
+    const data = {
+      set: {
+        status: 'approved',
+        updated_by,
+        updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      },
+      where: {
+        trans_id,
+        steps_number,
+      }
+    }
+    await connection.updateTransactionActivity(JSON.stringify(data))
+   
+    // console.log([trans_id, steps_number + 1])
+    await connection.postTransactionActivity(JSON.stringify({
+      status: 'pending', 
+      trans_id, 
+      steps_number: (steps_number + 1)
+    }))
+
+    await connection.postNotifications(JSON.stringify({
+      message: `PR has been updated to ${steps.steps_title}`,
+      link: trans_id,
+      component: 'transactions',
+      // concerning: JSON.stringify(t_username)
+    }))
+
+    res.json({ success: true, message: "Approval step advanced." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to advance approval." });
+  }
+});
+
+app.post("/disapprove", async (req, res) => {
+  const { trans_id, steps_number, updated_by } = req.body;
+  const steps = getStepsDetails(steps_number) 
+  try {
+    if( steps?.steps_title ) {
+      // trap it here
+    }
+    res.status(500).json({ success: false, message: "Request has been disapproved." });
+    // 
+  } catch (error) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to disapproved the request." });
+  }
+})
 // APIs
 app.route('/api/employees')
   .all(restrict)
@@ -1740,10 +2033,6 @@ app.route('/api/transactions/:id')
   .all(restrict)
   .get(async (req, res) => {
     const { id } = req.params;
-    // if (!Number(id)) {
-    //   return res.status(400).json({ response: 'Invalid ID format' });
-    // }
-
     const transaction = await connection.getTransactionById(id);
     if (transaction) {
       return res.status(200).json({ response: transaction });
@@ -1826,6 +2115,34 @@ app.get('/request', function(req, res){
     path: res.path,
   })
 })
+
+
+app.get('/media', (req, res) => {
+  const mediaDir = path.join(__dirname, 'uploads');
+
+  fs.readdir(mediaDir, (err, files) => {
+    if (err) return res.status(500).send('Error reading media folder');
+
+    const fileData = files.map(file => {
+      const filePath = path.join(mediaDir, file);
+      const stats = fs.statSync(filePath);
+      const ext = path.extname(file).slice(1);
+      return {
+        name: file,
+        size: (stats.size / 1024).toFixed(2) + ' KB', // or use MB if preferred
+        type: ext || 'unknown'
+      };
+    });
+
+    res.render('pages/media', {
+      title: 'Media Gallery',
+      files: fileData,
+      basePath: '/uploads'
+    });
+  });
+});
+
+
 
 app.use(async function(req, res, next){
   res.status(404).render('pages/404', {

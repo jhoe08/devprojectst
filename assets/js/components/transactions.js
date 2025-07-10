@@ -7,7 +7,7 @@
   const updateTransactions = document.getElementById('updateTransactions')
   const createRemarks = document.getElementById('createRemarks')
   const updateRemarks = document.getElementById('updateRemakrs')
-  const deleteTransaction = document.querySelectorAll('.form-button-action .btn-danger');
+  const deleteTransaction = document.querySelectorAll('.form-button-action .btn-delete');
   const printRemarks = document.getElementById('btnPrint')
   const printTracking = document.querySelectorAll('button[id*="print_"]')
 
@@ -26,6 +26,11 @@
   const divisionsSelect = document.querySelectorAll('#chargingTo .form-select')
 
   const created_by = document.getElementById('created_by')
+
+  const approveBtn = document.getElementById('approveBtn')
+  const disapproveBtn = document.getElementById('disapproveBtn')
+  
+  const setQoutedAmount = document.getElementById('setQoutedAmount')
 
   function getClosestDivision(element) {
     let sibling = element.previousElementSibling;
@@ -513,14 +518,14 @@
 
       inputs.forEach(input => {
         // Generate new ID based on current row count
-        const newId = input.id.split('-')[0] + rowCount; // Assuming ID pattern is like "divisions-1"
+        const newId = input.id.split('_')[0] + rowCount; // Assuming ID pattern is like "divisions-1"
         input.id = newId; // Update the ID attribute
         input.value = ''; // Clear the value
       });
 
       labels.forEach(label => {
         const inputId = label.getAttribute('for');
-        const baseId = inputId.split('-')[0];
+        const baseId = inputId.split('_')[0];
         label.setAttribute('for', baseId + rowCount);
       })
 
@@ -560,7 +565,7 @@
     $('.input-daterange input').each(function () {
       $(this).daterangepicker('clearDates');
     });
-  }
+  }``
   //
   if (divisionsSelect && divisionsContainer) {
     // divisionsSelect.addEventListener('change', function (event) {
@@ -610,4 +615,111 @@
     });
     console.log(charging)
   }
+
+  if (approveBtn) {
+    approveBtn.addEventListener('click', function (e) {
+
+      const create_by = document.getElementById('created_by').value
+      const currentSteps = Number(document.querySelector('.activity-feed').dataset.currentSteps);
+      const product_id = Number(document.querySelector('.container').dataset.transactionId);
+      const apiUrl = '/approve';
+      const data = { trans_id:product_id, steps_number:currentSteps, updated_by: create_by}
+
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      };
+      console.log(requestOptions)
+
+      fetch(apiUrl, requestOptions)
+      .then(response => {
+        if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
+        return response.json()
+      })
+      .then(data => {
+        if (!data) return notifyCustom('', 'Error', 'Failed to Approved the PR#', 'danger')
+
+        notifyCustom('', 'Success', 'Approved the PR# successfully', 'info')
+      })
+      .catch(error => {
+        notifyCustom('Error', error, 'danger')
+      })
+    })
+  }
+
+  if (disapproveBtn) {
+   disapproveBtn.addEventListener('click', function() {
+    const create_by = document.getElementById('created_by').value
+    const currentSteps = Number(document.querySelector('.activity-feed').dataset.currentSteps);
+  })                                                                                                                                                                                                           
+  }
+
+  if (setQoutedAmount) {
+    setQoutedAmount.addEventListener('click', function(e){
+      var getAmount = document.getElementById('qoutedAmount')
+      
+      if (!getAmount || getAmount.value.trim() === "") {
+        return; // exits the function or block silently
+      }
+
+      const transid = this.dataset.transid
+      const apiUrl = '/transactions/update';
+
+      console.log(getAmount.value)
+      let cleaned = getAmount.value.replace(/,/g, "")
+      let decimalValue = parseFloat(cleaned)
+     
+      console.log(getAmount)
+      const data = { set:{amount: decimalValue}, where: {product_id: transid}}
+      
+
+      const requestOptions = {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      };
+
+      console.log(data)
+      fetch(apiUrl, requestOptions)
+      .then(response => {
+        if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
+        return response.json()
+      })
+      .then(data => {
+        if (!data) return notifyCustom('', 'Error', 'Failed to get the details', 'danger')
+          console.log(data)
+        notifyCustom('', 'Success', 'Successfully updated the Transaction', 'info')
+      })
+      .catch(error => {
+        notifyCustom('Error', error, 'danger')
+      })
+    })
+  }
+
+  // Function to sum all unitCount fields and update totalCo
+  function updateTotal(selector) {
+    const inputs = document.querySelectorAll(selector);
+    let total = 0;
+    inputs.forEach(input => {
+      const val = parseInt(input.value);
+      console.log('ASD', val)
+      if (!isNaN(val)) total += val;
+    });
+    document.getElementById('totalCount').value = total;
+  }
+
+  document.addEventListener('keyup', event => {
+    if (event.target.matches('[id*="unitCount_"]')) {
+      updateTotal('[id*="unitCount_"]');
+    }
+  });
+
+  
+
+  
 })()

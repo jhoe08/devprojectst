@@ -68,7 +68,7 @@ const utils = {
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     return emailPattern.test(email);
   },
-  searchKey(arr, searchItem) {
+  findDivisionBySection(arr, searchItem) {
     if (arr[searchItem]) return searchItem
     for (let division in arr) {
       if (arr[division].sections[searchItem]) return division

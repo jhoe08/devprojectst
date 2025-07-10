@@ -46,6 +46,26 @@ function toSentenceCase(str) {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+function addEmployeeToRole(role_name, employeeid, rolesData) {
+  for (let role of rolesData) {
+    if (role.name === role_name) {
+      // If no array exists yet, create one
+      if (!Array.isArray(role.employees)) {
+        role.employees = [employeeid];
+      } else {
+        // Add employee ID only if it's not already in the array
+        if (!role.employees.includes(employeeid)) {
+          role.employees.push(employeeid);
+        }
+      }
+      return role; // Return the updated role
+    }
+  }
+  // Optional: Handle case when role_name not found
+  console.warn(`Role '${role_name}' not found.`);
+  return null;
+}
+
 const databaseUtils = {
   getDistinct: (column, table) => new Promise((resolve, reject) => {
     connection.query(`SELECT DISTINCT(${column}) FROM ${prefix}.${table}`, (error, results) => {
@@ -143,6 +163,40 @@ const databaseUtils = {
       }
     });
   }),
+  getEmployeeSummary: async () => {
+    const query = `SELECT 
+        'employees' AS table_name,
+        COUNT(*) AS row_count
+      FROM transto.employees`;
+
+    return new Promise((resolve, reject) => {
+        connection.query(query, (error, results) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+  },
+  getTransactionSummary: async () => {
+    const query = `SELECT 
+        'transactions' AS table_name,
+        COUNT(*) AS row_count,
+        SUM(approved_budget) AS total_abc,
+        SUM(amount) AS total_amount
+      FROM transto.transid`;
+
+    return new Promise((resolve, reject) => {
+        connection.query(query, (error, results) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+  },
   getTransactions: () => new Promise((resolve, reject) => {
     connection.query(`SELECT * FROM ${prefix}.transid`, (error, results) => {
       if (error) {
@@ -221,7 +275,7 @@ const databaseUtils = {
   }),
   putTransactions: async (data) => {
     console.log('data - updating transactions', data)
-    return await databaseUtils.amendData('transactions', data)
+    return await databaseUtils.amendData('transid', data)
   },
   hideToDisplay: async (component, id) => {
     try {
@@ -365,8 +419,23 @@ const databaseUtils = {
 
     return await databaseUtils.retrieveData('transid')
   },
+  getData: (table) => new Promise((resolve, reject) => {
+    let query = `SELECT * FROM ${prefix}.${table}`;
+
+    connection.query(query, (error, results) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve(results)
+      }
+    })
+  }),
   getDataById: (table, data) => new Promise((resolve, reject) => {
+    console.log({table, data})
     data = JSON.parse(data)
+
+
+
 
     let key = Object.keys(data)
     let value = Object.values(data)
@@ -483,8 +552,22 @@ const databaseUtils = {
   },
   // STORE
   postEmployees: async (data) => {
-    return await databaseUtils.storeData('employees', data)
+    try {
+      const { employeeid, roles } = JSON.parse(data); // Only parse if data is a string
+      console.log({ employeeid, roles });
+
+      // let parsedData = JSON.parse(data)
+      // delete parsedData.roles;
+      // parsedData = JSON.encode(parsedData)
+
+      // Optional: Store employee data if needed
+      await databaseUtils.storeData('employees', data);
+      console.log('Stored employee data for:', employeeid);
+    } catch (error) {
+      console.error('Error during employee and role storage:', error);
+    }
   },
+
   // NOTIFICATIONS
   retrieveNotifications: async (data) => {
     if (data) {
@@ -598,7 +681,21 @@ const databaseUtils = {
       });
     });
   },
+  // Transaction Activity
+  postTransactionActivity: async (data) => {
+    return await databaseUtils.storeData('transid_activity', data)
+  },
 
+  getTransactionActivity: async (data) => {
+    return await databaseUtils.getData('transid_activity')
+  },
+  getTransactionActivityId: async (data) => {
+    return await databaseUtils.getDataById('transid_activity', data)
+  },
+  updateTransactionActivity: async (data) => {
+    return await databaseUtils.amendData('transid_activity', data)
+  },
+  // endof Transaction Activity
   retrieveDocuments: async (table, data) => {
     return await databaseUtils.getDataById(table, data)
   },

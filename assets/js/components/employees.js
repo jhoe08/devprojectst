@@ -64,7 +64,13 @@
       
       registerEmployee.addEventListener('click', function(){
         var checkedComponents = document.querySelectorAll('input[name="components"]:checked');
+        var checkedRoles = document.querySelectorAll('input[name="roles"]:checked');
+        
         var checkedComponentsValues = Array.from(checkedComponents).map(function(checkbox) {
+            return checkbox.value;
+        });
+
+        var checkedRolesValues = Array.from(checkedRoles).map(function(checkbox) {
             return checkbox.value;
         });
       
@@ -96,8 +102,12 @@
             civilstatus: civilstatus.value,
             gender: gender.value
           },
-          components: JSON.stringify(checkedComponentsValues)
+          components: JSON.stringify(checkedComponentsValues),
+          roles: JSON.stringify(checkedRolesValues),
         }
+        
+        
+
         // into JSON format
         let {experience, contacts, others} = data
         experience = JSON.stringify(experience)
@@ -107,6 +117,8 @@
         data.contacts = contacts
         data.others = others
   
+        console.log(data)
+
         const requestOptions = {
           method: 'POST',
           headers: {
@@ -163,6 +175,11 @@
             return checkbox.value;
         });
 
+        var checkedRoles = document.querySelectorAll('input[name="roles"]:checked');
+        var checkedRolesValues = Array.from(checkedRoles).map(function(checkbox) {
+            return checkbox.value;
+        });
+
         // console.log( checkedComponentsValues )
         const data = {
           firstname: firstname.value,
@@ -191,7 +208,8 @@
             civilstatus: civilstatus.value,
             gender: gender.value
           },
-          components: JSON.stringify(checkedComponentsValues)
+          components: JSON.stringify(checkedComponentsValues),
+          roles: JSON.stringify(checkedRolesValues),
         }
 
         let {experience, contacts, others} = data
@@ -202,6 +220,7 @@
         if(!extname.classList.contains('updated')) delete data.extname
         if(!dob.classList.contains('updated')) delete data.birthdate
         if(!checkedComponents.closest('.selectgroup').classList.contains('updated')) delete data.checkedComponents
+        if(!checkedRoles.closest('.selectgroup').classList.contains('updated')) delete data.checkedRoles
     
         
         data.experience = JSON.stringify(experience)

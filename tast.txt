@@ -1,0 +1,25 @@
+Task Friday July 4, 2025
+1. Gather data PR information
+    - 3 transactions each of 8 person
+    - make sure that most of the transactions are now either in GS, PS, ACCOUNTING
+2. In order for the analysis for the Distribution Analytics on the Dashboard
+[User and Admin]
+3. Same data on the the dashboard only to the current logon user 
+    - On the Transaction List, allowing only the current logon user showing his/her Transactions
+
+
+Remarks [Revised]
+    - Budget
+        - Select Funds Availability
+        - Checkbox No Funds Availability
+
+    - PS
+
+
+Scenario:
+    - Users forward the PR to Reciever
+    - Once Reciever accepts PR 
+        - Reciever will set the Responsible Person
+        - Forward the documents to the Person
+        
+        

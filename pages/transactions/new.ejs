@@ -166,58 +166,11 @@
                           </div>
                       </div>
                       <div class="col-md-8 ml-0">
-                          <div class="divisions form-group form-group-default">
-                            <label for="division">Division</label>
-                            <select class="form-select" id="division_<%= key %>" name="division">
-                              <!-- Director and Technical Directors -->
-                              <% 
-                              const directorsArray = directors.flatMap(([key, director]) => {
-                                if (key === "RTDs") {
-                                  return Object.entries(director).map(([subKey, subDirector]) => ({
-                                    key: subKey,
-                                    stands: subDirector.stands,
-                                    classes: "technical-directors",
-                                    filtered: subKey,
-                                  }));
-                                }
-                                return [{
-                                  key,
-                                  stands: director.stands,
-                                  classes: "director",
-                                  filtered: key,
-                                }];
-                              });
-                              
-                              directorsArray.forEach(({ key, stands, classes, filtered }) => { %>
-                                <%- include('../../components/forms/options', { key, stands, classes, filtered: e_division, dataset:'' }) %>
-                              <% }); %>
-                              <!-- Divisions Here -->
-                              <optgroup label="Divisions">
-                              <% divisions.forEach(([key, division]) => { 
-                                const { stands, sections } = division; %>
-                                <%- include('../../components/forms/options', { key, stands, classes: 'division',  filtered: e_division, dataset:'' }) %>
-                                <% 
-                                  Object.entries(sections).forEach(([keySect, section]) => { 
-                                    const { stands: sectStands, sections:banners } = section;
-                                    const dataset = ['division', key]; 
-                                    underDivision = Object.entries(section)
-                                  %>
-                                  <%- include('../../components/forms/options', { key: keySect, stands: sectStands,  classes: `section`, filtered: e_division, dataset }) %>
-                                  <% if(banners) {
-                                    Object.entries(banners).forEach(([keyBan, banner]) => { 
-                                      const { stands:banStands } = banner;
-                                    %>
-                                    <%- include('../../components/forms/options', { key: keyBan, stands: banStands, classes: 'unit', filtered: e_division, dataset:'' }) %>
-                                  <% }) } %>
-                                <% }); %>
-                              <% }) %>
-                              </optgroup>
-                            </select>
-                          </div>
+                          <%- include('../../views/partials/selectDivisions', { key }) %>
                       </div>
                       <div class="col-md-3">
                         <div class="form-group form-group-default">
-                          <label for="unitCount">Amount</label>
+                          <label for="unitCount_<%= key %>">Amount</label>
                           <div class="input-icon">
                             <input id="unitCount_<%= key %>" name="unitCount" data-type="number" type="text" class="form-control" value="<%= amount %>">
                           </div>
@@ -233,58 +186,11 @@
                           </div>
                       </div>
                       <div class="col-md-8 ml-0">
-                          <div class="divisions form-group form-group-default">
-                            <label for="division">Division</label>
-                            <select class="form-select" id="division_0" name="division">
-                              <!-- Director and Technical Directors -->
-                              <% 
-                              const directorsArray = directors.flatMap(([key, director]) => {
-                                if (key === "RTDs") {
-                                  return Object.entries(director).map(([subKey, subDirector]) => ({
-                                    key: subKey,
-                                    stands: subDirector.stands,
-                                    classes: "technical-directors",
-                                    filtered: subKey,
-                                  }));
-                                }
-                                return [{
-                                  key,
-                                  stands: director.stands,
-                                  classes: "director",
-                                  filtered: key,
-                                }];
-                              });
-                              
-                              directorsArray.forEach(({ key, stands, classes, filtered }) => { %>
-                                <%- include('../../components/forms/options', { key, stands, classes, filtered: e_division, dataset:'' }) %>
-                              <% }); %>
-                              <!-- Divisions Here -->
-                              <optgroup label="Divisions">
-                              <% divisions.forEach(([key, division]) => { 
-                                const { stands, sections } = division; %>
-                                <%- include('../../components/forms/options', { key, stands, classes: 'division',  filtered: e_division, dataset:'' }) %>
-                                <% 
-                                  Object.entries(sections).forEach(([keySect, section]) => { 
-                                    const { stands: sectStands, sections:banners } = section;
-                                    const dataset = ['division', key]; 
-                                    underDivision = Object.entries(section)
-                                  %>
-                                  <%- include('../../components/forms/options', { key: keySect, stands: sectStands,  classes: `section`, filtered: e_division, dataset }) %>
-                                  <% if(banners) {
-                                    Object.entries(banners).forEach(([keyBan, banner]) => { 
-                                      const { stands:banStands } = banner;
-                                    %>
-                                    <%- include('../../components/forms/options', { key: keyBan, stands: banStands, classes: 'unit', filtered: e_division, dataset:'' }) %>
-                                  <% }) } %>
-                                <% }); %>
-                              <% }) %>
-                              </optgroup>
-                            </select>
-                          </div>
+                        <%- include('../../views/partials/selectDivisions', { key: 0}) %>
                       </div>
                       <div class="col-md-3">
                         <div class="form-group form-group-default">
-                          <label for="unitCount">Amount</label>
+                          <label for="unitCount_0">Amount</label>
                           <div class="input-icon">
                             <input id="unitCount_0" name="unitCount" data-type="number" type="text" class="form-control" value="">
                           </div>
@@ -300,7 +206,7 @@
                         <div class="form-group form-group-default mb-0">
                           <label for="totalCount">Total</label>
                           <div class="input-icon">
-                            <input id="totalCount" name="totalCount" data-type="number" type="text" class="form-control" value="<%= totalCount %>">
+                            <input id="totalCount" name="totalCount" type="text" class="form-control" value="<%= totalCount %>">
                           </div>
                         </div>
                       </div>

@@ -52,13 +52,20 @@
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="/assets/css/upload.css" />
+    <link rel="stylesheet" href="/assets/css/media.css" />
+
     <link rel="stylesheet" href="/assets/css/demo.css" />
     <link rel="stylesheet" href="/assets/css/scanner.css" />
     <link rel="stylesheet" href="/assets/css/timer.css" />
     <link rel="stylesheet" href="/assets/css/animation.css" />
     <link rel="stylesheet" href="/assets/css/print.css" />
+    <link rel="stylesheet" href="/assets/css/transactions.css" />
+    <style>
+      .nav .nav-item p {
+        width: 100%;
+      }
+    </style>
     <script>
-
       document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');
         if(calendarEl){
@@ -74,12 +81,23 @@
   </head>
   <%
     const {employeeid, username, firstname, lastname, middlename } = SESSION_USER
+    let { directors, divisions } = JSON.parse(DEPARTMENT)
   %>
-  <body data-env="<%=ENVIRONMENT%>" data-testmode="<%=TEST_MODE%>" data-currentuser="<%=JSON.stringify({employeeid, username})%>">
+  <body data-env="<%=ENVIRONMENT%>" data-testmode="<%=TEST_MODE%>" data-currentuser="<%=JSON.stringify({employeeid, username})%>" data-user-role="<%=currentRole%>">
 <% if(SESSION_USER){
-  const { employeeid, username, firstname, lastname, middlename } = SESSION_USER %>
+  const { employeeid, username, firstname, lastname, middlename, experience } = SESSION_USER;
+  const { lists } = JSON.parse(experience)
+  let { office, salary, startdate, enddate, position, division:section, banner } = lists[0] 
+  section = section.toUpperCase()
+
+%>
   <input id="created_by" type="hidden" value="<%=username??'justtest-'%>">
   <input id="session_firstname" type="hidden" value="<%=firstname??'justtest-'%>">
   <input id="session_middlename" type="hidden" value="<%=middlename??'justtest-'%>">
   <input id="session_lastname" type="hidden" value="<%=lastname??'justtest-'%>">
+  <input id="session_userDivision" type="hidden" value="<%=findDivisionBySection(divisions, section)??'justtest-'%>">
+  <input id="session_userBanner" type="hidden" value="<%=section??'justtest-'%>">
+  <input id="session_userPosition" type="hidden" value="<%=position??'justtest-'%>">
+  <input id="session_userRole" type="hidden" value="<%=userDesignation?.role??'justtest-'%>">
+  
 <% } %>

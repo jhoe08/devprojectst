@@ -1,13 +1,19 @@
+<%
+  const { points, labels } = datasets
+%>
 <div class="card">
     <div class="card-header">
-      <div class="card-title">Doughnut Chart</div>
+      <div class="card-title"><%= title %></div>
     </div>
     <div class="card-body">
       <div class="chart-container">
         <canvas
           id="doughnutChart"
           style="width: 50%; height: 50%"
+          data-points="<%= JSON.stringify(points) %>"
+          data-labels="<%= JSON.stringify(labels) %>"
         ></canvas>
       </div>
     </div>
   </div>
+<!-- Displays distribution analytics showing total transaction values across current divisions, sections, or units handling the transactions -->

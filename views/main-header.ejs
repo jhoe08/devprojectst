@@ -1,5 +1,6 @@
 <%
   const { employeeid, username, firstname, lastname, contacts, others } = SESSION_USER
+  let { experience } = SESSION_USER
   const { email } = JSON.parse(contacts)
   const { gender } = JSON.parse(others)
 
@@ -63,6 +64,10 @@
         </div>
         
         <div class="realtime navbar navbar-header-left p-0 d-none d-lg-flex"></div>
+
+        <div class="designation navbar navbar-header-left p-0 d-none d-lg-flex">
+
+        </div>
 
         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
           <li class="nav-item topbar-icon dropdown hidden hidden-caret d-flex d-lg-none"

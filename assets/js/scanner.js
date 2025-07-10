@@ -49,15 +49,42 @@ if(video && output) {
         const decoded = jsQR(imageData.data, canvas.width, canvas.height);
     
         if (decoded) {
+            const qrNumber = decoded.data
             output.innerText = `QR Code data: ${decoded.data}`;
+            
             if(!transIDs.includes(decoded.data) && decoded.data !== "") {
                 transIDs.push(decoded.data)
-                const data = await fetchTransactionById(decoded.data)
-                const {approved_budget, bid_notice_title, product_id} = data
-                if(data.length > 0) {
-                    addNewRow(data)
-                    btnRemarks.dataset.transid = JSON.stringify(transIDs)
+                // const data = await fetchTransactionById(decoded.data)
+                const data = await fetchQRCode(decoded.data)
+                
+
+                // console.log('scanQRCode',data)
+
+                const { response, component } = data;
+
+                let tempTitle, tempCreatedBy = '';
+                if (component === "transactions") {
+                    ({ bid_notice_title: tempTitle, requisitioner: tempCreatedBy } = response);
+                } else if (component === "documents") {
+                    ({ title: tempTitle, created_by: tempCreatedBy } = response);
                 }
+
+                const tempData = { component, tempTitle, tempCreatedBy };
+                // console.log('tempData', tempData)
+                // console.log(data && data.length > 0)
+                if (data) {
+                    tempQRCodes.push(qrNumber);
+                    addNewRow(tempData);
+                    btnRemarks.dataset.transid = JSON.stringify(tempQRCodes);
+                    text.value = '';
+                }
+                console.log(tempQRCodes)
+                
+
+                // if(data.length > 0) {
+                //     addNewRow(data)
+                //     btnRemarks.dataset.transid = JSON.stringify(transIDs)
+                // }
                 
             }
     
@@ -95,8 +122,10 @@ if(text) {
 
         try {
             const qrNumber = text.value;
+            // console.log(qrNumber)
             if (!tempQRCodes.includes(qrNumber) && qrNumber !== "") {
                 const data = await fetchQRCode(qrNumber);
+                console.log('data', data)
                 const { response, component } = data;
 
                 let tempTitle, tempCreatedBy = '';
@@ -107,7 +136,7 @@ if(text) {
                 }
 
                 const tempData = { component, tempTitle, tempCreatedBy };
-                console.log(tempData)
+                // console.log('tempData', tempData)
                 // console.log(data && data.length > 0)
                 if (data) {
                     tempQRCodes.push(qrNumber);
@@ -115,7 +144,7 @@ if(text) {
                     btnRemarks.dataset.transid = JSON.stringify(tempQRCodes);
                     text.value = '';
                 }
-                console.log(tempQRCodes)
+                // console.log(tempQRCodes)
             }
         } catch (error) {
             console.error("Error fetching or processing QR code:", error);
@@ -250,7 +279,8 @@ async function fetchTransactionById(id) {
 async function fetchQRCode(id) {
     try {
         const response = await fetch(`/api/qrcode/${id}`); // Assuming your API endpoint is like this
-        const data = await response.json(); // Parse JSON response
+        const data = await response.json(); // Parse JSON response 
+        // alert(data)
         if (response.ok) {
             const {response, component} = data
             return {response, component}
@@ -267,17 +297,18 @@ async function fetchQRCode(id) {
 }
 
 
-        const transactionsIDs = $("#basic-datatables").DataTable()
+const transactionsIDs = $("#basicDatatables").DataTable()
 
-      function addNewRow(data) {
-        // alert(data)
-        // console.log(data)
-        const { component, tempTitle, tempCreatedBy } = data
-        const newRowData = [
-            tempTitle,           // Product ID
-            component,     // Notice Title
-            tempCreatedBy,        // Initiator
-        ];
-        // console.log('asdadadasdasdasdadad', newRowData)
-        transactionsIDs.row.add(newRowData).draw();
-      }
+function addNewRow(data) {
+    // console.log(data)
+    const { component, tempTitle, tempCreatedBy } = data
+    alert('component', component)
+    const newRowData = [
+        tempTitle,           // Product ID
+        component,           // Notice Title
+        tempCreatedBy,       // Initiator
+    ];
+    // console.log(data)
+    // console.log('asdadadasdasdasdadad', newRowData)
+    transactionsIDs.row.add(newRowData).draw();
+}

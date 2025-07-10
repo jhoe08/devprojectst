@@ -104,7 +104,7 @@
                                       <td data-column="position" class="text-capitalize" ><%= position || '-' %></td>
                                       <td data-column="office"><%= office || '-' %></td>
                                       <td class="text-uppercase" data-column="division" data-order="<%= division %>">
-                                        <%= searchKey(divisions, division) %>
+                                        <%= findDivisionBySection(divisions, division) %>
                                         <span class="badge badge-info"><%= division %></span>
                                       </td>
                                       <td data-column="age"><%= age %></td>
