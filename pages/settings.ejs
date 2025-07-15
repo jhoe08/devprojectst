@@ -229,7 +229,7 @@
                             <tr class="<%= type %>">
                               <td><%- type === 'section' ? '<i class="icon-sm unicode">∟</i> ' : type === 'division' ? '<i class="icon-sm far fa-folder-open"></i> ' : type === 'unit' ? '<i class="icon-sm fas fa-flag"></i>' : '<i class="icon-sm far fa-building"></i>' -%> <%= key %></td>
                               <td><%= stands %></td>
-                              <td><%= responsible ?? '' %></td>
+                              <td><%= responsible?.name || '' %></td>
                               <td><%= email %></td>
                               <td>
                                 <div class="form-button-action" data-transid="1">

@@ -20,7 +20,7 @@
     const gender = document.getElementById('gender')
     const civilstatus = document.getElementById('civilstatus')
     const companyname = document.getElementById('companyname')
-      const division = document.getElementById('division')
+      let division = document.getElementById('division')
       const banner = document.getElementById('banner')
     const position = document.getElementById('position')
     const salary = document.getElementById('salary')
@@ -60,9 +60,19 @@
     }
     if (registerEmployee) {
       const apiUrl = '/register/new';
-  
       
       registerEmployee.addEventListener('click', function(){
+         let divisionValue = ''
+         let sectionValue = ''
+        
+        if(typeof division == 'undefined' || division === null) {
+          division  = document.getElementById('division_0')
+          sectionValue = division.dataset.selected
+          divisionValue = division.dataset.division
+
+          console.log({sectionValue, divisionValue})
+        }
+
         var checkedComponents = document.querySelectorAll('input[name="components"]:checked');
         var checkedRoles = document.querySelectorAll('input[name="roles"]:checked');
         
@@ -84,7 +94,8 @@
           experience: {
             lists: [{
               office: companyname.value,
-              division: division.value,
+              division: divisionValue ?? division.value,
+              section: sectionValue ?? division.value,
               salary: salary.value,
               status: true,
               enddate: 'present',
@@ -105,8 +116,6 @@
           components: JSON.stringify(checkedComponentsValues),
           roles: JSON.stringify(checkedRolesValues),
         }
-        
-        
 
         // into JSON format
         let {experience, contacts, others} = data
@@ -117,7 +126,7 @@
         data.contacts = contacts
         data.others = others
   
-        console.log(data)
+        console.log({data})
 
         const requestOptions = {
           method: 'POST',
@@ -161,6 +170,7 @@
         });
       })
     }
+    
     if (updateEmployee) {
       const apiUrl = '/employees/update';
       

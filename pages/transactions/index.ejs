@@ -79,14 +79,9 @@
                                   return steps.find(step => step.trans_id === transid);
                                 }
 
-                                function getStepTitle(step_id) {
-                                  const step = stepsList.find(step => String(step.id) === String(step_id));
-                                  return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
-                                }
-
                                 for(var i=0; i < transactions.length; i++) { 
                                   var {pr_date, approved_budget, product_id, pr_classification, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code } = transactions[i]
-                                  const { fullname } = JSON.parse(getEmployeeById(requisitioner))
+                                  const { fullname, division:u_division } = JSON.parse(getEmployeeById(requisitioner))
 
                                   date = moment(pr_date).format('L')
                                  
@@ -105,7 +100,13 @@
                                   
                               %>
                                
-                                <tr data-steps="<%= JSON.stringify(getStepsDetails(steps, product_id)) %>" data-current-steps="<%= current_step %>" data-step-title="<%= current_step_title %>" data-index="<%= i %>">
+                                <tr 
+                                  data-steps="<%= JSON.stringify(getStepsDetails(steps, product_id)) %>" data-current-steps="<%= current_step %>" 
+                                  data-step-title="<%= current_step_title %>" 
+                                  data-index="<%= i %>"
+                                  data-user-chief="<%= u_division %>"
+                                  >
+                                  
                                   <td data-head="Product ID"><%= product_id %></td>
                                   <td data-head="Notice Title"><%= bid_notice_title %></td>
                                   <td data-head="Requistioner"><%= fullname %></td>

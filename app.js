@@ -186,13 +186,51 @@ const purchaseRequestRoles = [
   }
 ];
 
+// =========================
+// Permissions Configuration
+// =========================
+const permissions = {
+  can: ["create", "read", "update", "delete"],
+  roles: [
+    {
+      role: "Admin",
+      permissions: { create: true, read: true, update: true, delete: true }
+    },
+    {
+      role: "Editor",
+      permissions: { create: true, read: true, update: true, delete: false }
+    },
+    {
+      role: "Viewer",
+      permissions: { create: false, read: true, update: false, delete: false }
+    },
+    {
+      role: "Contributor",
+      permissions: { create: true, read: true, update: false, delete: false }
+    },
+    {
+      role: "Moderator",
+      permissions: { create: false, read: true, update: true, delete: true }
+    },
+    {
+      role: "Manager",
+      permissions: { create: false, read: true, update: true, delete: true }
+    },
+    {
+      role: "Support",
+      permissions: { create: false, read: true, update: true, delete: false }
+    }
+  ]
+};
+
+
 const department = {
   directors: {
     ORED: {
       stands: "Office of the Regional Executive Director",
       email: "",
       admin: "",
-      responsible: "Dir. Angel C. Enriquez, CESO III",
+      responsible: { employeeid: "107", name: "Dir. Angel C. Enriquez, CESO III" },
       acting: "",
     },
     RTDs: {
@@ -200,14 +238,14 @@ const department = {
         stands: "Regional Technical Director for Research and Regulations ",
         email: "",
         admin: "",
-        responsible: "Wilberto O. Castillo",
+        responsible: { employeeid: "108", name: "Wilberto O. Castillo" },
         acting: "",
       }, 
       RTDO: {
         stands: "Regional Technical Director for Operations",
         email: "",
         admin: "",
-        responsible: "Engr. Cirilo N. Namoc",
+        responsible: { employeeid: "109", name: "Engr. Cirilo N. Namoc" },
         acting: "",
       }
     }, 
@@ -229,21 +267,21 @@ const department = {
       stands: "Administrative and Finance Division",
       email: "",
       admin: "",
-      responsible: "Melquiades B. Ibarra, Ph.D",
+      responsible: { employeeid: "110", name: "Melquiades B. Ibarra, Ph.D" },
       acting: "",
       sections: {
         HRMS: {
           stands: "Human Resource Management Section",
           email: "",
           admin: "",
-          responsible: "Maria Isabel A. Martinez",
+          responsible: { employeeid: "111", name: "Maria Isabel A. Martinez" },
           acting: "",
         },
         GS: {
           stands: "General Services Section",
           email: "",
           admin: "",
-          responsible: "Anecita A. Sespeñe",
+          responsible: { employeeid: "112", name: "Anecita A. Sespeñe" },
           acting: "",
         },
         PROCUREMENT: {
@@ -257,21 +295,21 @@ const department = {
           stands: "Accounting Section",
           email: "",
           admin: "",
-          responsible: "Mark Rey T. Paguray",
+          responsible: { employeeid: "113", name: "Mark Rey T. Paguray" },
           acting: "",
         },
         INFORMATION: {
           stands: "Information Section",
           email: "",
           admin: "",
-          responsible: "Cheryl M. Dela Victoria",
+          responsible: { employeeid: "114", name: "Cheryl M. Dela Victoria" },
           acting: "",
         },
         BUDGET: {
           stands: "Budget Section",
           email: "",
           admin: "",
-          responsible: "Rosalie S. Gallego",
+          responsible: { employeeid: "115", name: "Rosalie S. Gallego" },
           acting: "",
         }
       }
@@ -280,7 +318,7 @@ const department = {
       stands: "Information and Communications Technology Division",
       email: "",
       admin: "",
-      responsible: "Annearth V. Maribojoc",
+      responsible: { employeeid: "116", name: "Annearth V. Maribojoc" },
       acting: "",
       sections: {
         IPPTS: {
@@ -297,8 +335,8 @@ const department = {
           stands: "Network Management and Technical Support Section",
           email: "lemoref@gmail.com",
           admin: "",
-          responsible: "Feromel Magalso, Ian Roy Butron",
-          acting: "",
+          responsible: { employeeid: "117", name: "Feromel Magalso" },
+          acting: { employeeid: "118", name: "Ian Roy Butron" },
         },
         DPCS: {
           stands: "Data Privacy and Cybersecurity Section",
@@ -309,7 +347,7 @@ const department = {
           stands: "Systems Development Section",
           email: "red.mrjhon8@gmail.com",
           admin: "",
-          responsible: "Wrongrammer",
+          responsible: { employeeid: "119", name: "Wrongrammer" },
           acting: "",
         },
         DMS: {
@@ -324,7 +362,7 @@ const department = {
       stands: "Planning, Monitoring and Evaluation Division",
       "email": "",
       "admin": "",
-      responsible: "Elvin J. Milleza",
+      responsible: { employeeid: "120", name: "Elvin J. Milleza" },
       acting: "",
       sections: {
         PPS: {
@@ -480,66 +518,79 @@ const department = {
     "FOD": {
       stands: "Field Operations Division",
       email: "",
+      responsible: {employeeid: "180", name: "Gerry S. Avila"},
       admin: "",
       sections: {
         RICE: {
           stands: "Rice Program",
           email: "",
+          responsible: "",
           admin: "",
         },
         LIVESTOCK: {
           stands: "Livestock Program",
           email: "",
+          responsible: "",
           admin: "",
         },
         CORN: {
           stands: "Corn Program",
           email: "",
+          responsible: "",
           admin: "",
         },
         HVCDP: {
           stands: "High Value-Crops Development Program",
           email: "",
+          responsible: "",
           admin: "",
         },
         OAP: {
           stands: "Organic Agriculture Program",
           email: "",
+          responsible: "",
           admin: "",
         },
         NUPAP: {
           stands: "National Urban and Peri-Urban Agriculture Program",
           email: "",
+          responsible: "",
           admin: "",
         },
         PATCOCEBU: {
           stands: "Patco-Cebu",
           email: "",
+          responsible: "",
           admin: "",
         },
         PATCOBOHOL: {
           stands: "Patco-BOHOL",
           email: "",
+          responsible: "",
           admin: "",
         },
         PATCONEGROSOR: {
           stands: "Patco-Negros Oriental",
           email: "",
+          responsible: "",
           admin: "",
         },
         PATCOSIQUIJOR: {
           stands: "Patco-Siquijor",
           email: "",
+          responsible: "",
           admin: "",
         },
         SAAD: {
           stands: "Special Area of Agriculture Development",
           email: "",
+          responsible: {employeeid: "180", name: "Liezl S. Pagaran"},
           admin: "",
         },
         IDS: {
           stands: "Institutional Development Services",
           email: "",
+          responsible: "",
           admin: "",
         },
       }
@@ -567,110 +618,59 @@ const department = {
       }
     },
   },
-  permissions: {
-    can: ["create", "read", "update", "delete"],
-    roles: [{
-      role: "Admin",
-      permissions: {
-        create: true,
-        read: true,
-        update: true,
-        delete: true
-      }
-    },{
-      role: "Editor",
-      permissions: {
-        create: true,
-        read: true,
-        update: true,
-        delete: false
-      }
-    },{
-      role: "Viewer",
-      permissions: {
-        create: false,
-        read: true,
-        update: false,
-        delete: false
-      }
-    },{
-      role: "Contributor",
-      permissions: {
-        create: true,
-        read: true,
-        update: false,
-        delete: false
-      }
-    },{
-      role: "Moderator",
-      permissions: {
-        create: false,
-        read: true,
-        update: true,
-        delete: true
-      }
-    },{
-      role: "Manager",
-      permissions: {
-        create: false,
-        read: true,
-        update: true,
-        delete: true
-      }
-    },{
-      role: "Support",
-      permissions: {
-        create: false,
-        read: true,
-        update: true,
-        delete: false
-      }
-    }],
-    
-
-  },
+  permissions
 }
 
-const funds_availability = [
-  {'STO': {'remaining_balance': 123456.60}},
-  {'GASS': {'remaining_balance': 123456.60}},
-]
 
-const approval_steps_svp = [
-  { "id": 1, "steps_title": "End-User" },
-  { "id": 2, "steps_title": "Division Chief" },
-  { "id": 3, "steps_title": "Budget Section" },
-  { "id": 4, "steps_title": "Procurement Section (PS)" },
-  { "id": 5, "steps_title": "BAC Secretariat" },
-  { "id": 6, "steps_title": "Procurement Section (PS)" },
-  { "id": 7, "steps_title": "Canvassers" },
-  { "id": 7.1, "steps_title": "Supplier/Contractors" },
-  { "id": 8, "steps_title": "BAC & BAC Sec." },
-  { "id": 9, "steps_title": "Procurement Section (PS)" },
-  { "id": 10, "steps_title": "RED/RTD" },
-  { "id": 11, "steps_title": "BAC Sec./ Procurement Section (PS)" },
-  { "id": 12, "steps_title": "Procurement Section (PS)" },
-  { "id": 13, "steps_title": "End-User/Program Coor./Division Chief" },
-  { "id": 14, "steps_title": "Budget Section" },
-  { "id": 15, "steps_title": "Accounting Section" },
-  { "id": 16, "steps_title": "RED/RTD" },
-  { "id": 17, "steps_title": "General Services Section" },
-  { "id": 18, "steps_title": "RED/RTD" },
-  { "id": 19, "steps_title": "BAC Sec." },
-  { "id": 20, "steps_title": "GS/RAED/End-User" },
-  { "id": 21, "steps_title": "Inspectors" },
-  { "id": 22, "steps_title": "End-Users" },
-  { "id": 23, "steps_title": "GS/End-Users" },
-  { "id": 24, "steps_title": "End-Users" },
-  { "id": 25, "steps_title": "Accounting Section" },
-  { "id": 26, "steps_title": "Division Chief" },
-  { "id": 27, "steps_title": "Cashering Unit" },
-  { "id": 28, "steps_title": "Accounting Section" },
-  { "id": 29, "steps_title": "RED/RTD/Admin Chief" },
-  { "id": 30, "steps_title": "Cashering Unit" }
-]
+// =========================
+// Funds Availability Sample
+// =========================
+const fundsAvailability = [
+  { STO: { remaining_balance: 123456.60 } },
+  { GASS: { remaining_balance: 123456.60 } }
+];
+
+
+// =========================
+// Approval Steps (SVP)
+// =========================
+const approvalStepsSVP = [
+  { id: 1, steps_title: "End-User" },
+  { id: 2, steps_title: "Division Chief" },
+  { id: 3, steps_title: "Budget Section" },
+  { id: 4, steps_title: "Procurement Section (PS)" },
+  { id: 5, steps_title: "BAC Secretariat" },
+  { id: 6, steps_title: "Procurement Section (PS)" },
+  { id: 7, steps_title: "Canvassers" },
+  { id: 7.1, steps_title: "Supplier/Contractors" },
+  { id: 8, steps_title: "BAC & BAC Sec." },
+  { id: 9, steps_title: "Procurement Section (PS)" },
+  { id: 10, steps_title: "RED/RTD" },
+  { id: 11, steps_title: "BAC Sec./ Procurement Section (PS)" },
+  { id: 12, steps_title: "Procurement Section (PS)" },
+  { id: 13, steps_title: "End-User/Program Coor./Division Chief" },
+  { id: 14, steps_title: "Budget Section" },
+  { id: 15, steps_title: "Accounting Section" },
+  { id: 16, steps_title: "RED/RTD" },
+  { id: 17, steps_title: "General Services Section" },
+  { id: 18, steps_title: "RED/RTD" },
+  { id: 19, steps_title: "BAC Sec." },
+  { id: 20, steps_title: "GS/RAED/End-User" },
+  { id: 21, steps_title: "Inspectors" },
+  { id: 22, steps_title: "End-Users" },
+  { id: 23, steps_title: "GS/End-Users" },
+  { id: 24, steps_title: "End-Users" },
+  { id: 25, steps_title: "Accounting Section" },
+  { id: 26, steps_title: "Division Chief" },
+  { id: 27, steps_title: "Cashering Unit" },
+  { id: 28, steps_title: "Accounting Section" },
+  { id: 29, steps_title: "RED/RTD/Admin Chief" },
+  { id: 30, steps_title: "Cashering Unit" }
+];
+
+
 function getStepsDetails(stepNumber) {
-  return approval_steps_svp.find(step => 
+  return approvalStepsSVP.find(step => 
     step.id === stepNumber
   );
 }
@@ -862,7 +862,18 @@ app.use(async function(req, res, next){
     currentPath: req.path,
     isHome: req.originalUrl,
     moment,
-    approval_steps: approval_steps_svp,
+    approval_steps: approvalStepsSVP,
+    getUserDivisionResponsible: (division) => {
+      const divisionData = department.divisions[division];
+      return divisionData ? divisionData.responsible : null;
+    },
+    getUserResponsible: (division, section) => {
+      const divisionData = department.divisions[division];
+      return divisionData && divisionData.sections[section] ? {
+          division: divisionData.responsible, 
+          section: divisionData.sections[section].responsible
+        } : null;
+    },  
     userDesignation: {
       division: findDivisionBySection(divisions, userDivision),
       section: userDivision,
@@ -873,7 +884,11 @@ app.use(async function(req, res, next){
       transactions: JSON.stringify(summaryTransaction[0]),
       employees: JSON.stringify(summaryEmployee[0])
     },
-    stepsList: approval_steps_svp,
+    stepsList: approvalStepsSVP,
+    getStepTitle(step_id) {
+      const step = res.locals.stepsList.find(step => String(step.id) === String(step_id));
+      return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
+    },
     peso,
     isValidJSON,
     statusText,
@@ -955,7 +970,17 @@ app.use(async function(req, res, next){
       };
     
       return JSON.stringify(response);
-    },     
+    },
+    trimName(fullName) {
+      const parts = fullName.trim().split(' ');
+      if (parts.length === 0) return '';
+
+      const firstInitial = parts[0].charAt(0).toUpperCase();
+      const lastName = parts[parts.length - 1];
+
+      return `${firstInitial}. ${lastName}`;
+    }
+     
   }
   next();
 });
@@ -1287,21 +1312,17 @@ app.post('/register/new', async (req, res) => {
   try {
     let data = JSON.stringify(req.body)
     const register = await connection.postEmployees(data)
-    if(register.length != 0) {
-      if(register?.affectedRows){
-        const {employeeid} = JSON.parse(data)
-        const notif = {
-          "message": "New user was registered",
-          "link": employeeid, 
-          "component": "employees",
-          // "created_at": convertDate(new Date())
-        }
-        await connection.postNotifications(JSON.stringify(notif))
+    if(register?.affectedRows){
+      const {employeeid} = JSON.parse(data)
+      const notif = {
+        "message": "New user was registered",
+        "link": employeeid, 
+        "component": "employees",
+        // "created_at": convertDate(new Date())
       }
-      res.status(200).json({ message: 'Account is successfully register', response: register})
-    } else {
-      res.status(200).json({ message: 'Failed to register the account',  response: register });
+      await connection.postNotifications(JSON.stringify(notif))
     }
+    res.status(200).json({ message: 'Account is successfully register', response: register})
   } catch (error) {
     console.error('There\'s issue on the system right now:', error);
     res.status(500).send('Internal Server Error');

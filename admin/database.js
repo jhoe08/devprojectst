@@ -238,7 +238,7 @@ const databaseUtils = {
     let pr_date = convertDate(new Date())
 
     connection.query(`INSERT INTO transid (bid_notice_title, requisitioner, division, pr_classification, approved_budget, fund_source, banner_program, bac_unit, remarks, pr_date)
-        VALUES ('${bid_notice_title}', '${requisitioner}', '${division}', '${pr_classification}', ${approved_budget}, '${fund_source}', '${banner_program}', '${bac_unit}', 0, '${pr_date}')`, (error, results) => {
+        VALUES ('${bid_notice_title}', '${requisitioner}', '${division}', '${pr_classification}', ${approved_budget}, '${fund_source}', '${banner_program}', '${bac_unit}', '${remarks}', '${pr_date}')`, (error, results) => {
       if (error) {
         reject(error);
       } else {
@@ -674,6 +674,19 @@ const databaseUtils = {
   },
   getCurrentUserRole: async (employeeid, columnName = 'role_name') => {
     const query = `SELECT ${columnName} FROM ${prefix}.roles WHERE employee_ids LIKE '%${employeeid}%'`
+    return new Promise((resolve, reject) => {
+      connection.query(query, (error, results) => {
+        if (error) reject(error);
+        else resolve(results);
+      });
+    });
+  },
+  getDivisionAndPosition: async (position, division) => {
+    const query = `SELECT * 
+      FROM transto.employees 
+      WHERE JSON_EXTRACT(experience, '$.position') = '${position}'
+        AND JSON_EXTRACT(experience, '$.division') = '${division}';`
+    
     return new Promise((resolve, reject) => {
       connection.query(query, (error, results) => {
         if (error) reject(error);

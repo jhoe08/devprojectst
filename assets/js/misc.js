@@ -539,6 +539,29 @@ numberInputs.forEach(input => {
   input.addEventListener('input', formatNumberWithCommas);
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.form-select').forEach(selectElement => {
+    // Attach the change event
+    selectElement.addEventListener('change', handleSelectChange);
+
+    // 🔁 Trigger the logic manually for the preselected option
+    handleSelectChange.call(selectElement);
+  });
+});
+
+function handleSelectChange() {
+  const selectedOption = this.options[this.selectedIndex];
+  if (selectedOption && selectedOption.value) {
+    const selectedDivision = selectedOption.dataset.division;
+    this.dataset.selected = selectedOption.value;
+    this.dataset.division = selectedDivision || selectedOption.value;
+  } else {
+    this.dataset.selected = '';
+    this.dataset.division = '';
+  }
+}
+
+
 
 
 // DO NOT FUCKING DELETE THIS CODE

@@ -1,5 +1,5 @@
 <%
-  <!-- var {divisions, banner_program} = dafaultTransactionData -->
+    <!-- var {divisions, banner_program} = dafaultTransactionData -->
     let { directors, divisions, permissions, bacs } = JSON.parse(DEPARTMENT) 
     let e_division = userDesignation.division
 
@@ -8,8 +8,8 @@
 %>
 
 <div class="form-group form-group-default">
-    <label for="division_<%= key ?? 0 %>">Division</label>
-    <select class="form-select" id="division_<%= key ?? 0 %>" name="division_<%= key ?? 0 %>">
+    <label for="division_<%= key || 0 %>">Division</label>
+    <select class="form-select" id="division_<%= key || 0 %>" name="division_<%= key || 0 %>">
         <!-- Director, Technical Directors, BACs Secretariat -->
         <% const directorsArray = directors.flatMap(([key, director]) => {
             if (key === "RTDs") {
@@ -50,7 +50,7 @@
             const { stands: sectStands, sections:banners } = section;
             underDivision = Object.entries(section)
             %>
-            <%- include('../../components/forms/options', { key: keySect, stands: sectStands,  classes: 'section', filtered: e_division, dataset:[] }) %>
+            <%- include('../../components/forms/options', { key: keySect, stands: sectStands,  classes: 'section', filtered: e_division, dataset:['division',key] }) %>
             <% if(banners) {
             Object.entries(banners).forEach(([keyBan, banner]) => { 
                 const { stands:banStands } = banner;

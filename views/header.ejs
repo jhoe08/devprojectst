@@ -83,7 +83,8 @@
     const {employeeid, username, firstname, lastname, middlename } = SESSION_USER
     let { directors, divisions } = JSON.parse(DEPARTMENT)
   %>
-  <body data-env="<%=ENVIRONMENT%>" data-testmode="<%=TEST_MODE%>" data-currentuser="<%=JSON.stringify({employeeid, username})%>" data-user-role="<%=currentRole%>">
+  <body data-env="<%= ENVIRONMENT %>" data-testmode="<%= TEST_MODE %>" data-currentuser="<%= JSON.stringify({employeeid, username}) %>" data-user-role="<%= currentRole %>" data-user-designation="<%= JSON.stringify(userDesignation) %>">
+
 <% if(SESSION_USER){
   const { employeeid, username, firstname, lastname, middlename, experience } = SESSION_USER;
   const { lists } = JSON.parse(experience)
@@ -91,13 +92,18 @@
   section = section.toUpperCase()
 
 %>
-  <input id="created_by" type="hidden" value="<%=username??'justtest-'%>">
-  <input id="session_firstname" type="hidden" value="<%=firstname??'justtest-'%>">
-  <input id="session_middlename" type="hidden" value="<%=middlename??'justtest-'%>">
-  <input id="session_lastname" type="hidden" value="<%=lastname??'justtest-'%>">
-  <input id="session_userDivision" type="hidden" value="<%=findDivisionBySection(divisions, section)??'justtest-'%>">
-  <input id="session_userBanner" type="hidden" value="<%=section??'justtest-'%>">
-  <input id="session_userPosition" type="hidden" value="<%=position??'justtest-'%>">
-  <input id="session_userRole" type="hidden" value="<%=userDesignation?.role??'justtest-'%>">
+  <input 
+    id="created_by" 
+    type="hidden"
+    value="<%= username %>" 
+    data-responsible="<%= JSON.stringify(getUserResponsible(findDivisionBySection(divisions, section), section)) %>"
+    />
+  <input id="session_firstname" type="hidden" value="<%= firstname %>">
+  <input id="session_middlename" type="hidden" value="<%= middlename %>">
+  <input id="session_lastname" type="hidden" value="<%= lastname %>">
+  <input id="session_userDivision" type="hidden" value="<%= findDivisionBySection(divisions, section) %>">
+  <input id="session_userBanner" type="hidden" value="<%= section %>">
+  <input id="session_userPosition" type="hidden" value="<%= position %>">
+  <input id="session_userRole" type="hidden" value="<%= userDesignation?.role %>">
   
 <% } %>

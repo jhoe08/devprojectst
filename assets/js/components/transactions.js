@@ -44,6 +44,41 @@
     }
     return null;  // No division found
   }
+
+  function trimFullName(){ 
+    // Select the element containing the attribute
+    const el = document.querySelector('[data-responsible]');
+
+    if (el) {
+      // Get the raw HTML-encoded JSON string
+      const raw = el.getAttribute('data-responsible');
+
+      try {
+        // Decode and parse the string
+        const responsibleData = JSON.parse(raw);
+
+        // Access the names
+        const divisionName = responsibleData.division?.name;
+        const sectionName = responsibleData.section?.name;
+
+        console.log('Division:', divisionName);
+        console.log('Section:', sectionName);
+
+        // Optionally format to initials
+        const formatName = full => {
+          const parts = full.trim().split(' ');
+          return parts.length ? `${parts[0][0].toUpperCase()}. ${parts.at(-1)}` : '';
+        };
+      
+        return `${formatName(divisionName)} / ${formatName(sectionName)}`; // Set the value to initials
+        // console.log('Division (initials):', formatName(divisionName));
+        // console.log('Section (initials):', formatName(sectionName));
+      } catch (err) {
+        console.error('Invalid JSON in data-responsible:', err);
+      }
+    }
+  }
+
   if (exampleModal) {
     exampleModal.addEventListener('show.bs.modal', event => {
       // Button that triggered the modal
@@ -162,11 +197,14 @@
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
+    requisitioner.value = trimFullName()
+
     createTransactions.addEventListener('click', async () => {
       let charge = []
       let funds =  chargingTo.querySelectorAll('.row')
+
       funds.forEach(fund => {
-        let element = fund.querySelector('select[name="division"]')
+        let element = fund.querySelector('select[name*="division_"]')
         let selectedOption = element.options[element.selectedIndex];
         let divisionValue = selectedOption.dataset.division;
 
@@ -180,6 +218,7 @@
         let bidNoticeTitleValue = bidNoticeTitle.value
         let prClassificationValue = prClassification.value
         let requisitionerValue = requisitioner.value
+            
         // let divisionValue = division.value
         let budgetValue = budget.value
           // let bannerProgramValue = bannerProgram.value
@@ -191,20 +230,23 @@
           return
         };
 
+        let cleaned = budgetValue.replace(/,/g, "")
+        budgetValue = parseFloat(cleaned)
+
         const apiUrl = '/transactions/new';
         let data = {
           bid_notice_title: bidNoticeTitleValue,
           pr_classification: prClassificationValue,
           requisitioner: requisitionerValue,
           // division: divisionValue,
-          approved_budget: budgetValue,
+          approved_budget: parseFloat(budgetValue),
           fund_source: JSON.stringify(charge),
           // banner_program: bannerProgramValue,
           bac_unit: bacUnitValue,
-          remarks: {
-            createby: created_by,
+          remarks: JSON.stringify({
+            prepared_by: created_by.value,
             message: 'Created Transaction',
-          }
+          })
         };
 
         console.log('data', data)

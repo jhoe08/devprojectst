@@ -47,12 +47,13 @@
         });
     });
 
-      $(".basicDatatables").DataTable({
+      const basicTable = $(".basicDatatables").DataTable({
         "pageLength": -1,
         "ordering": false,
         "paging": false,
         responsive: true
       });
+
 
       let tables = $("#justTables").DataTable();
       const transactions = $("#transactions-datatables").DataTable({
@@ -97,6 +98,43 @@
         }, 
       })
 
+      const userDesignation = document.querySelector('body[data-user-designation]')
+
+      if(userDesignation) {
+        // const userDesignationData = JSON.parse(userDesignation.dataset.userDesignation);
+        // const userDivision = userDesignationData.division;
+        // const userSection = userDesignationData.section;
+        // const userPosition = userDesignationData.position;
+
+        // $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        //   const rowNode = transactions.row(dataIndex).node()
+        //   const stepIndex = $(rowNode).data('current-steps');
+        //   const stepTitle = $(rowNode).data('step-title')
+        //   const transactionDivision = $(rowNode).data('user-chief');
+
+        //   console.log({stepTitle, stepIndex})
+
+        //   if (userPosition === 'Chief') {
+        //     if (userDivision === transactionDivision && stepIndex == 2) {
+        //       return $(rowNode).data('user-chief') === transactionDivision;
+        //     } 
+        //   } else {
+        //     $.fn.dataTable.ext.search.pop();
+        //     return false;
+        //   }
+
+        // });
+        // transactions.draw();
+      }
+
+      // $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+      //   const rowNode = transactions.row(dataIndex).node()
+      //   console.log($(rowNode).data('current-steps'))
+      //   return $(rowNode).data('current-steps') == '2';
+      // });
+
+      // transactions.draw();
+
       // Select the <tr> you're working with
       const allRows  = document.querySelectorAll('tr[data-step-title]');
       allRows.forEach(row => {
@@ -115,7 +153,7 @@
      
       
       // const employeesHiddenColumns = []
-      const employeesHiddenColumns = [2,5,6,8] 
+      const employeesHiddenColumns = [2,5,6,8]
       let employees = $("#employees").DataTable({
         
         layout: {
@@ -259,7 +297,13 @@
     <script src="/assets/js/charts/doughnut.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/autonumeric@latest"></script>
     <script>
-      new AutoNumeric('.custom-number');
+      // Initialize AutoNumeric for all elements with the class 'custom-number'
+      if(document.querySelector('.custom-number')) {
+        // This will apply AutoNumeric to all elements with the class 'custom-number'
+        // and format them as currency in PHP format
+        new AutoNumeric('.custom-number');
+      } 
+      
     </script>
 
     <script data-path="<%= path %>">
