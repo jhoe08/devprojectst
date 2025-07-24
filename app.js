@@ -362,7 +362,7 @@ const department = {
       stands: "Planning, Monitoring and Evaluation Division",
       "email": "",
       "admin": "",
-      responsible: { employeeid: "120", name: "Elvin J. Milleza" },
+      responsible: { employeeid: "70005", name: "Elvin J. Milleza" },
       acting: "",
       sections: {
         PPS: {
@@ -769,82 +769,85 @@ app.use(async function(req, res, next){
 
   var components = ['Transactions', 'Employees', 'Documents']
 
-  const notifications = await connection.retrieveNotifications()
-  const employees = await connection.retrieveEmployee()
-  const summaryTransaction = await connection.getTransactionSummary()
-  const summaryEmployee = await connection.getEmployeeSummary()
-  
+  const [notifications, employees, transactions, summaryTransaction, summaryEmployee, activities] = await Promise.all([
+    connection.retrieveNotifications(),
+    connection.retrieveEmployee(),
+    connection.getTransactions(),
+    connection.getTransactionSummary(),
+    connection.getEmployeeSummary(),
+    connection.getTransactionActivity(),
+  ]);
+
   // Sort using Descending
   notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-  const defaultNullUser = {
-    employeeid: 70712,
-    firstname: 'Just',
-    middlename: 'The',
-    lastname: 'Tester',
-    extname: 'asdw',
-    birthdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-    username: 'justtest',
-    password: 'hay1122',
-    experience: {
-      lists: [{
-        office: 'DA - RFO7',
-        division: 'SAAD',
-        salary: '123456',
-        status: true,
-        enddate: 'present',
-        position: 'Data Controller X',
-        startdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-        employment: 'Permanent',
-        arrangements: 'On-site', 
-      }],
-    },
-    contacts: {
-      email: 'justtest@gmail.com',
-      mobile: '09913983598',
-    },
-    others: {
-      civilstatus: 'Married',
-      gender: 'Male'
-    },
-    components: ['Transactions', 'Employees', 'Documents']
-  }
-  
-  let role = ''
-  const { employeeid, components:availComponents } = req.session?.user || defaultNullUser;
-  if(employeeid) {
-    role = await connection.getCurrentUserRole(employeeid)
-    role = (role[0]?.role_name) ?? 'user'
+  let role = '';
+  let userDivision = '';
+  let userSection = '';
+  let userPosition = '';
+  let availComponents = [];
+  let filteredTransactions = '';
+
+  const sessionUser = req.session?.user;
+
+  if (sessionUser) {
+    const {
+      employeeid,
+      components,
+      role: userRole,
+      experience: userExperience
+    } = sessionUser;
+
+    availComponents = components;
+
+    const filteredActivity = activities.filter(activity =>
+      activity.assigned_to === employeeid
+    );
+
+    const productIds = filteredActivity.map(activity => activity.product_id);
+
+     // Filter transactions: created by or assigned to current user
+    filteredTransactions = transactions.filter(txn =>
+      txn.prepared_by === employeeid || productIds.includes(txn.product_id)
+    );
+
+    try {
+      const { lists: userSession } = JSON.parse(userExperience);
+      const { division, section, position } = userSession?.[0] || {};
+
+      userDivision = division?.toUpperCase() || '';
+      userSection = section?.toUpperCase() || '';
+      userPosition = position?.toUpperCase() || '';
+
+      // Optional: Restore role from DB if needed
+      // const roleData = await connection.getCurrentUserRole(employeeid);
+      // role = roleData?.[0]?.role_name || 'user';
+
+    } catch (error) {
+      console.error('Invalid userExperience format:', error);
+    }
   }
 
-  let { experience, contacts, others } = defaultNullUser
-  experience = JSON.stringify(experience)
-  contacts = JSON.stringify(contacts)
-  others = JSON.stringify(others)
-
-  defaultNullUser.experience = experience
-  defaultNullUser.contacts = contacts
-  defaultNullUser.others = others
 
   // console.log('SESSION', req.session?.user || JSON.parse(JSON.stringify(defaultNullUser)))
   const fullUrl = req.protocol + '://' + req.get('host');
 
   const { divisions } = department
 
-  const { experience:userExperience } = req.session.user || defaultNullUser
-  const { lists } = JSON.parse(userExperience)
-  let { division: userDivision, position } = lists[0]
-  userDivision = userDivision.toUpperCase();
-  
-  // console.log(summaryTransaction)
-
   res.locals = {
     HOST: fullUrl,
     ENVIRONMENT: process.env.NODE_ENV,
     TEST_MODE: process.env.TEST_MODE,
     TEST_UNIT: process.env.TEST_UNIT,
-    SESSION_USER: req.session?.user || defaultNullUser,
-    defaultNullUser,
+    SESSION_USER: req.session?.user,
+    SESSION_USER_LOG: {
+      designation: {
+        division: sessionUser ? findDivisionBySection(divisions, userDivision) : null,
+        section: sessionUser ? userSection : null,
+        position: sessionUser ? userPosition : null,
+      },
+      components: sessionUser ? availComponents : null,
+    },
     DEPARTMENT: JSON.stringify(department),
     // NOTIFICATIONS: countNotif,
     // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications), // *** DO NOT REMOVE
@@ -874,20 +877,34 @@ app.use(async function(req, res, next){
           section: divisionData.sections[section].responsible
         } : null;
     },  
-    userDesignation: {
-      division: findDivisionBySection(divisions, userDivision),
-      section: userDivision,
-      position,
-      role,
-    },
-    summary: {
+    SUMMARY: {
       transactions: JSON.stringify(summaryTransaction[0]),
+      totalTransactions: filteredTransactions.length,
       employees: JSON.stringify(summaryEmployee[0])
+    },
+    STEPS: {
+      lists: approvalStepsSVP,
+      getCurrentStep: (steps, product_id) => {
+        const step = steps.find(step => step.id === product_id);
+        return step ? step : null;
+      },
+      getDetails: (id) => {
+        const { STEPS } = res.locals
+        return STEPS?.lists.find(step => step.id === id);
+      },
+      getTitle: (step_id) => {
+        const { STEPS } = res.locals
+        const step = STEPS?.lists.find(step => step.id === step_id);
+        return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
+      },
     },
     stepsList: approvalStepsSVP,
     getStepTitle(step_id) {
       const step = res.locals.stepsList.find(step => String(step.id) === String(step_id));
       return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
+    },
+    getStepsDetails(transid) {
+      return res.locals.stepsList.find(step => step.id === transid);
     },
     peso,
     isValidJSON,
@@ -982,19 +999,19 @@ app.use(async function(req, res, next){
     }
      
   }
+
+  console.log('Session User:', res.locals.SUMMARY);
+
   next();
 });
 
 function restrict(req, res, next) {
-  // Check if the user is authenticated
-  // console.log('res.locals.environment', res.locals.ENVIRONMENT)
-  if (!req.session.isAuthenticated) {
-    // Redirect to login page if not authenticated
-    return (res.locals.ENVIRONMENT === 'production') ? res.redirect('/login') : next() ; // Perform the redirect
+  // If user is authenticated, proceed
+  if (req.session && req.session.isAuthenticated) {
+    return next();
   }
-  
-  // If authenticated, proceed to the next middleware
-  return next();
+  // If not authenticated, redirect to login (always redirect, regardless of environment)
+  return res.redirect('/login');
 }
 
 function getDivisionAndPosition(experienceJson) {
@@ -1171,8 +1188,8 @@ app.get('/login', (req, res) => {
   }
  
 });
-// STILL FIXING
-app.post('/login', async (req, res, next) => {
+
+app.post('/login00000000000', async (req, res, next) => {
   try {
     const {username, password} = req.body
     if (!username || !password) return res.status(400).json({ message: 'Username and password are required.' });
@@ -1189,7 +1206,7 @@ app.post('/login', async (req, res, next) => {
       if(!bcrypt.compareSync(password, user.password)) {
         req.session.error = 401; // Incorrect password
         res.status(404).redirect('/login')
-        return next()
+        // return next()
       }
       const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
   
@@ -1197,26 +1214,53 @@ app.post('/login', async (req, res, next) => {
       req.session.isAuthenticated = true
       req.session.token = token
 
-     const {division, position} = getDivisionAndPosition(experience)
-
-    //  console.log({division, position})
-
-      // req.session.userDivision = division
-      // req.session.userSection = 
-      // req.session.userPosition =
-  
-      res.status(200).redirect('/'); // Only send one response  
+      res.redirect('/'); // Only send one response  
     } else {
       req.session.error = 404; // Account Not Found
-      res.status(404).redirect('/login')
+      res.redirect('/login')
     }
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'An error occurred while processing your request.' });
   }
 
-  next()
+  // next()
 })
+
+app.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Username and password are required.' });
+    }
+
+    let userDetails = await connection.retrieveEmployeeByUsername(username);
+
+    if (userDetails.length !== 0) {
+      const user = userDetails[0];
+      const { experience } = user;
+
+      if (!bcrypt.compareSync(password, user.password)) {
+        req.session.error = 401;
+        return res.redirect('/login');
+      }
+
+      const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
+
+      req.session.user = user;
+      req.session.isAuthenticated = true;
+      req.session.token = token;
+
+      return res.redirect('/');
+    } else {
+      req.session.error = 404;
+      return res.redirect('/login');
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'An error occurred while processing your request.' });
+  }
+});
 
 app.post('/login-HUH', async (req, res) => {
   const {username, password} = req.body
@@ -1339,35 +1383,45 @@ app.get('/logout', function(req, res){
 
 app.get('/transactions', restrict, async (req, res) => {
   try {
-    const transactions = await connection.retrieveTransactions();
-    const discardedTransaction = await connection.getListOfDiscarded('transactions');
-    const steps = await connection.getTransactionActivity()
-    
-    let filteredTransactions = transactions; // Default to the original transactions
+    const userId = req.session?.user?.employeeid;
 
-    if (discardedTransaction.length > 0) { 
-        const { data: discardedTransactionIds } = discardedTransaction[0]; 
-        filteredTransactions = transactions.filter(transaction => !discardedTransactionIds.includes(transaction.product_id)); // Adjust this if your transaction object has a different identifier 
+    if (!userId) {
+      return res.status(403).send('Unauthorized access');
     }
 
-    // console.log('filteredTransactions', filteredTransactions);
+    const [transactions, activities] = await Promise.all([
+      connection.retrieveTransactions(),
+      connection.getTransactionActivity()
+    ]);
 
-    res.render('pages/transactions/index', { 
-        title: 'Transactions',
-        transactions: filteredTransactions, // Use filteredTransactions here
-        moment: moment,
-        connection: connection,
-        predata: _preTransactionsData,
-        path: req.url,
-        steps: steps.sort((a, b) => b.id - a.id),
-        peso
-    }); // Pass the data to the template
+    const filteredActivity = activities.filter(activity =>
+      activity.assigned_to === userId
+    );
+
+    const productIds = filteredActivity.map(activity => activity.product_id);
+
+     // Filter transactions: created by or assigned to current user
+    const filteredTransactions = transactions.filter(txn =>
+      txn.prepared_by === userId || productIds.includes(txn.product_id)
+    );
+
+    res.render('pages/transactions/index', {
+      title: 'Transactions',
+      transactions: filteredTransactions,
+      countTransactions: filteredTransactions.length,
+      moment,
+      connection,
+      predata: _preTransactionsData,
+      path: req.url,
+      steps: activities.sort((a, b) => b.id - a.id),
+      peso
+    });
 
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching transactions:', error);
     res.status(500).send('Internal Server Error');
   }
-})
+});
 
 app.get('/transactions/new', restrict, async (req, res) => {
   try {
@@ -1403,22 +1457,23 @@ app.get('/transactions/scan', restrict, async (req, res) => {
 
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
-    const transactions = await connection.postTransactions( JSON.stringify(req.body) );
+    const { assigned_to, ...transactionData } = req.body;
+    const transactions = await connection.postTransactions( JSON.stringify(transactionData) );
 
     if(transactions?.affectedRows){
-      const {insertId} = transactions
+      const { insertId } = transactions
       const data = {
         "message": "New transaction was created",
         "link": insertId, 
         "component": "transactions",
-        // "created_at": convertDate(new Date())
       }
       await connection.postTransactionActivity(JSON.stringify({
         steps_number: 2,
-        trans_id: insertId,
+        product_id: insertId,
         status: "pending",
+        assigned_to,
       }))
-      const nofitifications = await connection.postNotifications(JSON.stringify(data))
+      await connection.postNotifications(JSON.stringify(data))
     }
     // console.log('transactions', transactions)
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
@@ -1449,6 +1504,7 @@ app.put('/transactions/update', restrict, async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 })
+
 app.put('/employees/update', restrict, async (req, res) => {
   try{
     const employee = await connection.amendEmployee(JSON.stringify(req.body))
@@ -1514,7 +1570,7 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
     const transactions = await connection.getTransactionById(transid);
     const remarks = await connection.getRemarksByRefid(transid)
     
-    const steps = await connection.getTransactionActivityId(JSON.stringify({trans_id: transid}))
+    const steps = await connection.getTransactionActivityId(JSON.stringify({product_id: transid}))
     
     console.log(steps.sort((a, b) => b.id - a.id))
 
@@ -1693,6 +1749,7 @@ app.post('/transcodes/new', restrict, async (req, res) => {
     res.status(500).send('Error addding transaction codes:', error);
   }
 })
+
 app.get('/employees', restrict, async (req, res) => {
   const employees = await connection.retrieveEmployee()
   const roles = await connection.retrieveEmployeeIdsWithRole()
@@ -1939,25 +1996,6 @@ app.get('/documents/:id', restrict, async function(req, res){
   }
 })
 
-// app.put('/document/:id', restrict, async function(req, res) {
-//   try {
-//     const updateDocumentData = {
-//       set: {
-//         attachments,
-//         updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-//       },
-//       where: {
-//         id
-//       }
-//     }
-//     // const transactions = await connection.updateDocumentTrackerStatus( updateDocumentData );
-//     res.status(200).json({ message: 'Document Successfully Updated!', response: transactions });
-//   } catch (error) {
-//     console.error('Failed to update the Document: ', error);
-//     res.status(500).send('Failed to update the Document');
-//   }
-// })
-
 app.post('/documents/:id/activity', restrict, async function(req, res){
   try { 
     const results = await connection.createDocumentTrackerActivity(JSON.stringify(req.body))
@@ -2003,7 +2041,7 @@ app.post("/approve", async (req, res) => {
     // console.log([trans_id, steps_number + 1])
     await connection.postTransactionActivity(JSON.stringify({
       status: 'pending', 
-      trans_id, 
+      product_id: trans_id, 
       steps_number: (steps_number + 1)
     }))
 

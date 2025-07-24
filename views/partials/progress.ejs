@@ -1,19 +1,22 @@
-<% if(progress > 0) {
+<% 
+  const {getDetails, getTitle} = STEPS
+  
+  if(progress > 0) {
     step = parseInt(progress)
 
     progress = Number((progress / length) * 100).toFixed(2);
-%> 
-<div class="progress">
+    %> 
+  <div class="progress">
     <div 
-        class="progress-bar" 
-        style="width: <%= progress %>%" 
-        role="progressbar" 
-        aria-valuenow="<%= progress %>" 
-        aria-valuemin="0" 
-        aria-valuemax="100" 
-        data-bs-toggle="tooltip" 
-        data-bs-placement="top" 
-        data-bs-title="<%= getStepTitle(step) %>"
+      class="progress-bar" 
+      style="width: <%= progress %>%" 
+      role="progressbar" 
+      aria-valuenow="<%= progress %>" 
+      aria-valuemin="0" 
+      aria-valuemax="100" 
+      data-bs-toggle="tooltip" 
+      data-bs-placement="top" 
+      data-bs-title="<%= getTitle(step) %>"
     ></div>
-</div>
+  </div>
 <% } %>

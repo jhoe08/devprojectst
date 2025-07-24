@@ -1,5 +1,5 @@
   <%
-    const {transactions, employees} = summary
+    const {transactions, totalTransactions, employees} = SUMMARY
     const { row_count:total_transactions } = JSON.parse(transactions)
     const { row_count:total_employees } = JSON.parse(employees)
   %>
@@ -63,7 +63,7 @@
           <li class="nav-item <%= isActive(currentPath, '/transactions') %>">
             <a href="/transactions">
               <i class="fas fa-file"></i>
-              <p>Lists <span class="badge badge-secondary pull-right"><%= total_transactions %></span></p>
+              <p>Lists <span class="badge badge-secondary pull-right"><%= totalTransactions %></span></p>
               <!-- <span class="caret"></span> -->
             </a>
           </li>

@@ -37,6 +37,7 @@
                           <table
                             id="transactions-datatables"
                             class="display table table-striped table-hover"
+                            data-transactions="<%= JSON.stringify(transactions) %>"
                           >
                             <thead>
                               <tr class="text-uppercase">
@@ -75,9 +76,6 @@
                             <tbody>
 
                               <% 
-                                function getStepsDetails(steps, transid) {
-                                  return steps.find(step => step.trans_id === transid);
-                                }
 
                                 for(var i=0; i < transactions.length; i++) { 
                                   var {pr_date, approved_budget, product_id, pr_classification, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code } = transactions[i]
@@ -92,23 +90,29 @@
                                   fund_source = JSON.parse(fund_source)
                                   fund_source = (Object.keys(fund_source).length === 0) ? '-' : fund_source.map(item => `${item.division}-${item.section}`).join(', ');
 
-                                  let current_step = getStepsDetails(steps, product_id)
-                                  current_step = current_step?.steps_number
-                                  
+                                  const { lists, getCurrentStep, getDetails, getTitle } = STEPS
 
-                                  let current_step_title = getStepTitle(current_step)
+
+                                  let current_step = getCurrentStep(steps, product_id)
+                                  current_step_number = current_step?.steps_number
+                                  current_step_title = getTitle(current_step_number)
+
                                   
                               %>
                                
                                 <tr 
-                                  data-steps="<%= JSON.stringify(getStepsDetails(steps, product_id)) %>" data-current-steps="<%= current_step %>" 
-                                  data-step-title="<%= current_step_title %>" 
+                                  data-steps="<%= JSON.stringify(getCurrentStep(steps, product_id)) %>" 
+                                  data-current-steps="<%= current_step_number %>" 
+                                  data-step-title="<%= current_step_title %>"
                                   data-index="<%= i %>"
                                   data-user-chief="<%= u_division %>"
                                   >
                                   
                                   <td data-head="Product ID"><%= product_id %></td>
-                                  <td data-head="Notice Title"><%= bid_notice_title %></td>
+                                  <td data-head="Notice Title">
+                                    <%= bid_notice_title %>
+                                    <%- include('../../views/partials/progress', {length: 30, progress: current_step_number, title: current_step_title }) %>
+                                  </td>
                                   <td data-head="Requistioner"><%= fullname %></td>
                                   <td data-head="Division"><%= division %></td>
                                   <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>" data-order="<%= moment(pr_date).unix(); %>"><%= date %></td>

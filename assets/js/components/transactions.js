@@ -246,7 +246,9 @@
           remarks: JSON.stringify({
             prepared_by: created_by.value,
             message: 'Created Transaction',
-          })
+          }),
+          prepared_by: created_by.value,
+          assigned_to: created_by.dataset.division.employeeid,
         };
 
         console.log('data', data)
@@ -740,6 +742,13 @@
       .catch(error => {
         notifyCustom('Error', error, 'danger')
       })
+    })
+  }
+
+  const assignedToBtn = document.getElementById('assignedToBtn');
+  if (assignedToBtn) {
+    assignedToBtn.addEventListener('click', function (){
+      const transid = this.dataset.transid
     })
   }
 

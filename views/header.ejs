@@ -64,6 +64,9 @@
       .nav .nav-item p {
         width: 100%;
       }
+      [data-head="Notice Title"] .progress {
+        height: 5px;
+      }
     </style>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -79,24 +82,23 @@
 
     </script>
   </head>
-  <%
-    const {employeeid, username, firstname, lastname, middlename } = SESSION_USER
-    let { directors, divisions } = JSON.parse(DEPARTMENT)
-  %>
-  <body data-env="<%= ENVIRONMENT %>" data-testmode="<%= TEST_MODE %>" data-currentuser="<%= JSON.stringify({employeeid, username}) %>" data-user-role="<%= currentRole %>" data-user-designation="<%= JSON.stringify(userDesignation) %>">
 
-<% if(SESSION_USER){
-  const { employeeid, username, firstname, lastname, middlename, experience } = SESSION_USER;
-  const { lists } = JSON.parse(experience)
-  let { office, salary, startdate, enddate, position, division:section, banner } = lists[0] 
-  section = section.toUpperCase()
+  <body data-env="<%= ENVIRONMENT %>" data-testmode="<%= TEST_MODE %>" %>">
+
+<% 
+  const { divisions } = JSON.parse(DEPARTMENT)
+  if(SESSION_USER){
+    const { employeeid, username, firstname, lastname, middlename, experience } = SESSION_USER;
+    const { lists } = JSON.parse(experience)
+    let { office, salary, startdate, enddate, position, division, section, banner } = lists[0] 
+    section = section.toUpperCase()
 
 %>
   <input 
     id="created_by" 
     type="hidden"
     value="<%= username %>" 
-    data-responsible="<%= JSON.stringify(getUserResponsible(findDivisionBySection(divisions, section), section)) %>"
+    data-responsible="<%= JSON.stringify(getUserResponsible(division, section)) %>"
     />
   <input id="session_firstname" type="hidden" value="<%= firstname %>">
   <input id="session_middlename" type="hidden" value="<%= middlename %>">
@@ -104,6 +106,6 @@
   <input id="session_userDivision" type="hidden" value="<%= findDivisionBySection(divisions, section) %>">
   <input id="session_userBanner" type="hidden" value="<%= section %>">
   <input id="session_userPosition" type="hidden" value="<%= position %>">
-  <input id="session_userRole" type="hidden" value="<%= userDesignation?.role %>">
+  <input id="session_userRole" type="hidden" value="<%= SESSION_USER_LOG.designation?.role %>">
   
 <% } %>

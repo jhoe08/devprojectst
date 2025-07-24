@@ -3,15 +3,14 @@ let mysql = require('mysql');
 let moment = require('moment')
 const misc = require("./misc")
 const { isValidJSON } = require("./utils");
-const { reject } = require('bcrypt/promises');
-const { connect } = require('../routes/root');
 
 const { hashPassword, registerUser, loginUser } = misc
 
 let prefix = 'transto'
 const tables = {
   employee: 'employees',
-  transaction: 'transid',
+  transaction: 'transactions',
+  transaction_activity: 'transactions_activity',
   remark: 'remarks',
   document: 'documents',
 
@@ -90,7 +89,7 @@ const databaseUtils = {
         'transactions' AS table_name,
         COUNT(*) AS row_count,
         SUM(approved_budget) AS total_sum
-      FROM ${prefix}.transid
+      FROM ${prefix}.${tables.transaction}
 
       UNION ALL
 
@@ -111,7 +110,7 @@ const databaseUtils = {
   }),
   countPerPRClassification: async () => {
     try {
-      const distinctClassifications = await databaseUtils.getDistinct('pr_classification', 'transid');
+      const distinctClassifications = await databaseUtils.getDistinct('pr_classification', 'transactions');
       let classificationsArray = distinctClassifications.map(row => `'${row.pr_classification}'`);
 
       if (classificationsArray.length === 0) {
@@ -123,7 +122,7 @@ const databaseUtils = {
                                 pr_classification,
                                 COUNT(*) AS item_count
                             FROM 
-                                ${prefix}.transid
+                                ${prefix}.${tables.transaction}
                             WHERE 
                                 pr_classification IN (${classificationList})
                             GROUP BY 
@@ -146,7 +145,7 @@ const databaseUtils = {
     }
   },
   countTotalRows: (table) => new Promise((resolve, reject) => {
-    connection.query(`SELECT count(${table}) as total FROM ${prefix}.transid`, (error, results) => {
+    connection.query(`SELECT count(${table}) as total FROM ${prefix}.${tables.transaction}`, (error, results) => {
       if (error) {
         reject(error);
       } else {
@@ -155,7 +154,7 @@ const databaseUtils = {
     });
   }),
   getTotalApprovedBudget: () => new Promise((resolve, reject) => {
-    connection.query(`SELECT sum(approved_budget) as total FROM ${prefix}.transid`, (error, results) => {
+    connection.query(`SELECT sum(approved_budget) as total FROM ${prefix}.${tables.transaction}`, (error, results) => {
       if (error) {
         reject(error);
       } else {
@@ -185,7 +184,7 @@ const databaseUtils = {
         COUNT(*) AS row_count,
         SUM(approved_budget) AS total_abc,
         SUM(amount) AS total_amount
-      FROM transto.transid`;
+      FROM transto.${tables.transaction}`;
 
     return new Promise((resolve, reject) => {
         connection.query(query, (error, results) => {
@@ -198,7 +197,7 @@ const databaseUtils = {
       });
   },
   getTransactions: () => new Promise((resolve, reject) => {
-    connection.query(`SELECT * FROM ${prefix}.transid`, (error, results) => {
+    connection.query(`SELECT * FROM ${prefix}.${tables.transaction}`, (error, results) => {
       if (error) {
         reject(error);
       } else {
@@ -207,7 +206,7 @@ const databaseUtils = {
     });
   }),
   getTransactionById2: (id) => new Promise((resolve, reject) => {
-    connection.query(`SELECT * FROM ${prefix}.transid WHERE product_id=${id}`, (error, results) => {
+    connection.query(`SELECT * FROM ${prefix}.${tables.transaction} WHERE product_id=${id}`, (error, results) => {
       if (error) {
         reject(error);
       } else {
@@ -217,7 +216,7 @@ const databaseUtils = {
   }),
   getTransactionById: async (id) => {
     let data = { product_id: id }
-    return await databaseUtils.retrieveData('transid', '*', data)
+    return await databaseUtils.retrieveData('transactions', '*', data)
   },
   getEmployeeById: (id) => new Promise((resolve, reject) => {
     connection.query(`SELECT * FROM ${prefix}.employees WHERE employeeid=${id}`, (error, results) => {
@@ -229,23 +228,14 @@ const databaseUtils = {
       error ? reject(error) : resolve(results);
     })
   }),
-  postTransactions: (data) => new Promise((resolve, reject) => {
-    // console.log(data)
-    let { bid_notice_title, pr_classification, requisitioner, division, approved_budget, banner_program, bac_unit, fund_source, remarks } = JSON.parse(data)
+  postTransactions: async (data) => {
+    const enrichedData = {
+      ...data,
+      pr_date: convertDate(new Date()) // or use Date.now() for a timestamp
+    };
 
-    if (isEmpty(bid_notice_title) || isEmpty(pr_classification) /*|| isEmpty(fund_source)*/) { reject('Fields are empty!'); return }
-
-    let pr_date = convertDate(new Date())
-
-    connection.query(`INSERT INTO transid (bid_notice_title, requisitioner, division, pr_classification, approved_budget, fund_source, banner_program, bac_unit, remarks, pr_date)
-        VALUES ('${bid_notice_title}', '${requisitioner}', '${division}', '${pr_classification}', ${approved_budget}, '${fund_source}', '${banner_program}', '${bac_unit}', '${remarks}', '${pr_date}')`, (error, results) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results);
-      }
-    })
-  }),
+    return await databaseUtils.storeData(tables.transaction, enrichedData);
+  },
   postRemarks: (data) => new Promise((resolve, reject) => {
     let { comment, user, refid, status, dueDate } = JSON.parse(data)
     let date = convertDate(new Date(), 0) // No additional hours
@@ -275,7 +265,7 @@ const databaseUtils = {
   }),
   putTransactions: async (data) => {
     console.log('data - updating transactions', data)
-    return await databaseUtils.amendData('transid', data)
+    return await databaseUtils.amendData('transactions', data)
   },
   hideToDisplay: async (component, id) => {
     try {
@@ -322,7 +312,7 @@ const databaseUtils = {
   updateTransactionCodes: async (data) => {
     try {
       const { transid, code } = JSON.parse(data)
-      let rows = await databaseUtils.retrieveData('transid', 'trans_code', { 'product_id': transid })
+      let rows = await databaseUtils.retrieveData('transactions', 'trans_code', { 'product_id': transid })
       console.log(rows[0])
       if (rows.length > 0) {
         let codes = rows[0].trans_code;
@@ -331,7 +321,7 @@ const databaseUtils = {
         if (!codes.includes(code)) { codes.push(code) }
 
         new Promise((resolve, reject) => {
-          connection.query(`UPDATE ${prefix}.transid SET trans_code = ? WHERE product_id = ?`, [JSON.stringify(codes), transid], (error, results) => {
+          connection.query(`UPDATE ${prefix}.${tables.transaction} SET trans_code = ? WHERE product_id = ?`, [JSON.stringify(codes), transid], (error, results) => {
             if (error) reject(error);
             else resolve(results);
           });
@@ -414,10 +404,10 @@ const databaseUtils = {
   retrieveTransactions: async (data) => {
     if (data) {
       data = JSON.parse(data)
-      return await databaseUtils.retrieveData('transid', '*', data)
+      return await databaseUtils.retrieveData('transactions', '*', data)
     }
 
-    return await databaseUtils.retrieveData('transid')
+    return await databaseUtils.retrieveData('transactions')
   },
   getData: (table) => new Promise((resolve, reject) => {
     let query = `SELECT * FROM ${prefix}.${table}`;
@@ -658,7 +648,7 @@ const databaseUtils = {
                         FROM
                             ${prefix}.remarks AS remarks
                                 JOIN
-                            ${prefix}.transid AS transactions ON remarks.refid = transactions.product_id
+                            ${prefix}.${tables.transaction} AS transactions ON remarks.refid = transactions.product_id
                         WHERE
                             remarks.date >= CURDATE() - INTERVAL 7 DAY;`
 
@@ -696,17 +686,17 @@ const databaseUtils = {
   },
   // Transaction Activity
   postTransactionActivity: async (data) => {
-    return await databaseUtils.storeData('transid_activity', data)
+    return await databaseUtils.storeData(`${tables.transaction_activity}`, data)
   },
 
   getTransactionActivity: async (data) => {
-    return await databaseUtils.getData('transid_activity')
+    return await databaseUtils.getData(`${tables.transaction_activity}`)
   },
   getTransactionActivityId: async (data) => {
-    return await databaseUtils.getDataById('transid_activity', data)
+    return await databaseUtils.getDataById(`${tables.transaction_activity}`, data)
   },
   updateTransactionActivity: async (data) => {
-    return await databaseUtils.amendData('transid_activity', data)
+    return await databaseUtils.amendData(`${tables.transaction_activity}`, data)
   },
   // endof Transaction Activity
   retrieveDocuments: async (table, data) => {

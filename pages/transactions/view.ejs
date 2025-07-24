@@ -1,25 +1,20 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
-<%
-if(logonUser) {
-  logonUser = JSON.stringify(logonUser)
-  const { experience } = logonUser || {}
-  if(experience) {
-      const { lists } = JSON.parse(experience)
-      const { position, division: employeeDivision } = lists[0] || {}
-
-      console.log(`asd ${division}`)
+<% 
+  let sessionUserPosition = ''
+  if (SESSION_USER_LOG) {
+    const { designation, division, employeeid } = SESSION_USER_LOG
+    sessionUserPosition = designation.position
+    sessionUserPosition = sessionUserPosition.toLowerCase()
   }
-
-} %>
-<% if(transactions) { 
-  const {product_id, pr_date} = transactions
-  const { fullname, division } = JSON.parse(getEmployeeById(transactions?.requisitioner))
-  const requestID = addLeadingZeros(product_id)
-  const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
+  if (transactions) {
+    const { product_id, pr_date } = transactions
+    const { fullname, division } = JSON.parse(getEmployeeById(transactions?.requisitioner))
+    const requestID = addLeadingZeros(product_id)
+    const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
 
   %>
-<div class="wrapper">
+<div class="wrapper" session-user-position="<%= sessionUserPosition %>">
     <%- include('../../views/sidebar') -%>
 
     <div class="main-panel">
@@ -33,14 +28,14 @@ if(logonUser) {
               </div>
               <div class="col-md-6">
                   <h3 class="fw-bold mb-3"><%- transactions.bid_notice_title -%></h3>
-                  <h6 class="text-muted">System Generated Code: <small id="trackingCode"><%=trackerid%></small></h6>
+                  <h6 class="text-muted">System Generated Code: <small id="trackingCode"><%= trackerid %></small></h6>
                   
                   <%- include('../../views/partials/progress', {length: 30, progress: steps[0]?.steps_number, title: steps[0]?.steps_title }) -%>
               </div>
               <div class="ms-md-auto py-2 py-md-0">
                   <a href="/transactions/<%- transactions.product_id -%>/print" class="btn btn-label-info btn-round me-2" id="btnPrint"><i class="fas fa-print"></i> Print</a>
                   <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add Remarks</a>
-                   <% if(['Admin', 'SuperAdmin'].includes(currentRole)){ %>
+                   <% if(['chief', 'CHIEF'].includes(sessionUserPosition)){ %>
                   <a id="approveBtn" href="#" class="btn btn-success btn-round"><i class="fas fa-check"></i> Approve</a>
                   <a id="disapproveBtn" href="#" class="btn btn-danger btn-round"><i class="fas fa-times"></i> Disapprove</a>
                   <% } %>
@@ -208,9 +203,9 @@ if(logonUser) {
                     <div class="card-header">
                       <div class="card-head-row card-tools-still-right">
                         <div class="card-title">Next Responsible Person</div>
-                        <button class="btn btn-warning btn-round ms-auto" id="forwardBtn">
+                        <button class="btn btn-warning btn-round ms-auto" id="assignedToBtn">
                           <i class="fa fa-forward"></i>
-                          Forward
+                          Assigned To
                         </button>
                       </div>
                     </div>
@@ -268,7 +263,7 @@ if(logonUser) {
 </div>
 
 <!-- Transaction: Remarks -->
-<%- include('../../components/modals/transactions/remark') -%>
+<%- include('../../components/modals/remark') -%>
 <!-- Transaction: Codes -->
 <%- include('../../components/modals/transactions/code') -%>
 <!-- Transaction: PO Number -->
@@ -279,6 +274,6 @@ if(logonUser) {
 <!-- <script> 
   new QRCode(`transid-<%- transactions.product_id %>`, `<%- transactions.product_id %>`); 
 </script> -->
-<% } %> endof IF transactions
+<% } %>
 <!-- Footer Template -->
 <%- include('../../views/footer') -%>

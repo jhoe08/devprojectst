@@ -1,6 +1,7 @@
 <%
     <!-- var {divisions, banner_program} = dafaultTransactionData -->
     let { directors, divisions, permissions, bacs } = JSON.parse(DEPARTMENT) 
+    const { designation: userDesignation } = SESSION_USER_LOG
     let e_division = userDesignation.division
 
     directors = Object.entries(directors)
