@@ -31,14 +31,6 @@
           sessionStorage.fonts = true;
         },
       });
-
-      // Number Format
-      // const locale = 'en';
-      // const options = {style: 'currency', currency: 'php', minimumFractionDigits: 2, maximumFractionDigits: 2};
-      // let formatter = new Intl.NumberFormat(locale, options);
-      // // How to use
-      // var amount = 5000.25;
-      // console.log(formatter.format(amount));
       
     </script>
     <script src="/assets/js/core/qrcode.min.js"></script>
@@ -61,34 +53,43 @@
     <link rel="stylesheet" href="/assets/css/print.css" />
     <link rel="stylesheet" href="/assets/css/transactions.css" />
     <style>
+      body {
+        &.superclass {
+          --primary-green: #386641;
+          --primary-orange: #F97A00;
+          --secondary-orange: #FED16A;
+          --bs-white: #FFF4A4;
+
+          background: var(--bs-white);
+        }
+        &.superclass {
+          [data-background-color=green2] {
+            background: var(--primary-green) !important;
+          }
+          [data-background-color=orange2] {
+            background: var(--primary-orange) !important;
+          }
+          [data-background-color="white"] {
+          }
+        }
+      }
       .nav .nav-item p {
         width: 100%;
       }
       [data-head="Notice Title"] .progress {
         height: 5px;
       }
-    </style>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
-        if(calendarEl){
-          var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth'
-          });
-          calendar.render();
-        }
-        
-      });
 
-    </script>
+      
+    </style>
   </head>
 
-  <body data-env="<%= ENVIRONMENT %>" data-testmode="<%= TEST_MODE %>" %>">
+  <body class='<%= hasAllowedRole(["SuperAdmin"]) ? "superclass" : "" %>' data-env="<%= ENVIRONMENT %>" data-testmode="<%= TEST_MODE %> %>">
 
 <% 
   const { divisions } = JSON.parse(DEPARTMENT)
   if(SESSION_USER){
-    const { employeeid, username, firstname, lastname, middlename, experience } = SESSION_USER;
+    const { employeeid, username, firstname, lastname, middlename, experience, roles } = SESSION_USER;
     const { lists } = JSON.parse(experience)
     let { office, salary, startdate, enddate, position, division, section, banner } = lists[0] 
     section = section.toUpperCase()
@@ -97,15 +98,14 @@
   <input 
     id="created_by" 
     type="hidden"
-    value="<%= username %>" 
+    value="<%= JSON.stringify({employeeid, name: `${firstname} ${middlename[0]} ${lastname}` }) %>" 
     data-responsible="<%= JSON.stringify(getUserResponsible(division, section)) %>"
+    data-user-role="<%= roles %>"
+    data-has-allowed-roles="<%= hasAllowedRole(roles) %>"
     />
-  <input id="session_firstname" type="hidden" value="<%= firstname %>">
-  <input id="session_middlename" type="hidden" value="<%= middlename %>">
-  <input id="session_lastname" type="hidden" value="<%= lastname %>">
-  <input id="session_userDivision" type="hidden" value="<%= findDivisionBySection(divisions, section) %>">
-  <input id="session_userBanner" type="hidden" value="<%= section %>">
-  <input id="session_userPosition" type="hidden" value="<%= position %>">
-  <input id="session_userRole" type="hidden" value="<%= SESSION_USER_LOG.designation?.role %>">
-  
+  <input 
+    id="sessionUser"
+    type="hidden"
+    data-details="<%= JSON.stringify(SESSION_USER_LOG) %>"
+    />
 <% } %>

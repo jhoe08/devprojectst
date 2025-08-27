@@ -125,7 +125,7 @@ if(text) {
             // console.log(qrNumber)
             if (!tempQRCodes.includes(qrNumber) && qrNumber !== "") {
                 const data = await fetchQRCode(qrNumber);
-                console.log('data', data)
+                // console.log('data', data)
                 const { response, component } = data;
 
                 let tempTitle, tempCreatedBy = '';
@@ -158,6 +158,7 @@ if(text) {
 
 if(createRemarks) {
     let comment = document.querySelector('#comment')
+    let assignedto = document.querySelector('#assignedto')
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -180,7 +181,8 @@ if(createRemarks) {
                 refid: transid, 
                 status: selectedStatusValue,
                 user:'justjoe',
-                dueDate: checkedCheckboxes
+                dueDate: checkedCheckboxes,
+                assignedto: assignedto.checked,
             }
             console.log(preloaded)
             const apiUrl = '/remarks/new'
@@ -302,7 +304,6 @@ const transactionsIDs = $("#basicDatatables").DataTable()
 function addNewRow(data) {
     // console.log(data)
     const { component, tempTitle, tempCreatedBy } = data
-    alert('component', component)
     const newRowData = [
         tempTitle,           // Product ID
         component,           // Notice Title

@@ -3,7 +3,7 @@
 <% 
 
   let { directors, divisions } = JSON.parse(DEPARTMENT)
-  const { experience } = SESSION_USER
+  const { firstname, experience } = SESSION_USER
   const { lists } = JSON.parse(experience)
   const { office, salary, startdate, enddate, position, division, banner } = lists[0] 
 
@@ -15,7 +15,7 @@
     return role ? role.role_name : 'Role not found';
   }
 %>
-<div class="wrapper" data-role="<%=currentRole%>" data-test="<%= currentRole.includes(['Contributor', 'Viewer']) %>" data-position="<%=position%>">
+<div class="wrapper">
     <%- include('../../views/sidebar') -%>
 
     <div class="main-panel">
@@ -30,8 +30,9 @@
                   </div>
                   <div class="ms-md-auto py-2 py-md-0">
                     <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="employees" data-column="4,8">Manage</a>
-                  <% if (currentRole=='SuperAdmin') { %>
-                    <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#addEmployeeModal"><i class="fas fa-plus"></i> Add New</a>
+                  <% if (hasAllowedRole(["SuperAdmin"])) { %>
+                    <!-- <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#addEmployeeModal"><i class="fas fa-plus"></i> Add New</a> -->
+                     <a href="/employees/register" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Add New</a>
                   <% } %>
                   </div>
                 </div>
@@ -92,7 +93,7 @@
                                       var { lists } = experience ? JSON.parse(experience) : {}
                                       
                                       if (lists) {
-                                        var { office, division, banner, salary, status, enddate, position, startdate, employment, arrangements } = lists[0];
+                                        var { office, division, section, salary, status, enddate, position, startdate, employment, arrangements } = lists[0];
                                       }
                                       
                                       var today = moment()
@@ -104,19 +105,20 @@
                                       <td data-column="position" class="text-capitalize" ><%= position || '-' %></td>
                                       <td data-column="office"><%= office || '-' %></td>
                                       <td class="text-uppercase" data-column="division" data-order="<%= division %>">
-                                        <%= findDivisionBySection(divisions, division) %>
-                                        <span class="badge badge-info"><%= division %></span>
+                                        <%= division %>
+                                        <span class="badge badge-info"><%= section %></span>
                                       </td>
                                       <td data-column="age"><%= age %></td>
                                       <td data-column="startdate"><%= moment(startdate).format('LL') || '-' %></td>
-                                      <td data-column="salary"><%= peso(salary) || '-' %></td>
+                                      <td data-column="salary"><%= UTILS.peso(salary) || '-' %></td>
                                       <td data-column="username"><%= username %></td>
                                       <td data-column="password"><%= password ? '•••••••' : '' %></td>
                                       <td>
                                         <div class="form-button-action" data-employeeid="<%= employeeid %>">
-                                          <a href="/employees/<%= employeeid %>" data-transid="<%= employeeid %>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="View Employee">
+                                          <a href="/employees/<%= employeeid %>/profile" data-transid="<%= employeeid %>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="View Employee">
                                             <i class="fa fa-eye"></i>
                                           </a>
+                                          <% if (hasAllowedRole(["SuperAdmin"])) { %>
                                           <a href="/employees/<%= employeeid %>/update" data-transid="<%= employeeid %>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Edit Employee">
                                             <i class="fa fa-edit"></i>
                                           </a>
@@ -124,17 +126,15 @@
                                           <button data-bs-toggle="modal" data-bs-target="#rolesModal"  data-bs-toggle="tooltip" title="Add Role" class="btn btn-link btn-warning" data-role="<%=getRoleByEmployeeId(employeeid)%>">
                                             <i class="fa fa-user" ></i>
                                           </button>
+                                          
                                           <button data-id="<%= employeeid %>" data-name="<%= [firstname, middlename ? middlename.charAt(0) + '.' : '', lastname, extname].filter(Boolean).join(' ') %>" type="button" data-bs-toggle="tooltip" title="Delete?" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_<%= employeeid %>">
                                             <i class="fa fa-trash"></i>
                                           </button>
+                                          <% } %>
                                         </div>
                                       </td>
                                     </tr>
-                                  <% }) } else { %>
-                                    <tr>
-                                      <td>No Records is Found</td>
-                                    </tr>
-                                  <% }  %>
+                                  <% }) } %>
                                 </tbody>
                               </table>
                             </div>

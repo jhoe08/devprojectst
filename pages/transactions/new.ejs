@@ -166,7 +166,7 @@
                           </div>
                       </div>
                       <div class="col-md-8 ml-0">
-                          <%- include('../../views/partials/selectDivisions', { key }) %>
+                          <%- include('../../views/partials/selectDivisions', { key, filtered: (transactions) ? section : '' }) %>
                       </div>
                       <div class="col-md-3">
                         <div class="form-group form-group-default">
@@ -186,7 +186,7 @@
                           </div>
                       </div>
                       <div class="col-md-8 ml-0">
-                        <%- include('../../views/partials/selectDivisions', { key: 0}) %>
+                        <%- include('../../views/partials/selectDivisions', { key: 0, filtered: (transactions) ? section : ''}) %>
                       </div>
                       <div class="col-md-3">
                         <div class="form-group form-group-default">

@@ -179,6 +179,15 @@
       fieldsUpdated(container)
 
       updateEmployee.addEventListener('click', function(){
+
+        if(typeof division == 'undefined' || division === null) {
+          division  = document.getElementById('division_0')
+          sectionValue = division.dataset.selected
+          divisionValue = division.dataset.division
+
+          console.log({sectionValue, divisionValue})
+        }
+
         extname = document.querySelector('input[name="nameExtension"]:checked')
         var checkedComponents = document.querySelectorAll('input[name="components"]:checked');
         var checkedComponentsValues = Array.from(checkedComponents).map(function(checkbox) {
@@ -200,7 +209,8 @@
           experience: {
             lists: [{
               office: companyname.value,
-              division: division.value,
+              division: divisionValue ?? division.value,
+              section: sectionValue ?? division.value,
               salary: salary.value,
               status: true,
               enddate: 'present',
@@ -229,8 +239,30 @@
         if(!lastname.classList.contains('updated')) delete data.lastname
         if(!extname.classList.contains('updated')) delete data.extname
         if(!dob.classList.contains('updated')) delete data.birthdate
-        if(!checkedComponents.closest('.selectgroup').classList.contains('updated')) delete data.checkedComponents
-        if(!checkedRoles.closest('.selectgroup').classList.contains('updated')) delete data.checkedRoles
+        // const componentSelect = checkedComponents.closest('.selectgroup')
+        // const roleSelect = checkedRoles.closest('.selectgroup')
+        // if(componentSelect && !componentSelect.classList.contains('updated')) delete data.checkedComponents
+        // if(roleSelect && !roleSelect.classList.contains('updated')) delete data.checkedRoles
+
+        // Check if ANY of the checked components are inside a .selectgroup with class 'updated'
+        const hasUpdatedComponents = Array.from(checkedComponents).some(component => {
+          const selectGroup = component.closest('.selectgroup');
+          console.log({selectGroup: selectGroup.classList.contains('updated')})
+          return selectGroup && selectGroup.classList.contains('updated');
+        });
+
+        if (!hasUpdatedComponents) {
+          delete data.components;
+        }
+
+        const hasUpdatedRoles = Array.from(checkedRoles).some(role => {
+          const selectGroup = role.closest('.selectgroup')
+          return selectGroup && selectGroup.classList.contains('updated')
+        })
+
+        if(!hasUpdatedRoles) {
+          delete data.roles;
+        }
     
         
         data.experience = JSON.stringify(experience)

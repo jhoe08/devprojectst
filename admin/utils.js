@@ -1,4 +1,5 @@
 const moment = require('moment')
+const crypto = require('crypto');
 
 const utils = {
   peso(amount) {
@@ -83,6 +84,9 @@ const utils = {
   },
   isActive(currentPath, pathToCheck) {
     return (currentPath === pathToCheck) ? 'active' : '';
+  },
+  generateGuestToken() {
+    return crypto.randomBytes(24).toString('hex');
   }
 }
 

@@ -8,12 +8,12 @@
         <div class="modal-body">
           <div class="row mb-3 mt-3">
             <div class="form-group hidden">
-              <label>Current Approver</label>
-              <input id="Name" type="text" class="form-control" placeholder="Fill Name">
+              <label for="currentApprover">Current Approver</label>
+              <input id="currentApprover" name="currentApprover" type="text" class="form-control" placeholder="Fill Name">
             </div>
             <div class="form-group">
-              <label class="form-label">Select Status</label>
-              <div class="row gutters-xs">
+              <label for="selectedStatus" class="form-label">Select Status</label>
+              <div id="selectedStatus" class="row gutters-xs">
                 <div class="col-auto">
                   <label class="colorinput">
                     <input name="color" type="radio" value="black" class="colorinput-input">
@@ -71,8 +71,8 @@
               </select>
             </div>
             <div class="form-group hidden">
-              <label for="purchaseRequestStatuses">Select Funds Availability</label>
-              <select class="form-select form-control" id="purchaseRequestStatuses">
+              <label for="fundsAvailability">Select Funds Availability</label>
+              <select class="form-select form-control" id="fundsAvailability">
                 <% if(purchaseRequestStatuses) {
                   purchaseRequestStatuses.forEach(status => {
                 %>
@@ -86,9 +86,15 @@
               <label for="comment">Comment</label>
               <textarea class="form-control" id="comment" rows="5" required></textarea>
             </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="assignedto">
+              <label class="form-check-label" for="assignedto">
+                Assign to me
+              </label>
+            </div>
             <div class="form-group hidden">
-              <label class="form-label">Reglementary Period</label>
-              <div class="selectgroup selectgroup-pills">
+              <label for="reglementaryPeriod" class="form-label">Reglementary Period</label>
+              <div id="reglementaryPeriod" class="selectgroup selectgroup-pills">
                 <label class="selectgroup-item">
                   <input type="checkbox" name="period" value="1" class="selectgroup-input" checked="">
                   <span class="selectgroup-button">1hr</span>
@@ -117,14 +123,6 @@
                   <input type="checkbox" name="period" value="72" class="selectgroup-input">
                   <span class="selectgroup-button">3 Days</span>
                 </label>
-              </div>
-            </div>
-            <div class="form-group hidden">
-              <label class="form-label">Reglementary Period</label>
-              <div class="input-group input-daterange">
-                <input type="date" class="form-control" name="dateIn">
-                <div class="input-group-addon" style="padding: 10px;">to</div>
-                <input type="date" class="form-control" name="dateOut">
               </div>
             </div>
             <div class="form-group hidden">

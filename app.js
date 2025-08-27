@@ -15,9 +15,17 @@ const moment = require('moment');
 const bodyParser = require('body-parser');
 const ejs = require('ejs')
 const session = require('express-session');
-const passport = require('passport');
-const LocalStrategy = require('passport-local');
-const hash = require('pbkdf2-password')()
+const MySQLStore = require('express-mysql-session')(session);
+
+const sessionStore = new MySQLStore({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE
+});
+
+
 const bcrypt = require('bcrypt')
 const saltRounds = 10
 const cron = require('node-cron');
@@ -38,6 +46,7 @@ const jwt = require('jsonwebtoken');
 const { exit } = require('process');
 const { count, table } = require('console');
 const { permission } = require('node:process');
+const { trace } = require('node:console');
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
@@ -131,60 +140,54 @@ const purchaseRequestStatuses = [
   "Backordered"          // The PR items are on backorder and will arrive later.
 ];
 
-const purchaseRequestRoles = [
-  {
-    role: "Reciever",
-    description: "The individual or department that identifies as someone to recieve the purchase request."
-  },
-  {
-    role: "Requester (Initiator)",
-    description: "The individual or department that identifies the need for a product or service and submits the purchase request."
-  },
-  {
-    role: "Approver",
-    description: "The person who reviews and approves the purchase request before it moves forward in the process."
-  },
-  {
-    role: "Reviewer",
-    description: "The person who ensures that the PR is complete and follows organizational policies before it reaches the approver."
-  },
-  {
-    role: "Canvasser",
-    description: "The person or team responsible for gathering price quotes from suppliers to compare costs and find the best option."
-  },
-  {
-    role: "Procurement Officer / Buyer",
-    description: "The professional responsible for sourcing, negotiating, and issuing a purchase order after the PR is approved."
-  },
-  {
-    role: "Budget Holder / Finance Officer",
-    description: "Responsible for ensuring that the purchase is within the organization's budget."
-  },
-  {
-    role: "Finance/Accounts Department",
-    description: "Ensures the financial aspects of the purchase, including payment processing and invoice reconciliation."
-  },
-  {
-    role: "Receiving Clerk / Warehouse Manager",
-    description: "Confirms that the purchased items are delivered and match the specifications in the PR/PO."
-  },
-  {
-    role: "Legal/Compliance Officer",
-    description: "Reviews contracts, terms, and conditions related to the purchase to ensure compliance with laws and policies."
-  },
-  {
-    role: "Supplier / Vendor",
-    description: "The external party that provides the goods or services, responds to quotes, and delivers as per the PO."
-  },
-  {
-    role: "Accounts Payable (AP)",
-    description: "The department responsible for processing payments to suppliers once goods or services are delivered."
-  },
-  {
-    role: "Internal Audit",
-    description: "Internal auditors review the purchase request and procurement process for compliance with company policies and legal regulations."
-  }
-];
+const purchaseRequestRoles = {
+  "End-User": [
+    "preparation",
+    "final_review",
+    "acceptance",
+    "final_acceptance",
+    "inspection_scheduling",
+    "documentation"
+  ],
+  "Program Coordinator": ["final_review"],
+  "Division Chief": [
+    "division_head_approval",
+    "final_review",
+    "voucher_approval"
+  ],
+  "Budget Section": ["earmarking", "fund_allocation"],
+  "Procurement Section (PS)": [
+    "philgesp_posting",
+    "preparation_quotation_form",
+    "procurement_finalization",
+    "po_preparation",
+    "award_preparation"
+  ],
+  "BAC Secretariat": [
+    "bac_review",
+    "delivery_confirmation",
+    "bac_evaluation"
+  ],
+  "BAC Members": ["bac_evaluation"],
+  "Canvassers": ["canvassing"],
+  "Supplier/Contractors": ["supplier_engaged"],
+  "RED/RTD": [
+    "executive_approval",
+    "executive_signoff",
+    "delivery_approval",
+    "final_signoff"
+  ],
+  "Admin Chief": ["final_signoff"],
+  "Accounting Section": [
+    "obligation_request",
+    "voucher_preparation",
+    "liquidation"
+  ],
+  "General Services Section": ["delivery_preparation", "inspection_scheduling", "documentation"],
+  "RAED": ["inspection_scheduling"],
+  "Inspectors": ["inspection"],
+  "Cashering Unit": ["payment_processing", "release_funds"]
+};
 
 // =========================
 // Permissions Configuration
@@ -635,39 +638,67 @@ const fundsAvailability = [
 // Approval Steps (SVP)
 // =========================
 const approvalStepsSVP = [
-  { id: 1, steps_title: "End-User" },
-  { id: 2, steps_title: "Division Chief" },
-  { id: 3, steps_title: "Budget Section" },
-  { id: 4, steps_title: "Procurement Section (PS)" },
-  { id: 5, steps_title: "BAC Secretariat" },
-  { id: 6, steps_title: "Procurement Section (PS)" },
-  { id: 7, steps_title: "Canvassers" },
-  { id: 7.1, steps_title: "Supplier/Contractors" },
-  { id: 8, steps_title: "BAC & BAC Sec." },
-  { id: 9, steps_title: "Procurement Section (PS)" },
-  { id: 10, steps_title: "RED/RTD" },
-  { id: 11, steps_title: "BAC Sec./ Procurement Section (PS)" },
-  { id: 12, steps_title: "Procurement Section (PS)" },
-  { id: 13, steps_title: "End-User/Program Coor./Division Chief" },
-  { id: 14, steps_title: "Budget Section" },
-  { id: 15, steps_title: "Accounting Section" },
-  { id: 16, steps_title: "RED/RTD" },
-  { id: 17, steps_title: "General Services Section" },
-  { id: 18, steps_title: "RED/RTD" },
-  { id: 19, steps_title: "BAC Sec." },
-  { id: 20, steps_title: "GS/RAED/End-User" },
-  { id: 21, steps_title: "Inspectors" },
-  { id: 22, steps_title: "End-Users" },
-  { id: 23, steps_title: "GS/End-Users" },
-  { id: 24, steps_title: "End-Users" },
-  { id: 25, steps_title: "Accounting Section" },
-  { id: 26, steps_title: "Division Chief" },
-  { id: 27, steps_title: "Cashering Unit" },
-  { id: 28, steps_title: "Accounting Section" },
-  { id: 29, steps_title: "RED/RTD/Admin Chief" },
-  { id: 30, steps_title: "Cashering Unit" }
+  { id: 1, steps_title: "End-User", stage: "prepared_by" },
+  { id: 2, steps_title: "Division Chief", stage: "division_head_approval" },
+  { id: 3, steps_title: "Budget Section", stage: "budget_earmarking" },
+  { id: 4, steps_title: "Procurement Section", stage: "philgeps_posting" },
+  { id: 5, steps_title: "BAC Secretariat", stage: "bac_review" },
+  { id: 6, steps_title: "Procurement Section", stage: "quotation_form_preparation" },
+  { id: 7, steps_title: "Canvassers", stage: "canvassing" },
+  { id: 8, steps_title: "Supplier/Contractors", stage: "supplier_engagement" },
+  { id: 9, steps_title: "BAC & BAC Secretariat", stage: "bac_evaluation" },
+  { id: 10, steps_title: "Procurement Section", stage: "procurement_finalization" },
+  { id: 11, steps_title: "RED/RTD", stage: "executive_approval" },
+  { id: 12, steps_title: "BAC Secretariat & Procurement Section", stage: "award_preparation" },
+  { id: 13, steps_title: "Procurement Section", stage: "po_preparation" },
+  { id: 14, steps_title: "End-User / Program Coordinator / Division Chief", stage: "final_review" },
+  { id: 15, steps_title: "Budget Section", stage: "fund_allocation" },
+  { id: 16, steps_title: "Accounting Section", stage: "obligation_request" },
+  { id: 17, steps_title: "RED/RTD", stage: "executive_signoff" },
+  { id: 18, steps_title: "General Services Section", stage: "delivery_preparation" },
+  { id: 19, steps_title: "RED/RTD", stage: "delivery_approval" },
+  { id: 20, steps_title: "BAC Secretariat", stage: "delivery_confirmation" },
+  { id: 21, steps_title: "GS / RAED / End-User", stage: "inspection_scheduling" },
+  { id: 22, steps_title: "Inspectors", stage: "inspection" },
+  { id: 23, steps_title: "End-User", stage: "acceptance" },
+  { id: 24, steps_title: "GS / End-User", stage: "documentation" },
+  { id: 25, steps_title: "End-User", stage: "final_acceptance" },
+  { id: 26, steps_title: "Accounting Section", stage: "voucher_preparation" },
+  { id: 27, steps_title: "Division Chief", stage: "voucher_approval" },
+  { id: 28, steps_title: "Cashiering Unit", stage: "payment_processing" },
+  { id: 29, steps_title: "Accounting Section", stage: "liquidation" },
+  { id: 30, steps_title: "RED / RTD / Admin Chief", stage: "final_signoff" },
+  { id: 31, steps_title: "Cashiering Unit", stage: "fund_release" }
 ];
 
+const approvalStepsPublicBidding = [
+  { id: 1, steps_title: "End-User", stage: "prepared_by" },
+  { id: 2, steps_title: "Division Chief", stage: "division_head_approval" },
+  { id: 3, steps_title: "Budget Section", stage: "budget_earmarking" },
+  { id: 4, steps_title: "BAC Secretariat", stage: "pre_bid_documents_preparation" },
+  { id: 5, steps_title: "BAC", stage: "pre_bid_conference" },
+  { id: 6, steps_title: "Procurement Section", stage: "philgeps_posting" },
+  { id: 7, steps_title: "Suppliers", stage: "bid_submission" },
+  { id: 8, steps_title: "BAC", stage: "bid_opening" },
+  { id: 9, steps_title: "Technical Working Group", stage: "bid_evaluation" },
+  { id: 10, steps_title: "BAC", stage: "post_qualification" },
+  { id: 11, steps_title: "BAC", stage: "recommendation_for_award" },
+  { id: 12, steps_title: "HOPE (RED/RTD)", stage: "approval_of_award" },
+  { id: 13, steps_title: "BAC Secretariat", stage: "notice_of_award" },
+  { id: 14, steps_title: "Supplier", stage: "contract_signing" },
+  { id: 15, steps_title: "Procurement Section", stage: "po_preparation" },
+  { id: 16, steps_title: "Budget Section", stage: "fund_allocation" },
+  { id: 17, steps_title: "Accounting Section", stage: "obligation_request" },
+  { id: 18, steps_title: "General Services Section", stage: "delivery_preparation" },
+  { id: 19, steps_title: "Inspection Team", stage: "inspection" },
+  { id: 20, steps_title: "End-User", stage: "acceptance" },
+  { id: 21, steps_title: "Accounting Section", stage: "voucher_preparation" },
+  { id: 22, steps_title: "Division Chief", stage: "voucher_approval" },
+  { id: 23, steps_title: "Cashiering Unit", stage: "payment_processing" },
+  { id: 24, steps_title: "Accounting Section", stage: "liquidation" },
+  { id: 25, steps_title: "RED / RTD / Admin Chief", stage: "final_signoff" },
+  { id: 26, steps_title: "Cashiering Unit", stage: "fund_release" }
+];
 
 function getStepsDetails(stepNumber) {
   return approvalStepsSVP.find(step => 
@@ -726,7 +757,9 @@ app.use('/uploads', express.static('uploads'));
 // ============================================
 app.use(express.urlencoded({ extended: true }))
 app.use(session({
-  secret: 'unsamansecret-ani-oi',
+  key: 'session_cookie_name',
+  secret: 'your_secret_key',
+  store: sessionStore,
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false }  // Set to `true` in production with HTTPS
@@ -765,13 +798,12 @@ let transporter = nodemailer.createTransport({
 });
 // endof EMAIL
 
-app.use(async function(req, res, next){
+app.use(async (req, res, next) =>{
 
   var components = ['Transactions', 'Employees', 'Documents']
 
-  const [notifications, employees, transactions, summaryTransaction, summaryEmployee, activities] = await Promise.all([
+  const [notifications, transactions, summaryTransaction, summaryEmployee, activities] = await Promise.all([
     connection.retrieveNotifications(),
-    connection.retrieveEmployee(),
     connection.getTransactions(),
     connection.getTransactionSummary(),
     connection.getEmployeeSummary(),
@@ -786,7 +818,7 @@ app.use(async function(req, res, next){
   let userSection = '';
   let userPosition = '';
   let availComponents = [];
-  let filteredTransactions = '';
+  let totalTransactions = 0;
 
   const sessionUser = req.session?.user;
 
@@ -805,11 +837,20 @@ app.use(async function(req, res, next){
     );
 
     const productIds = filteredActivity.map(activity => activity.product_id);
-
+    const numericUserId = parseInt(employeeid, 10);
      // Filter transactions: created by or assigned to current user
-    filteredTransactions = transactions.filter(txn =>
-      txn.prepared_by === employeeid || productIds.includes(txn.product_id)
+    const parsedTransactions = transactions.map(txn => ({
+      ...txn,
+      prepared_by: typeof txn.prepared_by === 'string'
+        ? JSON.parse(txn.prepared_by)
+        : txn.prepared_by
+    }));
+
+    const filteredTransactions = parsedTransactions.filter(txn =>
+      txn.prepared_by?.employeeid === numericUserId || productIds.includes(txn.product_id)
     );
+
+    totalTransactions = filteredTransactions.length;
 
     try {
       const { lists: userSession } = JSON.parse(userExperience);
@@ -848,14 +889,15 @@ app.use(async function(req, res, next){
       },
       components: sessionUser ? availComponents : null,
     },
+    ROUTEINFO : {
+      path: req.path,
+    },
     DEPARTMENT: JSON.stringify(department),
     // NOTIFICATIONS: countNotif,
     // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications), // *** DO NOT REMOVE
     NOTIFICATIONS: JSON.stringify(notifications),
     logonUser: JSON.stringify(req.session.user),
-    currentRole: role ?? 'developer',
     perClassification: {},
-    employees,
     dafaultTransactionData: _preTransactionsData,
     defaultData: _preDefaultData,
     purchaseRequestStatuses,
@@ -876,16 +918,16 @@ app.use(async function(req, res, next){
           division: divisionData.responsible, 
           section: divisionData.sections[section].responsible
         } : null;
-    },  
+    },
     SUMMARY: {
       transactions: JSON.stringify(summaryTransaction[0]),
-      totalTransactions: filteredTransactions.length,
+      totalTransactions,
       employees: JSON.stringify(summaryEmployee[0])
     },
     STEPS: {
       lists: approvalStepsSVP,
       getCurrentStep: (steps, product_id) => {
-        const step = steps.find(step => step.id === product_id);
+        const step = steps.find(step => step.product_id === product_id);
         return step ? step : null;
       },
       getDetails: (id) => {
@@ -898,21 +940,23 @@ app.use(async function(req, res, next){
         return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
       },
     },
-    stepsList: approvalStepsSVP,
-    getStepTitle(step_id) {
-      const step = res.locals.stepsList.find(step => String(step.id) === String(step_id));
-      return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
+    UTILS: {
+      hashPasswordUtils,
+      authenticateUserUtils,
+      peso,
+      isValidJSON,
+      statusText,
+      addLeadingZeros,
+      findDivisionBySection,
+      toCapitalize,
+      isActive,
+      getDivisionAndPosition,
+      getEmployeeById: async (id) => {
+        const result = await connection.getEmployeeById(id);
+        console.log('Fetching employee by ID:', result);
+        return JSON.stringify(result[0]);
+      }
     },
-    getStepsDetails(transid) {
-      return res.locals.stepsList.find(step => step.id === transid);
-    },
-    peso,
-    isValidJSON,
-    statusText,
-    addLeadingZeros,
-    findDivisionBySection,
-    toCapitalize,
-    isActive,
     userAvailComponents: (component) => {
       // Single component
       if (typeof component === 'string') {
@@ -926,68 +970,6 @@ app.use(async function(req, res, next){
   
       return false;
     },
-    getEmployeeById: (id) => {
-      const data = res.locals.employees;
-      const result = data.filter(e => String(e.employeeid) === String(id));
-      const employee = result[0];
-    
-      if (!employee) {
-        console.warn(`No employee found for ID: ${id}`);
-        return JSON.stringify({ error: 'Employee not found' });
-      }
-    
-      // Parse experience
-      let experienceData = {};
-      try {
-        experienceData = JSON.parse(employee.experience);
-      } catch (err) {
-        console.error('Failed to parse experience:', employee.experience);
-      }
-    
-      // Parse contacts
-      let contactData = {};
-      try {
-        contactData = JSON.parse(employee.contacts);
-      } catch (err) {
-        console.error('Failed to parse contacts:', employee.contacts);
-      }
-    
-      const getExperiences = (index) => {
-        const item = experienceData.lists?.[index];
-        if (!item) return {}; // Handle case where index is invalid
-        return {
-          office: item.office ?? 'Not set',
-          salary: item.salary ?? 'Not set',
-          status: item.status ?? 'Not set',
-          endate: item.endate ?? 'Not set',
-          division: item.division ?? 'Not set',
-          position: item.position ?? 'Not set',
-          startdate: item.startdate ?? 'Not set',
-          employment: item.employment ?? 'Not set',
-          arrangements: item.arrangements ?? 'Not set',
-        };
-      };
-    
-      const fullname = `${employee.firstname} ${employee.middlename} ${employee.lastname}`;
-    
-      const response = {
-        ...employee,
-        fullname,
-        username: employee.username,
-        contacts: contactData,
-        firstname: employee.firstname,
-        middlename: employee.middlename,
-        lastname: employee.lastname,
-        birthdate: employee.birthdate,
-        experience: experienceData,
-        office: experienceData.lists?.[0]?.office ?? 'Unknown',
-        division: experienceData.lists?.[0]?.division ?? 'Unknown',
-        position: experienceData.lists?.[0]?.position ?? 'Unknown',
-        experiences: getExperiences(0),
-      };
-    
-      return JSON.stringify(response);
-    },
     trimName(fullName) {
       const parts = fullName.trim().split(' ');
       if (parts.length === 0) return '';
@@ -996,14 +978,106 @@ app.use(async function(req, res, next){
       const lastName = parts[parts.length - 1];
 
       return `${firstInitial}. ${lastName}`;
-    }
-     
-  }
+    },
+    hasAllowedRole(allowedRoles, userRoles = SESSION_USER?.roles) {
+      // Coerce allowedRoles to array if it's a string
+      if (typeof allowedRoles === 'string') {
+        allowedRoles = [allowedRoles];
+      }
 
-  console.log('Session User:', res.locals.SUMMARY);
+      // Parse userRoles if it's a stringified array
+      if (typeof userRoles === 'string') {
+        try {
+          userRoles = JSON.parse(userRoles);
+        } catch (e) {
+          console.warn('Failed to parse userRoles string:', userRoles);
+          return false;
+        }
+      }
+
+      if (!Array.isArray(userRoles)) {
+        console.warn('userRoles is not an array:', userRoles);
+        return false;
+      }
+
+      const normalizedUserRoles = userRoles.map(r => r.trim().toLowerCase());
+      return allowedRoles.some(role => normalizedUserRoles.includes(role.trim().toLowerCase()));
+    },
+    isCreatorOfTransaction(transaction) {
+      const SESSION_USER = res?.locals?.SESSION_USER;
+      const employeeId = SESSION_USER?.employeeid;
+
+      let preparedBy = transaction?.prepared_by;
+
+      // Check if preparedBy is a string and needs parsing
+      if (typeof preparedBy === 'string') {
+        try {
+          preparedBy = JSON.parse(preparedBy);
+        } catch (error) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('Failed to parse prepared_by:', error);
+          }
+          return false; // Invalid JSON, cannot verify ownership
+        }
+      }
+
+      const preparedById = preparedBy?.employeeid;
+      const isOwner = employeeId === preparedById;
+
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Ownership Check:', { employeeId, preparedById, isOwner });
+      }
+
+      return isOwner;
+    },
+    canUpdateTransaction(employee, transaction_activity) {
+      console.log({ canUpdateTransaction: { employee, transaction_activity } });
+
+      if (!transaction_activity || !transaction_activity.assigned_to) {
+        return false;
+      }
+
+      return employee.employeeid === transaction_activity.assigned_to;
+    },
+
+
+  };
+
+  const { SESSION_USER, SESSION_USER_LOG, SUMMARY } = res.locals
+  console.log('Session User:', { SUMMARY });
 
   next();
 });
+
+const loadAllTransactions = async (req, res, next) => {
+  try {
+    res.locals.transactions = await connection.getTransactions();
+    next();
+  } catch (error) {
+    console.error("Error loading transactions:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Transactions");
+  }
+}
+const loadAllEmployees = async (req, res, next) => {
+  try {
+    const employees = await connection.getEmployees();
+    req.employees = employees;
+    res.locals.employees = employees;
+    next();
+  } catch (error) {
+    console.error("Error loading employees:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Employees");
+  }
+}
+const loadAllActivities = async (req, res, next) => {
+  try {
+    res.locals.activities = await connection.getActivities();
+    next();
+  } catch (error) {
+    console.error("Error loading activities:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Activities");
+  }
+}
 
 function restrict(req, res, next) {
   // If user is authenticated, proceed
@@ -1100,18 +1174,25 @@ app.post('/upload', upload.array('fileToUpload[]'), async (req, res) => {
   }
 });
 
-app.get('/', restrict, async function(req, res){
-  const getTotalApprovedBudget = await connection.getTotalApprovedBudget()
-  const getPerPRClassification = await connection.countPerPRClassification()
-  const getCardsData = await connection.cardsData()
-  const getDataFromLast7Days = await connection.getDataFromLast7Days('remarks', 'date')
+app.get('/', restrict, loadAllTransactions, loadAllActivities, async function(req, res){
+   const [
+    totalApprovedBudget,
+    countPerPRClassification,
+    cardsData,
+    dataFromLast7Days
+  ] = await Promise.all([
+    connection.getTotalApprovedBudget(),
+    connection.countPerPRClassification(),
+    connection.cardsData(),
+    connection.getDataFromLast7Days('remarks', 'date')
+  ]);
 
-  const charts = getCardsData.reduce((acc, { table_name, row_count, total_sum }) => {
+  const charts = cardsData.reduce((acc, { table_name, row_count, total_sum }) => {
     acc[table_name] = { row_count, total_sum };
     return acc;
   }, {});
   
-  const perPRClassification = getPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
+  const perPRClassification = countPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
     acc[pr_classification] = item_count;
     return acc;
   }, {});
@@ -1121,9 +1202,9 @@ app.get('/', restrict, async function(req, res){
   res.render('pages/index', {
     title: "Dashboard",
     header: "Some users", 
-    totalApprovedBudget: JSON.stringify(getTotalApprovedBudget[0]),
+    totalApprovedBudget: JSON.stringify(totalApprovedBudget[0]),
     perClassification: JSON.stringify(perPRClassification),
-    tableDashboard: JSON.stringify(getDataFromLast7Days),
+    tableDashboard: JSON.stringify(dataFromLast7Days),
     cardsData: charts,
   });
 });
@@ -1184,6 +1265,7 @@ app.get('/login', (req, res) => {
       title: 'Login',
       path: res.url,
       emitMessage: error,
+      guestToken: req.query.guest_token
     })
   }
  
@@ -1381,7 +1463,7 @@ app.get('/logout', function(req, res){
   });
 });
 
-app.get('/transactions', restrict, async (req, res) => {
+app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
   try {
     const userId = req.session?.user?.employeeid;
 
@@ -1399,16 +1481,25 @@ app.get('/transactions', restrict, async (req, res) => {
     );
 
     const productIds = filteredActivity.map(activity => activity.product_id);
+    
+    const numericUserId = Number(userId);
 
-     // Filter transactions: created by or assigned to current user
-    const filteredTransactions = transactions.filter(txn =>
-      txn.prepared_by === userId || productIds.includes(txn.product_id)
+    const parsedTransactions = transactions.map(txn => ({
+      ...txn,
+      prepared_by: typeof txn.prepared_by === 'string'
+        ? JSON.parse(txn.prepared_by)
+        : txn.prepared_by
+    }));
+
+    const filteredTransactions = parsedTransactions.filter(txn =>
+      txn.prepared_by?.employeeid === numericUserId || productIds.includes(txn.product_id)
     );
+
+    console.log(filteredTransactions.length)
 
     res.render('pages/transactions/index', {
       title: 'Transactions',
       transactions: filteredTransactions,
-      countTransactions: filteredTransactions.length,
       moment,
       connection,
       predata: _preTransactionsData,
@@ -1458,7 +1549,7 @@ app.get('/transactions/scan', restrict, async (req, res) => {
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
     const { assigned_to, ...transactionData } = req.body;
-    const transactions = await connection.postTransactions( JSON.stringify(transactionData) );
+    const transactions = await connection.postTransactions( transactionData );
 
     if(transactions?.affectedRows){
       const { insertId } = transactions
@@ -1572,7 +1663,7 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
     
     const steps = await connection.getTransactionActivityId(JSON.stringify({product_id: transid}))
     
-    console.log(steps.sort((a, b) => b.id - a.id))
+    // console.log(steps.sort((a, b) => b.id - a.id))
 
     if(transactions[0]) {
       res.render('pages/transactions/view', { 
@@ -1586,7 +1677,7 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
         
       }); // Pass the data to the template
 
-      console.log('req.session.user', req.session.user)
+      // console.log('req.session.user', req.session.user)
     } else {
       res.render('pages/404', {
         title: '404 Transaction Not Found',
@@ -1680,54 +1771,113 @@ app.get('/remarks/:id', restrict, async (req, res) => {
 
 app.post('/remarks/new', restrict, async (req, res) => {
   try {
-  const data = req.body;
-  const { username } = res.locals.SESSION_USER;
-  const updatedRemarks = { ...data, user: username };
+    const data = { ...req.body };
+    const { employeeid, username } = res.locals.SESSION_USER;
+    console.log('Updated Remarks:', {data, employeeid, username});
+    // 🚨 Trap if employeeid is missing or empty
+    if (!employeeid) {
+      return res.status(400).json({ message: 'Invalid or missing employee ID.' });
+    }
+    
+    // Remove user from payload and attach session username
+    delete data.user;
+    const updatedRemarks = { ...data, user: username };
+    console.log('asdasdas dasRemarks:', updatedRemarks);
+    // ✅ Normalize refid
+    let flattenedRefIds = [];
+    try {
+      const parsed = JSON.parse(updatedRemarks.refid);
+      flattenedRefIds = Array.isArray(parsed) ? parsed.map(String) : [String(parsed)];
+    } catch {
+      flattenedRefIds = [String(updatedRemarks.refid)];
+    }
+    console.log('asdasdas dasRemarks:', flattenedRefIds);
+    // ✅ Attach normalized refid
+    updatedRemarks.refid = JSON.stringify(flattenedRefIds);
 
-  console.log('Updated Remarks:', updatedRemarks);
-
-  const remarks = await connection.postRemarks(JSON.stringify(updatedRemarks));
-
-  if (remarks?.affectedRows) {
-    const { refid } = updatedRemarks;
-
-    const handleNotification = async (id) => {
-      const transactions = await connection.getTransactionById(id);
-      if (!transactions?.length) {
-        console.error('No transactions found for id:', id);
-        return;
-      }
-
-      const { requisitioner } = transactions[0];
-      console.log('transactions:', transactions);
-
-      const notificationPayload = {
-        message: `New remark is added under ${id}!`,
-        link: id,
-        component: 'remarks',
-        concerning: requisitioner,
-      };
-
-      await connection.postNotifications(JSON.stringify(notificationPayload));
-    };
-
-    if (Array.isArray(refid)) {
-      for (const id of refid) {
-        await handleNotification(id);
-      }
-    } else {
-      await handleNotification(refid);
+    // ✅ Handle dueDate if it's a number (offset in days)
+    if (typeof updatedRemarks.dueDate === 'number') {
+      updatedRemarks.dueDate = moment().add(updatedRemarks.dueDate, 'days').format('YYYY-MM-DD');
     }
 
-    res.status(200).json({ message: 'New remark added successfully!', response: remarks });
-  } else {
-    res.status(200).json({ message: 'Failed to post new remark!' });
+    console.log('Updated Remarks:', updatedRemarks);
+
+    // ✅ Post remarks
+    const remarks = await connection.postRemarks(JSON.stringify(updatedRemarks));
+
+    // ✅ Get current step using first refid
+    const getCurrentStep = await connection.getTransactionActivityId(
+      JSON.stringify({ product_id: flattenedRefIds[0] })
+    );
+
+    const currentStepNumber = Array.isArray(getCurrentStep) && getCurrentStep.length
+      ? parseInt(getCurrentStep[getCurrentStep.length - 1].steps_number, 10) || 0
+      : 1;
+
+    console.log({getCurrentStep, currentStepNumber})
+
+    // ✅ Post transaction activity if assignedto is true
+    if (updatedRemarks.assignedto === true) {
+      const activityPayloads = flattenedRefIds.map(id => {
+        const productId = parseInt(id, 10);
+        if (!Number.isInteger(productId)) {
+          console.warn(`Invalid product_id: ${id}`);
+          return null;
+        }
+
+        return {
+          status: 'pending',
+          steps_number: currentStepNumber + 1,
+          assigned_to: employeeid,
+          product_id: productId,
+          created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+        };
+      }).filter(Boolean); // Remove nulls
+
+      await Promise.all(
+        activityPayloads.map(payload => {
+          console.log('payload', payload);
+          return connection.postTransactionActivity(JSON.stringify(payload));
+        })
+      );
+    }
+
+    // ✅ Handle notifications if remarks were posted
+    if (remarks?.affectedRows) {
+      const handleNotification = async (id) => {
+        const transactions = await connection.getTransactionById(id);
+        if (!transactions?.length) {
+          console.error('No transactions found for id:', id);
+          return;
+        }
+
+        const { requisitioner } = transactions[0];
+        console.log('transactions:', transactions);
+
+        const notificationPayload = {
+          message: `New remark is added under ${id}!`,
+          link: id,
+          component: 'remarks',
+          concerning: requisitioner,
+        };
+
+        await connection.postNotifications(JSON.stringify(notificationPayload));
+      };
+
+      await Promise.all(flattenedRefIds.map(id => handleNotification(id)));
+
+      res.status(200).json({
+        message: 'New remark added successfully!',
+        response: remarks,
+      });
+    } else {
+      res.status(200).json({ message: 'Failed to post new remark!' });
+    }
+  } catch (error) {
+    console.error('Error adding new remark:', error);
+    res.status(500).send('Error adding new remark');
   }
-} catch (error) {
-  console.error('Error adding new remark:', error);
-  res.status(500).send('Error adding new remark');
-}
-})
+});
 
 app.post('/notifications/new', restrict, async (req, res) => {
   try {
@@ -1770,67 +1920,72 @@ app.get('/employees/new', restrict, function(req, res){
   })
 })
 
-app.get('/employees/:id', restrict, async function(req, res){
+app.get('/employees/:id/profile', restrict, async function(req, res){
   try {
-    if(req.params.id == 'register') {
-      let roles = await connection.getRoles()
-      res.render('pages/employees/register', {
-        defaultData: _preDefaultData,
-        title: 'Register Employee',
-        path: res.url,
+    const employee = await connection.getEmployeeById(req.params.id);
+    if(employee.length > 0) {
+      res.render('pages/employees/profile', {
+        employee: employee[0],
         moment,
-        roles: JSON.stringify(roles),
+        title: 'Profile', 
+        path: res.url
       })
     } else {
-      const employee = await connection.getEmployeeById(req.params.id);
-      if(employee.length > 0) {
-        res.render('pages/employees/profile', {
-          employee: employee[0],
-          moment,
-          title: 'Profile', 
-          path: res.url
-        })
-      } else {
-        console.error('Employee not found!');
-        res.render('pages/404', {
-          title: '404 Employee Not Found',
-          referer: req.referer,
-          component: 'Employee'
-        });
-      }
-    }    
+      console.error('Employee not found!');
+      res.render('pages/404', {
+        title: '404 Employee Not Found',
+        referer: req.referer,
+        component: 'Employee'
+      });
+    }
   } catch (error) {
-      console.error('Error retrieving employee:', error);
-      res.status(500).render('pages/404');
+    console.error('Error retrieving employee:', error);
+    res.status(500).render('pages/404');
   }
-  
 })
 
-app.get('/employees/register', restrict, async function(req, res){
-  let roles = await connection.getRoles()
+// Utility function to fetch roles and employees
+async function getFormData(employeeId = null) {
+  const employees = employeeId
+    ? await connection.getEmployeeById(employeeId)
+    : await connection.getEmployees();
 
-  res.render('pages/employees/register', {
-    defaultData: _preDefaultData,
-    title: 'Register Employee',
-    path: res.url,
-    roles: JSON.stringify(roles),
-  })
-})
+  return {
+    employees: employeeId ? employees[0] : employees,
+  };
+}
 
-app.get('/employees/:id/update', restrict, async function(req, res){
-  const employeeid = req.params.id;
-  const employee = await connection.getEmployeeById(employeeid)
-  let roles = await connection.getRoles()
+// Register Employee Route
+app.get('/employees/register', restrict, async (req, res) => {
+  try {
+    const { roles, employees } = await getFormData();
+    res.render('pages/employees/register', {
+      title: 'Register Employee',
+      employees,
+      mode: 'register',
+    });
+  } catch (error) {
+    console.error('Error loading register form:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
-  res.render('pages/employees/register', {
-    defaultData: _preDefaultData,
-    employees: employee[0],
-    roles: JSON.stringify(roles),
-    title: 'Update Employee',
-    path: res.url,
-    moment,
-  })
-})
+// Update Employee Route
+app.get('/employees/:id/update', restrict, async (req, res) => {
+  try {
+    const employeeId = req.params.id;
+    const { roles, employees } = await getFormData(employeeId);
+
+    res.render('pages/employees/register', {
+      title: 'Update Employee',
+      employees,
+      mode: 'update',
+    });
+  } catch (error) {
+    console.error('Error loading update form:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 app.delete('/employees/:id', restrict, async (req, res) => {
   try {
@@ -2014,15 +2169,11 @@ app.get('/calendar', restrict, async function(req, res){
     title: 'Calendar',
   })
 })
-
 // Express route to approve a step
 app.post("/approve", async (req, res) => {
   // const { trans_id: prId, steps_number:stepNumber, updated_by:approverName } = req.body;
-  const { trans_id, steps_number, updated_by } = req.body;
-  const steps = getStepsDetails(steps_number) 
-
-  console.log('steps', steps?.steps_title)
-
+  const { product_id, steps_number, updated_by, remarks } = req.body;
+  const { username } = res.locals.SESSION_USER
   try {
     // console.log([trans_id, steps_number, updated_by]) 
     const data = {
@@ -2030,26 +2181,38 @@ app.post("/approve", async (req, res) => {
         status: 'approved',
         updated_by,
         updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+        remarks
       },
       where: {
-        trans_id,
+        product_id,
         steps_number,
       }
     }
+    console.log('data', {data, steps_number})
     await connection.updateTransactionActivity(JSON.stringify(data))
+    if(steps_number > 1) {
+      await connection.postRemarks(JSON.stringify({
+        comment: 'For out of office', 
+        user: username, 
+        status: 'success', 
+        refid: product_id,
+        date: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      }))
+    }
    
     // console.log([trans_id, steps_number + 1])
     await connection.postTransactionActivity(JSON.stringify({
       status: 'pending', 
-      product_id: trans_id, 
-      steps_number: (steps_number + 1)
+      product_id, 
+      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      steps_number: parseInt(steps_number, 10) + 1,
+      updated_by, 
     }))
 
     await connection.postNotifications(JSON.stringify({
-      message: `PR has been updated to ${steps.steps_title}`,
-      link: trans_id,
+      message: remarks,
+      link: product_id,
       component: 'transactions',
-      // concerning: JSON.stringify(t_username)
     }))
 
     res.json({ success: true, message: "Approval step advanced." });

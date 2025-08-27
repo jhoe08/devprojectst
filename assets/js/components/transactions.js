@@ -1,7 +1,5 @@
 // let notifyIcon = ['check', 'close', 'exclamation', 'bell'];
 (() => {
-  const exampleModal = document.getElementById('viewTransactionModal')
-
   const createTransactionCode = document.getElementById('createTransactionCode')
   const createTransactions = document.getElementById('createTransactions')
   const updateTransactions = document.getElementById('updateTransactions')
@@ -61,86 +59,26 @@
         const divisionName = responsibleData.division?.name;
         const sectionName = responsibleData.section?.name;
 
-        console.log('Division:', divisionName);
-        console.log('Section:', sectionName);
-
         // Optionally format to initials
         const formatName = full => {
+          if (!full || typeof full !== 'string') return '';
           const parts = full.trim().split(' ');
           return parts.length ? `${parts[0][0].toUpperCase()}. ${parts.at(-1)}` : '';
         };
-      
-        return `${formatName(divisionName)} / ${formatName(sectionName)}`; // Set the value to initials
-        // console.log('Division (initials):', formatName(divisionName));
-        // console.log('Section (initials):', formatName(sectionName));
+
+        const formattedDivision = formatName(divisionName);
+        const formattedSection = formatName(sectionName);
+
+        const parts = [formattedDivision, formattedSection].filter(Boolean);
+
+        return parts.join(' / ');
+
       } catch (err) {
         console.error('Invalid JSON in data-responsible:', err);
       }
     }
   }
 
-  if (exampleModal) {
-    exampleModal.addEventListener('show.bs.modal', event => {
-      // Button that triggered the modal
-      const button = event.relatedTarget
-      // Extract info from data-bs-* attributes
-      const recipient = button.getAttribute('data-bs-whatever')
-      const transaction = JSON.parse(button.parentNode.dataset.transaction)
-      // console.log(transaction)
-  
-      let {approved_budget, bac_unit, banner_program, bid_notice_title, division, fund_source, pr_classification, pr_date,  product_id, requisitioner, trans_code} = transaction
-  
-      // const {}
-      // If necessary, you could initiate an Ajax request here
-      // and then do the updating in a callback.
-  
-      // Update the modal's content.
-      const modalTitle = exampleModal.querySelector('.modal-title')
-  
-      // pr_date = moment(pr_date).format('MMM Do YYYY')
-  
-      const modalBodyTitle = exampleModal.querySelector('.modal-body h3')
-      const modalClassification = exampleModal.querySelector('.modal-body .badge-count')
-      const modalBACUnit = exampleModal.querySelector('.modal-body .badge-danger')
-      const modalBannerProgram = exampleModal.querySelector('.modal-body .badge-info')
-      const modalPRDate= exampleModal.querySelector('.modal-body .badge-black')
-      const modalFundSource = exampleModal.querySelector('.modal-body .btn-border.btn-round span')
-      const modalBudget = exampleModal.querySelector('.modal-body .btn-round')
-      const modalRequisitioner = exampleModal.querySelector('.modal-body .text-muted')
-      const modalFooterLink = exampleModal.querySelector('.modal-footer a')
-      const modalQRCode = exampleModal.querySelector('.qrcode')
-      modalQRCode.innerHTML = ''
-      modalQRCode.setAttribute('id', `transid-${recipient}`)
-  
-      // approved_budget = parseInt(approved_budget)
-      // approved_budget = formatter.format(formatter.format(amount))
-
-      var chargingTo = JSON.parse(fund_source)
-      if(Array.isArray(chargingTo)) {
-        chargingTo = chargingTo.map(item => `${item.division}-${item.section}`).join(', ');
-      } else {
-        chargingTo = 'N/A'
-      }
-      
-  
-      modalTitle.textContent = `Transaction ID #${recipient}`
-      modalClassification.textContent = pr_classification
-      modalBACUnit.textContent = bac_unit
-      modalBannerProgram.textContent = banner_program
-      modalPRDate.textContent = dateFormat(pr_date)
-      modalBodyTitle.textContent = bid_notice_title
-      modalBudget.textContent = peso(approved_budget)
-      modalFundSource.textContent = chargingTo
-      modalRequisitioner.innerHTML = `<i class="fas fa-user-circle"></i> ${requisitioner} — <span class="badge badge-warning">${division}</span> `
-  
-  
-      new QRCode("transid-"+recipient, recipient);
-  
-      modalFooterLink.setAttribute('href', `/transactions/${recipient}/view`)
-  
-      // modalBodyInput.value = recipient
-    })
-  }
   if (setApprovedBudgetBtn) {
     setApprovedBudgetBtn.addEventListener('click', function () {
       const approvedBudgetContainer = document.querySelector('.approved')
@@ -200,111 +138,98 @@
     requisitioner.value = trimFullName()
 
     createTransactions.addEventListener('click', async () => {
-      let charge = []
-      let funds =  chargingTo.querySelectorAll('.row')
-
-      funds.forEach(fund => {
-        let element = fund.querySelector('select[name*="division_"]')
-        let selectedOption = element.options[element.selectedIndex];
-        let divisionValue = selectedOption.dataset.division;
-
-        let amount = fund.querySelector('input[name="unitCount"]')
-            amount = amount.value
-        charge.push({division: divisionValue, section: (element.value), amount })
-      })
-
-
       try {
-        let bidNoticeTitleValue = bidNoticeTitle.value
-        let prClassificationValue = prClassification.value
-        let requisitionerValue = requisitioner.value
-            
-        // let divisionValue = division.value
-        let budgetValue = budget.value
-          // let bannerProgramValue = bannerProgram.value
-        let bacUnitValue = bacUnit.value
-        // let remarksValue = remarks.value
+        // 🔄 Collect fund source data
+        const charge = Array.from(chargingTo.querySelectorAll('.row')).map(fund => {
+          const select = fund.querySelector('select[name*="division_"]');
+          const selectedOption = select.options[select.selectedIndex];
+          const divisionValue = selectedOption.dataset.division;
+          const sectionValue = select.value;
+          const amountValue = fund.querySelector('input[name="unitCount"]').value;
 
-        if (bidNoticeTitleValue === '' || budgetValue === 0 || requisitionerValue === '') {
-          notifyCustom('exclamation', 'Fields are empty', 'Either this fields are empty Bid Notice Title, Budget, and Requisitioner', 'danger')
-          return
-        };
+          return {
+            division: divisionValue,
+            section: sectionValue,
+            amount: amountValue
+          };
+        });
 
-        let cleaned = budgetValue.replace(/,/g, "")
-        budgetValue = parseFloat(cleaned)
+        // 🧼 Extract and validate form values
+        const bidNoticeTitleValue = bidNoticeTitle.value.trim();
+        const prClassificationValue = prClassification.value;
+        const requisitionerValue = requisitioner.value.trim();
+        const budgetRawValue = budget.value.replace(/,/g, '');
+        const bacUnitValue = bacUnit.value;
 
-        const apiUrl = '/transactions/new';
-        let data = {
+        if (!bidNoticeTitleValue || !requisitionerValue || parseFloat(budgetRawValue) === 0) {
+          notifyCustom(
+            'exclamation',
+            'Fields are empty',
+            'Either Bid Notice Title, Budget, or Requisitioner is missing.',
+            'danger'
+          );
+          return;
+        }
+
+        const approvedBudget = parseFloat(budgetRawValue);
+
+        // 🧠 Parse next responsible data
+        let nextResponsible;
+        try {
+          nextResponsible = JSON.parse(created_by.dataset.responsible);
+        } catch (err) {
+          notifyCustom('bell', 'Invalid responsible data', 'Could not parse next responsible person.', 'danger');
+          return;
+        }
+
+        // 📦 Prepare payload
+        const payload = {
           bid_notice_title: bidNoticeTitleValue,
           pr_classification: prClassificationValue,
           requisitioner: requisitionerValue,
-          // division: divisionValue,
-          approved_budget: parseFloat(budgetValue),
+          approved_budget: approvedBudget,
           fund_source: JSON.stringify(charge),
-          // banner_program: bannerProgramValue,
           bac_unit: bacUnitValue,
           remarks: JSON.stringify({
-            prepared_by: created_by.value,
-            message: 'Created Transaction',
+            message: 'Created Transaction'
           }),
           prepared_by: created_by.value,
-          assigned_to: created_by.dataset.division.employeeid,
+          assigned_to: nextResponsible.division?.employeeid || null
         };
 
-        console.log('data', data)
+        console.log('Payload:', payload);
 
-        const requestOptions = {
+        // 🚀 Send request
+        const response = await fetch('/transactions/new', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data)
-        };
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-        console.log(requestOptions.body)
+        if (!response.ok) {
+          notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger');
+          return;
+        }
 
-        fetch(apiUrl, requestOptions)
-          .then(response => {
-            if (!response.ok) {
-              // throw new Error('Network response was not ok');
-              notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
-            }
-            return response.json();
-          })
-          .then(data => {
-            if (!data) {
-              notifyCustom('bell', 'Error', 'Failed to create the Transaction!', 'danger')
-            }
+        const result = await response.json();
 
-            let { message, response } = data
-            let { insertId } = response
+        if (!result || !result.response?.insertId) {
+          notifyCustom('bell', 'Error', 'Failed to create the Transaction!', 'danger');
+          return;
+        }
 
-            notifyCustom('bell', message, `Transaction ID#${insertId}`, 'success')
-            // Clearing the fields
-            // bidNoticeTitle.value = ''
-            // prClassification.value = ''
-            // requisitioner.value = ''
-            // division.value = ''
-            // budget.value = ''
-            // fundSource.value = ''
-            // bannerProgram.value = ''
-            // bacUnit.value = ''
+        const { message, response: { insertId } } = result;
+        notifyCustom('bell', message, `Transaction ID#${insertId}`, 'success');
 
-          })
-          .catch(error => {
-            notifyCustom('bell', 'There was an error on the system!', error, 'danger')
-          });
+        // 🧹 Optional: Clear form fields here if needed
+        // [bidNoticeTitle, prClassification, requisitioner, budget, bacUnit].forEach(el => el.value = '');
+
       } catch (error) {
-        notifyCustom('close', 'Field is empty please check!', error, 'danger')
+        notifyCustom('close', 'Unexpected error occurred', error.message || error, 'danger');
       }
     });
-
-    // if(divisionsSelect) {
-    //     divisionsSelect.addEventListener('change', uUasdlwaWW)
-    //     bannerProgramSelect.addEventListener('change', uUasdlwaWW)
-    //     unitCount.addEventListener('keypress', uUasdlwaWW)
-    // }
   }
+  // Update
   if (updateTransactions) {
     let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
     let prClassification = document.querySelector('#prClassification')
@@ -330,15 +255,19 @@
       let charge = []
       let funds =  chargingTo.querySelectorAll('.row')
       funds.forEach(fund => {
-        let element = fund.querySelector('select[name="division"]')
+        let element = fund.querySelector('select[name^="division_"]');
         let selectedOption = element.options[element.selectedIndex];
         let divisionValue = selectedOption.dataset.division;
 
-        let amount = fund.querySelector('input[name="unitCount"]')
-            amount = amount.value
-        
-        charge.push({division: divisionValue, section: (element.value), amount })
-      })
+        let amount = fund.querySelector('input[name="unitCount"]').value;
+
+        charge.push({
+          division: divisionValue,
+          section: element.value,
+          amount
+        });
+      });
+
 
       if (bidNoticeTitleValue === '' || budgetValue <= 0 || requisitionerValue === '') {
         notifyCustom('bell', 'Empty Fieldsssssssssss', 'Please fill up those fields and try again.')
@@ -421,14 +350,14 @@
     })
   }
   if (createRemarks) {
-    let comment = document.querySelector('#comment')
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
     createRemarks.addEventListener('click', async () => {
-      console.log(createRemarks)
       try {
+        let comment = document.querySelector('#comment')
+        let assignedto = document.querySelector('#assignedto')
         let selectedStatus = document.querySelector('input[name="color"]:checked');
         let selectedPeriod = document.querySelectorAll('input[name="period"]');
         let { transid } = createRemarks.dataset
@@ -439,15 +368,14 @@
           .map(checkbox => parseFloat(checkbox.value))
           .reduce((sum, value) => sum + value, 0);
 
-        let preloaded = {
+        const data = {
           comment: comment.value,
           refid: transid,
           status: selectedStatusValue,
-          user: 'justjoe',
-          dueDate: checkedCheckboxes
+          dueDate: checkedCheckboxes,
+          assignedto: assignedto.checked
         }
-        console.log(preloaded)
-        const apiUrl = '/remarks/new'
+        const apiUrl = '/remarks/asdwnew'
 
         const requestOptions = {
           method: 'POST',
@@ -456,6 +384,9 @@
           },
           body: JSON.stringify(preloaded)
         };
+
+        console.log('preloaded', requestOptions.body)
+
 
         fetch(apiUrl, requestOptions)
           .then(response => {
@@ -469,7 +400,7 @@
             if (!data) {
               notifyCustom('bell', 'Error', 'Failed to create new remarks', 'danger')
             }
-
+            console.log(data)
             let { message } = data
             if (refreshActivity) {
               refreshActivity.click()
@@ -667,7 +598,7 @@
       const currentSteps = Number(document.querySelector('.activity-feed').dataset.currentSteps);
       const product_id = Number(document.querySelector('.container').dataset.transactionId);
       const apiUrl = '/approve';
-      const data = { trans_id:product_id, steps_number:currentSteps, updated_by: create_by}
+      const data = { product_id:product_id, steps_number:currentSteps, updated_by: create_by}
 
       const requestOptions = {
         method: 'POST',
@@ -758,7 +689,7 @@
     let total = 0;
     inputs.forEach(input => {
       const val = parseInt(input.value);
-      console.log('ASD', val)
+      // console.log('ASD', val)
       if (!isNaN(val)) total += val;
     });
     document.getElementById('totalCount').value = total;

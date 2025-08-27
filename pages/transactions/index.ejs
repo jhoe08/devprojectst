@@ -37,7 +37,6 @@
                           <table
                             id="transactions-datatables"
                             class="display table table-striped table-hover"
-                            data-transactions="<%= JSON.stringify(transactions) %>"
                           >
                             <thead>
                               <tr class="text-uppercase">
@@ -52,7 +51,7 @@
                                 <th>Banner</th>
                                 <th>Classification</th>
                                 <th>Unit</th>
-                                <th><%= currentRole == 'Admin' ? 'Funds Availability' : 'Action' %></th>
+                                <th><%= hasAllowedRole(['Admin']) ? 'Funds Availability' : 'Action' %></th>
                                 <th>Steps</th>
                               </tr>
                             </thead>
@@ -69,17 +68,22 @@
                                 <th>Banner</th>
                                 <th>Classification</th>
                                 <th>Unit</th>
-                                <th><%= currentRole == 'Admin' ? 'Funds Availability' : 'Action' %></th>
+                                <th><%= hasAllowedRole(['Admin']) ? 'Funds Availability' : 'Action' %></th>
                                 <th>Steps</th>
                               </tr>
                             </tfoot>
                             <tbody>
 
                               <% 
+                                let { division:userDivision, section: userSection, position: userPosition } = SESSION_USER_LOG.designation
+                                userDivision = userDivision.toLowerCase();
+                                userSection = userSection.toLowerCase();
+                                userPosition = userPosition.toLowerCase();
 
                                 for(var i=0; i < transactions.length; i++) { 
-                                  var {pr_date, approved_budget, product_id, pr_classification, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code } = transactions[i]
-                                  const { fullname, division:u_division } = JSON.parse(getEmployeeById(requisitioner))
+                                  var {pr_date, approved_budget, product_id, pr_classification, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code, prepared_by } = transactions[i]
+
+                                  
 
                                   date = moment(pr_date).format('L')
                                  
@@ -94,18 +98,19 @@
 
 
                                   let current_step = getCurrentStep(steps, product_id)
-                                  current_step_number = current_step?.steps_number
+                                  const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
                                   current_step_title = getTitle(current_step_number)
 
-                                  
                               %>
                                
                                 <tr 
-                                  data-steps="<%= JSON.stringify(getCurrentStep(steps, product_id)) %>" 
+                                  data-steps="<%= JSON.stringify(current_step) %>" 
                                   data-current-steps="<%= current_step_number %>" 
                                   data-step-title="<%= current_step_title %>"
                                   data-index="<%= i %>"
-                                  data-user-chief="<%= u_division %>"
+                                  data-user-chief="<%= '' %>"
+                                  data-user-division="<%= userDivision %>"
+                                  data-user-section="<%= userSection %>"
                                   >
                                   
                                   <td data-head="Product ID"><%= product_id %></td>
@@ -113,7 +118,7 @@
                                     <%= bid_notice_title %>
                                     <%- include('../../views/partials/progress', {length: 30, progress: current_step_number, title: current_step_title }) %>
                                   </td>
-                                  <td data-head="Requistioner"><%= fullname %></td>
+                                  <td data-head="Requistioner"><%= requisitioner %></td>
                                   <td data-head="Division"><%= division %></td>
                                   <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>" data-order="<%= moment(pr_date).unix(); %>"><%= date %></td>
                                   <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>" class="align-right"><%= budget %></td>
@@ -124,44 +129,51 @@
                                   <td data-head="BAC"><%= bac_unit %></td>
                                   <td data-head="Actions">
                                     <div class="form-button-action" data-transid="<%= product_id %>" data-transaction="<%= JSON.stringify(transactions[i]) %>">
-                                 
-                                      <button data-transid="<%= product_id %>" type="button" class="btn btn-link  btn-primary" data-bs-toggle="modal" data-bs-target="#viewTransactionModal" data-bs-whatever="<%= product_id %>" data-original-title="Edit Task">
-                                        <i class="fa fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Verify APP"></i>
-                                      </button>
+                                      <span data-bs-toggle="tooltip" title="View Transactions">
+                                        <a href="/transactions/<%= product_id %>/view" data-transid="<%= product_id %>" type="button" class="btn btn-link btn-primary">
+                                          <i class="fa fa-eye"></i>
+                                        </a>
+                                      </span>
                                
-                                      <% if (currentRole=='Admin') { %>
-                                      <button data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_confirm btn-link btn-success" data-original-title="Remove" id="alert_confirm">
-                                        <i class="fa fa-check"></i>
-                                      </button>
-                                      <button data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_deny btn-link btn-danger" data-original-title="Remove"  id="alert_deny">
-                                        <i class="fa fa-times"></i>
-                                      </button>
+                                      <% if (userDivision=='admin' && userSection=='budget' && current_step_number===3) { %>
+                                      <span data-bs-toggle="tooltip" title="Approve Fund Availability">
+                                        <button data-product-id="<%= product_id %>" type="button" class="btn alert_confirm btn-link btn-success" data-original-title="Remove" id="alert_confirm" data-step="<%= current_step_number %>">
+                                          <i class="fa fa-check"></i>
+                                        </button>
+                                      </span>
+                                      <span data-bs-toggle="tooltip" title="Disapprove Fund Availability">
+                                        <button data-product-id="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_deny btn-link btn-danger" data-original-title="Remove"  id="alert_deny" data-step="<%= current_step_number %>">
+                                          <i class="fa fa-times"></i>
+                                        </button>
+                                      </span>
                                       <% } %>
-                                      <% if (currentRole=='Contributor') { %>
-                                      <button data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_confirm confirm_app btn-link btn-success" data-original-title="Remove"  id="alert_confirm" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Verify APP">
+                                      <% if (userDivision=='admin' && userSection=='gs' && current_step_number===4) { %>
+                                      <button data-product-id="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_confirm confirm_app btn-link btn-success" data-original-title="Remove"  id="alert_confirm" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Verify APP">
                                         <i class="fa fa-check-circle"></i>
                                       </button>
                                         <% if (cleanBudget < 50000) { %>
-                                      <button data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_deny btn-link btn-info" data-original-title="Remove"  id="alert_deny" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Generate Canvass Form">
+                                      <button data-product-id="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_deny btn-link btn-info" data-original-title="Remove"  id="alert_deny" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Generate Canvass Form">
                                         <i class="fa fa-folder-open"></i>
                                       </button>
                                         <% } else { %>
-                                      <button data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_deny btn-link btn-info" data-original-title="Remove"  id="alert_deny" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Philgesh Posting">
+                                      <button data-product-id="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_deny btn-link btn-info" data-original-title="Remove"  id="alert_deny" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Philgesh Posting">
                                         <i class="fa fa-globe"></i>
                                       </button>
                                         <% } %>
                                       <% } %>
-                                      <% if(currentRole.includes(['Contributor', 'Viewer', 'user'])) { %>
-                                      <a href="/transactions/<%= product_id %>/edit" data-transid="<%= product_id %>" type="button"  class="btn btn-link btn-primary btn-lg" data-original-title="Edit Transaction" data-bs-toggle="tooltip" data-bs-placement="top" data-title="Edit Transaction">
+                                      <% if(isCreatorOfTransaction(transactions[i])) { %>
+                                      <span data-bs-toggle="tooltip" title="Edit Transaction">
+                                      <a href="/transactions/<%= product_id %>/edit" data-transid="<%= product_id %>" type="button"  class="btn btn-link btn-primary" data-original-title="Edit Transaction" data-bs-toggle="tooltip" data-bs-placement="top" data-title="Edit Transaction">
                                         <i class="fa fa-edit"></i>
                                       </a>
+                                      </span>
                                       <% } %>
-                                      <% if (currentRole=='user') { %>
+                                      <% if (hasAllowedRole(['user'])) { %>
                                       <button data-href="/transactions/<%= product_id %>/print" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-warning" data-original-title="Print"  id="print_<%= product_id %>">
                                         <i class="fas fa-print"></i>
                                       </button>
                                        <% } %>
-                                      <% if (currentRole=='SuperAdmin') { %>
+                                      <% if (hasAllowedRole(['SuperAdmin'])) { %>
                                       <button data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-delete btn-link btn-danger" data-original-title="Remove"  id="alert_demo_<%= product_id %>">
                                         <i class="fa fa-trash"></i>
                                       </button>

@@ -1,3 +1,13 @@
+Issue on currently holding the transactions or wanted to assign the transaction to his/her
+.................................
+Issue on the selectedOption upon updating
+.................................
+After the Transaction is Approve you need to assign next the Responsible Person OR
+Assign first the responsible person before the Approving the Transaction
+
+ERROR in the Gender when updating the info selected as "Other's"
+
+
 
 CURRENT TASK::
 -- For the Next Responsible Person || Assign To Btn

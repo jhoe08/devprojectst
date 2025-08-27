@@ -18,9 +18,9 @@ const tables = {
 const TEST_UNIT = process.env.TEST_UNIT
 
 var connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'pCYiE&2wDa^BUWL*#',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   database: prefix,
   charset: "utf8mb4",
 });
@@ -196,15 +196,26 @@ const databaseUtils = {
         });
       });
   },
-  getTransactions: () => new Promise((resolve, reject) => {
-    connection.query(`SELECT * FROM ${prefix}.${tables.transaction}`, (error, results) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results);
-      }
-    });
-  }),
+  getEmployees: async (data) => {
+    if (data) {
+      data = JSON.parse(data)
+      return await databaseUtils.retrieveData(`${tables.employee}`, '*', data)
+    }
+    return await databaseUtils.retrieveData(`${tables.transaction}`)
+  },
+  getTransactions: async (data) => {
+     if (data) {
+      data = JSON.parse(data)
+      return await databaseUtils.retrieveData(`${tables.transaction}`, '*', data)
+    }
+    return await databaseUtils.retrieveData(`${tables.transaction}`)
+  },
+  getActivities: async (data) => {
+    if (data) {
+      return await databaseUtils.retrieveData(`${tables.transaction_activity}`, '*', JSON.parse(data))
+    }
+    return await databaseUtils.retrieveData(`${tables.transaction_activity}`)
+  },
   getTransactionById2: (id) => new Promise((resolve, reject) => {
     connection.query(`SELECT * FROM ${prefix}.${tables.transaction} WHERE product_id=${id}`, (error, results) => {
       if (error) {
@@ -215,25 +226,23 @@ const databaseUtils = {
     });
   }),
   getTransactionById: async (id) => {
-    let data = { product_id: id }
+    const data = { product_id: id }
     return await databaseUtils.retrieveData('transactions', '*', data)
   },
-  getEmployeeById: (id) => new Promise((resolve, reject) => {
-    connection.query(`SELECT * FROM ${prefix}.employees WHERE employeeid=${id}`, (error, results) => {
-      error ? reject(error) : resolve(results);
-    })
-  }),
+  getEmployeeById: async (id) => {
+    return await databaseUtils.retrieveData('employees', '*', { employeeid: id })
+  },
   getEmployeeByUsername: (username) => new Promise((resolve, reject) => {
     connection.query(`SELECT * FROM ${prefix}.${tables.employee} WHERE username LIKE '${username}'`, (error, results) => {
       error ? reject(error) : resolve(results);
     })
   }),
   postTransactions: async (data) => {
-    const enrichedData = {
+    let enrichedData = {
       ...data,
       pr_date: convertDate(new Date()) // or use Date.now() for a timestamp
     };
-
+    enrichedData = JSON.stringify(enrichedData)
     return await databaseUtils.storeData(tables.transaction, enrichedData);
   },
   postRemarks: (data) => new Promise((resolve, reject) => {
@@ -716,6 +725,7 @@ const databaseUtils = {
 
     return await databaseUtils.retrieveData('settings')
   },
+
   // Sample
   divisions: (division) => {
     let lists = ["ILD", "PMED", "FOD", "ADMIN", "RESEARCH", "REGULATORY", "AMAD", "RAED", "Others"]
@@ -725,7 +735,64 @@ const databaseUtils = {
 
     return colors[color];
   },
-}
+  //////////////////////////////////////////////////////
+  // GUEST TOKENS
 
+  async storeGuestToken(tokenData) {
+    // tokenData: { token, created_at, expires_at, ip, device, used }
+    // status: 'active' by default
+    const {
+      token,
+      created_at,
+      expires_at,
+      ip,
+      device,
+      used
+    } = tokenData;
+    const status = 'active';
+    const metadata = JSON.stringify({ ip, device, used });
+
+    return new Promise((resolve, reject) => {
+      const query = `
+        INSERT INTO transto.guest_accounts
+          (guest_token, created_at, expires_at, status, metadata)
+        VALUES (?, ?, ?, ?, ?)
+      `;
+      connection.query(query, [token, created_at, expires_at, status, metadata], (error, results) => {
+        if (error) reject(error);
+        else resolve(results);
+      });
+    });
+  },
+
+  async findGuestToken(token) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT * FROM transto.guest_accounts
+        WHERE guest_token = ?
+        LIMIT 1
+      `;
+      connection.query(query, [token], (error, results) => {
+        if (error) reject(error);
+        else resolve(results.length ? results[0] : null);
+      });
+    });
+  },
+
+  async markGuestTokenUsed(token) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        UPDATE transto.guest_accounts
+        SET status = 'used', metadata = JSON_SET(metadata, '$.used', true)
+        WHERE guest_token = ?
+      `;
+      connection.query(query, [token], (error, results) => {
+        if (error) reject(error);
+        else resolve(results);
+      });
+    });
+  }
+
+}
 
 module.exports = databaseUtils

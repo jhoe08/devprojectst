@@ -45,10 +45,10 @@
                 </button>
                 Transaction ID <a href="/transactions/<%= refid %>/view"><%= refid %></a>
               </th>
-              <td class="text-end realtime"><%=moment(dueDate).format('MMM Do YYYY, h:mm:ss a')%></td>
-              <td class="text-end"><%=peso(cleanBudget)%></td>
+              <td class="text-end realtime"><%= moment(dueDate).format('MMM Do YYYY, h:mm:ss a') %></td>
+              <td class="text-end"><%= UTILS.peso(cleanBudget) %></td>
               <td class="text-end">
-                <span class="badge badge-<%= status %>"><%= statusText(status) %></span>
+                <span class="badge badge-<%= status %>"><%= UTILS.statusText(status) %></span>
               </td>
             </tr>
             <%    

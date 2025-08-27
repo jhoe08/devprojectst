@@ -67,7 +67,7 @@
           }, {
             render: $.fn.dataTable.render.number(',', '.', 2, '₱'),
             targets: 5
-          }, { visible: false, targets: [3,7,8,9,12] }
+          }, { visible: false, targets: [0,3,7,8,9,12] }
         ],
         responsive: true,
         initComplete: function () {
@@ -319,7 +319,7 @@
       const accentYellow = getComputedStyle(root).getPropertyValue('--accent-yellow');
 
       // This will only work if the site is a homepage
-      if('<%=path%>' === '' || '<%=path%>' === '/') {
+      if(window.location.pathname === '/') {
         var classificationData = JSON.parse('<%- perClassification || {} %>');
         var chartClassificationLabel = Object.keys(classificationData)
         var chartClassificationValue = Object.values(classificationData)
@@ -327,11 +327,14 @@
         createPieChart("chartClassification", chartClassificationValue, chartClassificationLabel, [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow]);
 
         const lineChart = document.getElementById('lineChart')
+        let lineChartMonths = JSON.parse(lineChart.dataset.months);
         const lineChartData = {
           amounts: JSON.parse(lineChart.dataset.amounts),
           disbursements: JSON.parse(lineChart.dataset.disbursements),
           abcs: JSON.parse(lineChart.dataset.abcs),
         };
+
+        lineChartMonths = JSON.parse(lineChartMonths)
 
         createLineChartWithHtmlLegend(
         "lineChart",   // chartId
@@ -353,7 +356,7 @@
             values: lineChartData.disbursements
           },
         ],
-        ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],  // chartLabels
+        lineChartMonths,  // chartLabels
         [
           [primaryGreen], // gradientColors
           [primaryOrange],
@@ -399,108 +402,313 @@
           text: "The Annual Procurement Plan has been successfully validated."
         }
       };
-      const verificationMessage_tobe = {
-        2: { // Step 2: Division Chief
-          initial: {
-            title: "Confirm Approval",
-            text: "Please click 'Confirm' to approve this Purchase Request and continue to the next step.",
-          },
-          confirmed: {
-            title: "Approval Confirmed",
-            text: "The Purchase Request has been successfully forwarded to the next approver.",
-          }
+    const verificationMessages = {
+      1: {
+        initial: {
+          title: "Submit Purchase Request",
+          text: "Click 'Confirm' to submit the Purchase Request for processing.",
         },
-        3: { // Step 3: Budget
-          initial: {
-            title: "Confirm Funds Availability",
-            text: "Click 'Confirm' to complete the process.",
-          },
-          confirmed: {
-            title: "Approval Confirmed",
-            text: "Funds availability has been approved.",
-          }
+        confirmed: {
+          title: "Request Submitted",
+          text: "The Purchase Request has been successfully submitted.",
         },
-        4: { // Step 4: Procurement
-          initial: {
-            title: "Verify Annual Procurement Plan (APP)",
-            text: "Click ‘Confirm’ to proceed with verification of the APP."
-          },
-          confirmed: {
-            title: "Verification Complete",
-            text: "The Annual Procurement Plan has been successfully validated."
-          }
+        denied: {
+          title: "Submission Denied",
+          text: "The Purchase Request was not submitted by the End-User.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "The End-User's denial has been successfully recorded.",
         }
-      };
-
-      $(".alert_confirm").click(function (e) {
-      
-        swal({
-          title: (this.classList.contains('confirm_app')) ? verificationMessage.initial.title : "Are Funds Available?" ,
-          text: (this.classList.contains('confirm_app')) ? verificationMessage.initial.text : "Click 'Confirm' to proceed.",
-          type: "warning",
-          buttons: {
-            confirm: {
-              text: "Confirm",
-              className: "btn btn-success",
-            },
-            cancel: {
-              visible: true,
-              className: "btn btn-danger",
-            },
-          },
-        }).then((Delete) => {
-          console.log('')
-          if (Delete) {
-            swal({
-              title: (this.classList.contains('confirm_app')) ? verificationMessage.confirmed.title : "Confirmation Successful",
-              text: (this.classList.contains('confirm_app')) ? verificationMessage.confirmed.text : "Funds availability has been approved.",
-              type: "success",
-              buttons: {
-                confirm: {
-                  className: "btn btn-success",
-                },
-              },
-            });
-          } else {
-            swal.close();
-          }
-        });
-      });
-    
-      $(".alert_deny").click(function (e) {
-        swal({
+      },
+      2: {
+        initial: {
+          title: "Confirm Approval",
+          text: "Please click 'Confirm' to approve this Purchase Request and continue to the next step.",
+        },
+        confirmed: {
+          title: "Approval Confirmed",
+          text: "The Purchase Request has been successfully forwarded to the next approver.",
+        },
+        denied: {
+          title: "Approval Denied",
+          text: "The Purchase Request was not approved by the Division Chief.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "The Division Chief's denial has been successfully recorded.",
+        }
+      },
+      3: {
+        initial: {
+          title: "Confirm Funds Availability",
+          text: "Click 'Confirm' to complete the process.",
+        },
+        confirmed: {
+          title: "Approval Confirmed",
+          text: "Funds availability has been approved.",
+        },
+        denied: {
           title: "Funds Not Approved",
-          text: "Click ‘Confirm’ to acknowledge that no funds are available.",
-          type: "warning",
-          buttons: {
-            confirm: {
-              text: "Confirm",
-              className: "btn btn-success",
-            },
-            cancel: {
-              visible: true,
-              className: "btn btn-danger",
-            },
-          },
-        }).then((Delete) => {
-          console.log('')
-          if (Delete) {
-            swal({
-              title: "Confirmation Received: No Funds Available",
-              text: "Please explore alternative funding sources.",
-              type: "success",
-              buttons: {
-                confirm: {
-                  className: "btn btn-success",
-                },
-              },
-            });
-          } else {
-            swal.close();
-          }
-        });
-      });
+          text: "The Budget Office has denied the availability of funds for this request. Click 'Confirm' to complete the process.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "The denial of funds availability has been successfully recorded.",
+        }
+      },
+      4: {
+        initial: {
+          title: "Verify Annual Procurement Plan (APP)",
+          text: "Click ‘Confirm’ to proceed with verification of the APP.",
+        },
+        confirmed: {
+          title: "Verification Complete",
+          text: "The Annual Procurement Plan has been successfully validated.",
+        },
+        denied: {
+          title: "Verification Denied",
+          text: "The APP verification was not approved by the Procurement Office.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "The denial of APP verification has been successfully recorded.",
+        }
+      },
+      5: {
+        initial: {
+          title: "Review Purchase Request",
+          text: "Click 'Confirm' to complete BAC Secretariat review.",
+        },
+        confirmed: {
+          title: "Review Completed",
+          text: "BAC Secretariat has completed the review.",
+        },
+        denied: {
+          title: "Review Denied",
+          text: "BAC Secretariat did not approve the request.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "BAC Secretariat's denial has been successfully recorded.",
+        }
+      },
+      6: {
+        initial: {
+          title: "Prepare Quotation Form",
+          text: "Click 'Confirm' to proceed with quotation form preparation.",
+        },
+        confirmed: {
+          title: "Form Prepared",
+          text: "Quotation form has been successfully prepared.",
+        },
+        denied: {
+          title: "Preparation Denied",
+          text: "Quotation form preparation was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Denial of quotation form preparation has been recorded.",
+        }
+      },
+      7: {
+        initial: {
+          title: "Start Canvassing",
+          text: "Click 'Confirm' to begin the canvassing process.",
+        },
+        confirmed: {
+          title: "Canvassing Started",
+          text: "Canvassing has been successfully initiated.",
+        },
+        denied: {
+          title: "Canvassing Denied",
+          text: "Canvassing was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Canvassing denial has been successfully recorded.",
+        }
+      },
+      7.1: {
+        initial: {
+          title: "Engage Supplier",
+          text: "Click 'Confirm' to proceed with supplier engagement.",
+        },
+        confirmed: {
+          title: "Supplier Engaged",
+          text: "Supplier has been successfully engaged.",
+        },
+        denied: {
+          title: "Engagement Denied",
+          text: "Supplier engagement was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Supplier engagement denial has been recorded.",
+        }
+      },
+      8: {
+        initial: {
+          title: "Evaluate Canvass Results",
+          text: "Click 'Confirm' to complete BAC evaluation.",
+        },
+        confirmed: {
+          title: "Evaluation Complete",
+          text: "BAC evaluation has been successfully completed.",
+        },
+        denied: {
+          title: "Evaluation Denied",
+          text: "BAC did not approve the evaluation results.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "BAC evaluation denial has been recorded.",
+        }
+      },
+      9: {
+        initial: {
+          title: "Finalize Procurement",
+          text: "Click 'Confirm' to finalize procurement details.",
+        },
+        confirmed: {
+          title: "Procurement Finalized",
+          text: "Procurement details have been finalized.",
+        },
+        denied: {
+          title: "Finalization Denied",
+          text: "Procurement finalization was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Procurement finalization denial has been recorded.",
+        }
+      },
+      10: {
+        initial: {
+          title: "Executive Approval",
+          text: "Click 'Confirm' to request RED/RTD approval.",
+        },
+        confirmed: {
+          title: "Approval Granted",
+          text: "Executive approval has been granted.",
+        },
+        denied: {
+          title: "Approval Denied",
+          text: "Executive approval was not granted.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Executive denial has been recorded.",
+        }
+      },
+      // ... and so on for steps 11 to 30
+    };
+    function showConfirmationAlert(options) {
+      const {
+        title = "Are you sure?",
+        text = "Click ‘Confirm’ to proceed.",
+        confirmText = "Confirm",
+        cancelText = "Cancel",
+        icon = "warning",
+        requestUrl,
+        requestMethod = "POST",
+        requestData = {},
+        successTitle = "Success",
+        successText = "Your request was processed successfully.",
+        errorTitle = "Error",
+        errorText = "Something went wrong.",
+      } = options;
 
+      swal({
+        title,
+        text,
+        icon,
+        buttons: {
+          confirm: {
+            text: confirmText,
+            className: "btn btn-success",
+          },
+          cancel: {
+            text: cancelText,
+            visible: true,
+            className: "btn btn-danger",
+          },
+        },
+      }).then((confirmed) => {
+        if (confirmed) {
+          $.ajax({
+            url: requestUrl,
+            method: requestMethod,
+            data: requestData,
+            success: function (response) {
+              swal({
+                title: successTitle,
+                text: successText,
+                icon: "success",
+                buttons: {
+                  confirm: {
+                    className: "btn btn-success",
+                  },
+                },
+              });
+            },
+            error: function (xhr, status, error) {
+              swal({
+                title: errorTitle,
+                text: errorText,
+                icon: "error",
+                buttons: {
+                  confirm: {
+                    className: "btn btn-danger",
+                  },
+                },
+              });
+            }
+          });
+        } else {
+          swal.close();
+        }
+      });
+    }
+
+    $(document).on("click", ".alert_confirm", function(e){
+      e.preventDefault()
+      const productId = $(this).data('product-id')
+      const currentStep = $(this).data('step')
+      const updatedBy = $('#created_by').val()
+      showConfirmationAlert({
+        title: verificationMessages[currentStep].initial.title,
+        text: verificationMessages[currentStep].initial.text,
+        requestUrl: "/approve",
+        requestMethod: "POST",
+        requestData: {
+          product_id: productId,
+          steps_number: currentStep,
+          updated_by: updatedBy, 
+          remarks: verificationMessages[currentStep].confirmed.text
+        },
+        successTitle: verificationMessages[currentStep].confirmed.title,
+        successText: verificationMessages[currentStep].confirmed.text,
+      })
+    })
+    $(document).on("click", ".alert_deny", function(e){
+      const productId = $(this).data('product-id')
+      const currentStep = $(this).data('step')
+      showConfirmationAlert({
+        title: verificationMessages[currentStep].denied.title,
+        text: verificationMessages[currentStep].denied.text,
+        requestUrl: "/approve",
+        requestMethod: "POST",
+        requestData: {
+          //const { trans_id, steps_number, updated_by } = req.body;
+          product_id: productId,
+          steps_number: currentStep,
+          
+        },
+        successTitle: verificationMessages[currentStep].confirmedDenied.title,
+        successText: verificationMessages[currentStep].confirmedDenied.text,
+      })
+    })
     </script>
 
   </body>

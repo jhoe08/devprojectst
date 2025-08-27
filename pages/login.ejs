@@ -49,6 +49,11 @@
               <a href="#!" class="forgot-password-link">Password?</a>
             </div>
           </form>
+          <div class="form-group mt-3 text-center">
+            <a href="/login?guest_token=<%= guestToken || '' %>" class="btn btn-outline-primary">
+              Continue as Guest
+            </a>
+          </div>
           <p class="login-wrapper-footer-text">Need an account? <a href="/register" class="text-reset">Signup here</a></p>
         </div>
       </div>

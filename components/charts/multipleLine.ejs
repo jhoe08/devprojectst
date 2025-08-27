@@ -1,5 +1,5 @@
 <%
-  const { amounts, abcs, disbursements } = datasets
+  const { months, amounts, abcs, disbursements } = datasets
 %>
 <div class="card">
   <div class="card-header">
@@ -30,6 +30,7 @@
         data-amounts="<%= JSON.stringify(amounts) %>" 
         data-disbursements="<%= JSON.stringify(disbursements) %>" 
         data-abcs="<%= JSON.stringify(abcs) %>"
+        data-months="<%= JSON.stringify(months) %>"
       ></canvas>
     </div>
   </div>

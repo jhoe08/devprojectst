@@ -1,11 +1,10 @@
 <%
     <!-- var {divisions, banner_program} = dafaultTransactionData -->
     let { directors, divisions, permissions, bacs } = JSON.parse(DEPARTMENT) 
-    const { designation: userDesignation } = SESSION_USER_LOG
-    let e_division = userDesignation.division
-
     directors = Object.entries(directors)
     divisions = Object.entries(divisions)
+
+    const setSelectedValue = filtered
 %>
 
 <div class="form-group form-group-default">
@@ -18,7 +17,7 @@
                     key: subKey,
                     stands: subDirector.stands,
                     classes: "technical-directors",
-                    filtered: subKey,
+                    <!-- filtered: subKey, -->
                 }));
             }
             if (key === "BACs") {
@@ -26,37 +25,37 @@
                     key: subKey,
                     stands: subDirector.stands,
                     classes: "bacs",
-                    filtered: subKey,
+                    <!-- filtered: subKey, -->
                 }));
             }
             return [{
                 key,
                 stands: director.stands,
                 classes: "director",
-                filtered: key,
+                <!-- filtered: key, -->
             }];
         });
         
         directorsArray.forEach(({ key, stands, classes, filtered }) => { %>
-        <%- include('../../components/forms/options', { key, stands, classes, filtered: e_division, dataset:[] }) %>
+        <%- include('../../components/forms/options', { key, stands, classes, filtered, dataset:[] }) %>
         <% }); %>
         <optgroup label="Divisions">
         <!-- Divisions Here -->
         <% divisions.forEach(([key, division]) => { 
         const { stands, sections } = division; %>
 
-        <%- include('../../components/forms/options', { key, stands, classes: 'division',  filtered: e_division, dataset:[] }) %>
+        <%- include('../../components/forms/options', { key, stands, classes: 'division',  filtered: setSelectedValue, dataset:[] }) %>
         <% 
             Object.entries(sections).forEach(([keySect, section]) => { 
             const { stands: sectStands, sections:banners } = section;
             underDivision = Object.entries(section)
             %>
-            <%- include('../../components/forms/options', { key: keySect, stands: sectStands,  classes: 'section', filtered: e_division, dataset:['division',key] }) %>
+            <%- include('../../components/forms/options', { key: keySect, stands: sectStands,  classes: 'section', filtered: setSelectedValue, dataset:['division',key] }) %>
             <% if(banners) {
             Object.entries(banners).forEach(([keyBan, banner]) => { 
                 const { stands:banStands } = banner;
             %>
-            <%- include('../../components/forms/options', { key: keyBan, stands: banStands, classes: 'unit', filtered: e_division, dataset:[] }) %>
+            <%- include('../../components/forms/options', { key: keyBan, stands: banStands, classes: 'unit', filtered: setSelectedValue, dataset:[] }) %>
             <% }) } %>
         <% }); %>
         <% }) %>

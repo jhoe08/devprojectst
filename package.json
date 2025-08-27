@@ -28,6 +28,7 @@
         "dotenv": "^16.4.5",
         "ejs": "^3.1.10",
         "express": "^4.17.1",
+        "express-mysql-session": "^3.0.3",
         "firebase": "^10.12.3",
         "fs": "^0.0.1-security",
         "hash": "^0.2.1",
