@@ -16,6 +16,7 @@ const bodyParser = require('body-parser');
 const ejs = require('ejs')
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
+const { v4: uuidv4 } = require('uuid');
 
 const sessionStore = new MySQLStore({
   host: process.env.DB_HOST,
@@ -714,6 +715,14 @@ function findAminByEmail(department, emailToFind) {
   }
   return "Admin not found"
 }
+function createSessionForGuest(guest) {
+  return jwt.sign(
+    { id: guest.id, role: 'guest' },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+}
+
 
 let transid = []
 
@@ -722,11 +731,11 @@ const router = express.Router();
 
 const clientPath = `${__dirname}/client/`;
 const modulesPath = `${__dirname}/node_modules/`;
-const csvPath = `${__dirname}/pages/`;
+const csvPath = `${__dirname}/`;
 const adminPath = `${__dirname}/demo/`;
 const viewsAssets = `${__dirname}/assets/`;
 
-// const transPath = `${__dirname}/pages/transactions.ejs`;
+// const transPath = `${__dirname}/transactions.ejs`;
 
 const SERVER_PORT = 4000;
 
@@ -735,7 +744,11 @@ const SERVER_PORT = 4000;
 // })
 
 app.set("view engine", "ejs")
-app.set("views", path.join(__dirname), "views")
+app.set("views", [
+  path.join(__dirname, "pages"),
+  path.join(__dirname, "views")
+]);
+
 
 app.use('/', require('./routes/root'))
 app.use(bodyParser.json());
@@ -970,6 +983,9 @@ app.use(async (req, res, next) =>{
   
       return false;
     },
+    isGuest: () => {
+      return SESSION_USER?.roles.includes('Guest');
+    },
     trimName(fullName) {
       const parts = fullName.trim().split(' ');
       if (parts.length === 0) return '';
@@ -988,6 +1004,7 @@ app.use(async (req, res, next) =>{
       // Parse userRoles if it's a stringified array
       if (typeof userRoles === 'string') {
         try {
+          console.log('userRoles', userRoles)
           userRoles = JSON.parse(userRoles);
         } catch (e) {
           console.warn('Failed to parse userRoles string:', userRoles);
@@ -996,7 +1013,7 @@ app.use(async (req, res, next) =>{
       }
 
       if (!Array.isArray(userRoles)) {
-        console.warn('userRoles is not an array:', userRoles);
+        // console.warn('userRoles is not an array:', userRoles);
         return false;
       }
 
@@ -1044,7 +1061,7 @@ app.use(async (req, res, next) =>{
   };
 
   const { SESSION_USER, SESSION_USER_LOG, SUMMARY } = res.locals
-  console.log('Session User:', { SUMMARY });
+  // console.log('Session User:', { SUMMARY });
 
   next();
 });
@@ -1199,7 +1216,7 @@ app.get('/', restrict, loadAllTransactions, loadAllActivities, async function(re
 
   console.log('charts', perPRClassification)
   
-  res.render('pages/index', {
+  res.render('index', {
     title: "Dashboard",
     header: "Some users", 
     totalApprovedBudget: JSON.stringify(totalApprovedBudget[0]),
@@ -1219,7 +1236,7 @@ app.get('/template', async function(req, res) {
     perClassification:{}, 
     path: req.path,
     path2: req.path, 
-    innerContent: '../pages/employees/index2',
+    innerContent: '../employees/index2',
     employees: []
   });
   // Rendered HTML
@@ -1240,137 +1257,205 @@ app.get('/api/notifications', async (req, res) => {
 });
 
 app.get('/404', (req, res) => {
-  res.status(404).render('pages/404', {
+  res.status(404).render('404', {
     title: 'Page Not Found',
     component: 'Page'
   });
 });
 
 app.get('/unauthorized', (req, res) => {
-  res.status(404).render('pages/unauthorize', {
+  res.status(404).render('unauthorized', {
     title: 'Page Not Found',
     component: 'Page'
   });
 });
 
-app.get('/login', (req, res) => {
-  const error = req.session.error
-  
-  req.session.error = null
-
-  if (req.session.isAuthenticated) {
-    return res.redirect(302, '/');
-  } else {
-    return res.render('pages/login', {
-      title: 'Login',
-      path: res.url,
-      emitMessage: error,
-      guestToken: req.query.guest_token
-    })
-  }
- 
-});
-
-app.post('/login00000000000', async (req, res, next) => {
+app.get('/login', async (req, res) => {
   try {
-    const {username, password} = req.body
-    if (!username || !password) return res.status(400).json({ message: 'Username and password are required.' });
+    const guestToken = req.query.guest_token;
 
-    let userDetails = await connection.retrieveEmployeeByUsername( username )
-    
-    // console.log({userDetails})
+    // 🔐 Guest Token Login via GET
+    if (guestToken) {
+      const guest = await connection.findGuestToken(guestToken);
 
-    if(userDetails.length !== 0) {
-      userDetails = userDetails[0] ? JSON.stringify(userDetails[0]) : JSON.stringify({ message: 'Account Not Found' })
-      let user = JSON.parse(userDetails)
-      const {experience} = user
-  
-      if(!bcrypt.compareSync(password, user.password)) {
-        req.session.error = 401; // Incorrect password
-        res.status(404).redirect('/login')
-        // return next()
+      if (!guest || guest.status !== 'active') {
+        req.session.error = 401;
+        return res.status(404)
       }
-      const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
-  
-      req.session.user = user
-      req.session.isAuthenticated = true
-      req.session.token = token
 
-      res.redirect('/'); // Only send one response  
-    } else {
-      req.session.error = 404; // Account Not Found
-      res.redirect('/login')
+      const token = jwt.sign({ guestId: guest.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+      req.session.user = guest;
+      req.session.isAuthenticated = true;
+      req.session.token = token;
+      req.session.isGuest = true;
+
+      return res.redirect('/guest-dashboard');
     }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'An error occurred while processing your request.' });
-  }
 
-  // next()
-})
+    // 🧭 No token? Show login page
+    res.render('login', { error: req.session.error || null, title: "Login", guestToken: uuidv4() });
+  } catch (error) {
+    console.error('Guest login error:', error);
+    res.status(500).send('Internal Server Error');
+  }
+}); 
 
 app.post('/login', async (req, res) => {
   try {
+    const guestToken = req.query.guest_token;
+
+    // 🔐 Guest Token Login
+    if (guestToken) {
+      const guest = await connection.retrieveGuestByToken(guestToken);
+
+      if (!guest || guest.status !== 'active') {
+        req.session.error = 401;
+        return res.redirect('/login');
+      }
+
+      const token = jwt.sign({ guestId: guest.id }, 'secret_key', { expiresIn: '1h' });
+
+      req.session.user = guest;
+      req.session.isAuthenticated = true;
+      req.session.token = token;
+      req.session.isGuest = true;
+
+      return res.redirect('/');
+    }
+
+    // 👤 Standard Username/Password Login
     const { username, password } = req.body;
     if (!username || !password) {
       return res.status(400).json({ message: 'Username and password are required.' });
     }
 
-    let userDetails = await connection.retrieveEmployeeByUsername(username);
-
-    if (userDetails.length !== 0) {
-      const user = userDetails[0];
-      const { experience } = user;
-
-      if (!bcrypt.compareSync(password, user.password)) {
-        req.session.error = 401;
-        return res.redirect('/login');
-      }
-
-      const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
-
-      req.session.user = user;
-      req.session.isAuthenticated = true;
-      req.session.token = token;
-
-      return res.redirect('/');
-    } else {
+    const userDetails = await connection.retrieveEmployeeByUsername(username);
+    if (userDetails.length === 0) {
       req.session.error = 404;
       return res.redirect('/login');
     }
+
+    const user = userDetails[0];
+    const isPasswordValid = bcrypt.compareSync(password, user.password);
+    if (!isPasswordValid) {
+      req.session.error = 401;
+      return res.redirect('/login');
+    }
+
+    const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
+
+    req.session.user = user;
+    req.session.isAuthenticated = true;
+    req.session.token = token;
+    req.session.isGuest = false;
+
+    return res.redirect('/');
   } catch (error) {
-    console.error(error);
+    console.error('Login error:', error);
     return res.status(500).json({ error: 'An error occurred while processing your request.' });
   }
 });
 
-app.post('/login-HUH', async (req, res) => {
-  const {username, password} = req.body
-  let userDetails = await connection.retrieveEmployeeByUsername( username );
-  
-  if(!userDetails) return res.status(200).json({message:'Username wala ni exists', response:{}})
+app.get('/token', async (req, res) => {
+  const guestToken = req.query.guest_token;
+  const guest = {
+    token: guestToken,
+    created_at: new moment().format('YYYY-MM-DD HH:mm:ss'),
+    expires_at: new moment().add(1, 'hours').format('YYYY-MM-DD HH:mm:ss'),
+    status: 'active',
+    meta: {
+      ip: req.ip,
+      user_agent: req.headers['user-agent'],
+      origin: 'email_invite',
+      login_time: new moment().format('YYYY-MM-DD HH:mm:ss'),
+      remarks: 'Auto-login via token'
+    }
+  }
+  console.log('Storing guest token:', guest)
+  const result = await connection.storeGuestToken(guest)
+  if(result) {
+    const guestUser = {
+      employeeid: guestToken,
+      username: 'Guest_User',
+      email: 'guest@example.com',
+      firstname: 'Guest',
+      lastname: 'User', 
+      middlename: '',
+      extname: '',
+      birthdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      experience: {
+        lists: [{
+          office: 'DA - RFO7',
+          division: 'GUEST',
+          section: 'User',
+          salary: '123456',
+          status: true,
+          enddate: 'present',
+          position: 'Data Controller X',
+          startdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+          employment: 'Permanent',
+          arrangements: 'On-site', 
+        }],
+      },
+      contacts: JSON.stringify({
+        email: 'justtest@gmail.com',
+        mobile: '09913983598',
+      }),
+      others: JSON.stringify({
+        civilstatus: 'Married',
+        gender: 'Male'
+      }),
+      components: ['Transactions'],
+      roles: JSON.stringify(['Guest'])
+    }
 
-    userDetails = JSON.stringify(userDetails[0])
-    let user = JSON.parse(userDetails)
-    
-    let {hash, salt} = JSON.parse(user.password)
-    // console.log(user)
-    // console.log('hash', hash)
-    // console.log('salt', salt)
-    // console.log('pass', password)
+    let { experience } = guestUser
+    experience = JSON.stringify(experience)
 
-    const asdf = await hashPasswordUtils(password)
-    // console.log(asdf)
-  
-  let isxMatch =  verifyPasswordCrypto(password, salt, hash, (err, isCorrect) => {
-    if (err) throw err;
-    // console.log(`Password is correct: ${isCorrect}`);
-    return isCorrect ? res.redirect('/') : res.redirect('/login')
-  })
+    guestUser.experience = experience
 
-  return userDetails
+    req.session.user = res.locals.SESSION_USER = guestUser;
+    req.session.isAuthenticated = true;
+    req.session.isGuest = true;
 
+  }
+
+  return res.redirect('/')
 })
+
+// app.get('/logout', function(req, res){
+//   // destroy the user's session to log them out
+//   // will be re-created next request
+//   req.session.destroy(function(){
+//     res.redirect('/login');
+//   });
+// });
+
+app.get('/logout', async (req, res) => {
+  const isGuest = req.session.isGuest;
+  const guestToken = req.session.user?.employeeid;
+
+  if (isGuest && guestToken) {
+    const logoutMeta = {
+      ip: req.ip,
+      user_agent: req.headers['user-agent'],
+      logout_time: new Date().toISOString(),
+      remarks: 'Guest manually logged out'
+    };
+
+    await connection.markGuestTokenUsed({
+      token: guestToken,
+      status: 'used',
+      expires_at: new Date().toISOString(),
+      meta: JSON.stringify(logoutMeta)
+    });
+  }
+
+  req.session.destroy(() => {
+    res.redirect('/login');
+  });
+});
 
 app.post('/verify', async (req, res) => {
   try {
@@ -1397,7 +1482,7 @@ app.get('/register', function(req, res){
   let {username} = req.params
   let {blood_type, civil_status} = _preDefaultData
 
-  res.render('pages/register', {
+  res.render('register', {
     title: 'Sign Up',
     path: res.url
     // logonUser: user
@@ -1455,14 +1540,6 @@ app.post('/register/new', async (req, res) => {
   }
 })
 
-app.get('/logout', function(req, res){
-  // destroy the user's session to log them out
-  // will be re-created next request
-  req.session.destroy(function(){
-    res.redirect('/login');
-  });
-});
-
 app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
   try {
     const userId = req.session?.user?.employeeid;
@@ -1497,7 +1574,7 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
 
     console.log(filteredTransactions.length)
 
-    res.render('pages/transactions/index', {
+    res.render('transactions/index', {
       title: 'Transactions',
       transactions: filteredTransactions,
       moment,
@@ -1516,7 +1593,7 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
 
 app.get('/transactions/new', restrict, async (req, res) => {
   try {
-      res.render('pages/transactions/new', { 
+      res.render('transactions/new', { 
         title: 'Create a new Transactions',
         moment: moment,
         // formatter: formatter,
@@ -1532,7 +1609,7 @@ app.get('/transactions/new', restrict, async (req, res) => {
 
 app.get('/transactions/scan', restrict, async (req, res) => {
   try {
-      res.render('pages/transactions/scan', { 
+      res.render('transactions/scan', { 
         title: 'Scan Transaction QRCode',
         moment: moment,
         // formatter: formatter,
@@ -1623,7 +1700,7 @@ app.get('/transactions/:id', restrict, async (req, res) => {
     const transid = req.params.id;
 
     const transactions = await connection.getTransactionById(transid);
-      res.render('pages/transactions', { 
+      res.render('transactions', { 
         title: 'Transactions',
         transactions: transactions, 
         moment: moment,
@@ -1640,7 +1717,7 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
     const transid = req.params.id;
 
     const transactions = await connection.getTransactionById(transid);
-      res.render('pages/transactions/new', { 
+      res.render('transactions/new', { 
         predata: _preTransactionsData,
 
         title: 'Transactions',
@@ -1666,7 +1743,7 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
     // console.log(steps.sort((a, b) => b.id - a.id))
 
     if(transactions[0]) {
-      res.render('pages/transactions/view', { 
+      res.render('transactions/view', { 
         title: 'Transactions: Remarks',
         transactions: transactions[0],
         remarks: remarks.sort((a, b) => b.id - a.id),
@@ -1679,7 +1756,7 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
 
       // console.log('req.session.user', req.session.user)
     } else {
-      res.render('pages/404', {
+      res.render('404', {
         title: '404 Transaction Not Found',
         referer: req.referer,
         component: 'Transaction',
@@ -1689,7 +1766,7 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
   } catch (error) {
       console.error('Error displaying transaction:', error);
       // res.status(500).send('Internal Server Error');
-      res.status(404).render('pages/404', {
+      res.status(404).render('404', {
         title: "404 Page not found",
         component: "Transaction"
       });
@@ -1702,7 +1779,7 @@ app.get('/transactions/:id/print', restrict, async (req, res) => {
     const transactions = await connection.getTransactionById(transid);
     const remarks = await connection.getRemarksByRefid(transid)
     if (transactions[0]) {
-      res.render('pages/transactions/print', { 
+      res.render('transactions/print', { 
         title: "Print Tracking Sheet",
         transactions: transactions[0],
         perClassification: {},
@@ -1715,7 +1792,7 @@ app.get('/transactions/:id/print', restrict, async (req, res) => {
     }
   } catch (error) {
     console.error('Error deleting transaction:', error);
-    res.status(404).render('pages/404');
+    res.status(404).render('404');
   }
 })
 
@@ -1904,7 +1981,7 @@ app.get('/employees', restrict, async (req, res) => {
   const employees = await connection.retrieveEmployee()
   const roles = await connection.retrieveEmployeeIdsWithRole()
   // console.log(employees)
-  res.render('pages/employees/index', {
+  res.render('employees/index', {
     title: 'Employees',
     employees: JSON.stringify(employees),
     roles,
@@ -1912,7 +1989,7 @@ app.get('/employees', restrict, async (req, res) => {
 })
 
 app.get('/employees/new', restrict, function(req, res){
-  res.render('pages/employees/new', {
+  res.render('employees/new', {
     defaultData: _preDefaultData,
     title: 'Add Employee', 
     path: res.url,
@@ -1924,7 +2001,7 @@ app.get('/employees/:id/profile', restrict, async function(req, res){
   try {
     const employee = await connection.getEmployeeById(req.params.id);
     if(employee.length > 0) {
-      res.render('pages/employees/profile', {
+      res.render('employees/profile', {
         employee: employee[0],
         moment,
         title: 'Profile', 
@@ -1932,7 +2009,7 @@ app.get('/employees/:id/profile', restrict, async function(req, res){
       })
     } else {
       console.error('Employee not found!');
-      res.render('pages/404', {
+      res.render('404', {
         title: '404 Employee Not Found',
         referer: req.referer,
         component: 'Employee'
@@ -1940,7 +2017,7 @@ app.get('/employees/:id/profile', restrict, async function(req, res){
     }
   } catch (error) {
     console.error('Error retrieving employee:', error);
-    res.status(500).render('pages/404');
+    res.status(500).render('404');
   }
 })
 
@@ -1959,7 +2036,7 @@ async function getFormData(employeeId = null) {
 app.get('/employees/register', restrict, async (req, res) => {
   try {
     const { roles, employees } = await getFormData();
-    res.render('pages/employees/register', {
+    res.render('employees/register', {
       title: 'Register Employee',
       employees,
       mode: 'register',
@@ -1976,7 +2053,7 @@ app.get('/employees/:id/update', restrict, async (req, res) => {
     const employeeId = req.params.id;
     const { roles, employees } = await getFormData(employeeId);
 
-    res.render('pages/employees/register', {
+    res.render('employees/register', {
       title: 'Update Employee',
       employees,
       mode: 'update',
@@ -2004,13 +2081,13 @@ app.delete('/employees/:id', restrict, async (req, res) => {
 })
 
 app.get('/inventory', restrict, async function(req, res){
-  res.render('pages/inventory/', {
+  res.render('inventory/', {
     title: "Inventory"
   })
 })
 
 app.get('/qrscanner', restrict, async function(req, res){
-  res.render('pages/scanner', {
+  res.render('scanner', {
     title: "Scan QR Code"
   })
 })
@@ -2024,7 +2101,7 @@ app.get('/documents', restrict, async function(req, res){
   analysisData = analysisData[0]
   analysisDataReplies = analysisDataReplies[0]
 
-  res.render('pages/documents/index', {
+  res.render('documents/index', {
     title: 'Documents',
     displayData: results,
     analysis: {analysisData, analysisDataReplies},
@@ -2032,7 +2109,7 @@ app.get('/documents', restrict, async function(req, res){
 })
 
 app.get('/documents/template/newEmail', restrict, function(req, res) {
-  res.render('pages/emails/new2', {
+  res.render('emails/new2', {
     title: 'Template on New Email'
   })
 })
@@ -2129,11 +2206,11 @@ app.get('/documents/:id', restrict, async function(req, res){
       const { username } = res.locals.SESSION_USER
       var { priority, created_by } = results[0]
       if (priority === 'confidential' && created_by !== username) {
-        res.render('pages/unauthorize', {
+        res.render('unauthorize', {
           title: "Unauthorized Access", 
         })
       } else { 
-        res.render('pages/documents/id', {
+        res.render('documents/id', {
           title: "Document", 
           displayData: results[0], 
           activities: activities.sort((a, b) => b.id - a.id),
@@ -2144,7 +2221,7 @@ app.get('/documents/:id', restrict, async function(req, res){
     
   } catch (error) {
     console.error('Error on displaying the document:', error);
-    res.status(404).render('pages/404', {
+    res.status(404).render('404', {
       title: "Document", 
       component: "Document"
     });
@@ -2165,7 +2242,7 @@ app.post('/documents/:id/activity', restrict, async function(req, res){
 // To Be Feature
 app.get('/calendar', restrict, async function(req, res){
   
-  res.render('pages/documents/calendar', {
+  res.render('documents/calendar', {
     title: 'Calendar',
   })
 })
@@ -2303,13 +2380,13 @@ app.get('/settings', restrict, async function(req, res){
     (a.lastname.toLowerCase() > b.lastname.toLowerCase() ? 1 : 0)
   );
   if(username === 'justtest') { // user is admin
-    res.render('pages/settings', {
+    res.render('settings', {
       title: "Settings",
       settings: JSON.parse(JSON.stringify(results)),
       employees: JSON.parse(JSON.stringify(employees))
     })
   }
-  res.status(404).render('pages/unauthorize', {
+  res.status(404).render('unauthorize', {
     title: 'Page Not Found',
     component: 'Page'
   });
@@ -2332,7 +2409,7 @@ app.get('/forms/forms.html', restrict, function (req, res) {
   res.redirect('/demo/forms/forms.html');
 });
 app.get('/request', function(req, res){
-  res.render('pages/request',{
+  res.render('request',{
     title: "Request",
     path: res.path,
   })
@@ -2356,7 +2433,7 @@ app.get('/media', (req, res) => {
       };
     });
 
-    res.render('pages/media', {
+    res.render('media', {
       title: 'Media Gallery',
       files: fileData,
       basePath: '/uploads'
@@ -2367,7 +2444,7 @@ app.get('/media', (req, res) => {
 
 
 app.use(async function(req, res, next){
-  res.status(404).render('pages/404', {
+  res.status(404).render('404', {
     title: 'Page not Found',
     component: 'Page'
   });

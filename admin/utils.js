@@ -87,7 +87,11 @@ const utils = {
   },
   generateGuestToken() {
     return crypto.randomBytes(24).toString('hex');
+  },
+  submitGuestToken() {
+    document.getElementById('guestForm').submit();
   }
+
 }
 
 module.exports = { ...utils }

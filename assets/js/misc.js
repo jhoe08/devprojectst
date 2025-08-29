@@ -561,6 +561,10 @@ function handleSelectChange() {
   }
 }
 
+function submitGuestToken() {
+  document.getElementById('guestForm').submit();
+}
+
 
 
 

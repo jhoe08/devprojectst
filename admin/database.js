@@ -791,7 +791,7 @@ const databaseUtils = {
         else resolve(results);
       });
     });
-  }
+  },
 
 }
 

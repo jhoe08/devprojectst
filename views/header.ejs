@@ -88,6 +88,9 @@
 
 <% 
   const { divisions } = JSON.parse(DEPARTMENT)
+
+  console.log('EJS: SESSION_USERs',SESSION_USER)
+
   if(SESSION_USER){
     const { employeeid, username, firstname, lastname, middlename, experience, roles } = SESSION_USER;
     const { lists } = JSON.parse(experience)

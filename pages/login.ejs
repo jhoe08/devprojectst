@@ -35,7 +35,7 @@
       <div class="col-sm-6 col-md-5 form-section">
         <div class="login-wrapper">
           <h2 class="login-title">Sign in</h2>
-          <form action="/login" method="post" data-message="<%=emitMessage%>">
+          <form action="/login" method="post">
             <div class="form-floating form-floating-custom mb-3">
               <input type="text" class="form-control" name="username" id="floatingUsernameInput">
               <label for="floatingUsernameInput">Username</label>
@@ -50,9 +50,13 @@
             </div>
           </form>
           <div class="form-group mt-3 text-center">
-            <a href="/login?guest_token=<%= guestToken || '' %>" class="btn btn-outline-primary">
+            <a href="/token?guest_token=<%= guestToken || '' %>" class="btn btn-outline-primary" onclick="submitGuestToken()">
               Continue as Guest
             </a>
+            <form id="guestForm" method="POST" action="/login">
+              <input type="hidden" name="guest_token" value="<%= guestToken || '' %>">
+            </form>
+
           </div>
           <p class="login-wrapper-footer-text">Need an account? <a href="/register" class="text-reset">Signup here</a></p>
         </div>
