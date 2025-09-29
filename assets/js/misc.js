@@ -285,25 +285,25 @@ if (views) {
 
   
 // }
-let refreshActivity = document.getElementById('refreshActivity')
-if (refreshActivity) {
-  refreshActivity.addEventListener('click', async () =>{
+// let refreshActivity = document.getElementById('refreshActivity')
+// if (refreshActivity) {
+//   refreshActivity.addEventListener('click', async () =>{
 
-    let {transid} =  refreshActivity.dataset
+//     let {transid} =  refreshActivity.dataset
 
-    // const response = await fetch(`/remarks/${transid}`);
-    // const remarks = await response.json();
-    // return remarks
+//     // const response = await fetch(`/remarks/${transid}`);
+//     // const remarks = await response.json();
+//     // return remarks
 
-    fetch(`/remarks/${transid}`)
-    .then(response => response.text())
-    .then(html => {
-      console.log(html)
-      document.querySelector('.activity-feed').innerHTML = html;
-    })
-    .catch(error => console.error('Error fetching HTML:', error));
-  })
-}
+//     fetch(`/remarks/${transid}`)
+//     .then(response => response.text())
+//     .then(html => {
+//       console.log(html)
+//       document.querySelector('.activity-feed').innerHTML = html;
+//     })
+//     .catch(error => console.error('Error fetching HTML:', error));
+//   })
+// }
 
 function numberFormat ( data ) {
 	let s=(data+""), a=s.split(""), out="", iLen=s.length;

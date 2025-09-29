@@ -186,6 +186,23 @@
                       </p>
                     </div>
                   </div>
+
+                  <button id="downloadBtn">Download Blob</button>
+
+                  <script>
+              async function createVideoBlob() {
+              const response = await fetch('/video'); // ideally from your backend
+              const arrayBuffer = await response.arrayBuffer();
+              const blob = new Blob([arrayBuffer], { type: 'video/mp4' });
+
+              const videoURL = URL.createObjectURL(blob);
+              document.querySelector('video').src = videoURL;
+            }
+
+            createVideoBlob();
+
+                  </script>
+
                 </div>
               </div>
               <div class="tab-pane fade" id="v-pills-division-icons" role="tabpanel">

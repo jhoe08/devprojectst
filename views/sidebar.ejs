@@ -43,6 +43,7 @@
               <p>Dashboard</p>
             </a>
           </li>
+          <% if(!isGuest()) { %>
           <li class="nav-item <%= UTILS.isActive(currentPath, '/qrscanner') %>">
             <a
               href="/qrscanner"
@@ -52,6 +53,7 @@
               <p>Scan QR Code</p>
             </a>
           </li>
+          <% } %>
           
           <% if (userAvailComponents('Transactions') ) { %>
           <li class="nav-section" <%=userAvailComponents('Transactions')%>>

@@ -8,7 +8,6 @@ const text = document.getElementById('qrCodeText')
 let transIDs = [];
 let tempQRCodes = []
 const btnRemarks = document.getElementById('createRemarks')
-        
 
 if(video && output) {
     
@@ -159,6 +158,7 @@ if(text) {
 if(createRemarks) {
     let comment = document.querySelector('#comment')
     let assignedto = document.querySelector('#assignedto')
+    let refreshActivity = document.getElementById('refreshActivity')
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -227,6 +227,7 @@ if(createRemarks) {
         }
     })
 }
+
 
 async function fetchTransactionByIdWorking(id) {
     try {

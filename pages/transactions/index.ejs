@@ -75,7 +75,7 @@
                             <tbody>
 
                               <% 
-                                let { division:userDivision, section: userSection, position: userPosition } = SESSION_USER_LOG.designation
+                                let { division:userDivision, section: userSection, position: userPosition } = (!isGuest()) ? SESSION_USER_LOG.designation : { division:'', section:'', position:'' };
                                 userDivision = userDivision.toLowerCase();
                                 userSection = userSection.toLowerCase();
                                 userPosition = userPosition.toLowerCase();

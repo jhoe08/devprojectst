@@ -51,10 +51,12 @@
                     <label class="selectgroup-item">
                       <input type="radio" name="trackingSheet" value="public_bidding" class="selectgroup-input">
                       <span class="selectgroup-button">Public Bidding</span>
+                      <em>* Above ₱500,000</em>
                     </label>
                     <label class="selectgroup-item">
                       <input type="radio" name="trackingSheet" value="small_value" class="selectgroup-input" checked>
                       <span class="selectgroup-button">Small Value</span>
+                      <em class="text-center">* ₱500,000 or below</em>
                     </label>
                   </div>
                 </div>
@@ -103,7 +105,7 @@
                           <div class="input-group">
                           <span class="input-group-text">₱</span>
                           
-                          <input id="budget" name="budget" data-type="number" type="text" class="form-control mt-0" value="<%-budget%>">
+                          <input id="budget" name="budget" data-type="number" type="text" class="form-control mt-0" value="<%-budget%>" readonly>
                           </div>
                         </div>
                       </div>

@@ -33,19 +33,35 @@
   const values = Object.entries(monthlyTotals).map(([_, value]) => value);
 
   const latestStepsByProduct = {}
+  const latestStepsByProduct2 = {}
+  let arrayProductIds = []
 
   componentActivity.forEach(entry => {
     const { product_id, steps_number, status } = entry;
 
     if(!latestStepsByProduct[product_id] || steps_number > latestStepsByProduct[product_id]) {
-      latestStepsByProduct[product_id] = steps_number;
+      // latestStepsByProduct[product_id] = steps_number;
+      if (!latestStepsByProduct2[steps_number] && status === 'pending') {
+        latestStepsByProduct2[steps_number] = [];
+      }
+      if(status === 'pending') {
+        latestStepsByProduct2[steps_number].push(product_id);
+      }
     } 
   })
-  
-  const stepsIndex = Object.values(latestStepsByProduct).map(key => STEPS.getTitle(Number(key)));
-  const stepsValues = Object.keys(latestStepsByProduct)
+
+  // const stepsIndex = Object.values(latestStepsByProduct).map(key => STEPS.getTitle(Number(key)));
+  // const stepsValues = Object.keys(latestStepsByProduct)
+
+  const stepsIndex = Object.keys(latestStepsByProduct2).map(key => STEPS.getTitle(Number(key)));
+  const stepsValues = Object.values(latestStepsByProduct2).map(productIds => {
+    const length = productIds.length
+    // console.log('Distribution', length)
+    // const title = STEPS.getTitle(Number(length))
+    return length
+  });
 %>
-<div class="wrapper" data-transactions="<%=JSON.stringify({latestStepsByProduct, stepsIndex, stepsValues})%>">
+<div class="wrapper" data-transactions="<%=JSON.stringify({latestStepsByProduct2, stepsIndex, stepsValues})%>">
   <%- include('../views/sidebar') -%>
 
   <div class="main-panel">

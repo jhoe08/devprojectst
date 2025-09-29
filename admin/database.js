@@ -201,7 +201,7 @@ const databaseUtils = {
       data = JSON.parse(data)
       return await databaseUtils.retrieveData(`${tables.employee}`, '*', data)
     }
-    return await databaseUtils.retrieveData(`${tables.transaction}`)
+    return await databaseUtils.retrieveData(`${tables.employee}`)
   },
   getTransactions: async (data) => {
      if (data) {
@@ -236,6 +236,34 @@ const databaseUtils = {
     connection.query(`SELECT * FROM ${prefix}.${tables.employee} WHERE username LIKE '${username}'`, (error, results) => {
       error ? reject(error) : resolve(results);
     })
+  }),
+  getEmployeesUnderSameDivision: (employeeid) => new Promise((resolve, reject) => {
+    // First, get the division and section of the reference employee
+    const query = `SELECT
+      JSON_UNQUOTE(JSON_EXTRACT(experience, '$.lists[0].division')) AS division
+    FROM transto.employees
+    WHERE employeeid = ?
+    LIMIT 1;
+`;
+    connection.query(query, [employeeid], (error, results) => {
+      if (error) return reject(error);
+      if (!results.length) return resolve([]);
+
+      const { division } = results[0];
+
+      // Now, get all employees with the same division or section
+      const query2 = `
+        SELECT * FROM ${prefix}.employees
+        WHERE 
+          JSON_UNQUOTE(JSON_EXTRACT(experience, '$.lists[0].division')) = ?
+      `;
+
+      console.log({query, query2})
+      connection.query(query2, [division], (error2, results2) => {
+        if (error2) return reject(error2);
+        resolve(results2);
+      });
+    });
   }),
   postTransactions: async (data) => {
     let enrichedData = {
@@ -528,7 +556,7 @@ const databaseUtils = {
         })
         .join(' AND');
     }
-    console.log(query)
+    console.log('Retrieving Data...', query)
     connection.query(query, (error, results) => {
       if (error) {
         reject(error)
@@ -745,12 +773,10 @@ const databaseUtils = {
       token,
       created_at,
       expires_at,
-      ip,
-      device,
-      used
+      meta,
     } = tokenData;
     const status = 'active';
-    const metadata = JSON.stringify({ ip, device, used });
+    const metadata = JSON.stringify(meta);
 
     return new Promise((resolve, reject) => {
       const query = `
@@ -779,14 +805,23 @@ const databaseUtils = {
     });
   },
 
-  async markGuestTokenUsed(token) {
+  async markGuestTokenUsed(data) {
+    const { token, expires_at, meta } = data
     return new Promise((resolve, reject) => {
       const query = `
         UPDATE transto.guest_accounts
-        SET status = 'used', metadata = JSON_SET(metadata, '$.used', true)
+        SET status = ?, metadata = JSON_SET(metadata, '$.used', true), expires_at = ?, metadata = ?
         WHERE guest_token = ?
       `;
-      connection.query(query, [token], (error, results) => {
+
+      const values = [
+        'used',
+        expires_at,
+        meta,
+        token
+      ];
+
+      connection.query(query, values, (error, results) => {
         if (error) reject(error);
         else resolve(results);
       });

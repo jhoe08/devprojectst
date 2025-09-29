@@ -402,9 +402,9 @@
             }
             console.log(data)
             let { message } = data
-            if (refreshActivity) {
-              refreshActivity.click()
-            }
+            // if (refreshActivity) {
+            //   refreshActivity.click()
+            // }
 
             // clearing fields
             selectedStatus.checked = false
@@ -679,7 +679,42 @@
   const assignedToBtn = document.getElementById('assignedToBtn');
   if (assignedToBtn) {
     assignedToBtn.addEventListener('click', function (){
-      const transid = this.dataset.transid
+      const nextResponsible = document.getElementById('nextResponsible');
+      const productId = document.querySelector('.wrapper').dataset.productId;
+      let selectedPerson = nextResponsible.value;
+      const currentSteps = Number(document.querySelector('.activity-feed').dataset.currentSteps);
+    
+
+      if (!selectedPerson) {
+        notifyCustom('exclamation', 'No Selection', 'Please select a person to assign.', 'warning');
+        return;
+      }
+      const apiUrl = '/transactions/assign';
+      const data = {
+        product_id: productId,
+        steps_number: currentSteps,
+        assigned_to: selectedPerson
+      };
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      };
+      fetch(apiUrl, requestOptions)
+      .then(response => {
+        if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
+        return response.json()
+      })
+      .then(data => {
+        if (!data) return notifyCustom('', 'Error', 'Failed to set responsible person for the PR#' + productId, 'danger')
+
+        notifyCustom('', 'Success', 'Successfully set responsible person for the PR#' + productId, 'info')
+      })
+      .catch(error => {
+        notifyCustom('Error', error, 'danger')
+      })
     })
   }
 
@@ -701,6 +736,12 @@
     }
   });
 
+  
+  // On document ready, find all readonly input fields and add a 'readonly' class to their parent '.form-group'.
+  // This allows styling or behavior adjustments for groups containing readonly inputs.
+  $(function() {
+    $('input[readonly]').closest('.form-group').addClass('readonly');
+  });
   
 
   

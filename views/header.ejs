@@ -84,12 +84,10 @@
     </style>
   </head>
 
-  <body class='<%= hasAllowedRole(["SuperAdmin"]) ? "superclass" : "" %>' data-env="<%= ENVIRONMENT %>" data-testmode="<%= TEST_MODE %> %>">
+  <body class='<%= hasAllowedRole(["SuperAdmin"]) ? "superclass" : "" %> <%= SESSION_USER ? "userLogged" : ""%>' data-env="<%= ENVIRONMENT %>" data-testmode="<%= TEST_MODE %> %>">
 
 <% 
   const { divisions } = JSON.parse(DEPARTMENT)
-
-  console.log('EJS: SESSION_USERs',SESSION_USER)
 
   if(SESSION_USER){
     const { employeeid, username, firstname, lastname, middlename, experience, roles } = SESSION_USER;

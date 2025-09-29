@@ -1,4 +1,7 @@
-const client = {
+// THIS MUST BE READ FIRST
+// This is client node
+
+const expressNodes = {
     timeCheck: document.getElementById('timeCheck'),
     feedItems: document.getElementsByClassName('feed-item')[0],
     realtimeDivs: document.getElementsByClassName('realtime'),
@@ -41,27 +44,29 @@ const client = {
                 time: 100000 });
             
         })
+        // setInterval(() => {
+        //     _io.emit('retrieveActitivities', (id) =>{
+        //         console.log('Activities List Event Triggered assets/js/express', id)
 
-        _io.on('sendListsTransaction', (data) => {
-            console.log('data', data)              
-            let transactionsHistory = $('#transactionsHistory')
-            
-            data.forEach(item => {
-                const transId = Object.keys(item)[0]; // Get the key (17256)
-                let html = `<tr>
-                    <th scope="row">
-                        <button class="btn btn-icon btn-round btn-mute btn-sm me-2"><i class="fas fa-file-alt"></i></button>
-                        Transaction ID <a href="/transactions/${transId}/view">#${transId}</a>
-                    </th>
-                    <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                    <td class="text-end">$250.00</td>
-                    <td class="text-end">
-                        <span class="badge badge-success">Completed</span>
-                    </td>
-                    </tr>`
-            });
+        //     })
+
+        // }, 50000)
+        // console.log('client: emitting displayActivities...')
+        // _io.emit('retrieveActitivities', (data) => {
+        //     console.log('Activities List Event Triggered assets/js/express', data)
+        // })
+        _io.on('retrieveActitivities', (data) => {
+            console.log('Client: Activities List Event Triggered assets/js/express', data)
         })
-
+        
+        // _io.emit('displayActivities', (data) => {
+        //     console.log('Client: Display Activities Event Triggered assets/js/express', data)
+        // })
+        // _io.on('displayActivities', data => {
+        //     console.log('Client: Display Activities Event Triggered assets/js/express', data)
+        // })
+        
+        // This line is working don't touch
         if(this.feedItems) {
             const startDate = this.feedItems.dataset.startdate
             const dueDate = this.feedItems.dataset.duedate
@@ -72,8 +77,7 @@ const client = {
             _io.on('displayTimeLimit', (data) => {
                 data = JSON.parse(data) 
                 let {remainingHours, remainingMinutes, remainingSeconds} = data
-                
-                if(this.timeCheck){
+                if(this.timeCheck && remainingHours !== null) {
                     if(remainingHours <= 0 && remainingMinutes <= 0 && remainingSeconds <= 0) {
                         console.log('Transaction being FLAGGED!')
                         _io.removeListener('displayTimeLimit', this.timeLimit())
@@ -95,4 +99,4 @@ const client = {
     }
 }
 
-export default {...client}
+export default {...expressNodes}

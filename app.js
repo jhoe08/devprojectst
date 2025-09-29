@@ -743,11 +743,15 @@ const SERVER_PORT = 4000;
 //   res.end()
 // })
 
+const serverIO = require('socket.io')(http)
+
+
 app.set("view engine", "ejs")
 app.set("views", [
   path.join(__dirname, "pages"),
   path.join(__dirname, "views")
 ]);
+app.set('io', serverIO)
 
 
 app.use('/', require('./routes/root'))
@@ -785,6 +789,9 @@ const io = new Server(server)
 let connectedUserMap = new Map();
 /////// endof SERVER
 
+const { expressConnect, expressActivityLog } = _express(io, moment)
+
+expressConnect()
 // CRON JOBS
 const {checkDueNotifications, incrementNotification, sendNotification} = _cronjobs(moment, io)
 let countNotif = 0
@@ -858,10 +865,13 @@ app.use(async (req, res, next) =>{
         ? JSON.parse(txn.prepared_by)
         : txn.prepared_by
     }));
+    let filteredTransactions;
 
-    const filteredTransactions = parsedTransactions.filter(txn =>
+    filteredTransactions = parsedTransactions.filter(txn =>
       txn.prepared_by?.employeeid === numericUserId || productIds.includes(txn.product_id)
     );
+
+    sessionUser?.roles.includes('Guest') || sessionUser?.roles.includes('SuperAdmin')  ? filteredTransactions = transactions : filteredTransactions = filteredTransactions;
 
     totalTransactions = filteredTransactions.length;
 
@@ -966,7 +976,7 @@ app.use(async (req, res, next) =>{
       getDivisionAndPosition,
       getEmployeeById: async (id) => {
         const result = await connection.getEmployeeById(id);
-        console.log('Fetching employee by ID:', result);
+        // console.log('Fetching employee by ID:', result);
         return JSON.stringify(result[0]);
       }
     },
@@ -986,6 +996,9 @@ app.use(async (req, res, next) =>{
     isGuest: () => {
       return SESSION_USER?.roles.includes('Guest');
     },
+    isSuperAdmin: () => {
+      return SESSION_USER?.roles.includes('SuperAdmin')
+    },
     trimName(fullName) {
       const parts = fullName.trim().split(' ');
       if (parts.length === 0) return '';
@@ -1004,7 +1017,6 @@ app.use(async (req, res, next) =>{
       // Parse userRoles if it's a stringified array
       if (typeof userRoles === 'string') {
         try {
-          console.log('userRoles', userRoles)
           userRoles = JSON.parse(userRoles);
         } catch (e) {
           console.warn('Failed to parse userRoles string:', userRoles);
@@ -1048,7 +1060,7 @@ app.use(async (req, res, next) =>{
       return isOwner;
     },
     canUpdateTransaction(employee, transaction_activity) {
-      console.log({ canUpdateTransaction: { employee, transaction_activity } });
+      // console.log({ canUpdateTransaction: { employee, transaction_activity } });
 
       if (!transaction_activity || !transaction_activity.assigned_to) {
         return false;
@@ -1056,7 +1068,56 @@ app.use(async (req, res, next) =>{
 
       return employee.employeeid === transaction_activity.assigned_to;
     },
+    async getEmployeesUnderDivision(id) {
+      try {
+        console.log('Fetching employees under division ID:', id);
+        const employees = await connection.getEmployeesUnderSameDivision(id);
 
+        if (!Array.isArray(employees)) {
+          console.warn('Expected an array but got:', typeof employees);
+          return [];
+        }
+        console.log(`Found ${employees.length} employees under division ID ${id}`, employees);
+        return JSON.stringify(employees);
+      } catch (error) {
+        console.error('Error fetching employees under division:', error);
+        return [];
+      }
+    },
+    getEmployeesInSameDivision(targetId) {
+      // Helper to safely extract division from experience JSON
+      const extractDivision = (employee) => {
+        try {
+          const exp = JSON.parse(employee.experience);
+          return exp.lists?.[0]?.division || null;
+        } catch (e) {
+          return null;
+        }
+      };
+
+      const targetEmployee = req.employees.find(emp => emp.employeeid === targetId);
+      if (!targetEmployee) return [];
+
+      const targetDivision = extractDivision(targetEmployee);
+      if (!targetDivision) return [];
+      const filteredEmployees = req.employees.filter(emp => extractDivision(emp) === targetDivision);
+      return JSON.stringify(filteredEmployees) || null;
+    },
+    getEmployeedDetailsById(id) {
+      if (!req.employees || !Array.isArray(req.employees)) {
+        return null;
+      }
+      console.log('Getting employee details for ID:', id);
+
+      const employee = req.employees.find(emp => emp.employeeid === id);
+      // const { password, ...rest } = employee
+      return JSON.stringify(employee) || {};
+    },
+    getCurrentHolderOfTransaction(transaction_id) {
+      const activity = activities
+        .filter(act => act.product_id === transaction_id && act.status === 'pending' && act.assigned_to);
+      return (activity.length > 0) ? activity[0].assigned_to : false;
+    },
 
   };
 
@@ -1292,7 +1353,9 @@ app.get('/login', async (req, res) => {
 
       return res.redirect('/guest-dashboard');
     }
-
+    if(req.session.user && req.session.isAuthenticated) {
+      return res.redirect('/')
+    }
     // 🧭 No token? Show login page
     res.render('login', { error: req.session.error || null, title: "Login", guestToken: uuidv4() });
   } catch (error) {
@@ -1364,10 +1427,10 @@ app.get('/token', async (req, res) => {
     created_at: new moment().format('YYYY-MM-DD HH:mm:ss'),
     expires_at: new moment().add(1, 'hours').format('YYYY-MM-DD HH:mm:ss'),
     status: 'active',
-    meta: {
+    meta:{
       ip: req.ip,
       user_agent: req.headers['user-agent'],
-      origin: 'email_invite',
+      origin: 'guest_account_link',
       login_time: new moment().format('YYYY-MM-DD HH:mm:ss'),
       remarks: 'Auto-login via token'
     }
@@ -1440,14 +1503,14 @@ app.get('/logout', async (req, res) => {
     const logoutMeta = {
       ip: req.ip,
       user_agent: req.headers['user-agent'],
-      logout_time: new Date().toISOString(),
+      logout_time: new moment().format('YYYY-MM-DD HH:mm:ss'),
       remarks: 'Guest manually logged out'
     };
 
     await connection.markGuestTokenUsed({
       token: guestToken,
       status: 'used',
-      expires_at: new Date().toISOString(),
+      expires_at: new moment().format('YYYY-MM-DD HH:mm:ss'),
       meta: JSON.stringify(logoutMeta)
     });
   }
@@ -1576,7 +1639,8 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
 
     res.render('transactions/index', {
       title: 'Transactions',
-      transactions: filteredTransactions,
+      transactions: res.locals.isGuest() || res.locals.isSuperAdmin()  ? transactions : filteredTransactions,
+
       moment,
       connection,
       predata: _preTransactionsData,
@@ -1673,6 +1737,27 @@ app.put('/transactions/update', restrict, async (req, res) => {
   }
 })
 
+app.post('/transactions/assign', async (req, res) => {
+  const { product_id, steps_number, assigned_to } = req.body;
+  try {
+    const data = {
+      set: {
+        responsible: assigned_to,
+      },
+      where: {
+        product_id,
+        steps_number: steps_number
+      }
+    }
+    await connection.updateTransactionActivity(JSON.stringify(data))
+    res.status(200).json({ message: 'Transaction assigned successfully.' })
+  } catch (error) {
+    console.error('Error assigning transaction:', error)
+    res.status(500).json({ message: 'Error assigning transaction.' })
+  }
+})
+
+
 app.put('/employees/update', restrict, async (req, res) => {
   try{
     const employee = await connection.amendEmployee(JSON.stringify(req.body))
@@ -1731,7 +1816,7 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
   }
 })
 
-app.get('/transactions/:id/view', restrict, async (req, res) => {
+app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities, async (req, res) => {
   try {
     const transid = req.params.id;
 
@@ -1739,8 +1824,11 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
     const remarks = await connection.getRemarksByRefid(transid)
     
     const steps = await connection.getTransactionActivityId(JSON.stringify({product_id: transid}))
-    
-    // console.log(steps.sort((a, b) => b.id - a.id))
+
+    const filteredActivities = res.locals.activities
+    .filter(activity => activity.product_id === Number(transid));
+
+    expressActivityLog(filteredActivities)
 
     if(transactions[0]) {
       res.render('transactions/view', { 
@@ -1751,10 +1839,8 @@ app.get('/transactions/:id/view', restrict, async (req, res) => {
         path: res.url,
         query: transid,
         steps: steps.sort((a, b) => b.id - a.id),
-        
       }); // Pass the data to the template
-
-      // console.log('req.session.user', req.session.user)
+      
     } else {
       res.render('404', {
         title: '404 Transaction Not Found',
@@ -1904,7 +1990,8 @@ app.post('/remarks/new', restrict, async (req, res) => {
 
         return {
           status: 'pending',
-          steps_number: currentStepNumber + 1,
+          // steps_number: currentStepNumber + 1,
+          steps_number: currentStepNumber,
           assigned_to: employeeid,
           product_id: productId,
           created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -2246,6 +2333,8 @@ app.get('/calendar', restrict, async function(req, res){
     title: 'Calendar',
   })
 })
+
+
 // Express route to approve a step
 app.post("/approve", async (req, res) => {
   // const { trans_id: prId, steps_number:stepNumber, updated_by:approverName } = req.body;
@@ -2265,11 +2354,12 @@ app.post("/approve", async (req, res) => {
         steps_number,
       }
     }
-    console.log('data', {data, steps_number})
+    // console.log('data', {data, steps_number})
     await connection.updateTransactionActivity(JSON.stringify(data))
+    io.emit('retrieveActitivities', product_id);
     if(steps_number > 1) {
       await connection.postRemarks(JSON.stringify({
-        comment: 'For out of office', 
+        comment: 'Out of Office', 
         user: username, 
         status: 'success', 
         refid: product_id,
@@ -2300,11 +2390,26 @@ app.post("/approve", async (req, res) => {
 });
 
 app.post("/disapprove", async (req, res) => {
-  const { trans_id, steps_number, updated_by } = req.body;
-  const steps = getStepsDetails(steps_number) 
+  const { product_id, steps_number, remarks } = req.body;
+  const steps = getStepsDetails(steps_number) // root cause of error
+  console.log('disapprove steps', {product_id, steps_number, remarks})
   try {
-    if( steps?.steps_title ) {
-      // trap it here
+    if( steps?.steps_title ) { // error here
+      const data = {
+        set: {
+          status: 'disapproved',
+          updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+          remarks
+        },
+        where: {
+          product_id,
+          steps_number,
+        }
+      }
+
+      await connection.updateTransactionActivity(JSON.stringify(data))
+
+
     }
     res.status(500).json({ success: false, message: "Request has been disapproved." });
     // 
@@ -2333,10 +2438,42 @@ app.route('/api/transactions/:id')
   .get(async (req, res) => {
     const { id } = req.params;
     const transaction = await connection.getTransactionById(id);
-    if (transaction) {
-      return res.status(200).json({ response: transaction });
-    }
+    if (transaction) return res.status(200).json({ response: transaction });
     return res.status(404).json({ response: 'Transaction Not Found!' });
+  });
+app.route('/api/employees/:id')
+  .all(restrict)
+  .get(async (req, res) => {
+    const { id } = req.params;
+    const employees = await connection.getEmployeeById(id);
+
+    if (!employees || employees.length === 0) {
+      return res.status(400).json({ response: 'No Record is Found!' });
+    }
+
+    // Decode and sanitize each employee record
+    const sanitized = employees.map(emp => {
+      const {
+        password, // omit
+        experience,
+        contacts,
+        others,
+        components,
+        roles,
+        ...rest
+      } = emp;
+
+      return {
+        ...rest,
+        experience: JSON.parse(experience || '{}'),
+        contacts: JSON.parse(contacts || '{}'),
+        others: JSON.parse(others || '{}'),
+        components: JSON.parse(components || '[]'),
+        roles: JSON.parse(roles || '[]')
+      };
+    });
+
+    return res.status(200).json({ response: sanitized });
   });
 app.route('/api/documents/:id')
   .all(restrict)
@@ -2370,7 +2507,8 @@ app.route('/api/qrcode/:id')
     return res.status(400).json({ response: 'No data related to the QR Code', component: false });  
    })
 
-
+// SETTINGS page
+// Status: Super Admin only, restrict to access
 app.get('/settings', restrict, async function(req, res){
   const results = await connection.getSettings()
   let employees = await connection.retrieveEmployee()
@@ -2379,14 +2517,15 @@ app.get('/settings', restrict, async function(req, res){
     a.lastname.toLowerCase() < b.lastname.toLowerCase() ? -1 : 
     (a.lastname.toLowerCase() > b.lastname.toLowerCase() ? 1 : 0)
   );
-  if(username === 'justtest') { // user is admin
-    res.render('settings', {
+
+  if (res.locals.isSuperAdmin()) { // user is admin
+    return res.render('settings', {
       title: "Settings",
       settings: JSON.parse(JSON.stringify(results)),
       employees: JSON.parse(JSON.stringify(employees))
     })
   }
-  res.status(404).render('unauthorize', {
+  res.status(404).render('unauthorized', {
     title: 'Page Not Found',
     component: 'Page'
   });
@@ -2403,6 +2542,23 @@ app.post('/settings', restrict, async function(req, res){
     res.status(400).json({ message: `Error saving settings: ${error}`, response: {} });
   } 
 })
+
+app.get('/video', async (req, res) => {
+  const tgUrl = 'https://web.telegram.org/a/progressive/document6177027832032532466';
+  const tgRes = await fetch(tgUrl, {
+    headers: {
+      // If Telegram requires cookies/auth, include them here
+    }
+  });
+
+  if (!tgRes.ok) {
+    return res.status(tgRes.status).send('Error fetching file');
+  }
+
+  res.setHeader('Content-Type', 'video/mp4');
+  tgRes.body.pipe(res);
+});
+
 
 // DEMO
 app.get('/forms/forms.html', restrict, function (req, res) {
@@ -2472,8 +2628,8 @@ app.use(async function(req, res, next){
 // });
 
 
-const { expressConnect } = _express(io, moment)
-expressConnect()
+
+
 
 // io.on('connection', (socket)=>{
 //   console.log('a user connected', socket.id)
