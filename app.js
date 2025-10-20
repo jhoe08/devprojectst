@@ -870,8 +870,12 @@ app.use(async (req, res, next) =>{
     filteredTransactions = parsedTransactions.filter(txn =>
       txn.prepared_by?.employeeid === numericUserId || productIds.includes(txn.product_id)
     );
-
-    sessionUser?.roles.includes('Guest') || sessionUser?.roles.includes('SuperAdmin')  ? filteredTransactions = transactions : filteredTransactions = filteredTransactions;
+    
+    if(sessionUser && sessionUser?.roles) {
+      sessionUser?.roles.includes('Guest') || sessionUser?.roles.includes('SuperAdmin') 
+        ? filteredTransactions = transactions 
+        : filteredTransactions = filteredTransactions;
+    }
 
     totalTransactions = filteredTransactions.length;
 
@@ -1264,12 +1268,16 @@ app.get('/', restrict, loadAllTransactions, loadAllActivities, async function(re
     connection.cardsData(),
     connection.getDataFromLast7Days('remarks', 'date')
   ]);
-
-  const charts = cardsData.reduce((acc, { table_name, row_count, total_sum }) => {
+ 
+  var charts = cardsData.reduce((acc, { table_name, row_count, total_sum }) => {
     acc[table_name] = { row_count, total_sum };
     return acc;
   }, {});
-  
+
+  const safeCardsData = charts || { employees: { row_count:0, total_sum:0 }, transactions: { row_count:0, total_sum:0 }, notifications: { row_count:0, total_sum:0 } };
+
+  console.log({charts})
+
   const perPRClassification = countPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
     acc[pr_classification] = item_count;
     return acc;
@@ -1283,7 +1291,7 @@ app.get('/', restrict, loadAllTransactions, loadAllActivities, async function(re
     totalApprovedBudget: JSON.stringify(totalApprovedBudget[0]),
     perClassification: JSON.stringify(perPRClassification),
     tableDashboard: JSON.stringify(dataFromLast7Days),
-    cardsData: charts,
+    cardsData: safeCardsData,
   });
 });
 
@@ -1635,12 +1643,10 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
       txn.prepared_by?.employeeid === numericUserId || productIds.includes(txn.product_id)
     );
 
-    console.log(filteredTransactions.length)
-
+  
     res.render('transactions/index', {
       title: 'Transactions',
       transactions: res.locals.isGuest() || res.locals.isSuperAdmin()  ? transactions : filteredTransactions,
-
       moment,
       connection,
       predata: _preTransactionsData,
@@ -1705,7 +1711,7 @@ app.post('/transactions/new', restrict, async (req, res) => {
         status: "pending",
         assigned_to,
       }))
-      await connection.postNotifications(JSON.stringify(data))
+      await connection.postNotifications(JSON.stringify(data))      
     }
     // console.log('transactions', transactions)
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
@@ -1919,7 +1925,7 @@ app.get('/remarks/:id', restrict, async (req, res) => {
     // );
 
     // res.status(200).send(renderedHtml);
-    res.render('views/partials/activity-feed.ejs', {
+    res.render('partials/activity-feed', {
       remarks,
       transactions,
       steps: steps.sort((a, b) => b.id - a.id),
@@ -1943,30 +1949,47 @@ app.post('/remarks/new', restrict, async (req, res) => {
     }
     
     // Remove user from payload and attach session username
-    delete data.user;
-    const updatedRemarks = { ...data, user: username };
-    console.log('asdasdas dasRemarks:', updatedRemarks);
+    // delete data.user;
+    const updatedRemarks = { ...data};
+    updatedRemarks.user = username
+    updatedRemarks.date = moment().format('YYYY-MM-DD HH:mm:ss');
+    
     // ✅ Normalize refid
     let flattenedRefIds = [];
     try {
       const parsed = JSON.parse(updatedRemarks.refid);
-      flattenedRefIds = Array.isArray(parsed) ? parsed.map(String) : [String(parsed)];
+      flattenedRefIds = Array.isArray(parsed) ? parsed.map(String) : [Number(parsed)];
     } catch {
-      flattenedRefIds = [String(updatedRemarks.refid)];
+      flattenedRefIds = [Number(updatedRemarks.refid)];
     }
-    console.log('asdasdas dasRemarks:', flattenedRefIds);
+    
     // ✅ Attach normalized refid
-    updatedRemarks.refid = JSON.stringify(flattenedRefIds);
+    // updatedRemarks.refid = JSON.stringify(1);
 
     // ✅ Handle dueDate if it's a number (offset in days)
     if (typeof updatedRemarks.dueDate === 'number') {
       updatedRemarks.dueDate = moment().add(updatedRemarks.dueDate, 'days').format('YYYY-MM-DD');
     }
-
+    if(updatedRemarks.assignedto === true) {
+      updatedRemarks.assignedto = employeeid
+    }
     console.log('Updated Remarks:', updatedRemarks);
 
     // ✅ Post remarks
-    const remarks = await connection.postRemarks(JSON.stringify(updatedRemarks));
+    const remarksResults = await Promise.all(
+      flattenedRefIds.map(refid => {
+        const remarkPayload = {
+          ...updatedRemarks,
+          refid,
+        };
+        return connection.postRemarks(JSON.stringify(remarkPayload))
+          .then(result => ({ refid, result }))
+          .catch(error => ({ refid, error }));
+      })
+    );
+
+
+    // const remarks = await connection.postRemarks(JSON.stringify(updatedRemarks));
 
     // ✅ Get current step using first refid
     const getCurrentStep = await connection.getTransactionActivityId(
@@ -1977,10 +2000,9 @@ app.post('/remarks/new', restrict, async (req, res) => {
       ? parseInt(getCurrentStep[getCurrentStep.length - 1].steps_number, 10) || 0
       : 1;
 
-    console.log({getCurrentStep, currentStepNumber})
-
     // ✅ Post transaction activity if assignedto is true
     if (updatedRemarks.assignedto === true) {
+
       const activityPayloads = flattenedRefIds.map(id => {
         const productId = parseInt(id, 10);
         if (!Number.isInteger(productId)) {
@@ -1995,6 +2017,7 @@ app.post('/remarks/new', restrict, async (req, res) => {
           assigned_to: employeeid,
           product_id: productId,
           created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+          created_by: username,
         };
       }).filter(Boolean); // Remove nulls
 
@@ -2007,7 +2030,8 @@ app.post('/remarks/new', restrict, async (req, res) => {
     }
 
     // ✅ Handle notifications if remarks were posted
-    if (remarks?.affectedRows) {
+    // if (remarks?.affectedRows) {
+    if (remarksResults.length) {
       const handleNotification = async (id) => {
         const transactions = await connection.getTransactionById(id);
         if (!transactions?.length) {
@@ -2016,13 +2040,13 @@ app.post('/remarks/new', restrict, async (req, res) => {
         }
 
         const { requisitioner } = transactions[0];
-        console.log('transactions:', transactions);
+        // console.log('transactions:', transactions);
 
         const notificationPayload = {
           message: `New remark is added under ${id}!`,
           link: id,
           component: 'remarks',
-          concerning: requisitioner,
+          // concerning: requisitioner,
         };
 
         await connection.postNotifications(JSON.stringify(notificationPayload));
@@ -2032,7 +2056,7 @@ app.post('/remarks/new', restrict, async (req, res) => {
 
       res.status(200).json({
         message: 'New remark added successfully!',
-        response: remarks,
+        // response: remarks,
       });
     } else {
       res.status(200).json({ message: 'Failed to post new remark!' });
@@ -2066,12 +2090,12 @@ app.post('/transcodes/new', restrict, async (req, res) => {
 
 app.get('/employees', restrict, async (req, res) => {
   const employees = await connection.retrieveEmployee()
-  const roles = await connection.retrieveEmployeeIdsWithRole()
+  // const roles = await connection.retrieveEmployeeIdsWithRole()
   // console.log(employees)
   res.render('employees/index', {
     title: 'Employees',
     employees: JSON.stringify(employees),
-    roles,
+    // roles,
   })
 })
 
@@ -2084,7 +2108,7 @@ app.get('/employees/new', restrict, function(req, res){
   })
 })
 
-app.get('/employees/:id/profile', restrict, async function(req, res){
+app.get('/employees/:id/profile', restrict, loadAllTransactions, async function(req, res){
   try {
     const employee = await connection.getEmployeeById(req.params.id);
     if(employee.length > 0) {
@@ -2357,21 +2381,21 @@ app.post("/approve", async (req, res) => {
     // console.log('data', {data, steps_number})
     await connection.updateTransactionActivity(JSON.stringify(data))
     io.emit('retrieveActitivities', product_id);
-    if(steps_number > 1) {
-      await connection.postRemarks(JSON.stringify({
-        comment: 'Out of Office', 
-        user: username, 
-        status: 'success', 
-        refid: product_id,
-        date: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-      }))
-    }
+    // if(steps_number > 1) {
+    //   await connection.postRemarks(JSON.stringify({
+    //     comment: 'Out of Office', 
+    //     user: username, 
+    //     status: 'success', 
+    //     refid: product_id,
+    //     date: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+    //   }))
+    // }
    
     // console.log([trans_id, steps_number + 1])
     await connection.postTransactionActivity(JSON.stringify({
       status: 'pending', 
       product_id, 
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      created_at: moment(new Date()).add(1, 'minute').format('YYYY-MM-DD HH:mm:ss'),
       steps_number: parseInt(steps_number, 10) + 1,
       updated_by, 
     }))
@@ -2390,31 +2414,36 @@ app.post("/approve", async (req, res) => {
 });
 
 app.post("/disapprove", async (req, res) => {
-  const { product_id, steps_number, remarks } = req.body;
-  const steps = getStepsDetails(steps_number) // root cause of error
+  const { product_id, steps_number, remarks, updated_by } = req.body;
   console.log('disapprove steps', {product_id, steps_number, remarks})
   try {
-    if( steps?.steps_title ) { // error here
-      const data = {
-        set: {
-          status: 'disapproved',
-          updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-          remarks
-        },
-        where: {
-          product_id,
-          steps_number,
-        }
+    const data = {
+      set: {
+        status: 'disapproved',
+        updated_by, 
+        updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+        remarks
+      },
+      where: {
+        product_id,
+        steps_number,
       }
-
-      await connection.updateTransactionActivity(JSON.stringify(data))
-
-
     }
-    res.status(500).json({ success: false, message: "Request has been disapproved." });
+    const updateResult = await connection.updateTransactionActivity(JSON.stringify(data))
+
+    // console.log([trans_id, steps_number + 1])
+    // await connection.postTransactionActivity(JSON.stringify({
+    //   status: 'pending', 
+    //   product_id, 
+    //   created_at: moment(new Date()).add(1, 'minute').format('YYYY-MM-DD HH:mm:ss'),
+    //   steps_number: parseInt(steps_number, 10),
+    //   updated_by, 
+    // }))
+
+    updateResult ? res.status(200).json({ success: true, message: "Request has been disapproved." }) : null;
     // 
   } catch (error) {
-    console.error(err);
+    console.error(error);
     res.status(500).json({ success: false, message: "Failed to disapproved the request." });
   }
 })

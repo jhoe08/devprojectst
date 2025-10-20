@@ -165,7 +165,7 @@
           notifyCustom(
             'exclamation',
             'Fields are empty',
-            'Either Bid Notice Title, Budget, or Requisitioner is missing.',
+            'Submission failed: Bid Notice Title, Budget, and Requisitioner are mandatory fields.',
             'danger'
           );
           return;
@@ -349,77 +349,78 @@
         });
     })
   }
-  if (createRemarks) {
+  // if (createRemarks) {
 
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
+  //   const myHeaders = new Headers();
+  //   myHeaders.append("Content-Type", "application/json");
 
-    createRemarks.addEventListener('click', async () => {
-      try {
-        let comment = document.querySelector('#comment')
-        let assignedto = document.querySelector('#assignedto')
-        let selectedStatus = document.querySelector('input[name="color"]:checked');
-        let selectedPeriod = document.querySelectorAll('input[name="period"]');
-        let { transid } = createRemarks.dataset
-        let selectedStatusValue = selectedStatus.value
+  //   createRemarks.addEventListener('click', async () => {
+  //     console.log('Creating remarks...')
+  //     try {
+  //       let comment = document.querySelector('#comment')
+  //       let assignedto = document.querySelector('#assignedto')
+  //       let selectedStatus = document.querySelector('input[name="color"]:checked');
+  //       let selectedPeriod = document.querySelectorAll('input[name="period"]');
+  //       let { transid } = createRemarks.dataset
+  //       let selectedStatusValue = selectedStatus.value
 
-        const checkedCheckboxes = Array.from(selectedPeriod)
-          .filter(checkbox => checkbox.checked)
-          .map(checkbox => parseFloat(checkbox.value))
-          .reduce((sum, value) => sum + value, 0);
+  //       const checkedCheckboxes = Array.from(selectedPeriod)
+  //         .filter(checkbox => checkbox.checked)
+  //         .map(checkbox => parseFloat(checkbox.value))
+  //         .reduce((sum, value) => sum + value, 0);
 
-        const data = {
-          comment: comment.value,
-          refid: transid,
-          status: selectedStatusValue,
-          dueDate: checkedCheckboxes,
-          assignedto: assignedto.checked
-        }
-        const apiUrl = '/remarks/asdwnew'
+  //       const data = {
+  //         comment: comment.value,
+  //         refid: transid,
+  //         status: selectedStatusValue,
+  //         dueDate: checkedCheckboxes,
+  //         // assignedto: assignedto.checked
+  //       }
+  //       const apiUrl = '/remarks/new'
 
-        const requestOptions = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(preloaded)
-        };
+  //       const requestOptions = {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify(data)
+  //       };
 
-        console.log('preloaded', requestOptions.body)
+  //       console.log('preloaded', requestOptions.body)
 
 
-        fetch(apiUrl, requestOptions)
-          .then(response => {
-            if (!response.ok) {
-              // throw new Error('Network response was not ok');
-              notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
-            }
-            return response.json();
-          })
-          .then(data => {
-            if (!data) {
-              notifyCustom('bell', 'Error', 'Failed to create new remarks', 'danger')
-            }
-            console.log(data)
-            let { message } = data
-            // if (refreshActivity) {
-            //   refreshActivity.click()
-            // }
+  //       fetch(apiUrl, requestOptions)
+  //         .then(response => {
+  //           if (!response.ok) {
+  //             // throw new Error('Network response was not ok');
+  //             notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
+  //           }
+  //           return response.json();
+  //         })
+  //         .then(data => {
+  //           if (!data) {
+  //             notifyCustom('bell', 'Error', 'Failed to create new remarks', 'danger')
+  //           }
+  //           console.log(data)
+  //           let { message } = data
+  //           // if (refreshActivity) {
+  //           //   refreshActivity.click()
+  //           // }
 
-            // clearing fields
-            selectedStatus.checked = false
-            comment.value = ''
-            // return notifications
-            notifyCustom('check', `${message}`, 'Successfully added the remarks on the transactions!', 'success')
-          })
-          .catch(error => {
-            notifyCustom('exclamation', `There was an error on the system!`, `${error}`, 'danger')
-          });
-      } catch (error) {
-        notifyCustom('exclamation', `Field is empty please check!`, `${error}`, 'danger')
-      }
-    })
-  }
+  //           // clearing fields
+  //           selectedStatus.checked = false
+  //           comment.value = ''
+  //           // return notifications
+  //           notifyCustom('check', `${message}`, 'Successfully added the remarks on the transactions!', 'success')
+  //         })
+  //         .catch(error => {
+  //           notifyCustom('exclamation', `There was an error on the system!`, `${error}`, 'danger')
+  //         });
+  //     } catch (error) {
+  //       notifyCustom('exclamation', `Field is empty please check!`, `${error}`, 'danger')
+  //     }
+  //   })
+  // }
   if (deleteTransaction) {
     // const table = new DataTable('#basic-datatables')
 
@@ -723,19 +724,50 @@
     const inputs = document.querySelectorAll(selector);
     let total = 0;
     inputs.forEach(input => {
-      const val = parseInt(input.value);
+      const val = parseInt(input.value.replace(/,/g, ''), 10);
       // console.log('ASD', val)
       if (!isNaN(val)) total += val;
     });
+    console.log('Total:', total);
     document.getElementById('totalCount').value = total;
+    document.getElementById('budget').value = total.toLocaleString('en-US', { style: 'decimal', minimumFractionDigits: 0 });
   }
 
-  document.addEventListener('keyup', event => {
-    if (event.target.matches('[id*="unitCount_"]')) {
-      updateTotal('[id*="unitCount_"]');
-    }
-  });
+  function formatNumberWithCommas(event) {
+    // Get the input element
+    const input = event.target;
 
+    // Remove any non-numeric characters (excluding commas)
+    let value = input.value.replace(/[^0-9]/g, '');
+
+    // Check if the value is not empty or just spaces
+    if (value === '') {
+      input.value = '';
+      return;
+    }
+
+    // Format the number with commas
+    value = parseInt(value, 10).toLocaleString();
+
+    // Update the input value with the formatted number
+    input.value = value;
+  }
+
+  if(document.getElementById('budget')){
+    setInterval(() => {
+      updateTotal('input[name="unitCount"]');
+    }, 1000);
+    setInterval(() => {
+      const numberInputs = document.querySelectorAll('input[data-type="number"]');
+
+      console.log(numberInputs);
+      // Add event listener to each input
+      numberInputs.forEach(input => {
+        input.addEventListener('input', formatNumberWithCommas);
+      });
+    }, 1000);
+  }
+ 
   
   // On document ready, find all readonly input fields and add a 'readonly' class to their parent '.form-group'.
   // This allows styling or behavior adjustments for groups containing readonly inputs.

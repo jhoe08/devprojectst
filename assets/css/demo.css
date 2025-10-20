@@ -155,6 +155,14 @@ select option[disabled] {
   }
 }
 
+.superclass {
+  .qrcode {
+    img {
+      mix-blend-mode: multiply;
+    }
+  }
+}
+
 .qrcode {
   img {
     width: 100%;

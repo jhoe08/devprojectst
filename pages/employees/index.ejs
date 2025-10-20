@@ -7,13 +7,13 @@
   const { lists } = JSON.parse(experience)
   const { office, salary, startdate, enddate, position, division, banner } = lists[0] 
 
-  function getRoleByEmployeeId(employeeid) {
+  /* function getRoleByEmployeeId(employeeid) {
     // Find the role object that matches the given employeeid
     const role = roles.find(role => role.employeeid === employeeid);
     
     // Return the role_name if found, or a message if not found
     return role ? role.role_name : 'Role not found';
-  }
+  } */
 %>
 <div class="wrapper">
     <%- include('../../views/sidebar') -%>
@@ -98,7 +98,7 @@
                                       
                                       var today = moment()
                                       var age = today.diff(birthdate, 'years')
-                                      division = division.toUpperCase()
+                                      // division = division.toUpperCase()
                                   %>
                                     <tr data-rowid="<%=key%>" data-employeeid="<%=employeeid%>">
                                       <td class="text-capitalize" data-column="name"><%= [firstname, lastname].filter(Boolean).join(' ') %></td>
@@ -123,7 +123,7 @@
                                             <i class="fa fa-edit"></i>
                                           </a>
                                           
-                                          <button data-bs-toggle="modal" data-bs-target="#rolesModal"  data-bs-toggle="tooltip" title="Add Role" class="btn btn-link btn-warning" data-role="<%=getRoleByEmployeeId(employeeid)%>">
+                                          <button data-bs-toggle="modal" data-bs-target="#rolesModal"  data-bs-toggle="tooltip" title="Add Role" class="btn btn-link btn-warning" >
                                             <i class="fa fa-user" ></i>
                                           </button>
                                           

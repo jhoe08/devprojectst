@@ -236,3 +236,7 @@
         margin-bottom: 10px;
     }
 }
+
+.tab-content {
+    border: none;
+}

@@ -25,7 +25,14 @@
     let userDetailsExp, employeesInSameDivision = {}
     if(currentHolder){
       userDetailsExp = getEmployeedDetailsById(currentHolder)
-      employeesInSameDivision = JSON.parse(getEmployeesInSameDivision(currentHolder))
+      let raw = getEmployeesInSameDivision(currentHolder);
+
+      try {
+        employeesInSameDivision = raw ? JSON.parse(raw) : {};
+      } catch (err) {
+        console.error("Failed to parse JSON:", err);
+        employeesInSameDivision = {};
+      }
     }
     
   %>
@@ -55,7 +62,7 @@
                   <% if (canUpdateTransaction(SESSION_USER, current_step) || isSuperAdmin()) { %>
                   <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add Remarks</a>
                   <button data-product-id="<%= transactions.product_id %>" href="#" class="alert_confirm btn btn-success btn-round" data-step="<%= current_step_number %>"><i class="fas fa-check"></i> Approve</button>
-                  <a id="disapproveBtn" href="#" class="alert_deny btn btn-danger btn-round" data-step="<%= current_step_number %>"><i class="fas fa-times"></i> Disapprove</a>
+                  <a data-product-id="<%= transactions.product_id %>" id="disapproveBtn" href="#" class="alert_deny btn btn-danger btn-round" data-step="<%= current_step_number %>"><i class="fas fa-times"></i> Disapprove</a>
                   <% } else if (current_step == null && isCreatorOfTransaction(transactions)) { %>
                   <a href="#" class="alert_confirm btn btn-success btn-round" data-product-id="<%= transactions.product_id %>" data-step="1">Publish</a>
                   <% } %>
@@ -98,7 +105,7 @@
                               <h6 class="text-uppercase fw-bold mb-1"><%= transactions.requisitioner %></h6>
                               <span class="text-muted">Requisitioner</span>
                             </div>
-                            <div class="float-end pt-1"></div>
+                            <div class="float-end pt-1 hidden"></div>
                           </div>
                           <div class="hidden col-md-6 d-flex">
                              <div class="avatar">
@@ -285,7 +292,7 @@
 </div>
 
 <!-- Transaction: Remarks -->
-<%- include('../../components/modals/remark') -%>
+<%- include('../../components/modals/remark', { refid: JSON.stringify([transactions?.product_id]) }) -%>
 <!-- Transaction: Codes -->
 <%- include('../../components/modals/transactions/code') -%>
 <!-- Transaction: PO Number -->

@@ -448,8 +448,9 @@ function refreshDiv() {
   if(realtimeDiv) {
     realtimeDiv.forEach(container=>{
       // const currentTime = new Date().toLocaleTimeString();
-      const currentTime = new Date().toLocaleString();
-      container.textContent = currentTime
+      // const currentTime = new Date().toLocaleTimeString();
+   
+      container.textContent = realtimeDiv.value
     })
   }
 }
@@ -512,32 +513,6 @@ document.querySelectorAll('select[multiple] option').forEach(function(option) {
 });
 
 
-function formatNumberWithCommas(event) {
-  // Get the input element
-  const input = event.target;
-
-  // Remove any non-numeric characters (excluding commas)
-  let value = input.value.replace(/[^0-9]/g, '');
-
-  // Check if the value is not empty or just spaces
-  if (value === '') {
-    input.value = '';
-    return;
-  }
-
-  // Format the number with commas
-  value = parseInt(value, 10).toLocaleString();
-
-  // Update the input value with the formatted number
-  input.value = value;
-}
-
-const numberInputs = document.querySelectorAll('input[data-type="number"]');
-
-// Add event listener to each input
-numberInputs.forEach(input => {
-  input.addEventListener('input', formatNumberWithCommas);
-});
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.form-select').forEach(selectElement => {
@@ -576,7 +551,7 @@ function submitGuestToken() {
 // setInterval(refreshDiv, 1000);
 
 // Initial call to fetch the notification
-// fetchNotificationCount() // Enable this shits
+fetchNotificationCount() // Enable this shits
 
 // Periodically check for updated notif`ication count (e.g., every 5 seconds)
-// setInterval(fetchNotificationCount, 5000); // Adjust interval as needed  // Enable this shits
+setInterval(fetchNotificationCount, 5000); // Adjust interval as needed  // Enable this shits

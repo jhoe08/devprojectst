@@ -6,13 +6,14 @@ const { isValidJSON } = require("./utils");
 
 const { hashPassword, registerUser, loginUser } = misc
 
-let prefix = 'transto'
+let prefix = 'procurementtracker'
 const tables = {
   employee: 'employees',
-  transaction: 'transactions',
-  transaction_activity: 'transactions_activity',
+  transaction: 'transid',
+  transaction_activity: 'transid_activity',
   remark: 'remarks',
   document: 'documents',
+  notification: 'notifications'
 
 }
 const TEST_UNIT = process.env.TEST_UNIT
@@ -76,30 +77,34 @@ const databaseUtils = {
     })
   }),
   cardsData: () => new Promise((resolve, reject) => {
+    // const query = `
+    //   SELECT 
+    //     '${tables.employee}' AS table_name,
+    //     COUNT(*) AS row_count
+    //   FROM ${prefix}.${tables.employee}
+
+    //   UNION ALL
+
+    //   SELECT 
+    //     '${tables.transaction}' AS table_name,
+    //     COUNT(*) AS row_count,
+    //     SUM(approved_budget) AS total_sum
+    //   FROM ${prefix}.${tables.transaction}
+
+    //   UNION ALL
+
+    //   SELECT 
+    //     '${tables.notification}' AS table_name,
+    //     COUNT(*) AS row_count,
+    //     NULL AS total_sum
+    //   FROM ${prefix}.${tables.notification}
+    // `;
     const query = `
       SELECT 
-        'employees' AS table_name,
-        COUNT(*) AS row_count,
-        NULL AS total_sum
-      FROM ${prefix}.employees
-
-      UNION ALL
-
-      SELECT 
-        'transactions' AS table_name,
+        '${tables.transaction}' AS table_name,
         COUNT(*) AS row_count,
         SUM(approved_budget) AS total_sum
-      FROM ${prefix}.${tables.transaction}
-
-      UNION ALL
-
-      SELECT 
-        'notifications' AS table_name,
-        COUNT(*) AS row_count,
-        NULL AS total_sum
-      FROM ${prefix}.notifications
-    `;
-
+      FROM ${prefix}.${tables.transaction}`;
     connection.query(query, (error, results) => {
       if (error) {
         return reject(error);
@@ -110,7 +115,7 @@ const databaseUtils = {
   }),
   countPerPRClassification: async () => {
     try {
-      const distinctClassifications = await databaseUtils.getDistinct('pr_classification', 'transactions');
+      const distinctClassifications = await databaseUtils.getDistinct('pr_classification', tables.transaction);
       let classificationsArray = distinctClassifications.map(row => `'${row.pr_classification}'`);
 
       if (classificationsArray.length === 0) {
@@ -166,7 +171,7 @@ const databaseUtils = {
     const query = `SELECT 
         'employees' AS table_name,
         COUNT(*) AS row_count
-      FROM transto.employees`;
+      FROM ${prefix}.${tables.employee}`;
 
     return new Promise((resolve, reject) => {
         connection.query(query, (error, results) => {
@@ -180,11 +185,10 @@ const databaseUtils = {
   },
   getTransactionSummary: async () => {
     const query = `SELECT 
-        'transactions' AS table_name,
+        '${tables.transaction}' AS table_name,
         COUNT(*) AS row_count,
-        SUM(approved_budget) AS total_abc,
-        SUM(amount) AS total_amount
-      FROM transto.${tables.transaction}`;
+        SUM(approved_budget) AS total_abc
+      FROM ${prefix}.${tables.transaction}`;
 
     return new Promise((resolve, reject) => {
         connection.query(query, (error, results) => {
@@ -227,10 +231,10 @@ const databaseUtils = {
   }),
   getTransactionById: async (id) => {
     const data = { product_id: id }
-    return await databaseUtils.retrieveData('transactions', '*', data)
+    return await databaseUtils.retrieveData(tables.transaction, '*', data)
   },
   getEmployeeById: async (id) => {
-    return await databaseUtils.retrieveData('employees', '*', { employeeid: id })
+    return await databaseUtils.retrieveData(tables.employee, '*', { employeeid: id })
   },
   getEmployeeByUsername: (username) => new Promise((resolve, reject) => {
     connection.query(`SELECT * FROM ${prefix}.${tables.employee} WHERE username LIKE '${username}'`, (error, results) => {
@@ -273,7 +277,16 @@ const databaseUtils = {
     enrichedData = JSON.stringify(enrichedData)
     return await databaseUtils.storeData(tables.transaction, enrichedData);
   },
-  postRemarks: (data) => new Promise((resolve, reject) => {
+  postRemarks: async (data) => {
+    const { dueDate } = JSON.parse(data)
+    console.log('data - adding remarks', data, dueDate)
+    if (dueDate) {
+      data = JSON.stringify({ ...JSON.parse(data), dueDate: convertDate(new Date(), dueDate) })
+    }
+    return await databaseUtils.storeData(tables.remark, data)
+  },
+  ___postRemarks: (data) => new Promise((resolve, reject) => {
+    return databaseUtils.storeData('remarks', data)
     let { comment, user, refid, status, dueDate } = JSON.parse(data)
     let date = convertDate(new Date(), 0) // No additional hours
     let values = ''
@@ -302,7 +315,7 @@ const databaseUtils = {
   }),
   putTransactions: async (data) => {
     console.log('data - updating transactions', data)
-    return await databaseUtils.amendData('transactions', data)
+    return await databaseUtils.amendData(table.transaction, data)
   },
   hideToDisplay: async (component, id) => {
     try {
@@ -349,7 +362,7 @@ const databaseUtils = {
   updateTransactionCodes: async (data) => {
     try {
       const { transid, code } = JSON.parse(data)
-      let rows = await databaseUtils.retrieveData('transactions', 'trans_code', { 'product_id': transid })
+      let rows = await databaseUtils.retrieveData(tables.transaction, 'trans_code', { 'product_id': transid })
       console.log(rows[0])
       if (rows.length > 0) {
         let codes = rows[0].trans_code;
@@ -441,10 +454,10 @@ const databaseUtils = {
   retrieveTransactions: async (data) => {
     if (data) {
       data = JSON.parse(data)
-      return await databaseUtils.retrieveData('transactions', '*', data)
+      return await databaseUtils.retrieveData(tables.transaction, '*', data)
     }
 
-    return await databaseUtils.retrieveData('transactions')
+    return await databaseUtils.retrieveData(tables.transaction)
   },
   getData: (table) => new Promise((resolve, reject) => {
     let query = `SELECT * FROM ${prefix}.${table}`;
@@ -460,8 +473,6 @@ const databaseUtils = {
   getDataById: (table, data) => new Promise((resolve, reject) => {
     console.log({table, data})
     data = JSON.parse(data)
-
-
 
 
     let key = Object.keys(data)
@@ -480,21 +491,15 @@ const databaseUtils = {
   ////////////////////////////////////////////////////////////////
   // CREATE DATA
   storeData: (table, data) => new Promise((resolve, reject) => {
-
     data = JSON.parse(data)
 
     let keys = Object.keys(data)
     let values = Object.values(data);
 
-    let query = `INSERT INTO ${prefix}.${table} (`
-    query += (keys.join(', ', keys));
-    query += ") VALUES (";
-    // query += '"' + (values.join('", "', values)) +'"';
-    query += `'${values.join("', '", values)}'`
-    query += ");";
+    const query = `INSERT INTO ${prefix}.${table} (${keys.join(',')}) VALUES (${values.map(() => '?').join(',')})`;
 
-    console.log(query)
-    connection.query(query, (error, results) => {
+    console.log({query})
+    connection.query(query, values, (error, results) => {
       if (error) {
         reject(error)
       } else {
@@ -516,19 +521,29 @@ const databaseUtils = {
         })
       );
       // Construct SQL query
-      let query = `UPDATE ${prefix}.${table} SET `;
-      query += Object.entries(set)
-        .map(([key, value]) => `${key}='${value}'`)
-        .join(', ');
-      query += ' WHERE ';
-      query += Object.entries(where)
-        .map(([key, value]) => `${key}='${value}'`)
+      // let query = `UPDATE ${prefix}.${table} SET `;
+      // query += Object.entries(set)
+      //   .map(([key, value]) => `${key}='${value}'`)
+      //   .join(', ');
+      // query += ' WHERE ';
+      // query += Object.entries(where)
+      //   .map(([key, value]) => `${key}='${value}'`)
+      //   .join(' AND ');
+
+      const keys = Object.keys(set);
+      const values = Object.values(set);
+      const conditions = Object.entries(where)
+        .map(([key, value]) => `${key} = ?`)
         .join(' AND ');
+
+      const query = `UPDATE ${prefix}.${table} SET ${keys.map(k => `${k} = ?`).join(', ')} WHERE ${conditions}`;
+      const params = [...values, ...Object.values(where)];
+
 
       console.log(query)
       // Execute the query
       return new Promise((resolve, reject) => {
-        connection.query(query, (error, results) => {
+        connection.query(query, params, (error, results) => {
           if (error) reject(error);
           else resolve(results);
         });
@@ -556,7 +571,7 @@ const databaseUtils = {
         })
         .join(' AND');
     }
-    console.log('Retrieving Data...', query)
+    // console.log('Retrieving Data...', query)
     connection.query(query, (error, results) => {
       if (error) {
         reject(error)
@@ -679,15 +694,16 @@ const databaseUtils = {
   },
   // endof DOCUMENTS
   getDataFromLast7Days: async (table, column) => {
-    // const query = `SELECT * FROM ${prefix}.${table} WHERE ${column} >= CURDATE() - INTERVAL 7 DAY;`
-    const query = ` SELECT 
-                            remarks.*, transactions.*
-                        FROM
-                            ${prefix}.remarks AS remarks
-                                JOIN
-                            ${prefix}.${tables.transaction} AS transactions ON remarks.refid = transactions.product_id
-                        WHERE
-                            remarks.date >= CURDATE() - INTERVAL 7 DAY;`
+    const query = `SELECT * FROM ${prefix}.${table} WHERE ${column} >= CURDATE() - INTERVAL 7 DAY;`
+    // const query = ` SELECT 
+    //                     ${tables.remark}.*, ${tables.transaction}.*
+    //                 FROM
+    //                     ${prefix}.remarks AS remarks
+    //                         JOIN
+    //                     ${prefix}.${tables.transaction} 
+    //                         AS transactions ON remarks.refid = transactions.product_id
+    //                 WHERE
+    //                     remarks.date >= CURDATE() - INTERVAL 7 DAY;`
 
     return new Promise((resolve, reject) => {
       connection.query(query, (error, results) => {
@@ -710,7 +726,7 @@ const databaseUtils = {
   },
   getDivisionAndPosition: async (position, division) => {
     const query = `SELECT * 
-      FROM transto.employees 
+      FROM ${prefix}.employees 
       WHERE JSON_EXTRACT(experience, '$.position') = '${position}'
         AND JSON_EXTRACT(experience, '$.division') = '${division}';`
     
@@ -780,7 +796,7 @@ const databaseUtils = {
 
     return new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO transto.guest_accounts
+        INSERT INTO ${prefix}.guest_accounts
           (guest_token, created_at, expires_at, status, metadata)
         VALUES (?, ?, ?, ?, ?)
       `;
@@ -794,7 +810,7 @@ const databaseUtils = {
   async findGuestToken(token) {
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT * FROM transto.guest_accounts
+        SELECT * FROM ${prefix}.guest_accounts
         WHERE guest_token = ?
         LIMIT 1
       `;
@@ -809,7 +825,7 @@ const databaseUtils = {
     const { token, expires_at, meta } = data
     return new Promise((resolve, reject) => {
       const query = `
-        UPDATE transto.guest_accounts
+        UPDATE ${prefix}.guest_accounts
         SET status = ?, metadata = JSON_SET(metadata, '$.used', true), expires_at = ?, metadata = ?
         WHERE guest_token = ?
       `;

@@ -3,7 +3,7 @@
 <%
     const { id, title, priority, source, source_name, created_at, updated_at, created_by, attachments } = displayData
     const { username } = SESSION_USER
-    const requestID = addLeadingZeros(id)
+    const requestID = UTILS.addLeadingZeros(id)
     const trackerid = `${moment(created_at).format('YYYYMMDD')}-${requestID}`
 %>
 <div class="wrapper">

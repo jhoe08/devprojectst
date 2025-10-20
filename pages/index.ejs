@@ -4,11 +4,18 @@
   // const { transactions } = cardsData
   
   // Destructuring the object
-  const {
+  /* const {
     employees: { row_count: employeesRowCount, total_sum: employeesTotalSum },
     transactions: { row_count: transactionsRowCount, total_sum: transactionsTotalSum },
     notifications: { row_count: notificationsRowCount, total_sum: notificationsTotalSum }
-  } = cardsData;
+  } = cardsData; */
+
+  const employeesRowCount = cardsData?.employees?.row_count || 0;
+  const employeesTotalSum = cardsData?.employees?.total_sum || 0;
+  const transactionsRowCount = cardsData?.transid?.row_count || 0;
+  const transactionsTotalSum = cardsData?.transid?.total_sum || 0;
+  const notificationsRowCount = cardsData?.notifications?.row_count || 0;
+  const notificationsTotalSum = cardsData?.notifications?.total_sum || 0;
 
   let componentTransaction = transactions
   let componentActivity = activities

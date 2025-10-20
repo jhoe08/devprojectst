@@ -1011,6 +1011,9 @@
                   },
                 },
               });
+              setTimeout(() => {
+                location.reload();
+              }, 1500);
             },
             error: function (xhr, status, error) {
               swal({

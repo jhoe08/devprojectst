@@ -1,0 +1,43 @@
+<%
+    const filteredTransactions = []
+
+    transactions.forEach(transaction => {
+        const { prepared_by } = transaction
+        const { employeeid } = SESSION_USER
+
+        filteredTransactions.push(prepared_by.includes(employeeid) ? transaction : null)
+    });
+%>
+
+<h5 class="mb-3 mt-4 text-uppercase">
+    <i class="mdi mdi-cards-variant mr-1"></i>
+    Purchase Request
+</h5>
+<div class="table-responsive">
+    <table class="table table-borderless mb-0">
+        <thead class="thead-light">
+            <tr>
+                <th>#</th>
+                <th>Particulars</th>
+                <th>Start Date</th>
+                <th>Progress Date</th>
+                <th>Status</th>
+                <th>Holder</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% filteredTransactions.forEach( transaction => { 
+                if(transaction) { 
+                    const { product_id, bid_notice_title, pr_date, approved_budget } = transaction; %>
+            <tr>
+                <td><%= product_id %></td>
+                <td><%= bid_notice_title %></td>
+                <td><%= pr_date %></td>
+                <td data-typeof="number"><%= approved_budget %></td>
+                <td><span class="badge badge-info">Work in Progress</span></td>
+                <td>Halette Boivin</td>
+            </tr>
+            <% } }) %>
+        </tbody>
+    </table>
+</div>

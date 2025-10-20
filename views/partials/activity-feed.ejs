@@ -10,12 +10,13 @@
     const remark = remarks[i];
     if (!remark) continue;
 
-    const { dueDate, date, status, comment, id, experience, firstname, section } = remark;
+    const { id, dueDate, date, status, comment, refid, experience, firstname, section } = remark;
     let firstLetter = (firstname && typeof firstname === 'string' ? firstname : '').charAt(0);
 
     feedItems.push({
-      type: 'remark',
       id,
+      type: 'remark',
+      refid,
       date: date,
       dueDate,
       status,
@@ -46,13 +47,19 @@
 
       const stepsDetails = getStepsDetails(steps, step_id);
       const isHidden = hide.includes(step.id) ? 'hidden' : '';
-      const status = (stepsDetails?.status == 'approved') ? 'success' : (stepsDetails?.status == 'return') ? 'danger' : 'warning';
-      const title  = (stepsDetails?.status == 'approved') ? 'Next Approver' : (stepsDetails?.status == 'return') ? 'Return to End-User' : 'Waiting for Approval';
+      const status =  (stepsDetails?.status == 'approved') 
+                      ? 'success' : (stepsDetails?.status == 'disapproved') 
+                      ? 'danger' : 'warning';
+      const title  =  (stepsDetails?.status == 'approved') 
+                      ? 'Approved' : (stepsDetails?.status == 'return') 
+                      ? 'Return to End-User' : (stepsDetails?.status == 'disapproved') 
+                      ? 'Disapproved' : 'Waiting for Approval';
 
       feedItems.push({
         type: 'step',
         id: step.id,
-        date: stepsDetails?.updated_at || transactions.pr_date,
+        date: stepsDetails?.created_at,
+        updated_at: stepsDetails?.updated_at,
         stepsDetails,
         step,
         isHidden,
@@ -63,6 +70,7 @@
   });
 
   let typeRemark = 1;
+  console.log('Combined Feed Items:', feedItems);
   // Sort all feed items by date descending (latest first)
   feedItems.sort((a, b) => new Date(b.date) - new Date(a.date));
 %>
@@ -116,19 +124,37 @@
       </div>
     </li>
   <% typeRemark++; 
-    } else if (item.type === 'step') { %>
+    } else if (item.type === 'step') {
+      let { date, updated_at } = item;
+      const now = new Date();
+
+      created_at = new Date(date);
+      updated_at = new Date(updated_at || now);
+     
+      const diffMs = Math.abs(updated_at - created_at);
+      
+      const totalSeconds = Math.floor(diffMs / 1000);
+      const days = Math.floor(totalSeconds / (3600 * 24));
+      const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+  %>
     <li data-step="<%= JSON.stringify(item.stepsDetails) %>" class="feed-item feed-item-black d-flex justify-content-between <%= item.isHidden %>" data-id="" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="<%= item.title %>">
       <div class="d-flex">
         <span class="user fs-3 mr-3"><i class="fas fa-door-open"></i></span>
-        <div class="">
-          <time class="date" datetime="<%- moment(item.date).format(format) %>">
-            <%- moment(item.date).format(format) %>
+        <div class="details">
+          <time class="date" datetime="<%- moment(created_at).format(format) %>" dataupdated="<%- moment(updated_at).format(format) %>">
+            <%- moment(created_at).format(format) %>
           </time>
           <span class="text">
             <span class="badge badge-<%= item.status %> mr-3"><%= (item.step.id == item.stepsDetails?.steps_number) ? item.stepsDetails?.status : '' %></span>
             <%= item.step.steps_title %>
           </span>
         </div>
+        <span></span>
+      </div>
+      <div class="total-response-time">
+        <%= `${days}d ${hours}h ${minutes}m ${seconds}s` %>
       </div>
     </li>
   <% } %>
