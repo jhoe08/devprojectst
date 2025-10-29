@@ -2,14 +2,16 @@
 <%- include('../../views/header') -%>
 <%
   let { directors, divisions } = JSON.parse(DEPARTMENT)
-  const { employeeid, username, firstname, lastname, middlename } = SESSION_USER || defaultNullUser
-  const fullname = [firstname, middlename, lastname].join(' ')
-  const middleNameInitial = `${middlename[0]}.`
+  const { employeeid, username, firstname, lastname, middlename } = SESSION_USER 
+  const safeMiddle = middlename?.trim();
+  const fullname = safeMiddle
+    ? `${firstname} ${safeMiddle[0]}. ${lastname}`
+    : `${firstname} ${lastname}`;
 
   directors = Object.entries(directors)
   divisions = Object.entries(divisions)
 
-  var requested_by = [firstname, middleNameInitial, lastname].join(' ')
+  var requested_by = fullname
   var fund_source = '{}'
   if(transactions) {
     var {requisitioner:requested_by, division: e_division, fund_source } = transactions

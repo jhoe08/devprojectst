@@ -46,8 +46,10 @@ const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { exit } = require('process');
 const { count, table } = require('console');
-const { permission } = require('node:process');
+const { permission, title } = require('node:process');
 const { trace } = require('node:console');
+const { stringify } = require('node:querystring');
+const { hash } = require('node:crypto');
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
@@ -315,6 +317,18 @@ const department = {
           admin: "",
           responsible: { employeeid: "115", name: "Rosalie S. Gallego" },
           acting: "",
+        }
+      }
+    },
+    "ACEDD": {
+      stands: "Agricultural Competitiveness and Extension Division",
+      email: "",
+      admin: "",
+      responsible: { employeeid: "116", name: "Annearth V. Maribojoc" },
+      acting: "",
+      sections: {
+        SPPS: {
+          stands: "Sectoral Planning and Policy Section",
         }
       }
     },
@@ -1160,6 +1174,15 @@ const loadAllActivities = async (req, res, next) => {
     res.status(500).send("Internal Server Error: Middleware Load Activities");
   }
 }
+const loadAllSuppliers = async (req, res, next) => {
+  try {
+    res.locals.SUPPLIERS = await connection.getSuppliers();
+    next();
+  } catch (error) {
+    console.error("Error loading suppliers:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Suppliers");
+  }
+}
 
 function restrict(req, res, next) {
   // If user is authenticated, proceed
@@ -1396,9 +1419,13 @@ app.post('/login', async (req, res) => {
     }
 
     // 👤 Standard Username/Password Login
-    const { username, password } = req.body;
+    const { username, password, roles } = req.body;
     if (!username || !password) {
       return res.status(400).json({ message: 'Username and password are required.' });
+    }
+
+    if(roles && roles.includes('SuperAdmin')) {
+      req.session.isSuperAdmin = true;
     }
 
     const userDetails = await connection.retrieveEmployeeByUsername(username);
@@ -1571,7 +1598,8 @@ app.post('/register', async (req, res, next) => {
     // set.password = JSON.stringify(set.password)
 
     set.password = bcrypt.hashSync(set.password, 8);
-
+    console.log({hashedPassword: (set.password) });
+    console.log({hashedPassword: bcrypt.hashSync('Admin123!', 8)});
 
     data = {set, where}
 
@@ -1764,6 +1792,32 @@ app.post('/transactions/assign', async (req, res) => {
 })
 
 
+app.post('/transactions/assignedto', async (req, res) => {
+  const { transactions } = req.body;
+  const mappedTransactions = transactions.map(txn => ({ product_id: txn.product_id }));
+
+  try {
+    const results = await Promise.all(mappedTransactions.map(async (txn) => {
+      const data = {
+        set: {
+          assigned_to: txn.assigned_to,
+        },
+        where: {
+          product_id: txn.product_id,
+          steps_number: txn.steps_number
+        }
+      }
+
+      await connection.updateTransactionActivity(JSON.stringify(data))
+    }))
+    console.log({results})
+    res.status(200).json({ message: 'Transaction assigned successfully.' })
+  } catch (error) {
+    console.error('Error assigning transaction:', error)
+    res.status(500).json({ message: 'Error assigning transaction.' })
+  }
+})
+
 app.put('/employees/update', restrict, async (req, res) => {
   try{
     const employee = await connection.amendEmployee(JSON.stringify(req.body))
@@ -1822,7 +1876,7 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
   }
 })
 
-app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities, async (req, res) => {
+app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities, loadAllSuppliers, async (req, res) => {
   try {
     const transid = req.params.id;
 
@@ -1830,6 +1884,8 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
     const remarks = await connection.getRemarksByRefid(transid)
     
     const steps = await connection.getTransactionActivityId(JSON.stringify({product_id: transid}))
+
+    const suppliers = await connection.getTransactionSuppliers({ transaction_id: transid })
 
     const filteredActivities = res.locals.activities
     .filter(activity => activity.product_id === Number(transid));
@@ -1845,6 +1901,7 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
         path: res.url,
         query: transid,
         steps: steps.sort((a, b) => b.id - a.id),
+        _suppliers: JSON.stringify(suppliers),
       }); // Pass the data to the template
       
     } else {
@@ -1885,6 +1942,24 @@ app.get('/transactions/:id/print', restrict, async (req, res) => {
   } catch (error) {
     console.error('Error deleting transaction:', error);
     res.status(404).render('404');
+  }
+})
+
+app.post('/transactions/:id/suppliers', restrict, async (req, res) => {
+  try {
+    const transid = req.params.id;
+    console.log('req.body', req.body)
+    await connection.postTransactionSuppliers(JSON.stringify({
+      refid: transid,
+      suppliers: req.body.suppliers,  
+    }))
+    res.status(200).json({ message: 'Suppliers successfully added to the transaction.' })
+  } catch (error) {
+    console.error('Error saving Transactions suppliers:', error);
+    res.status(404).render('404', {
+      title: "404 Page not found",
+      component: "Transaction"
+    });
   }
 })
 
@@ -2111,6 +2186,7 @@ app.get('/employees/new', restrict, function(req, res){
 app.get('/employees/:id/profile', restrict, loadAllTransactions, async function(req, res){
   try {
     const employee = await connection.getEmployeeById(req.params.id);
+    console.log({employee})
     if(employee.length > 0) {
       res.render('employees/profile', {
         employee: employee[0],
@@ -2202,7 +2278,46 @@ app.get('/qrscanner', restrict, async function(req, res){
     title: "Scan QR Code"
   })
 })
+app.get('/suppliers', restrict, loadAllSuppliers, async function(req, res){
+  res.render('suppliers/index', {
+    title: "Suppliers"
+  })
+})
+app.get('/suppliers/new', restrict, async function(req, res){
+  res.render('suppliers/new', {
+    title: "Suppliers"
+  })
+})
+app.post('/suppliers/add', restrict, async function (req, res) {
+  try {
+    const {
+      supplier_code,
+      supplier_name,
+      contact_person,
+      email,
+      phone,
+      address,
+      status
+    } = req.body;
 
+    // Defensive: check if all fields are empty
+    console.log('Received supplier data:', req.body);
+    const allEmpty = [supplier_code, supplier_name, contact_person, email, phone, address, status]
+      .every(field => !field || field.trim() === '');
+
+    if (allEmpty) {
+      return res.status(400).json({ error: 'All fields are empty. Please provide supplier details.' });
+    }
+
+    // Insert into DB (example using MySQL with async/await)
+    const result = await connection.postSuppliers(JSON.stringify(req.body));
+    console.log('Supplier added with ID:', result);
+    res.status(200).json({ message: 'Supplier added successfully.' });
+  } catch (error) {
+    console.error('Error adding supplier:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
 // DOCUMENTS
 app.get('/documents', restrict, async function(req, res){
   const results = await connection.getDocumentTrackerData()

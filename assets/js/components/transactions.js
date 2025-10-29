@@ -476,12 +476,22 @@
     addButton.addEventListener('click', function () {
       // Find the closest row element
       // const row = this.closest('.row');
-      const row = document.querySelector('#chargingTo .row')
+      const chargingRow = document.querySelector('#chargingTo .row');
+      const supplierRow = document.querySelector('#supplierInfo .row');
+
+      const row = chargingRow || supplierRow;
+      if (!row) return; // Defensive: no row found
 
       // Clone the row
       const clonedForm = row.cloneNode(true); // true means deep clone (including child nodes)
-            clonedForm.setAttribute('id', `charging_${rowCount}`)
             clonedForm.dataset.id = rowCount
+      
+      if (chargingRow) {
+        clonedForm.setAttribute('id', `charging_${rowCount}`);
+      } else if (supplierRow) {
+        clonedForm.setAttribute('id', `supplier_${rowCount}`);
+      }
+
       // Remove the "Add" button from the cloned row to prevent duplication
       // const addButtonInClonedRow = clonedForm.querySelector('.form-group-add');
       // addButtonInClonedRow.remove();
@@ -507,7 +517,9 @@
 
       // Add a "Remove" button to the cloned row
       const removeButton = clonedForm.querySelector('.fa-minus-circle');
+      console.log({removeButton});
       removeButton.addEventListener('click', function () {
+        console.log('Remove button clicked for row:', clonedForm.dataset.id);
         clonedForm.remove(); // Remove the clicked row
       });
 
@@ -515,10 +527,25 @@
       rowCount++;
 
       // Append the cloned row to the form container
-      const formContainer = document.getElementById('chargingTo');
+      const formContainer = document.getElementById('chargingTo') || document.getElementById('supplierInfo');
       formContainer.appendChild(clonedForm);
     });
   }
+ 
+  document.querySelectorAll('.fa-minus-circle').forEach(removeIcon => {
+    const button = removeIcon.closest('button');
+    if (button) {
+      button.addEventListener('click', function () {
+        const row = this.closest('.row');
+        if (row) {
+          console.log('Removing row:', row.dataset.id || row.id);
+          row.remove();
+        }
+      });
+    }
+  });
+
+
   if (printTracking) {
     function printSpecificURL(path) {
       var url = path; // Replace with the URL you want to print
@@ -600,7 +627,7 @@
       const product_id = Number(document.querySelector('.container').dataset.transactionId);
       const apiUrl = '/approve';
       const data = { product_id:product_id, steps_number:currentSteps, updated_by: create_by}
-
+      
       const requestOptions = {
         method: 'POST',
         headers: {
@@ -728,9 +755,16 @@
       // console.log('ASD', val)
       if (!isNaN(val)) total += val;
     });
-    console.log('Total:', total);
-    document.getElementById('totalCount').value = total;
-    document.getElementById('budget').value = total.toLocaleString('en-US', { style: 'decimal', minimumFractionDigits: 0 });
+    // console.log('Total:', total);
+    const totalCountEl = document.getElementById('totalCount');
+    const budgetEl = document.getElementById('budget');
+    
+    if (totalCountEl) {
+      totalCountEl.value = total;
+    }
+    if (budgetEl) {
+      budgetEl.value = total.toLocaleString('en-US', { style: 'decimal', minimumFractionDigits: 0 });
+    }
   }
 
   function formatNumberWithCommas(event) {
@@ -753,14 +787,14 @@
     input.value = value;
   }
 
-  if(document.getElementById('budget')){
+  if(document.getElementById('budget') || document.querySelector('input[data-type="number"]')){
     setInterval(() => {
       updateTotal('input[name="unitCount"]');
     }, 1000);
     setInterval(() => {
       const numberInputs = document.querySelectorAll('input[data-type="number"]');
-
-      console.log(numberInputs);
+      // if (!numberInputs) return;
+      // console.log(numberInputs);
       // Add event listener to each input
       numberInputs.forEach(input => {
         input.addEventListener('input', formatNumberWithCommas);

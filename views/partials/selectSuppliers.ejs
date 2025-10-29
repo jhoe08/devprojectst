@@ -1,0 +1,12 @@
+<div class="form-group form-group-default">
+    <label for="supplier_name_<%= key || 0 %>">Supplier</label>
+    <select class="form-select" id="supplier_name_<%= key || 0 %>" name="supplier_name_<%= key || 0 %>">
+        <option value="">-- Select Supplier --</option>
+        <% const suppliersArray = SUPPLIERS || [];
+        
+        suppliersArray.forEach((supplier) => { 
+            const { id, supplier_name, supplier_code } = supplier; %>
+        <option value="<%= id %>" <%= (filtered === id) ? 'selected' : '' %>><%= supplier_name %></option>
+        <% }); %>
+    </select>
+</div>

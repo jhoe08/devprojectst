@@ -1,0 +1,38 @@
+<!-- Header Template -->
+<%- include('../../views/header') -%>
+
+<div class="wrapper">
+    <%- include('../../views/sidebar') -%>
+
+    <div class="main-panel">
+      <%- include('../../views/main-header') -%>
+
+      <div class="container" >
+          <div class="page-inner">
+            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+              <div>
+                  <h3 class="fw-bold mb-3"><%- title -%></h3>
+                  <h6 class="op-7 mb-2">External entities or individuals that provide goods, services, or resources to an organization</h6>
+              </div>
+              <div class="ms-md-auto py-2 py-md-0">
+                <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="transactions" data-column="11">Manage</a>
+                <a href="/suppliers/new" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Add New</a>
+              </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                      <div class="card-header">
+                        <div class="card-head-row card-tools-still-right">
+                          <div class="card-title">List of <%=title%></div>
+                        </div>
+                      </div>
+                      <div class="card-body">
+                        <%- include('../../components/datatables/supplier', { headers: ["Code", "Name", "Phone", "Email", "Address", "Actions"], lists: SUPPLIERS }) -%>
+                      </div>
+                    </div>
+                  </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -25,12 +25,12 @@ if(video && output) {
         if (video.videoWidth && video.videoHeight) {
             requestAnimationFrame(scanQRCode);
         } else {
-            console.error('Error: video dimensions not available.');
+            console.warn('Error: video dimensions not available.');
         }
         };
     })
     .catch(err => {
-        console.error('Error accessing the camera: ', err);
+        console.warn('Error accessing the camera: ', err);
         output.innerText = 'Error accessing the camera.';
     });
     
@@ -75,6 +75,7 @@ if(video && output) {
                     tempQRCodes.push(qrNumber);
                     addNewRow(tempData);
                     btnRemarks.dataset.transid = JSON.stringify(tempQRCodes);
+                    document.getElementById('assignedTransactions').value = JSON.stringify(tempQRCodes);
                     text.value = '';
                 }
                 console.log(tempQRCodes)
@@ -141,6 +142,7 @@ if(text) {
                     tempQRCodes.push(qrNumber);
                     addNewRow(tempData);
                     btnRemarks.dataset.transid = JSON.stringify(tempQRCodes);
+                    document.getElementById('assignedTransactions').value = JSON.stringify(tempQRCodes);
                     text.value = '';
                 }
                 // console.log(tempQRCodes)

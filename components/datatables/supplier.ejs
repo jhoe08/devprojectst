@@ -1,0 +1,32 @@
+<div class="table-responsive">
+    <table id="transactions-datatables" class="display table table-striped table-hover">
+        <thead>
+            <tr>
+                <% headers.forEach(function(header) { %>
+                    <th><%= header %></th>
+                <% }); %>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be populated here via DataTables -->
+            <% if( lists.length > 0 ) {
+            lists.forEach(function(item) { %>
+                <tr>
+                    <td><%= item.supplier_code %></td>
+                    <td><%= item.supplier_name %></td>
+                    <td><a href="tel:<%= item.phone %>"><%= item.phone %></a></td>
+                    <td><a href="mailto:<%= item.email %>"><%= item.email %></a></td>
+                    <td><%= item.address %></td>
+                    <td>
+                        <a href="/suppliers/<%= item.id %>/edit" class="btn btn-link btn-primary"><i class="fa fa-eye"></i></a>
+                        <a href="/suppliers/<%= item.id %>/delete" class="btn btn-link btn-danger"><i class="fa fa-trash"></i></a>
+                    </td>
+                </tr>
+            <% }); } else { %>
+                <tr>
+                    <td colspan="6" class="text-center">No suppliers found.</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>

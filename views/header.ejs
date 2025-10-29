@@ -95,11 +95,16 @@
     let { office, salary, startdate, enddate, position, division, section, banner } = lists[0] 
    // section = section.toUpperCase()
 
+  const safeMiddle = middlename?.trim();
+  const fullname = safeMiddle
+    ? `${firstname} ${safeMiddle[0]}. ${lastname}`
+    : `${firstname} ${lastname}`;
+
 %>
   <input 
     id="created_by" 
     type="hidden"
-    value="<%= JSON.stringify({employeeid, name: `${firstname} ${middlename[0]} ${lastname}` }) %>" 
+    value="<%= JSON.stringify({employeeid, name: fullname }) %>" 
     data-responsible="<%= JSON.stringify(getUserResponsible(division, section)) %>"
     data-user-role="<%= roles %>"
     data-has-allowed-roles="<%= hasAllowedRole(roles) %>"
@@ -108,5 +113,10 @@
     id="sessionUser"
     type="hidden"
     data-details="<%= JSON.stringify(SESSION_USER_LOG) %>"
+    />
+  <input 
+    id="assignedTransactions" 
+    type="hidden"
+    value='' 
     />
 <% } %>

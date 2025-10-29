@@ -69,6 +69,13 @@
               <!-- <span class="caret"></span> -->
             </a>
           </li>
+          <li class="nav-item <%= UTILS.isActive(currentPath, '/suppliers') %>">
+            <a href="/suppliers">
+              <i class="fas fa-truck"></i>
+              <p>Suppliers</p>
+              <!-- <span class="caret"></span> -->
+            </a>
+          </li>
           <% if(!isGuest()) { %>
           <li class="nav-item <%= UTILS.isActive(currentPath, '/transactions/new') %>">
             <a href="/transactions/new">
@@ -133,7 +140,7 @@
               <!-- <span class="caret"></span> -->
             </a>
           </li>
-          <% if(!isGuest()) { %>
+          <% if(!isGuest() && (userAvailComponents('Documents') )) { %>
           <li class="nav-section">
             <span class="sidebar-mini-icon">
               <i class="fa fa-ellipsis-h"></i>

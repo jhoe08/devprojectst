@@ -176,6 +176,14 @@ select option[disabled] {
   }
 }
 
+.form-group-default{
+  &.selectgroup-inline {
+    label {
+      margin-bottom: 10px;
+    }
+  }
+}
+
 .strikethrough {
   text-decoration: line-through;
 }

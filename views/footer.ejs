@@ -1,6 +1,15 @@
     <!-- Main Scripts added -->
     <%- include('scripts') -%>
 
+    <%  if(typeof scripts !== 'undefined' && scripts) { const extractedScripts = Object.entries(scripts).map(([title, source]) => ({
+          title,
+          source
+        }));
+        extractedScripts.forEach(({ title, source }) => {
+    %>
+        <script type="module" title="<%= title %>" src="<%= source %>"></script>
+    <% }); } %>
+
     <% if (path2.startsWith('/transactions')) { %> 
     <script src="/assets/js/components/transactions.js"></script>
     <% } else if (path2.startsWith('/employees')) { %>
@@ -1039,6 +1048,13 @@
       const productId = $(this).data('product-id')
       const currentStep = $(this).data('step')
       const updatedBy = $('#created_by').val()
+      
+      if ([6, 7, 8].includes(currentStep)) {
+        const suppliers = document.getElementById(`suppliers_step`).value;
+
+        console.log({productId, currentStep, updatedBy})
+      }
+
       showConfirmationAlert({
         title: verificationMessages[currentStep].initial.title,
         text: verificationMessages[currentStep].initial.text,

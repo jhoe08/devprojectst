@@ -315,7 +315,7 @@ const databaseUtils = {
   }),
   putTransactions: async (data) => {
     console.log('data - updating transactions', data)
-    return await databaseUtils.amendData(table.transaction, data)
+    return await databaseUtils.amendData(tables.transaction, data)
   },
   hideToDisplay: async (component, id) => {
     try {
@@ -507,7 +507,67 @@ const databaseUtils = {
       }
     })
   }),
+  // storeMultipleData: (table, dataArray, isStrict) => new Promise((resolve, reject) => {
+  //   if (!Array.isArray(dataArray) || dataArray.length === 0) {
+  //     return reject(new Error('Data must be a non-empty array'));
+  //   }
+  //   const keys = Object.keys(dataArray[0]);
+  //   const values = dataArray.map(data => Object.values(data));
+  //   let query = `INSERT INTO ${prefix}.${table} (${keys.join(',')}) VALUES ?`;
+  //   console.log({query})
+  //   if(isStrict){
+  //     query += ` ON DUPLICATE KEY UPDATE quoted_price=VALUES(quoted_price)`;
+  //   }
+  //   connection.query(query, [values], (error, results) => {
+  //     if (error) {
+  //       reject(error);
+  //     } else {
+  //       resolve(results);
+  //     }
+  //   });
+  // }),
   // UPDATE DATA
+  storeMultipleData: (table, dataArray) => new Promise((resolve, reject) => {
+    if (!Array.isArray(dataArray) || dataArray.length === 0) {
+      return reject(new Error('Data must be a non-empty array'));
+    }
+
+    const keys = Object.keys(dataArray[0]);
+    const escapedKeys = keys.map(k => `\`${k}\``).join(', ');
+    const escapedTable = `\`${table}\``;
+
+    // Build SELECT blocks for each row
+    const selectBlocks = dataArray.map(data => {
+      const values = keys.map(k => mysql.escape(data[k])).join(', ');
+      const whereClause = keys
+        .filter(k => k === 'transaction_id' || k === 'supplier_id') // adjust as needed
+        .map(k => `target.\`${k}\` = ${mysql.escape(data[k])}`)
+        .join(' AND ');
+
+      return `
+        SELECT ${values}
+        WHERE NOT EXISTS (
+          SELECT 1 FROM ${escapedTable} AS target
+          WHERE ${whereClause}
+        )
+      `;
+    });
+
+    const query = `
+      INSERT INTO ${escapedTable} (${escapedKeys})
+      ${selectBlocks.join(' UNION ALL ')}
+    `;
+
+    console.log({ query });
+
+    connection.query(query, (error, results) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  }),
   amendData: async (table, data) => {
     try {
       let { set, where } = JSON.parse(data);
@@ -540,7 +600,7 @@ const databaseUtils = {
       const params = [...values, ...Object.values(where)];
 
 
-      console.log(query)
+      console.log({query})
       // Execute the query
       return new Promise((resolve, reject) => {
         connection.query(query, params, (error, results) => {
@@ -769,7 +829,31 @@ const databaseUtils = {
 
     return await databaseUtils.retrieveData('settings')
   },
+  getSuppliers: async (data) => {
+    if (data) {
+      data = JSON.parse(data)
+      return await databaseUtils.retrieveData('suppliers', '*', data)
+    }
+    return await databaseUtils.retrieveData('suppliers')
+  },
+  postTransactionSuppliers: async (data) => {
+    console.log('postSuppliers', data)
+    const { suppliers, refid: transactionId } = JSON.parse(data)
 
+    const dataArray = suppliers.map(supplier => ({
+      transaction_id: parseInt(transactionId, 10),
+      supplier_id: parseInt(supplier.id, 10),
+      quoted_price: parseFloat(supplier.quoted_price.replace(/,/g, ''))
+    }));
+
+    console.log('dataArray', dataArray)
+
+    return await databaseUtils.storeMultipleData('suppliers_activity', dataArray, true)
+  },
+  getTransactionSuppliers: async (data) => {
+    console.log('getTransactionSuppliers', data)
+    return await databaseUtils.retrieveData('suppliers_activity', '*', data)
+  },
   // Sample
   divisions: (division) => {
     let lists = ["ILD", "PMED", "FOD", "ADMIN", "RESEARCH", "REGULATORY", "AMAD", "RAED", "Others"]
