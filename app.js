@@ -1880,15 +1880,17 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
   try {
     const transid = req.params.id;
 
-    const transactions = await connection.getTransactionById(transid);
-    const remarks = await connection.getRemarksByRefid(transid)
-    
-    const steps = await connection.getTransactionActivityId(JSON.stringify({product_id: transid}))
-
-    const suppliers = await connection.getTransactionSuppliers({ transaction_id: transid })
+    const [transactions, remarks, steps, suppliers] = await Promise.all([
+      connection.getTransactionById(transid),
+      connection.getRemarksByRefid(transid),
+      connection.getTransactionActivityId(JSON.stringify({ product_id: transid })),
+      connection.getTransactionSuppliers({ transaction_id: transid })
+    ])
 
     const filteredActivities = res.locals.activities
     .filter(activity => activity.product_id === Number(transid));
+
+    console.log('filteredActivities', filteredActivities)
 
     expressActivityLog(filteredActivities)
 
@@ -1925,8 +1927,12 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
 app.get('/transactions/:id/print', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
-    const transactions = await connection.getTransactionById(transid);
-    const remarks = await connection.getRemarksByRefid(transid)
+    
+    const [transactions, remarks] = await Promise.all([
+      connection.getTransactionById(transid),
+      connection.getRemarksByRefid(transid)
+    ])
+
     if (transactions[0]) {
       res.render('transactions/print', { 
         title: "Print Tracking Sheet",
@@ -1949,11 +1955,16 @@ app.post('/transactions/:id/suppliers', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
     console.log('req.body', req.body)
-    await connection.postTransactionSuppliers(JSON.stringify({
+    const results = await connection.postTransactionSuppliers(JSON.stringify({
       refid: transid,
       suppliers: req.body.suppliers,  
     }))
-    res.status(200).json({ message: 'Suppliers successfully added to the transaction.' })
+    console.log({ results })
+    if(results?.affectedRows){
+      res.status(200).json({ status: 200, message: 'Suppliers successfully added to the transaction.' })
+    } else {
+      res.status(500).json({ status: 500, message: 'Failed to add suppliers to the transaction.' })
+    } 
   } catch (error) {
     console.error('Error saving Transactions suppliers:', error);
     res.status(404).render('404', {
@@ -1980,9 +1991,11 @@ app.get('/remarks/:id', restrict, async (req, res) => {
   try {
     const transId = req.params.id;
 
-    const remarks = await connection.getRemarksByRefid(transId);
-    const transactions = await connection.getTransactionById(transId);
-    const steps = await connection.getTransactionActivity()
+    const [ remarks, transactions, steps ] = await Promise.all([
+      connection.getRemarksByRefid(transId),
+      connection.getTransactionById(transId),
+      connection.getTransactionActivity()
+    ]);
 
     console.log({remarks, transactions})
 
@@ -2636,7 +2649,7 @@ app.route('/api/qrcode/:id')
    .get(async (req, res) => {
     const {id} = req.params
 
-    let results = await connection.getTransactionById(id)
+    let results = await connection.getTransactionByQRCode(id)
     
     if(results.length > 0) { 
       results = JSON.stringify(results[0])
@@ -2654,25 +2667,32 @@ app.route('/api/qrcode/:id')
 // SETTINGS page
 // Status: Super Admin only, restrict to access
 app.get('/settings', restrict, async function(req, res){
-  const results = await connection.getSettings()
-  let employees = await connection.retrieveEmployee()
-  const { username } = res.locals.SESSION_USER
-  employees.sort((a, b) => 
-    a.lastname.toLowerCase() < b.lastname.toLowerCase() ? -1 : 
-    (a.lastname.toLowerCase() > b.lastname.toLowerCase() ? 1 : 0)
-  );
+  try {
+    const results = await connection.getSettings() ?? {}
+    let employees = await connection.retrieveEmployee()
+    const { username } = res.locals.SESSION_USER
+    employees.sort((a, b) => 
+      a.lastname.toLowerCase() < b.lastname.toLowerCase() ? -1 : 
+      (a.lastname.toLowerCase() > b.lastname.toLowerCase() ? 1 : 0)
+    );
 
-  if (res.locals.isSuperAdmin()) { // user is admin
-    return res.render('settings', {
-      title: "Settings",
-      settings: JSON.parse(JSON.stringify(results)),
-      employees: JSON.parse(JSON.stringify(employees))
-    })
+    if (res.locals.isSuperAdmin()) { // user is admin
+      return res.render('settings', {
+        title: "Settings",
+        settings: JSON.parse(JSON.stringify(results)),
+        employees: JSON.parse(JSON.stringify(employees))
+      })
+    }
+    res.status(404).render('unauthorized', {
+      title: 'Page Not Found',
+      component: 'Page'
+    });
+  } catch (error) {
+    res.status(404).render('404', {
+      title: 'Page Not Found',
+      component: 'Page'
+    });
   }
-  res.status(404).render('unauthorized', {
-    title: 'Page Not Found',
-    component: 'Page'
-  });
 })
 
 app.post('/settings', restrict, async function(req, res){
@@ -2686,23 +2706,6 @@ app.post('/settings', restrict, async function(req, res){
     res.status(400).json({ message: `Error saving settings: ${error}`, response: {} });
   } 
 })
-
-app.get('/video', async (req, res) => {
-  const tgUrl = 'https://web.telegram.org/a/progressive/document6177027832032532466';
-  const tgRes = await fetch(tgUrl, {
-    headers: {
-      // If Telegram requires cookies/auth, include them here
-    }
-  });
-
-  if (!tgRes.ok) {
-    return res.status(tgRes.status).send('Error fetching file');
-  }
-
-  res.setHeader('Content-Type', 'video/mp4');
-  tgRes.body.pipe(res);
-});
-
 
 // DEMO
 app.get('/forms/forms.html', restrict, function (req, res) {

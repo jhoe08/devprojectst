@@ -115,26 +115,23 @@ const databaseUtils = {
   }),
   countPerPRClassification: async () => {
     try {
-      const distinctClassifications = await databaseUtils.getDistinct('pr_classification', tables.transaction);
-      let classificationsArray = distinctClassifications.map(row => `'${row.pr_classification}'`);
-
-      if (classificationsArray.length === 0) {
-        return [];
-      }
-
-      const classificationList = classificationsArray.join(', ');
-      const query = `SELECT 
-                                pr_classification,
-                                COUNT(*) AS item_count
-                            FROM 
-                                ${prefix}.${tables.transaction}
-                            WHERE 
-                                pr_classification IN (${classificationList})
-                            GROUP BY 
-                                pr_classification
-                            ORDER BY 
-                                pr_classification`;
-
+      const query = `
+      WITH classificationList AS (
+          SELECT DISTINCT pr_classification
+          FROM ${tables.transaction}
+      )
+      SELECT 
+          c.pr_classification,
+          COUNT(t.pr_classification) AS item_count
+      FROM 
+          classificationList c
+      JOIN 
+          transid t ON c.pr_classification = t.pr_classification
+      GROUP BY 
+          c.pr_classification
+      ORDER BY 
+          c.pr_classification;`
+          
       // Execute the query
       return new Promise((resolve, reject) => {
         connection.query(query, (error, results) => {
@@ -229,9 +226,15 @@ const databaseUtils = {
       }
     });
   }),
+  getTransactionByQRCode: async (params) => {
+    const data = params.split('-')
+    let id = Number(data[1])
+    let date = moment(data[0], 'MM/DD/YYYY').format('YYYYMMDD')
+
+    return await databaseUtils.retrieveData(tables.transaction, '*', { product_id: id })
+  },
   getTransactionById: async (id) => {
-    const data = { product_id: id }
-    return await databaseUtils.retrieveData(tables.transaction, '*', data)
+    return await databaseUtils.retrieveData(tables.transaction, '*', { product_id: id })
   },
   getEmployeeById: async (id) => {
     return await databaseUtils.retrieveData(tables.employee, '*', { employeeid: id })
@@ -507,18 +510,41 @@ const databaseUtils = {
       }
     })
   }),
-  // storeMultipleData: (table, dataArray, isStrict) => new Promise((resolve, reject) => {
+  // Store Multiple Data with Duplicate Restriction
+  // storeMultipleData: (table, dataArray, restrictDuplicate) => new Promise((resolve, reject) => {
   //   if (!Array.isArray(dataArray) || dataArray.length === 0) {
   //     return reject(new Error('Data must be a non-empty array'));
   //   }
+
   //   const keys = Object.keys(dataArray[0]);
-  //   const values = dataArray.map(data => Object.values(data));
-  //   let query = `INSERT INTO ${prefix}.${table} (${keys.join(',')}) VALUES ?`;
-  //   console.log({query})
-  //   if(isStrict){
-  //     query += ` ON DUPLICATE KEY UPDATE quoted_price=VALUES(quoted_price)`;
-  //   }
-  //   connection.query(query, [values], (error, results) => {
+  //   const escapedKeys = keys.map(k => `\`${k}\``).join(', ');
+  //   const escapedTable = `\`${table}\``;
+
+  //   // Build SELECT blocks for each row
+  //   const selectBlocks = dataArray.map(data => {
+  //     const values = keys.map(k => mysql.escape(data[k])).join(', ');
+  //     const whereClause = keys
+  //       .filter(k => k === 'transaction_id' || k === 'supplier_id') // adjust as needed
+  //       .map(k => `target.\`${k}\` = ${mysql.escape(data[k])}`)
+  //       .join(' AND ');
+
+  //     return `
+  //       SELECT ${values}
+  //       WHERE NOT EXISTS (
+  //         SELECT 1 FROM ${escapedTable} AS target
+  //         WHERE ${whereClause}
+  //       )
+  //     `;
+  //   });
+
+  //   const query = `
+  //     INSERT INTO ${escapedTable} (${escapedKeys})
+  //     ${selectBlocks.join(' UNION ALL ')}
+  //   `;
+
+  //   console.log({ query });
+
+  //   connection.query(query, (error, results) => {
   //     if (error) {
   //       reject(error);
   //     } else {
@@ -526,8 +552,7 @@ const databaseUtils = {
   //     }
   //   });
   // }),
-  // UPDATE DATA
-  storeMultipleData: (table, dataArray) => new Promise((resolve, reject) => {
+  storeMultipleData: (table, dataArray, restrictDuplicate) => new Promise((resolve, reject) => {
     if (!Array.isArray(dataArray) || dataArray.length === 0) {
       return reject(new Error('Data must be a non-empty array'));
     }
@@ -540,7 +565,7 @@ const databaseUtils = {
     const selectBlocks = dataArray.map(data => {
       const values = keys.map(k => mysql.escape(data[k])).join(', ');
       const whereClause = keys
-        .filter(k => k === 'transaction_id' || k === 'supplier_id') // adjust as needed
+        .filter(k => k === 'product_id' || k === 'supplier_id') // adjust as needed
         .map(k => `target.\`${k}\` = ${mysql.escape(data[k])}`)
         .join(' AND ');
 
@@ -553,10 +578,17 @@ const databaseUtils = {
       `;
     });
 
-    const query = `
+    let query = `
       INSERT INTO ${escapedTable} (${escapedKeys})
       ${selectBlocks.join(' UNION ALL ')}
     `;
+
+    // ✅ Add ON DUPLICATE KEY UPDATE clause if restrictDuplicate is true
+    if (restrictDuplicate) {
+      query += `
+        ON DUPLICATE KEY UPDATE quoted_price = VALUES(quoted_price)
+      `;
+    }
 
     console.log({ query });
 

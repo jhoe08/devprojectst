@@ -430,7 +430,7 @@ function statusText(status) {
 // Function to fetch the countNotif from the server
 async function fetchNotificationCount() {
   try {
-    const response = await fetch('http://localhost:4000/api/notifications');
+    const response = await fetch('/api/notifications');
     const data = await response.json();
     const notifCount = document.getElementById('notifDropdown')
     // console.log(data)

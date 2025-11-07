@@ -27,12 +27,34 @@
 
   const monthlyTotals = {};
 
+  /* componentTransaction.forEach(({ pr_date, fund_source }) => {
+    const month = new Date(pr_date).toLocaleString('default', { month: 'long', year: 'numeric' });
+    fund_source = JSON.parse(fund_source);
+    const totalAmount = fund_source.reduce((sum, entry) => sum + parseAmount(entry.amount), 0);
+
+    console.log('Monthly', month);
+
+    monthlyTotals[month] = (monthlyTotals[month] || 0) + totalAmount;
+  }); */
+
+  // Step 1: Initialize all months with zero
+  const allMonths = Array.from({ length: 12 }, (_, i) => {
+    const date = new Date(2025, i); // Use any year
+    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+  });
+
+  allMonths.forEach(month => {
+    monthlyTotals[month] = 0;
+  });
+
+
+  // Step 2: Process transactions
   componentTransaction.forEach(({ pr_date, fund_source }) => {
     const month = new Date(pr_date).toLocaleString('default', { month: 'long', year: 'numeric' });
     fund_source = JSON.parse(fund_source);
     const totalAmount = fund_source.reduce((sum, entry) => sum + parseAmount(entry.amount), 0);
 
-    monthlyTotals[month] = (monthlyTotals[month] || 0) + totalAmount;
+    monthlyTotals[month] += totalAmount;
   });
 
   const months = Object.entries(monthlyTotals).map(([key, _]) => key.split(" ")[0]);

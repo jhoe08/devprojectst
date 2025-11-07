@@ -213,9 +213,9 @@
                         </div>
                       </div>
                     </div>
-                    <!-- SHOW ONLY WHEN THE CURRENT STAGE IS CANVASSING -->
+                    <!-- SHOW ONLY WHEN THE CURRENT STAGE IS [quotation_form_preparation, canvassing, supplier_engagement, bac_evaluation, procurement_finalization] -->
                     <% 
-                      const stageCanvassing = steps[0]?.steps_number >= 6 && steps[0]?.steps_number <= 8
+                      const stageCanvassing = steps[0]?.steps_number >= 6 && steps[0]?.steps_number <= 10
             
                       if (stageCanvassing) { 
                         let haveSuppliers = false;
@@ -225,7 +225,7 @@
                         }
                       %>
                       
-                    <div class="card hidden">
+                    <div class="card">
                       <div class="card-header">
                         <div class="card-head-row card-tools-still-right">
                             <h4 class="card-title">Suppliers</h4>
@@ -291,9 +291,8 @@
                         </div>
                       </div>
                       <div class="card-action align-right" style="padding: 15px 30px;">
+                        <% if (haveSuppliers) { %>
                         <button id="submitSupplier" class="btn btn-success">Submit</button>
-                        <% if (!haveSuppliers) { %>
-                        
                         <% } else { %>
                         <button id="updateSupplier" class="btn btn-warning">Update</button>
                         <% } %>

@@ -121,19 +121,39 @@ const main = {
       })
         .then(response => response.json())
         .then(data => {
-          console.log('Submission Success:', data);
-          notifyCustom('check', 'Submitted', 'Supplier list submitted successfully.', 'success');
-          form.reset(); // optional: clear form after success
+          if (data.status === 200) {
+            console.log('Submission Success:', data);
+            notifyCustom('check', 'Submitted', 'Supplier list submitted successfully.', 'success');
+            form.reset(); // optional: clear form after success
+          } else {
+            console.warn('Unexpected response status:', data.status, data);
+            notifyCustom('alert', 'Warning', 'Submission may not have succeeded. Please verify.', 'warning');
+          }
         })
         .catch(error => {
           console.error('Submission Error:', error);
           notifyCustom('alert', 'Error', 'Failed to submit supplier list.', 'danger');
         });
     });
+  },
+  updateSupplier: () => {
+    // console.log('Update Supplier Module Loaded');
+    // Implementation for updating suppliers can be added here
+    const btn = document.getElementById('updateSupplier');
+    const form = document.getElementById('supplierInfo');
+    const wrapper = document.getElementsByClassName('wrapper')
+
+    if (!form || !btn) return;
+
+    btn.addEventListener('click', function (e) {
+      const suppliers = {}
+      console.log('Update Supplier Module Loaded');
+    })
   }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
   main.addSupplier();
   main.submitSupplier();
+  main.updateSupplier();
 });
