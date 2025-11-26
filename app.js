@@ -3,7 +3,7 @@ require('dotenv').config();
 const http = require('http');
 const express = require('express');
 // const socketio = require('socket.io');
-const { createServer } = require("node:http")
+const { createServer, get } = require("node:http")
 const { Server } = require('socket.io');
 const path = require("path");
 const fetch = require('node-fetch');
@@ -17,6 +17,10 @@ const ejs = require('ejs')
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const { v4: uuidv4 } = require('uuid');
+
+const logger = require('./utils/logger');
+
+
 
 const sessionStore = new MySQLStore({
   host: process.env.DB_HOST,
@@ -324,7 +328,7 @@ const department = {
       stands: "Agricultural Competitiveness and Extension Division",
       email: "",
       admin: "",
-      responsible: { employeeid: "116", name: "Annearth V. Maribojoc" },
+      responsible: { employeeid: "116", name: "Basta Taga Aced" },
       acting: "",
       sections: {
         SPPS: {
@@ -365,7 +369,7 @@ const department = {
           stands: "Systems Development Section",
           email: "red.mrjhon8@gmail.com",
           admin: "",
-          responsible: { employeeid: "119", name: "Wrongrammer" },
+          responsible: { employeeid: "984", name: "Wrongrammer" },
           acting: "",
         },
         DMS: {
@@ -404,6 +408,7 @@ const department = {
       stands: "Regulartory Division",
       "email": "",
       "admin": "",
+      responsible: {employeeid: "180", name: "Mayolyn T. Majaducon"},
       sections: {
         RLICASS: {
           stands: "Registration/Licensing/Inspection Certification/Accreditation Service Section",
@@ -426,6 +431,7 @@ const department = {
       stands: "Research Division",
       "email": "",
       "admin": "",
+      responsible: {employeeid: "180", name: "Fabio G. Enriquez"},
       sections: {
         TPCS: {
           stands: "Technology Packaging and Commercialization Section",
@@ -483,6 +489,7 @@ const department = {
       stands: "Integrated Laboratory Division",
       email: "",
       admin: "",
+      responsible: {employeeid: "180", name: "Norma B. Repol"},
       sections: {
         SOILS: {
           stands: "Regional Soils Laboratory",
@@ -508,28 +515,33 @@ const department = {
           stands: "Regional Vaccine Production Laboratory",
           email: "",
           admin: "",
+          responsible: {employeeid: "180", name: "Ethan Turner"},
         }
       }
     },
     "AMAD": {
       stands: "Agribusiness and Marketing Assistance Division",
-      email: "",
+      email: "report@amad7.gov.ph",
       admin: "",
+      responsible: { employeeid: "70010", name: "Lorelei B. Acha" },
       sections: {
         AGRIBUSINESS: {
           stands: "AgriBusiness Promotion Section",
-          email: "",
+          email: "agribusiness@amad7.gov.ph",
           admin: "",
+          responsible: { employeeid: "70011", name: "Ligaya A. Ebarita" },
         },
         MARKET: {
           stands: "Market Development Section",
           email: "",
           admin: "",
+          responsible: {employeeid: "180", name: "Jenie F. Evardo"},
         },
         SUPPORT: {
           stands: "AgriBusiness Industry Support Section",
           email: "",
           admin: "",
+          responsible: {employeeid: "180", name: "Ana Delza S. Barimbao"},
         }
       }
     },
@@ -542,61 +554,62 @@ const department = {
         RICE: {
           stands: "Rice Program",
           email: "",
-          responsible: "",
+          responsible: {employeeid: "180", name: "Epifanio P. Qaudicos"},
           admin: "",
         },
         LIVESTOCK: {
           stands: "Livestock Program",
           email: "",
-          responsible: "",
+          responsible: {employeeid: "180", name: "Zeam Voltaire E. Ampere"},
           admin: "",
         },
         CORN: {
           stands: "Corn Program",
           email: "",
-          responsible: "",
+          responsible: {employeeid: "180", name: "Luvinia A. Corpus"},
           admin: "",
         },
         HVCDP: {
           stands: "High Value-Crops Development Program",
           email: "",
-          responsible: "",
+          responsible: {employeeid: "180", name: "John Dennes R. Manunulo"},
           admin: "",
         },
         OAP: {
           stands: "Organic Agriculture Program",
           email: "",
-          responsible: "",
+          responsible: {employeeid: "180", name: "Mae E. Montecillo"},
           admin: "",
         },
         NUPAP: {
           stands: "National Urban and Peri-Urban Agriculture Program",
           email: "",
-          responsible: "",
+          responsible: {employeeid: "180", name: "Prescilla D. Soriano"},
           admin: "",
         },
         PATCOCEBU: {
           stands: "Patco-Cebu",
           email: "",
           responsible: "",
+          responsible: {employeeid: "180", name: "Marina C. Viniegas"},
           admin: "",
         },
         PATCOBOHOL: {
           stands: "Patco-BOHOL",
           email: "",
-          responsible: "",
+          responsible: {employeeid: "180", name: "Roman M. Dabalos"},
           admin: "",
         },
         PATCONEGROSOR: {
           stands: "Patco-Negros Oriental",
           email: "",
-          responsible: "",
+          responsible: {employeeid: "180", name: "Alejandro Rafal"},
           admin: "",
         },
         PATCOSIQUIJOR: {
           stands: "Patco-Siquijor",
           email: "",
-          responsible: "",
+          responsible: {employeeid: "180", name: "Agnes M. Cafe"},
           admin: "",
         },
         SAAD: {
@@ -610,6 +623,7 @@ const department = {
           email: "",
           responsible: "",
           admin: "",
+          responsible: {employeeid: "180", name: "Leonela G. Gocho"},
         },
       }
     },
@@ -617,20 +631,25 @@ const department = {
       stands: "Regional Agricultural Engineering Division",
       "email": "",
       "admin": "",
+      responsible: {employeeid: "180", name: "Edna N. Yu"},
+      admin: "",
       sections: {
         EPDSS: {
           stands: "Engineering Plans, Design and Specifications Section",
           email: "",
+          responsible: {employeeid: "180", name: "Kenneth Jaysone C. Sanchez"},
           admin: "",
         },
         PPMS: {
           stands: "Program and Project Management Section",
           email: "",
+          responsible: {employeeid: "180", name: "Noel T. Cahiles"},
           admin: "",
         },
         SRES: {
           stands: "Standard Regulation and Enforcement Section",
           email: "",
+          responsible: {employeeid: "180", name: "Rodrigo R. Pechon"},
           admin: "",
         }
       }
@@ -759,7 +778,6 @@ const SERVER_PORT = 4000;
 
 const serverIO = require('socket.io')(http)
 
-
 app.set("view engine", "ejs")
 app.set("views", [
   path.join(__dirname, "pages"),
@@ -771,6 +789,10 @@ app.set('io', serverIO)
 app.use('/', require('./routes/root'))
 app.use(bodyParser.json());
 
+
+const sheetsRouter = require('./routes/sheets');
+app.use('/api', sheetsRouter);
+app.use(express.json());
 
 //pages
 app.use('/pages', express.static(csvPath))
@@ -955,10 +977,35 @@ app.use(async (req, res, next) =>{
     },
     getUserResponsible: (division, section) => {
       const divisionData = department.divisions[division];
-      return divisionData && divisionData.sections[section] ? {
-          division: divisionData.responsible, 
-          section: divisionData.sections[section].responsible
-        } : null;
+
+      const results = (() => {
+        if (!divisionData) return null;
+
+        // If section equals division → only return division responsible
+        if (division === section) {
+          return { division: divisionData.responsible };
+        }
+
+        // If section head is equal to sessions users → return division responsible only
+        if (divisionData.sections[section].responsible.employeeid == res.locals.SESSION_USER.employeeid) {
+          return { division: divisionData.responsible };
+        }
+
+        // If section exists inside division → return both
+        if (divisionData.sections?.[section]) {
+          return {
+            division: divisionData.responsible,
+            section: divisionData.sections[section].responsible
+          };
+        } 
+        
+        // Fallback → return only division responsible
+        return { division: divisionData.responsible };
+      })();
+
+      // console.log('Responsible fetched:', { division, section, results });
+      return results;
+
     },
     SUMMARY: {
       transactions: JSON.stringify(summaryTransaction[0]),
@@ -1772,31 +1819,62 @@ app.put('/transactions/update', restrict, async (req, res) => {
 })
 
 app.post('/transactions/assign', async (req, res) => {
-  const { product_id, steps_number, assigned_to } = req.body;
+  const { transactions: rawTransactions } = req.body;
+  const assigned_to = res?.locals?.SESSION_USER?.employeeid;
+
   try {
-    const data = {
-      set: {
-        responsible: assigned_to,
-      },
-      where: {
-        product_id,
-        steps_number: steps_number
-      }
+    const transactions = JSON.parse(rawTransactions); // Ensure it's an array
+
+    const results = await Promise.all(
+      transactions.map(txn => connection.getTransactionByQRCode(txn))
+    );
+
+    console.log('Assigning transactions:ASSDA ', { transactions, results });
+
+    if (results.includes(null)) {
+      return res.status(400).json({ status: 400, message: 'One or more transactions not found.' });
     }
-    await connection.updateTransactionActivity(JSON.stringify(data))
-    res.status(200).json({ message: 'Transaction assigned successfully.' })
+
+    for (const result of results) {
+      const txn = result?.[0]; // Safely access RowDataPacket
+
+      if (!txn || !txn.product_id) {
+        console.warn('Invalid transaction data:', result);
+        continue; // Skip this iteration
+      }
+
+      const getAllSteps = await connection.getTransactionActivityId(
+        JSON.stringify({ product_id: txn.product_id })
+      );
+
+      const getCurrentStep = Array.isArray(getAllSteps) && getAllSteps.length
+      ? parseInt(getAllSteps[getAllSteps.length - 1].steps_number, 10) || 0
+      : 1;
+
+      const data = {
+        set: { assigned_to, updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss') },
+        where: { status: 'pending', product_id: txn.product_id, steps_number: getCurrentStep }
+      };
+
+      // console.log('Updating transaction activity with data:', { data  } );
+
+      await connection.updateTransactionActivity(JSON.stringify(data));
+    }
+
+    res.status(200).json({ status: 200, message: 'Transactions assigned successfully.' });
+
   } catch (error) {
-    console.error('Error assigning transaction:', error)
-    res.status(500).json({ message: 'Error assigning transaction.' })
+    console.error('Error assigning transaction:', error);
+    res.status(500).json({ status: 500, message: 'Error assigning transaction.' });
   }
-})
+});
 
 
 app.post('/transactions/assignedto', async (req, res) => {
-  const { transactions } = req.body;
-  const mappedTransactions = transactions.map(txn => ({ product_id: txn.product_id }));
-
   try {
+    const { transactions } = req.body;
+    const mappedTransactions = transactions.map(txn => ({ product_id: txn.product_id }));
+
     const results = await Promise.all(mappedTransactions.map(async (txn) => {
       const data = {
         set: {
@@ -1891,8 +1969,9 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
     .filter(activity => activity.product_id === Number(transid));
 
     console.log('filteredActivities', filteredActivities)
+    console.log('remarks', remarks)
 
-    expressActivityLog(filteredActivities)
+    // expressActivityLog(filteredActivities)
 
     if(transactions[0]) {
       res.render('transactions/view', { 
@@ -1973,8 +2052,31 @@ app.post('/transactions/:id/suppliers', restrict, async (req, res) => {
     });
   }
 })
+app.delete('/transactions/:id/status', restrict, async (req, res) => {
+  try {
+    const fullname = `${res.locals.SESSION_USER.firstname} ${res.locals.SESSION_USER.lastname}`;
+    const employeeid = res.locals.SESSION_USER.employeeid
+    
+    const data = { 
+      pr_id: req.params.id,
+      previous_status: 'draft',
+      new_status: 'deleted',
+      // changed_by: JSON.stringify({ employeeid, name: fullname })
+      changed_by: employeeid
+    };
 
-app.delete('/transactions/:id', restrict, async (req, res) => {
+    const results = await connection.postTransactionsStatus( JSON.stringify(data) )
+
+    return results ? 
+    res.status(200).json({ status: 200, message: 'Transaction status successfully updated.' }) : 
+    res.status(500).json({ status: 500, message: 'Failed to delete the transactions.'})
+
+  } catch (error) {
+    console.error('Error updating transaction status:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+app.delete('/transactions/:id/testing', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
 
@@ -2030,7 +2132,6 @@ app.post('/remarks/new', restrict, async (req, res) => {
   try {
     const data = { ...req.body };
     const { employeeid, username } = res.locals.SESSION_USER;
-    console.log('Updated Remarks:', {data, employeeid, username});
     // 🚨 Trap if employeeid is missing or empty
     if (!employeeid) {
       return res.status(400).json({ message: 'Invalid or missing employee ID.' });
@@ -2061,7 +2162,6 @@ app.post('/remarks/new', restrict, async (req, res) => {
     if(updatedRemarks.assignedto === true) {
       updatedRemarks.assignedto = employeeid
     }
-    console.log('Updated Remarks:', updatedRemarks);
 
     // ✅ Post remarks
     const remarksResults = await Promise.all(
@@ -2203,9 +2303,8 @@ app.get('/employees/:id/profile', restrict, loadAllTransactions, async function(
     if(employee.length > 0) {
       res.render('employees/profile', {
         employee: employee[0],
-        moment,
         title: 'Profile', 
-        path: res.url
+        employeeid: req.params.id,
       })
     } else {
       console.error('Employee not found!');
@@ -2295,6 +2394,22 @@ app.get('/suppliers', restrict, loadAllSuppliers, async function(req, res){
   res.render('suppliers/index', {
     title: "Suppliers"
   })
+})
+app.get('/suppliers/:id/view', restrict, loadAllSuppliers, async function(req, res){
+  try {
+    const supplier = await connection.getSuppliersById(req.params.id);
+    console.log({supplier})
+    
+    res.render('suppliers/profile', {
+      title: "Suppliers",
+      results: supplier[0],
+    })
+    
+  } catch (error) {
+    console.error('Error retrieving supplier:', error);
+    res.status(500).render('404');
+  }
+  
 })
 app.get('/suppliers/new', restrict, async function(req, res){
   res.render('suppliers/new', {
@@ -2788,5 +2903,6 @@ server.on('error', (err) => {
 });
 
 server.listen(SERVER_PORT, '0.0.0.0', () => {
+  logger.info(`Server running on port ${SERVER_PORT}`);
   console.log('Server started on', SERVER_PORT);
 });

@@ -186,23 +186,6 @@
                       </p>
                     </div>
                   </div>
-
-                  <button id="downloadBtn">Download Blob</button>
-
-                  <script>
-              async function createVideoBlob() {
-              const response = await fetch('/video'); // ideally from your backend
-              const arrayBuffer = await response.arrayBuffer();
-              const blob = new Blob([arrayBuffer], { type: 'video/mp4' });
-
-              const videoURL = URL.createObjectURL(blob);
-              document.querySelector('video').src = videoURL;
-            }
-
-            createVideoBlob();
-
-                  </script>
-
                 </div>
               </div>
               <div class="tab-pane fade" id="v-pills-division-icons" role="tabpanel">
@@ -223,7 +206,7 @@
                         <thead>
                           <tr class="text-uppercase">
                             <th>Abbreviation</th>
-                            <th>Division Name</th>
+                            <th>Name</th>
                             <th title="Responsible Person">Person</th>
                             <th>Email</th>
                             <th>Actions</th>
@@ -232,7 +215,7 @@
                         <tfoot>
                           <tr class="text-uppercase">
                             <th>Abbreviation</th>
-                            <th>Division Name</th>
+                            <th>Name</th>
                             <th title="Responsible Person">Person</th>
                             <th>Email</th>
                             <th>Actions</th>
@@ -469,4 +452,4 @@
   ],
   button: {id: "submit", title: "Submit"}}) -%>
 <!-- Footer Template  -->
-<%- include('../views/footer') -%>
+<%- include('../views/footer', { scripts: { 'settings': '/assets/js/pages/settings.js' } }) -%>

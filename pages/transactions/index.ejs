@@ -83,8 +83,6 @@
                                 for(var i=0; i < transactions.length; i++) { 
                                   var {pr_date, approved_budget, product_id, pr_classification, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code, prepared_by } = transactions[i]
 
-                                  
-
                                   date = moment(pr_date).format('L')
                                  
                                   var budget = approved_budget
@@ -101,6 +99,9 @@
                                   const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
                                   current_step_title = getTitle(current_step_number)
 
+                                  const requestID = UTILS.addLeadingZeros(product_id)
+                                  const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
+
                               %>
                                
                                 <tr 
@@ -113,7 +114,7 @@
                                   data-user-section="<%= userSection %>"
                                   >
                                   
-                                  <td data-head="Product ID"><%= product_id %></td>
+                                  <td data-head="Product ID"><%= trackerid %></td>
                                   <td data-head="Notice Title">
                                     <%= bid_notice_title %>
                                     <%- include('../../views/partials/progress', {length: 30, progress: current_step_number, title: current_step_title }) %>

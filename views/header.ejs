@@ -9,12 +9,12 @@
     />
     <link
       rel="icon"
-      href="/assets/img/da-logo.ico"
+      href="/assets/img/favicon.ico"
       type="image/x-icon"
     />
 
     <!-- Fonts and icons -->
-    <script src="/assets/js/plugin/webfont/webfont.min.js"></script>
+    <script src="/demo/assets/js/plugin/webfont/webfont.min.js"></script>
     <script>
       WebFont.load({
         google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -25,7 +25,7 @@
             "Font Awesome 5 Brands",
             "simple-line-icons",
           ],
-          urls: ["/assets/css/fonts.min.css"],
+          urls: ["/demo/assets/css/fonts.min.css"],
         },
         active: function () {
           sessionStorage.fonts = true;
@@ -33,52 +33,33 @@
       });
       
     </script>
-    <script src="/assets/js/core/qrcode.min.js"></script>
+    <!-- QR Code -->
+    <script src="/assets/js/plugins/qrcode/qrcode.min.js"></script>
+
     <!-- <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script> -->
 
     <script type="module" src="/assets/js/head.js"></script>
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/assets/css/plugins.min.css" />
-    <link rel="stylesheet" href="/assets/css/kaiadmin.min.css" />
+    <!-- CSS Themes Files -->
+    <link rel="stylesheet" href="/demo/assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/demo/assets/css/plugins.min.css" />
+    <link rel="stylesheet" href="/demo/assets/css/kaiadmin.min.css" />
+    <link rel="stylesheet" href="/demo/assets/css/demo.css" />
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="/assets/css/upload.css" />
     <link rel="stylesheet" href="/assets/css/media.css" />
 
-    <link rel="stylesheet" href="/assets/css/demo.css" />
+    <!-- Client CSS -->
     <link rel="stylesheet" href="/assets/css/scanner.css" />
     <link rel="stylesheet" href="/assets/css/timer.css" />
     <link rel="stylesheet" href="/assets/css/animation.css" />
     <link rel="stylesheet" href="/assets/css/print.css" />
     <link rel="stylesheet" href="/assets/css/transactions.css" />
-    <style>
-      body {
-        &.superclass {
-          --primary-green: #386641;
-          --primary-orange: #F97A00;
-          --secondary-orange: #FED16A;
-          --bs-white: #FFF4A4;
 
-          background: var(--bs-white);
-        }
-        &.superclass {
-          [data-background-color=green2] {
-            background: var(--primary-green) !important;
-          }
-          [data-background-color=orange2] {
-            background: var(--primary-orange) !important;
-          }
-          [data-background-color="white"] {
-          }
-        }
-      }
-      .nav .nav-item p {
-        width: 100%;
-      }
-      [data-head="Notice Title"] .progress {
-        height: 5px;
-      }
+    <!-- Index  CSS -->
+    <link rel="stylesheet" href="/assets/css/index.css" />
+    <style>
+      
 
       
     </style>

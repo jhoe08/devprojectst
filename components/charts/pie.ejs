@@ -19,9 +19,9 @@
   <div class="card-body">
     <div class="chart-container">
       <canvas
-        id="<%= id %>"
+        id="<%= id ?? 'pieChart' %>"
         style="width: 50%; height: 20%"
-        datasets="<%= datasets %>"
+        data-values="<%= datasets %>"
       ></canvas>
     </div>
   </div>

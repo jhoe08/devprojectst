@@ -130,12 +130,21 @@
     let bannerProgram = document.querySelector('#bannerProgram')
     let bacUnit = document.querySelector('#bacUnit')
     let remarks = document.querySelector('#remarks')
-    
+    const created_by = document.querySelector('#created_by')
+    const responsibleData = created_by.dataset.responsible ? JSON.parse(created_by.dataset.responsible) : null;
+
+    console.log({responsibleData})
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
     requisitioner.value = trimFullName()
+
+    if(Object.keys(responsibleData).length === 0){ 
+      console.error('No responsible data found');
+      requisitioner.closest('.form-group').classList.add('has-error');
+      requisitioner.closest('.form-group').querySelector('.input-icon').classList.add('text-danger');
+    }
 
     createTransactions.addEventListener('click', async () => {
       try {
@@ -436,20 +445,19 @@
         event.target.closest('tr').classList.add('selected')
         // console.dir(event.target.closest('tr'))
 
-        title = `Are you sure to delete ${transid}?`
-        message = "Once deleted, you will not be able to recover this file!"
+        title = `Are you sure you want to delete this Transaction ${transid} file?`
 
         swal({
           title,
-          text: "Once deleted, you will not be able to recover this transaction file!",
+          text: "Once deleted, it cannot be recovered.",
           icon: "warning",
-          buttons: ["Cancel", "Delete it!"],
+          buttons: ["Cancel", "Confirm"],
           dangerMode: true,
         })
           .then((willDelete) => {
             if (willDelete) {
 
-              let url = `/transactions/${transid}`
+              let url = `/transactions/${transid}/status`
 
               fetch(url, {
                 method: 'DELETE'
@@ -458,11 +466,11 @@
                   return res.text()
                 }) // or res.json()
                 .then(data => {
-                  swal("Poof! Transaction file has been deleted!", {
+                  swal(`Transaction ${transid} file has been deleted!`, {
                     icon: "success",
                   });
                   // if Yes
-                  document.querySelector('tr.selected').remove().draw(false)
+                  document.querySelector('tr.selected').remove()/*.draw(false)*/
                 }) // endof fetch()
             } else {
               document.querySelectorAll('#transactions-datatables tr').forEach(row => row.classList.remove('selected'));

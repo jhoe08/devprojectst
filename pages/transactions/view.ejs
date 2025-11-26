@@ -34,6 +34,11 @@
         employeesInSameDivision = {};
       }
     }
+
+    preparedby = prepared_by ? JSON.parse(prepared_by) : {}
+    preparedbyname = preparedby?.name || ''
+    preparedbyid = preparedby?.employeeid || ''
+%>
     
   %>
 <div class="wrapper" data-product-id="<%= transactions.product_id %>">
@@ -44,14 +49,14 @@
       
       <div class="container" data-transaction-id="<%- transactions.product_id -%>">
           <div class="page-inner">
-            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+            <div class="page-header d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div class="col-md-1 mr-4">
                 <div id="transid-<%- trackerid -%>" data-qrcode="<%- trackerid -%>" class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- trackerid -%>"></div>
               </div>
               <div class="col-md-6" data-current-steps="<%= steps %>">
                   <h3 class="fw-bold mb-3"><%- transactions.bid_notice_title -%></h3>
                   <h6 class="text-muted hidden">System Generated Code: <small id="trackingCode"><%= trackerid %></small></h6>
-                  <h6 class="text-muted">Prepared by: <%= JSON.parse(prepared_by)?.name %></h6>
+                  <h6 class="text-muted">Prepared by: <a href="/employees/<%= preparedbyid %>/profile"><%= preparedbyname %></a></h6>
                   <%- include('../../views/partials/progress', {length: 30, progress: steps[0]?.steps_number || 1, title: steps[0]?.steps_title }) -%>
               </div>
               <div class="ms-md-auto py-2 py-md-0" data-current-step="<%= JSON.stringify(current_step) %>">

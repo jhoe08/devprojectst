@@ -332,7 +332,7 @@
             <%- include('../components/charts/pie', { id:"chartClassification", title: "PR Classification", datasets: perClassification }) -%>
           </div>
           <div class="col-sm-12 col-md-6 col-lg-3">
-            <%- include('../components/charts/doughnut', {title: "Distribution Analytics", datasets: {points: stepsValues, labels: stepsIndex} }) -%>
+            <%- include('../components/charts/doughnut', { id:"chartDistribution", title: "Distribution Analytics", datasets: {points: stepsValues, labels: stepsIndex} }) -%>
           </div>
           <div class="col-sm-12 col-md-12 col-lg-12">
             <%- include('../components/datatables/index') -%>

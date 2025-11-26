@@ -101,19 +101,19 @@
                                       // division = division.toUpperCase()
                                   %>
                                     <tr data-rowid="<%=key%>" data-employeeid="<%=employeeid%>">
-                                      <td class="text-capitalize" data-column="name"><%= [firstname, lastname].filter(Boolean).join(' ') %></td>
-                                      <td data-column="position" class="text-capitalize" ><%= position || '-' %></td>
-                                      <td data-column="office"><%= office || '-' %></td>
-                                      <td class="text-uppercase" data-column="division" data-order="<%= division %>">
+                                      <td data-head="Name" class="text-capitalize"><%= [firstname, lastname].filter(Boolean).join(' ') %></td>
+                                      <td data-head="Position" class="text-capitalize" ><%= position || '-' %></td>
+                                      <td data-head="Office"><%= office || '-' %></td>
+                                      <td data-head="Division" class="text-uppercase" data-order="<%= division %>">
                                         <%= division %>
                                         <span class="badge badge-info"><%= section %></span>
                                       </td>
-                                      <td data-column="age"><%= age %></td>
-                                      <td data-column="startdate"><%= moment(startdate).format('LL') || '-' %></td>
-                                      <td data-column="salary"><%= UTILS.peso(salary) || '-' %></td>
-                                      <td data-column="username"><%= username %></td>
-                                      <td data-column="password"><%= password ? '•••••••' : '' %></td>
-                                      <td>
+                                      <td data-head="Age"><%= age %></td>
+                                      <td data-head="Start Date"><%= moment(startdate).format('LL') || '-' %></td>
+                                      <td data-head="Salary"><%= UTILS.peso(salary) || '-' %></td>
+                                      <td data-head="Username"><%= username %></td>
+                                      <td data-head="Password"><%= password ? '•••••••' : '' %></td>
+                                      <td data-head="Action">
                                         <div class="form-button-action" data-employeeid="<%= employeeid %>">
                                           <a href="/employees/<%= employeeid %>/profile" data-transid="<%= employeeid %>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="View Employee">
                                             <i class="fa fa-eye"></i>

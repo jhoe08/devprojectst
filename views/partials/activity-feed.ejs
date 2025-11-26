@@ -70,13 +70,13 @@
   });
 
   let typeRemark = 1;
-  console.log('Combined Feed Items:', feedItems);
+  // console.log('Combined Feed Items:', feedItems);
   // Sort all feed items by date descending (latest first)
   feedItems.sort((a, b) => new Date(b.date) - new Date(a.date));
 %>
 
 <% feedItems.forEach(function(item, i) { %>
-  <% if (item.type === 'remark' && item.status) { 
+  <% if (item.type === 'remark') { 
     let section = '', division = '';
     if (item.experience) {
       try {

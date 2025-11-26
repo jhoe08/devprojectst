@@ -21,7 +21,7 @@
     <% } else if (path2.startsWith('/qrscanner')) { %>
     <script src="/assets/js/scanner.js"></script>
     <% } else { %>
-    <script src="/assets/js/global.js"></script>
+   
     <% } %>
 
     <script>
@@ -64,14 +64,20 @@
       });
 
 
-      let tables = $("#justTables").DataTable();
+      let tables = $("#justTables, .datatables").DataTable();
+      // const requestID = UTILS.addLeadingZeros(product_id)
+      // const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
       const transactions = $("#transactions-datatables").DataTable({
+        responsive: true,
+        rowReorder: {
+          selector: 'td:nth-child(2)'
+        },
         "order": [[0, 'desc']],
         columnDefs: [{
-            render: (data, type, row) => '<div class="d-flex justify-content-between"><div><span data-head="Classification" class="badge badge-count mr-3" >' + row[9] + '</span></div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div></div><div class="mb-0">'+ data +'</div>'+progressBar(30, row[12]),
+            render: (data, type, row) => '<div class="d-flex justify-content-between"><div><span class="badge badge-info mr-3">'+ row[0] +'</span><span data-head="Classification" class="badge badge-count mr-3" >' + row[9] + '</span></div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div></div><div class="mb-0">'+ data +'</div>'+progressBar(30, row[12]),
             targets: 1
           }, {
-            render: (data, type, row) => `${data} <br><span data-head="Division" class="badge badge-warning">${row[3]}<span>`,
+            render: (data, type, row) => `${data} ${row[3] != '' ? `<br><span data-head="Division" class="badge badge-warning  ${row[3]}">${row[3]}<span>` : ''}`,
             targets: 2
           }, {
             render: $.fn.dataTable.render.number(',', '.', 2, '₱'),
@@ -299,11 +305,12 @@
 
     </script>
 
-    <!-- <script src="/assets/js/charts/charts.js"></script> -->
-    <script src="/assets/js/charts/multipleLine.js"></script>
-    <script src="/assets/js/charts/lineWithLegend.js"></script>
-    <script src="/assets/js/charts/pie.js"></script>
-    <script src="/assets/js/charts/doughnut.js"></script>
+    <script src="/demo/assets/js/plugin/chart.js/chart.min.js"></script>
+     <script src="/assets/js/global.js"></script>
+    <!-- <script src="/demo/assets/js/charts/multipleLine.js"></script>
+    <script src="/demo/assets/js/charts/lineWithLegend.js"></script>
+    <script src="/demo/assets/js/charts/pie.js"></script>
+    <script src="/demo/assets/js/charts/doughnut.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/autonumeric@latest"></script>
     <script>
       // Initialize AutoNumeric for all elements with the class 'custom-number'
@@ -333,7 +340,7 @@
         var chartClassificationLabel = Object.keys(classificationData)
         var chartClassificationValue = Object.values(classificationData)
 
-        createPieChart("chartClassification", chartClassificationValue, chartClassificationLabel, [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow]);
+        // createPieChart("chartClassification", chartClassificationValue, chartClassificationLabel, [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow]);
 
         const lineChart = document.getElementById('lineChart')
         let lineChartMonths = JSON.parse(lineChart.dataset.months);
@@ -345,60 +352,58 @@
 
         lineChartMonths = JSON.parse(lineChartMonths)
 
-        createLineChartWithHtmlLegend(
-        "lineChart",   // chartId
-        "myChartLegend",      // legend container ID
-        [                     // chartData (arrays for each dataset)
-          {
-            label: "Amount",
-            legendColor: primaryGreen,
-            values: lineChartData.amounts
-          },
-          {
-            label: "ABC",
-            legendColor: lightGreen,
-            values: lineChartData.abcs
-          },
-          {
-            label: "Disbursement",
-            legendColor: primaryOrange,
-            values: lineChartData.disbursements
-          },
-        ],
-        lineChartMonths,  // chartLabels
-        [
-          [primaryGreen], // gradientColors
-          [primaryOrange],
-          [lightGreen]
-        ]
-      );
+        /* createLineChartWithHtmlLegend(
+          "lineChart",   // chartId
+          "myChartLegend",      // legend container ID
+          [                     // chartData (arrays for each dataset)
+            {
+              label: "Amount",
+              legendColor: primaryGreen,
+              values: lineChartData.amounts
+            },
+            {
+              label: "ABC",
+              legendColor: lightGreen,
+              values: lineChartData.abcs
+            },
+            {
+              label: "Disbursement",
+              legendColor: primaryOrange,
+              values: lineChartData.disbursements
+            },
+          ],
+          lineChartMonths,  // chartLabels
+          [
+            [primaryGreen], // gradientColors
+            [primaryOrange],
+            [lightGreen]
+          ]
+        ); */ 
         const doughnutChart = document.getElementById('doughnutChart')
         const doughnutChartData = {
           points: JSON.parse(doughnutChart.dataset.points),
           labels: JSON.parse(doughnutChart.dataset.labels)
         };
 
-        console.log(doughnutChartData.points)
-
-        createDoughnutChart(
-          "doughnutChart", // ID of the canvas
-          doughnutChartData.points, // Data points
-          doughnutChartData.labels, // Labels
-          [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow], // Colors for slices
-          {
-            legend: {
-              position: "bottom",
-            },
-            layout: {
-              padding: {
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: 20,
-              },
-            },
-          }
-        );
+        // createDoughnutChart(
+        //   "doughnutChart", // ID of the canvas
+        //   doughnutChartData.points, // Data points
+        //   doughnutChartData.labels, // Labels
+        //   [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow], // Colors for slices
+        //   {
+        //     legend: {
+        //       position: "bottom",
+        //     },
+        //     layout: {
+        //       padding: {
+        //         left: 20,
+        //         right: 20,
+        //         top: 20,
+        //         bottom: 20,
+        //       },
+        //     },
+        //   }
+        // );
     
       }
       const verificationMessage = {

@@ -22,7 +22,7 @@
     <div class="card-body">
       <div class="chart-container">
         <canvas
-          id="doughnutChart"
+          id="<%= id ?? 'doughnutChart' %>"
           style="width: 50%; height: 50%"
           data-points="<%= JSON.stringify(points) %>"
           data-labels="<%= JSON.stringify(labels) %>"

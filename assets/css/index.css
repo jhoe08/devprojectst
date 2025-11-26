@@ -1,0 +1,96 @@
+.hidden {
+  display: none !important;
+}
+
+.strikethrough {
+  text-decoration: line-through;
+}
+
+body {
+  --primary-green: #2bb930;
+  --secondary-green: #166B39;
+  --primary-orange: #ff9e27;
+  --secondary-orange: #FED16A;
+  --bg-white: #ffffff; 
+  --bg-gray: #e8e8e8;
+
+  .text-primary {
+    color: var(--primary-green) !important;
+  } 
+
+  .text-secondary {
+    color: var(--secondary-green) !important;
+  }
+
+  .text-secondary:hover {
+    color: var(--secondary-green) !important;
+  }
+
+
+  &.superclass {
+    --primary-green: #386641;
+    --primary-orange: #F97A00;
+    --secondary-orange: #FED16A;
+    --bs-white: #FFF4A4;
+    --bg-white: #ffffff;
+
+    background: var(--bs-white);
+  }
+
+  &.superclass {
+    [data-background-color=green2] {
+      background: var(--primary-green) !important;
+    }
+    [data-background-color=orange2] {
+      background: var(--primary-orange) !important;
+    }
+    [data-background-color="white"] {
+      background: var(--bg-white) !important;
+    }
+  }
+
+  .page-header {
+    .qrcode {
+      img {
+        max-width: 150px;
+        width: 100%;
+        mix-blend-mode: multiply;
+      }
+
+      @media only screen and (min-width: 992px) {
+        margin-right: 10px;
+      }
+    }
+
+    h3 {
+      line-height: 1;
+    }
+  }
+}
+
+.logo-header {
+  .logo {
+    color: #ffffff;
+  }
+  
+  img {
+    margin-right: 10px !important;
+  }
+}
+
+.nav .nav-item p {
+  width: 100%;
+}
+
+/* Transactions */
+[data-head="Notice Title"] .progress {
+  height: 5px;
+}
+
+
+.readonly {
+  .input-group-text {
+    background-color: var(--bg-gray);
+    border-color: var(--bg-gray) !important;
+  }
+}

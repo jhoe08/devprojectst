@@ -13,7 +13,7 @@
             </div>
             <div class="form-group">
               <label for="selectedStatus" class="form-label">Select Status</label>
-              <div id="selectedStatus" class="row gutters-xs">
+              <div id="selectedStatus" class="row gutters-xs hidden">
                 <div class="col-auto">
                   <label class="colorinput">
                     <input name="color" type="radio" value="black" class="colorinput-input">
@@ -57,6 +57,16 @@
                   </label>
                 </div>
               </div>
+              <select class="form-select" id="selectedStatus">
+                <option value="black">Back to office</option>
+                <option value="primary">For Approval</option>
+                <option value="secondary">Lack of Signature</option>
+                <option value="info">Lack of Attachments</option>
+                <option value="success">Ready to move</option>
+                <option value="warning">Waiting</option>
+                <option value="danger">Issue occured</option>
+              </select>
+
             </div>
             <div class="form-group hidden">
               <label for="purchaseRequestStatuses">Select Status</label>

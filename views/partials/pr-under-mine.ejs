@@ -3,7 +3,7 @@
 
     transactions.forEach(transaction => {
         const { prepared_by } = transaction
-        const { employeeid } = SESSION_USER
+        // const { employeeid } = SESSION_USER
 
         filteredTransactions.push(prepared_by.includes(employeeid) ? transaction : null)
     });

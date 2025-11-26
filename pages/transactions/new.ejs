@@ -122,7 +122,7 @@
                           <label for="bidNoticeTitle">Requisitioner</label>
                           <div class="input-icon">
                             <span class="input-icon-addon"><i class="fa fa-user"></i></span>
-                            <input id="requisitioner" name="requisitioner" type="text" class="form-control" placeholder="Juan Tamad" value="<%=requested_by%>">
+                            <input id="requisitioner" name="requisitioner" type="text" class="form-control" placeholder="Juan Tamad" value="<%= requested_by %>">
                           </div>
                         </div>
                       </div>
@@ -168,15 +168,18 @@
                       totalCount += parseFloat(amount);
                       %>
                     <div id="charging_<%= key %>" class="row" data-id="<%= key %>">
-                      <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
+                      <div class="col-md-9">
+                        <div class="col-md-1 col-xs-1" style="padding-right: 0;">
                           <div class="form-group form-group-default form-group-minus">
                               <label for="minusButton_<%= key %>">Rmv</label>
                               <button id="minusButton_<%= key %>" class="form-control fas fa-minus-circle"></button>
                           </div>
+                        </div>
+                        <div class="col-md-8 ml-0">
+                            <%- include('../../views/partials/selectDivisions', { key, filtered: (transactions) ? section : '' }) %>
+                        </div>
                       </div>
-                      <div class="col-md-8 ml-0">
-                          <%- include('../../views/partials/selectDivisions', { key, filtered: (transactions) ? section : '' }) %>
-                      </div>
+                      
                       <div class="col-md-3">
                         <div class="form-group form-group-default">
                           <label for="unitCount_<%= key %>">Amount</label>
@@ -187,17 +190,19 @@
                       </div>
                     </div>
                   <% }) } else { %>
-                    <div id="charging_0" class="row" data-id="0">
-                      <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
+                    <div class="row" id="charging_0" data-id="0">
+                      <div class="col-md-8 d-flex">
+                        <div class="col-md-2">
                           <div class="form-group form-group-default form-group-minus">
-                              <label for="minusButton_0">Rmv</label>
-                              <button id="minusButton_0" class="form-control fas fa-minus-circle"></button>
+                            <label for="minusButton_0">Rmv</label>
+                            <button id="minusButton_0" class="form-control fas fa-minus-circle"></button>
                           </div>
+                        </div>
+                        <div class="col-md-10">
+                          <%- include('../../views/partials/selectDivisions', { key: 0, filtered: (transactions) ? section : ''}) %>
+                        </div>
                       </div>
-                      <div class="col-md-8 ml-0">
-                        <%- include('../../views/partials/selectDivisions', { key: 0, filtered: (transactions) ? section : ''}) %>
-                      </div>
-                      <div class="col-md-3">
+                      <div class="col-md-4">
                         <div class="form-group form-group-default">
                           <label for="unitCount_0">Amount</label>
                           <div class="input-icon">
@@ -207,19 +212,7 @@
                       </div>
                     </div>
                   <% } %>
-                  </div>
-                  <div class="card-action p-1.25 hidden">
-                    <div class="row">
-                      <div class="col-md-9"></div>
-                      <div class="col-md-3">
-                        <div class="form-group form-group-default mb-0">
-                          <label for="totalCount">Total</label>
-                          <div class="input-icon">
-                            <input id="totalCount" name="totalCount" type="text" class="form-control" value="<%= totalCount %>">
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  
                   </div>
               </div>
           </div>

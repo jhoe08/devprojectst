@@ -11,6 +11,7 @@ const tables = {
   employee: 'employees',
   transaction: 'transid',
   transaction_activity: 'transid_activity',
+  transaction_status: 'transid_status_history',
   remark: 'remarks',
   document: 'documents',
   notification: 'notifications'
@@ -265,7 +266,7 @@ const databaseUtils = {
           JSON_UNQUOTE(JSON_EXTRACT(experience, '$.lists[0].division')) = ?
       `;
 
-      console.log({query, query2})
+      // console.log({query, query2})
       connection.query(query2, [division], (error2, results2) => {
         if (error2) return reject(error2);
         resolve(results2);
@@ -280,6 +281,7 @@ const databaseUtils = {
     enrichedData = JSON.stringify(enrichedData)
     return await databaseUtils.storeData(tables.transaction, enrichedData);
   },
+  
   postRemarks: async (data) => {
     const { dueDate } = JSON.parse(data)
     console.log('data - adding remarks', data, dueDate)
@@ -406,12 +408,12 @@ const databaseUtils = {
   },
   getRemarksByRefid: (id) => new Promise((resolve, reject) => {
     connection.query(`  SELECT 
-                                remarks.*, employees.*
-                            FROM
-                                ${prefix}.remarks AS remarks
-                                    JOIN
-                                ${prefix}.employees AS employees ON remarks.user = employees.username
-                            WHERE remarks.refid = ${id}`, (error, results) => {
+                            remarks.*, employees.*
+                        FROM
+                            ${prefix}.remarks AS remarks
+                                JOIN
+                            ${prefix}.employees AS employees ON remarks.user = employees.username
+                        WHERE remarks.refid = ${id}`, (error, results) => {
       if (error) {
         reject(error)
       } else {
@@ -501,7 +503,7 @@ const databaseUtils = {
 
     const query = `INSERT INTO ${prefix}.${table} (${keys.join(',')}) VALUES (${values.map(() => '?').join(',')})`;
 
-    console.log({query})
+    // console.log({query})
     connection.query(query, values, (error, results) => {
       if (error) {
         reject(error)
@@ -590,7 +592,7 @@ const databaseUtils = {
       `;
     }
 
-    console.log({ query });
+    // console.log({ query });
 
     connection.query(query, (error, results) => {
       if (error) {
@@ -841,7 +843,19 @@ const databaseUtils = {
     return await databaseUtils.getDataById(`${tables.transaction_activity}`, data)
   },
   updateTransactionActivity: async (data) => {
-    return await databaseUtils.amendData(`${tables.transaction_activity}`, data)
+    const results = await databaseUtils.amendData(`${tables.transaction_activity}`, data)
+    return results
+  },
+  postTransactionsStatus: async (data) => {
+    const { pr_id, previous_status, new_status, changed_by } = data
+    // const { ...data, changed_by } = data 
+    const results = await databaseUtils.retrieveData(`${tables.transaction_status}`, '*', { pr_id, previous_status, new_status })
+    // const results = await databaseUtils.storeData(`${tables.transaction_status}`, data)
+    console.log({ data, results })
+    return results
+  },
+  updateTransactionsStatus: async (data) => {
+    return await databaseUtils.amendData(`${tables.transaction_status}`, data)
   },
   // endof Transaction Activity
   retrieveDocuments: async (table, data) => {
@@ -868,6 +882,12 @@ const databaseUtils = {
     }
     return await databaseUtils.retrieveData('suppliers')
   },
+  getSuppliersById: async (id) => {
+    if (id) {
+      return await databaseUtils.retrieveData('suppliers', '*', { id })
+    }
+    return await databaseUtils.retrieveData('suppliers')
+  },
   postTransactionSuppliers: async (data) => {
     console.log('postSuppliers', data)
     const { suppliers, refid: transactionId } = JSON.parse(data)
@@ -878,7 +898,7 @@ const databaseUtils = {
       quoted_price: parseFloat(supplier.quoted_price.replace(/,/g, ''))
     }));
 
-    console.log('dataArray', dataArray)
+    // console.log('dataArray', dataArray)
 
     return await databaseUtils.storeMultipleData('suppliers_activity', dataArray, true)
   },

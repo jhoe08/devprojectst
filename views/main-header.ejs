@@ -12,7 +12,7 @@
       <div class="logo-header" data-background-color="green2">
         <a href="index.html" class="logo">
           <img
-            src="/assets/img/kaiadmin/logo_light.svg"
+            src="/assets/img/da-logo-circle.png"
             alt="navbar brand"
             class="navbar-brand"
             height="20"
@@ -278,11 +278,7 @@
               aria-expanded="false"
             >
               <div class="avatar-sm">
-                <img
-                  src="/assets/img/<%=profilePic%>.png"
-                  alt="..."
-                  class="avatar-img rounded-circle"
-                />
+                <span class="avatar-title rounded-circle"><%= firstname[0] %></span>
               </div>
               <span class="profile-username">
                 <span class="op-7">Hi,</span>
@@ -294,11 +290,7 @@
                 <li>
                   <div class="user-box">
                     <div class="avatar-lg">
-                      <img
-                        src="/assets/img/<%=profilePic%>.png"
-                        alt="image profile"
-                        class="avatar-img rounded"
-                      />
+                      <span class="avatar-title rounded-circle"><%= firstname[0] %></span>
                     </div>
                     <div class="u-text">
                       <h4><%= [firstname, lastname].filter(Boolean).join(' ') ?? 'Just Test' %></h4>
