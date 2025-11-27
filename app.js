@@ -2792,10 +2792,21 @@ app.get('/settings', restrict, async function(req, res){
     );
 
     if (res.locals.isSuperAdmin()) { // user is admin
+
+      const results = await connection.getSettings();
+      // Convert rows into { key_name: value } object for easy mapping to inputs
+      const mapped = {};
+      results.forEach(row => {
+        mapped[row.key_name] = row.value;
+      });
+
+      // res.status(200).json({ settings: mapped });
+
       return res.render('settings', {
         title: "Settings",
         settings: JSON.parse(JSON.stringify(results)),
-        employees: JSON.parse(JSON.stringify(employees))
+        employees: JSON.parse(JSON.stringify(employees)),
+        settings: mapped,
       })
     }
     res.status(404).render('unauthorized', {
@@ -2812,10 +2823,10 @@ app.get('/settings', restrict, async function(req, res){
 
 app.post('/settings', restrict, async function(req, res){
   try {
-    const settings = {
-      settings: JSON.stringify(req.body)
-    }
-    const results = await connection.postSettings('settings', JSON.stringify(settings))
+    const settingsData = req.body
+    const values = settingsData.map(item => [item.key_name, item.key_value, 'string', null, 1]);
+
+    const results = await connection.postSettings(values)
     res.status(200).json({ message: 'Settings updated!', response: results})
   } catch (error) {
     res.status(400).json({ message: `Error saving settings: ${error}`, response: {} });

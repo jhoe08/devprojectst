@@ -222,6 +222,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const doughnut = document.getElementById('chartClassification');
     const pie = document.getElementById('chartDistribution');
 
+    if(!doughnut && !pie) return;
+
     // Step 1: Invert the dataset (value → key(s))
     const doughnutDatasets = doughnut.dataset.values ? JSON.parse(doughnut.dataset.values) : {};
     // Step 2: Map into [labels, data]

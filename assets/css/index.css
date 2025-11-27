@@ -6,6 +6,13 @@
   text-decoration: line-through;
 }
 
+.readonly {
+  .input-group-text {
+    background-color: var(--bg-gray);
+    border-color: var(--bg-gray) !important;
+  }
+}
+
 body {
   --primary-green: #2bb930;
   --secondary-green: #166B39;
@@ -82,15 +89,12 @@ body {
   width: 100%;
 }
 
+.tab-content {
+  background-color: transparent !important;
+  border: none !important;
+}
+
 /* Transactions */
 [data-head="Notice Title"] .progress {
   height: 5px;
-}
-
-
-.readonly {
-  .input-group-text {
-    background-color: var(--bg-gray);
-    border-color: var(--bg-gray) !important;
-  }
 }

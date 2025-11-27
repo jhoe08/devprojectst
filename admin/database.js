@@ -14,8 +14,8 @@ const tables = {
   transaction_status: 'transid_status_history',
   remark: 'remarks',
   document: 'documents',
-  notification: 'notifications'
-
+  notification: 'notifications',
+  settings: 'settings',
 }
 const TEST_UNIT = process.env.TEST_UNIT
 
@@ -862,19 +862,55 @@ const databaseUtils = {
     return await databaseUtils.getDataById(table, data)
   },
 
-  postSettings: async (table, data) => {
-    console.log('postSettings', data)
-    return await databaseUtils.storeData(table, data)
+  postSettings: async (values) => {
+    const query = `
+      INSERT INTO ${prefix}.${tables.settings} 
+      (key_name, value, type, description, is_active) 
+      VALUES ?
+      ON DUPLICATE KEY UPDATE
+        value = VALUES(value),
+        type = VALUES(type),
+        description = VALUES(description),
+        is_active = VALUES(is_active),
+        updated_at = CURRENT_TIMESTAMP
+    `;
+
+    return new Promise((resolve, reject) => {
+      connection.query(query, [values], (error, results) => {
+        if (error) reject(error);
+        else resolve(results);
+      });
+    });
+
+  },
+  getSettings: async () => {
+    const query = `
+      SELECT key_name, value, type, description, is_active
+      FROM ${prefix}.${tables.settings}
+      WHERE is_active = 1
+    `;
+    return new Promise((resolve, reject) => {
+      connection.query(query, (error, results) => {
+        if (error) reject(error);
+        else resolve(results);
+      });
+    });
   },
 
-  getSettings: async (data) => {
-    if (data) {
-      data = JSON.parse(data)
-      return await databaseUtils.retrieveData('settings', '*', data)
-    }
-
-    return await databaseUtils.retrieveData('settings')
+  getSettingByKey: async (keyName) => {
+    const query = `
+      SELECT key_name, value, type, description, is_active
+      FROM ${prefix}.${tables.settings}
+      WHERE key_name = ? AND is_active = 1
+    `;
+    return new Promise((resolve, reject) => {
+      connection.query(query, [keyName], (error, results) => {
+        if (error) reject(error);
+        else resolve(results[0]); // single row
+      });
+    });
   },
+  
   getSuppliers: async (data) => {
     if (data) {
       data = JSON.parse(data)

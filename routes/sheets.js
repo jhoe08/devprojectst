@@ -1,6 +1,8 @@
 const express = require('express');
 const https = require('https');
 
+const connection = require('../admin/database');
+
 const router = express.Router();
 const { google } = require('googleapis');
 
@@ -38,9 +40,15 @@ router.get('/read', async (req, res) => {
 // Route: External API call using native https
 // GET https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}?key=YOUR_API_KEY
 // Route: External API call using native https and API key
-router.get('/sheets', (req, res) => {
+router.get('/sheets', async (req, res) => {
   const { sheetId, range } = req.query;
-  const apiKey = process.env.GOOGLE_SHEETS_API_KEY;
+  // const apiKey = process.env.GOOGLE_SHEETS_API_KEY;
+
+  const result = await connection.getSettingByKey('integration_api_key');
+  const row = Array.isArray(result) ? result[0] : result;
+  const apiKey = row.value;
+
+  console.log(apiKey)
 
   if (!sheetId || !range || !apiKey) {
     return res.status(400).json({ error: 'Missing sheetId, range, or API key' });

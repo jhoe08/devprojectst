@@ -11,6 +11,8 @@
   value = Object.values(divisions)
 
   const steps = approval_steps
+
+  const { integration_email, integration_api_key, integration_client_id, integration_client_secret } = settings || {};
 %>
 
 <!-- Header Template -->
@@ -135,20 +137,40 @@
                   </ul>
                   <div class="tab-content mt-2 mb-3" id="pills-without-border-tabContent">
                     <div class="tab-pane fade active show" id="pills-home-nobd" role="tabpanel" aria-labelledby="pills-home-tab-nobd">
-                      <p>
-                        Far far away, behind the word mountains, far from the
-                        countries Vokalia and Consonantia, there live the
-                        blind texts. Separated they live in Bookmarksgrove
-                        right at the coast of the Semantics, a large language
-                        ocean.
-                      </p>
+                      <div class="col-md-6">
+                        <div class="card">
+                          <div class="card-header">
+                            <div class="card-head-row card-tools-still-right">
+                              <h4 class="card-title">Google API Integration</h4>
+                            </div>
+                          </div>
+                          <div class="card-body">
+                            <div class="form-group form-group-default">
+                              <label for="integration_email">Email Address</label>
+                              <input name="integration_email" id="integration_email" type="email" class="form-control" value="<%= integration_email || '' %>">
+                            </div>
 
-                      <p>
-                        A small river named Duden flows by their place and
-                        supplies it with the necessary regelialia. It is a
-                        paradisematic country, in which roasted parts of
-                        sentences fly into your mouth.
-                      </p>
+                            <div class="form-group form-group-default">
+                              <label for="integration_api_key">API Key</label>
+                              <input name="integration_api_key" id="integration_api_key" type="text" class="form-control" value="<%= integration_api_key || '' %>">
+                            </div>
+
+                            <div class="form-group form-group-default">
+                              <label for="integration_client_id">Client ID</label>
+                              <input name="integration_client_id" id="integration_client_id" type="text" class="form-control" value="<%= integration_client_id || '' %>">
+                            </div>
+
+                            <div class="form-group form-group-default">
+                              <label for="integration_client_secret">Client Secret (Optional)</label>
+                              <input name="integration_client_secret" id="integration_client_secret" type="text" class="form-control" value="<%= integration_client_secret || '' %>">
+                            </div>
+                          </div>
+                          <div class="card-action">
+                            <button id="saveIntegration" class="btn btn-success">Save Integration</button>
+                          </div>
+                        </div>
+                      </div>
+                      
                     </div>
                     <div class="tab-pane fade" id="pills-profile-nobd" role="tabpanel" aria-labelledby="pills-profile-tab-nobd">
                       <p>

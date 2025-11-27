@@ -47,8 +47,37 @@ class Settings {
   autopopulate(target) {
     
   }
+  saveSettings() {
+    const container = document.getElementById('v-pills-api-icons');
+    const inputs = container.querySelectorAll('input, select, textarea');
+    const settingsData = [];
+    inputs.forEach(input => {
+      
+      // settingsData[input.id] = input.value;
+      settingsData.push({
+        key_name: input.id,
+        key_value: input.value
+      })
+    });
+
+    console.log("Settings data to be saved:", settingsData);
+
+    fetch('/settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(settingsData)
+    });
+  }
   init() {
     this.autocomplete('responsible', 'suggestions', 'employees');
+
+    const saveBtn = document.getElementById('saveIntegration');
+    if (saveBtn) {
+      fieldsUpdated('#v-pills-api-icons');
+      saveBtn.addEventListener('click', () => this.saveSettings())
+    }
   }
 
 }
