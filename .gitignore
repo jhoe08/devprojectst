@@ -2,6 +2,9 @@
 # IT IS HOLDING IMPORTANT DATA THAN YOUR LIFE
 .env
 
+# Removed all SQL files from repo
+dumps/
+
 # Don't include module
 node_modules/
 
