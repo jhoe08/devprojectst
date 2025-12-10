@@ -252,7 +252,7 @@
                               const formattedPrice = n => new Intl.NumberFormat('en-US').format(n);
                               // if(index === 0) return; // skip the first one as it's already rendered above
                             %>
-                            <div id="supplier_<%= index %>" class="row" data-id="<%= index %>">
+                            <div id="supplier_<%= index %>" class="row" data-id="<%= index %>" data-supplier-id="<%= supplier_id %>" data-transaction-id="<%= product_id %>">
                               <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
                                   <div class="form-group form-group-default form-group-minus">
                                       <label for="minusButton_<%= index %>">Rmv</label>

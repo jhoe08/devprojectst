@@ -16,6 +16,8 @@ const tables = {
   document: 'documents',
   notification: 'notifications',
   settings: 'settings',
+  suppliers: 'suppliers',
+  suppliers_activity: 'suppliers_activity',
 }
 const TEST_UNIT = process.env.TEST_UNIT
 
@@ -925,18 +927,46 @@ const databaseUtils = {
     return await databaseUtils.retrieveData('suppliers')
   },
   postTransactionSuppliers: async (data) => {
-    console.log('postSuppliers', data)
-    const { suppliers, refid: transactionId } = JSON.parse(data)
+    console.log('postSuppliers', data);
+    const { suppliers, refid: transactionId } = JSON.parse(data);
 
-    const dataArray = suppliers.map(supplier => ({
-      transaction_id: parseInt(transactionId, 10),
-      supplier_id: parseInt(supplier.id, 10),
-      quoted_price: parseFloat(supplier.quoted_price.replace(/,/g, ''))
-    }));
+    // Convert suppliers into array of arrays (not objects)
+    const values = suppliers.map(supplier => [
+      parseInt(transactionId, 10),                 // transaction_id
+      parseInt(supplier.id, 10),                   // supplier_id
+      parseFloat(supplier.quoted_price.replace(/,/g, '')) // quoted_price
+    ]);
 
-    // console.log('dataArray', dataArray)
+    // Example query for your suppliers table
+    const query = `
+      INSERT INTO ${prefix}.${tables.suppliers_activity} 
+        (transaction_id, supplier_id, quoted_price) 
+      VALUES ?
+      ON DUPLICATE KEY UPDATE
+        quoted_price = VALUES(quoted_price),
+        updated_at = CURRENT_TIMESTAMP
+    `;
 
-    return await databaseUtils.storeMultipleData('suppliers_activity', dataArray, true)
+    return new Promise((resolve, reject) => {
+      connection.query(query, [values], (error, results) => {
+        if (error) reject(error);
+        else resolve(results);
+      });
+    });
+  },
+  deleteTransactionSuppliers: async (data) => {
+    console.log('deleteTransactionSuppliers', data)
+    const { transaction_id, supplier_id } = JSON.parse(data)
+    return new Promise((resolve, reject) => {
+      const query = `
+        DELETE FROM ${prefix}.${tables.suppliers_activity}
+        WHERE transaction_id = ? AND supplier_id = ?
+      `;
+      connection.query(query, [transaction_id, supplier_id], (error, results) => {
+        if (error) reject(error);
+        else resolve(results);
+      });
+    });
   },
   getTransactionSuppliers: async (data) => {
     console.log('getTransactionSuppliers', data)

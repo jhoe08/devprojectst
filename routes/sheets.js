@@ -2,6 +2,7 @@ const express = require('express');
 const https = require('https');
 
 const connection = require('../admin/database');
+const { fetchSheetData } = require('../utils/sheets');
 
 const router = express.Router();
 const { google } = require('googleapis');
@@ -40,7 +41,7 @@ router.get('/read', async (req, res) => {
 // Route: External API call using native https
 // GET https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}?key=YOUR_API_KEY
 // Route: External API call using native https and API key
-router.get('/sheets', async (req, res) => {
+router.get('/sheets/testing', async (req, res) => {
   const { sheetId, range } = req.query;
   // const apiKey = process.env.GOOGLE_SHEETS_API_KEY;
 
@@ -88,5 +89,17 @@ router.get('/sheets', async (req, res) => {
 
   apiReq.end();
 });
+
+router.get('/sheets', async (req, res) => {
+  try {
+    const { sheetId, range } = req.query;
+    const data = await fetchSheetData(key_name='fund_source_current', sheetId, range);
+    res.json(data);
+  } catch (err) {
+    console.error("Error fetching sheets:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+
+})
 
 module.exports = router;

@@ -1,4 +1,5 @@
 require('dotenv').config();
+const helpers = require('./utils/helpers');
 
 const http = require('http');
 const express = require('express');
@@ -19,6 +20,7 @@ const MySQLStore = require('express-mysql-session')(session);
 const { v4: uuidv4 } = require('uuid');
 
 const logger = require('./utils/logger');
+const { fetchSheetData } = require('./utils/sheets');
 
 
 
@@ -835,12 +837,25 @@ let countNotif = 0
 const task = cron.schedule('* * * * *', async () => {
   const remarks = await connection.getRemarks()
 
-  console.log('Checking for due tasks...', new Date());
+  // console.log('Checking for due tasks...', new Date());
   const duedates = checkDueNotifications(remarks)
 }, {
-  scheduled: false
+  scheduled: false // start manually
 }); 
 task.start()
+// Job 2: runs every 5 minutes
+const fetchTask = cron.schedule('*/5 * * * *', async () => {
+  await Promise.all([
+    fetchSheetData('fund_source_current', process.env.GOOGLE_TABLE_SPREADSHEET_ID, process.env.GOOGLE_TABLE_CURRENT),
+    fetchSheetData('fund_source_continuing', process.env.GOOGLE_TABLE_SPREADSHEET_ID, process.env.GOOGLE_TABLE_CONTINUING)
+  ]);
+
+  console.log('Data refreshed at', new Date());
+}, {
+  scheduled: true // start immediately
+});
+
+
 // task.stop()
 // ENDOFCRONJOBS
 
@@ -1043,7 +1058,9 @@ app.use(async (req, res, next) =>{
         const result = await connection.getEmployeeById(id);
         // console.log('Fetching employee by ID:', result);
         return JSON.stringify(result[0]);
-      }
+      },
+      helpers,
+      groupFundSourceData,
     },
     userAvailComponents: (component) => {
       // Single component
@@ -1119,7 +1136,7 @@ app.use(async (req, res, next) =>{
       const isOwner = employeeId === preparedById;
 
       if (process.env.NODE_ENV !== 'production') {
-        console.log('Ownership Check:', { employeeId, preparedById, isOwner });
+        // console.log('Ownership Check:', { employeeId, preparedById, isOwner });
       }
 
       return isOwner;
@@ -1231,6 +1248,23 @@ const loadAllSuppliers = async (req, res, next) => {
   }
 }
 
+const loadFundSources = (source = "fund_source_current") => {
+  return async (req, res, next) => {
+    try {
+      const result = await connection.getSettingByKey(source);
+      const row = Array.isArray(result) ? result[0] : result;
+      const funds = JSON.parse(row.value);
+      const fundsData = JSON.parse(funds.data);
+
+      res.locals.FUND_SOURCES = fundsData.values;
+      next();
+    } catch (error) {
+      console.error("Error loading fund sources:", error);
+      res.status(500).send("Internal Server Error: Middleware Load Fund Sources");
+    }
+  };
+};
+
 function restrict(req, res, next) {
   // If user is authenticated, proceed
   if (req.session && req.session.isAuthenticated) {
@@ -1258,6 +1292,50 @@ function getDivisionAndPosition(experienceJson) {
     return null;
   }
 }
+
+function groupFundSourceData(data) {
+  const result = {};
+
+  data.forEach(row => {
+    const pap = row[1];   // PAP
+    const cls = row[2];   // Class
+    const obj = row[3];   // Obj Code
+    const desc = row[4];  // Description
+
+    // Ensure PAP exists
+    if (!result[pap]) {
+      result[pap] = {};
+    }
+
+    // Ensure CLASS exists under PAP
+    if (!result[pap][cls]) {
+      result[pap][cls] = {};
+    }
+
+    // Ensure OBJ CODE exists under CLASS
+    if (!result[pap][cls][obj]) {
+      result[pap][cls][obj] = [];
+    }
+
+    // Add description + remaining values if not already present
+    const exists = result[pap][cls][obj].some(d => d.DESCRIPTION === desc);
+    if (!exists) {
+      result[pap][cls][obj].push({
+        DESCRIPTION: desc, // Act as a unique identifier
+        ADJUSTED_ALLOTMENT: row[5],
+        OBLIGATION: row[6],
+        UNOBLIGATED_ALLOTMENT: row[7],
+        EARMARK: row[8],
+        BALANCE_NET_EARMARK: row[9]
+      });
+    }
+  });
+
+  return result;
+}
+
+// const source = groupData(funds_values);
+
 
 // // Example use
 // const experienceString = '{"lists": [{"office": "DA RFO7", "salary": "12333", "status": true, "enddate": "present", "division": "BUDGET", "position": "budget", "startdate": "2025-06-20", "employment": "Temporary", "arrangements": "On-site"}]}';
@@ -1736,18 +1814,19 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
   }
 });
 
-app.get('/transactions/new', restrict, async (req, res) => {
+app.get('/transactions/new', restrict, loadFundSources('fund_source_current'), async (req, res) => {
   try {
-      res.render('transactions/new', { 
-        title: 'Create a new Transactions',
-        moment: moment,
-        // formatter: formatter,
-        predata: _preTransactionsData,
-        path: req.url, 
-        transactions: null,
-      }); // Pass the data to the template
+
+    res.render('transactions/new', { 
+      title: 'Create a new Transactions',
+      moment: moment,
+      // formatter: formatter,
+      predata: _preTransactionsData,
+      path: req.url, 
+      transactions: null,
+    }); // Pass the data to the template
   } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Error displaying the page:', error);
       res.status(500).send('Internal Server Error');
   }
 })
@@ -1968,8 +2047,8 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
     const filteredActivities = res.locals.activities
     .filter(activity => activity.product_id === Number(transid));
 
-    console.log('filteredActivities', filteredActivities)
-    console.log('remarks', remarks)
+    // console.log('filteredActivities', filteredActivities)
+    // console.log('remarks', remarks)
 
     // expressActivityLog(filteredActivities)
 
@@ -2052,6 +2131,25 @@ app.post('/transactions/:id/suppliers', restrict, async (req, res) => {
     });
   }
 })
+
+app.delete('/transactions/:id/suppliers/:sid/delete', restrict, async (req, res) => {
+  try {
+    const {id: transaction_id, sid: supplier_id} = req.params;
+    console.log('req.body', req.body)
+    const results = await connection.deleteTransactionSuppliers(JSON.stringify({
+      transaction_id,
+      supplier_id,
+    }))
+    console.log({ results })
+  } catch (error) {
+    console.error('Error saving Transactions suppliers:', error);
+    res.status(404).render('404', {
+      title: "404 Page not found",
+      component: "Transaction"
+    });
+  }
+})
+
 app.delete('/transactions/:id/status', restrict, async (req, res) => {
   try {
     const fullname = `${res.locals.SESSION_USER.firstname} ${res.locals.SESSION_USER.lastname}`;

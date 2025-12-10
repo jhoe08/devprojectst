@@ -89,21 +89,25 @@ const charts = {
 
         var gradientColors = [charts.colors(0), charts.colors(1), charts.colors(2)];
 
+        var valuesABC = elem.dataset.abcs ? JSON.parse(elem.dataset.abcs) : 0
+        var valuesAmount = elem.dataset.amounts ? JSON.parse(elem.dataset.amounts) : 0;
+        var valuesDisbursement = elem.dataset.disbursements ? JSON.parse(elem.dataset.disbursements) : 0;
+
         var chartData = [
           {
             label: "Amount",
             legendColor: gradientColors[0] || 'blue',
-            values: [154, 184, 175, 203, 210, 231, 240, 278, 252, 312, 320, 374]
+            values: valuesABC || [430, 380, 400, 450, 480, 500, 520, 550, 600, 650, 700, 800]
           },
           {
             label: "Disbursement",
             legendColor: gradientColors[1] || 'orange',
-            values: [256, 230, 245, 287, 240, 250, 230, 295, 331, 431, 456, 521]
+            values: valuesDisbursement || [256, 230, 245, 287, 240, 250, 230, 295, 331, 431, 456, 521]
           },
           {
             label: "ABC",
             legendColor: gradientColors[2] || 'lightGreen',
-            values: [542, 480, 430, 550, 530, 453, 380, 434, 568, 610, 700, 900]
+            values: valuesAmount || [542, 480, 430, 550, 530, 453, 380, 434, 568, 610, 700, 900]
           }
         ]
 
@@ -171,6 +175,19 @@ const charts = {
                         fontStyle: "500",
                     },
                     }],
+                },
+                datalabels: {
+                    datalabels: {
+                        display: function(context) {
+                            const value = context.dataset.data[context.dataIndex];
+                            console.log({ value });
+                            return value !== 0 && value !== '';
+                        },
+                        formatter: function(value) {
+                            return value;
+                        }
+                    }
+
                 },
                 legendCallback: function (chart) {
                     var text = [];

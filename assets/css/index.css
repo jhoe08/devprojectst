@@ -89,10 +89,29 @@ body {
   width: 100%;
 }
 
+/* Overriding Demo CSS  */
 .tab-content {
   background-color: transparent !important;
   border: none !important;
 }
+
+.form-group-default {
+  padding: 7px 0 4px !important;
+
+  & > * {
+    padding: 0px 12px !important;
+  }
+
+  select {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;  
+  }
+}
+
 
 /* Transactions */
 [data-head="Notice Title"] .progress {

@@ -67,13 +67,14 @@ const main = {
 
     if (!form || !btn) return;
 
-   
-
     btn.addEventListener('click', function (e) {
+      const needsUpdate = fieldsUpdated('#supplierInfo')
+      console.log('Fields needing update:', needsUpdate);
+
       const suppliers = {}
       
       const rows = form.querySelectorAll('.row');
-  
+        
       rows.forEach(row => {
         const input = row.querySelector('input');
         const select = row.querySelector('select');
@@ -149,11 +150,43 @@ const main = {
       const suppliers = {}
       console.log('Update Supplier Module Loaded');
     })
+  },
+  deleteSupplier: () => {
+    document.querySelectorAll('.fa-minus-circle').forEach(removeIcon => {
+      const button = removeIcon.closest('button');
+      if (button) {
+        button.addEventListener('click', function () {
+          const row = this.closest('.row');
+          const {transactionId, supplierId} = row.dataset
+
+          if (row) {
+            // console.log('Removing row:', row.dataset.id || row.id);
+            console.log('Removing Supplier: ', {transactionId, supplierId})
+            fetch(`/transactions/${transactionId}/suppliers/${supplierId}/delete`, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({transactionId, supplierId})
+            })
+            .then(response => response.json())
+            .then(data => {
+              console.log({'supplier.js': data})
+              if(!data) return;
+              row.remove();
+              console.log('Deleted Supplier Qoute')
+            })
+          }
+        });
+      }
+    });
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  main.addSupplier();
+document.addEventListener('DOMContentLoaded', () => {  
+
+  // main.addSupplier();
   main.submitSupplier();
-  main.updateSupplier();
+  main.deleteSupplier();
+  
 });

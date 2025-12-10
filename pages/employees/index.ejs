@@ -90,6 +90,8 @@
                                     if (employees) { 
                                       employees.forEach(function(user, key){ 
                                       var {firstname, lastname, middlename, extname, birthdate, experience, username, password, employeeid} = user 
+                                      const fullname = UTILS.helpers.fullName(firstname, middlename, lastname, extname);
+
                                       var { lists } = experience ? JSON.parse(experience) : {}
                                       
                                       if (lists) {
@@ -101,7 +103,7 @@
                                       // division = division.toUpperCase()
                                   %>
                                     <tr data-rowid="<%=key%>" data-employeeid="<%=employeeid%>">
-                                      <td data-head="Name" class="text-capitalize"><%= [firstname, lastname].filter(Boolean).join(' ') %></td>
+                                      <td data-head="Name" class="text-capitalize"><%= fullname %></td>
                                       <td data-head="Position" class="text-capitalize" ><%= position || '-' %></td>
                                       <td data-head="Office"><%= office || '-' %></td>
                                       <td data-head="Division" class="text-uppercase" data-order="<%= division %>">
@@ -127,7 +129,7 @@
                                             <i class="fa fa-user" ></i>
                                           </button>
                                           
-                                          <button data-id="<%= employeeid %>" data-name="<%= [firstname, middlename ? middlename.charAt(0) + '.' : '', lastname, extname].filter(Boolean).join(' ') %>" type="button" data-bs-toggle="tooltip" title="Delete?" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_<%= employeeid %>">
+                                          <button data-id="<%= employeeid %>" data-name="<%= fullname %>" type="button" data-bs-toggle="tooltip" title="Delete?" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_<%= employeeid %>">
                                             <i class="fa fa-trash"></i>
                                           </button>
                                           <% } %>

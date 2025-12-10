@@ -91,9 +91,15 @@
                         <label for="prClassification">Classification</label>  
                         <% var classification = predata.classification %>
                         <select id="prClassification" name="prClassification" class="form-select">
-                          <% for(var i=0; i < classification.length; i++) { %>
-                          <option value="<%= classification[i] %>" <%- (transactions?.pr_classification == classification[i]) ?'selected':''  %>><%= classification[i] %></option>
-                          <% } %>
+                          <% for (var i = 0; i < classification.length; i++) { 
+                              if (classification[i] && classification[i].trim() !== "") { 
+                                const isSelected = transactions?.pr_classification 
+                                                    ? (transactions.pr_classification == classification[i]) 
+                                                    : (classification[i] === "Others"); %>
+                            <option value="<%= classification[i] %>" <%= isSelected ? "selected" : "" %>>
+                              <%= classification[i] %>
+                            </option>
+                          <% } } %>
                         </select>
                       </div>
                     </div>
@@ -131,9 +137,15 @@
                               <label for="bacUnit">BAC Unit</label>  
                               <% var bacUnit = predata.bac_unit %>
                               <select id="bacUnit" name="bacUnit" class="form-select">
-                                  <% for(var i=0; i < bacUnit.length; i++) { %>
-                                  <option value="<%= bacUnit[i] %>" <%- (transactions?.bac_unit == bacUnit[i]) ?'selected':'' %>><%= bacUnit[i] %></option>
-                                  <% } %>
+                                <% for (var i = 0; i < bacUnit.length; i++) { 
+                                    if (bacUnit[i] && bacUnit[i].trim() !== "") { 
+                                      const isSelected = transactions?.bac_unit 
+                                                          ? (transactions.bac_unit == bacUnit[i]) 
+                                                          : (bacUnit[i] === "Others"); %>
+                                  <option value="<%= bacUnit[i] %>" <%= isSelected ? "selected" : "" %>>
+                                    <%= bacUnit[i] %>
+                                  </option>
+                                <% } } %>
                               </select>
                           </div>
                       </div>
@@ -200,6 +212,7 @@
                         </div>
                         <div class="col-md-10">
                           <%- include('../../views/partials/selectDivisions', { key: 0, filtered: (transactions) ? section : ''}) %>
+                          <%- include('../../components/modals/fund_source', { key: 0 }) %>
                         </div>
                       </div>
                       <div class="col-md-4">

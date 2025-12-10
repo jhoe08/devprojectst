@@ -21,6 +21,7 @@
     "author": "Wrongramer <red.mrjhon8@gmail.com>",
     "license": "ISC",
     "dependencies": {
+        "ajv": "^8.17.1",
         "bcrypt": "^5.1.1",
         "bcryptjs": "^2.4.3",
         "bootstrap": "^5.3.3",
@@ -40,6 +41,7 @@
         "mysql2": "^3.10.2",
         "node-cron": "^3.0.3",
         "node-fecth": "^0.0.1-security",
+        "node-fetch": "^3.3.2",
         "nodemailer": "^6.9.16",
         "passport": "^0.7.0",
         "passport-local": "^1.0.0",

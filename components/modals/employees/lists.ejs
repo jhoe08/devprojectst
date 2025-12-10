@@ -23,11 +23,12 @@
               <tbody>
               <% employees.forEach(employee => { 
                 const { employeeid, firstname, middlename, lastname, extname } = employee
+                const fullname = UTILS.helpers.fullName(firstname, middlename, lastname, extname);
               %>
                 <tr data-employee="<%=JSON.stringify(employee)%>">
                   <td>
                     <div class="form-check">
-                      <input class="form-check-input" type="checkbox" value="<%=[firstname, middlename, lastname].join(' ')%>" id="<%=employeeid%>">
+                      <input class="form-check-input" type="checkbox" value="<%= fullname %>" id="<%=employeeid%>">
                       <label class="form-check-label" for="<%=employeeid%>"><%=employeeid%></label>
                     </div>
                   </td>

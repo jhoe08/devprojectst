@@ -540,18 +540,7 @@
     });
   }
  
-  document.querySelectorAll('.fa-minus-circle').forEach(removeIcon => {
-    const button = removeIcon.closest('button');
-    if (button) {
-      button.addEventListener('click', function () {
-        const row = this.closest('.row');
-        if (row) {
-          console.log('Removing row:', row.dataset.id || row.id);
-          row.remove();
-        }
-      });
-    }
-  });
+  
 
 
   if (printTracking) {
