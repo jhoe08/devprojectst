@@ -85,6 +85,15 @@
     }
     .d-flex {
         display: flex;
+        
+        &.gutterside-ltr-0 { 
+            &>:first-child {
+                padding-right: 15px;
+            }
+            &>:last-child {
+                padding-left: 15px;
+            }
+        }
     }
     .justify-space {
         justify-content: space-evenly;

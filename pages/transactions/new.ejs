@@ -180,14 +180,14 @@
                       totalCount += parseFloat(amount);
                       %>
                     <div id="charging_<%= key %>" class="row" data-id="<%= key %>">
-                      <div class="col-md-9">
-                        <div class="col-md-1 col-xs-1" style="padding-right: 0;">
+                      <div class="col-md-9 d-flex gutterside-ltr-0">
+                        <div class="col-md-2 col-xs-1" >
                           <div class="form-group form-group-default form-group-minus">
                               <label for="minusButton_<%= key %>">Rmv</label>
                               <button id="minusButton_<%= key %>" class="form-control fas fa-minus-circle"></button>
                           </div>
                         </div>
-                        <div class="col-md-8 ml-0">
+                        <div class="col-md-10 ml-0">
                             <%- include('../../views/partials/selectDivisions', { key, filtered: (transactions) ? section : '' }) %>
                         </div>
                       </div>

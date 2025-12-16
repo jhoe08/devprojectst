@@ -1048,6 +1048,49 @@
       });
     }
 
+    // Function to validate supplier and quoted price inputs
+    function validateSuppliers() {
+        let isValid = true;
+        let messages = [];
+
+        // Get all supplier rows
+        const rows = document.querySelectorAll('#supplierInfo .row');
+
+        rows.forEach((row, index) => {
+            const supplierSelect = row.querySelector('select[id^="supplier_name_"]');
+            const priceInput = row.querySelector('input[id^="qouted_price_"]');
+
+            // Check supplier selection
+            if (!supplierSelect || supplierSelect.value.trim() === "") {
+                isValid = false;
+                messages.push(`Row ${index + 1}: Supplier must be selected.`);
+            }
+
+            // Check quoted price
+            if (!priceInput || priceInput.value.trim() === "") {
+                isValid = false;
+                messages.push(`Row ${index + 1}: Quoted price is required.`);
+            } else if (isNaN(priceInput.value) /*|| Number(priceInput.value) <= 0*/) {
+                isValid = false;
+                messages.push(`Row ${index + 1}: Quoted price must be a positive number.`);
+            }
+        });
+
+        // Show validation result
+        if (!isValid) {
+            alert(messages.join("\n"));
+        }
+
+        return isValid;
+    }
+
+    // // Example usage: attach to form submission
+    // document.querySelector("form").addEventListener("submit", function(e) {
+    //     if (!validateSuppliers()) {
+    //         e.preventDefault(); // Stop form submission if invalid
+    //     }
+    // });
+
     $(document).on("click", ".alert_confirm", function(e){
       e.preventDefault()
       const productId = $(this).data('product-id')
@@ -1055,8 +1098,10 @@
       const updatedBy = $('#created_by').val()
       
       if ([6, 7, 8].includes(currentStep)) {
-        const suppliers = document.getElementById(`suppliers_step`).value;
-
+        // const suppliers = document.getElementById(`suppliers_step`).value;
+        if(!validateSuppliers()) {
+          e.preventDefault();
+        }
         console.log({productId, currentStep, updatedBy})
       }
 

@@ -292,34 +292,6 @@ const databaseUtils = {
     }
     return await databaseUtils.storeData(tables.remark, data)
   },
-  ___postRemarks: (data) => new Promise((resolve, reject) => {
-    return databaseUtils.storeData('remarks', data)
-    let { comment, user, refid, status, dueDate } = JSON.parse(data)
-    let date = convertDate(new Date(), 0) // No additional hours
-    let values = ''
-
-    refid = JSON.parse(refid)
-    dueDate = convertDate(new Date(), dueDate)
-
-    if (Array.isArray(refid)) {
-      values = refid
-        .filter(id => id !== '0' && id !== 0) // Exclude both '0' (string) and 0 (number)
-        .map(id =>
-          `('${comment}', '${status}', ${id}, '${user}', '${date}', '${dueDate}')`
-        )
-        .join(', ');
-    } else {
-      values = `('${comment}', '${status}', ${refid}, '${user}', '${date}', '${dueDate}')`
-    }
-
-    connection.query(`INSERT INTO remarks (comment, status, refid, user, date, dueDate) VALUES ${values}`, (error, results) => {
-      if (error) {
-        reject(error)
-      } else {
-        resolve(results)
-      }
-    })
-  }),
   putTransactions: async (data) => {
     console.log('data - updating transactions', data)
     return await databaseUtils.amendData(tables.transaction, data)
@@ -409,19 +381,20 @@ const databaseUtils = {
     return await databaseUtils.retrieveData('remarks')
   },
   getRemarksByRefid: (id) => new Promise((resolve, reject) => {
-    connection.query(`  SELECT 
-                            remarks.*, employees.*
-                        FROM
-                            ${prefix}.remarks AS remarks
-                                JOIN
-                            ${prefix}.employees AS employees ON remarks.user = employees.username
-                        WHERE remarks.refid = ${id}`, (error, results) => {
+    const query = `
+      SELECT remarks.*, employees.*
+      FROM ?? AS remarks
+      JOIN ?? AS employees ON remarks.user = employees.username
+      WHERE remarks.refid = ?
+    `;
+    connection.query(query, [`${prefix}.remarks`, `${prefix}.employees`, id], (error, results) => {
       if (error) {
-        reject(error)
+        console.error('Database error:', error);
+        reject(error);
       } else {
-        resolve(results)
+        resolve(results);
       }
-    })
+    });
   }),
   createRemarks: (message, user) => new Promise((resolve, reject) => {
     connection.query(`INSERT INTO remarks (message, user) values ('${message}', '${user}')`, (error, results) => {
