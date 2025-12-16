@@ -1,0 +1,26 @@
+<%
+  const fund_source = funds || [];
+  const funds_values = fund_source?.parsed?.values || [];
+
+  const source = UTILS.groupFundSourceData(funds_values);
+%>
+<div class="form-group form-group-default">
+  <label for="funds_<%= key || 0 %>">Funds</label>
+  <select class="form-select" id="funds_<%= key || 0 %>">
+    <% for (let pap in source) { %>
+      <optgroup label="<%= pap %>">
+        <% for (let obj in source[pap]) { %>
+          <optgroup label="&nbsp;&nbsp;<%= obj %>">
+            <% for (let desc in source[pap][obj]) { %>
+              <% source[pap][obj][desc].forEach(item => { %>
+                <option value="<%= obj %>_<%= desc %>">
+                  <%= desc %> <%= item.DESCRIPTION %>
+                </option>
+              <% }) %>
+            <% } %>
+          </optgroup>
+        <% } %>
+      </optgroup>
+    <% } %>
+  </select>
+</div>

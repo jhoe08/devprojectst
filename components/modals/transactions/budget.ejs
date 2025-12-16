@@ -2,12 +2,12 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="codeModalLabel">Approved Budget</h1>
+          <h1 class="modal-title fs-5" id="codeModalLabel">Qouted Amount</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <div class="row mb-3 mt-3">
-            <div class="form-group d-flex">
+            <div class="form-group">
                 <h6>Budget Requested</h6>
                 <%
                     var {approved_budget : budget} = transactions 
@@ -15,19 +15,19 @@
 
                     budget = parseFloat(cleanBudget)
                 %>
-                <p><strong><%=peso(budget)%></strong></p>
+                <p class="text-center fs-1"><strong><%=UTILS.peso(budget)%></strong></p>
             </div>
             <div class="form-group">
               <div class="input-group mb-3">
-                <span class="input-group-text" id="transCodeLabel">₱</span>
-                <input type="number" class="form-control" placeholder="Set Approved Budget" id="approvedBudget">
+                <span class="input-group-text" id="pesoSign">₱</span>
+                <input type="text" class="form-control custom-number" id="qoutedAmount">
               </div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal">Close</button>
-          <a id="setApprovedBudgetBtn" href="#" type="button" class="btn button btn-primary" data-transid="<%- transactions.product_id -%>">Add</a>
+          <a id="setQoutedAmount" href="#" type="button" class="btn button btn-primary" data-transid="<%- transactions.product_id -%>">Set</a>
         </div>
       </div>
     </div>

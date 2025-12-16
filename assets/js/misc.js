@@ -285,24 +285,25 @@ if (views) {
 
   
 // }
-let refreshActivity = document.getElementById('refreshActivity')
-if (refreshActivity) {
-  refreshActivity.addEventListener('click', async () =>{
+// let refreshActivity = document.getElementById('refreshActivity')
+// if (refreshActivity) {
+//   refreshActivity.addEventListener('click', async () =>{
 
-    let {transid} =  refreshActivity.dataset
+//     let {transid} =  refreshActivity.dataset
 
-    // const response = await fetch(`/remarks/${transid}`);
-    // const remarks = await response.json();
-    // return remarks
+//     // const response = await fetch(`/remarks/${transid}`);
+//     // const remarks = await response.json();
+//     // return remarks
 
-    fetch(`/remarks/${transid}`)
-    .then(response => response.text())
-    .then(html => {
-      document.querySelector('.activity-feed').innerHTML = html;
-    })
-    .catch(error => console.error('Error fetching HTML:', error));
-  })
-}
+//     fetch(`/remarks/${transid}`)
+//     .then(response => response.text())
+//     .then(html => {
+//       console.log(html)
+//       document.querySelector('.activity-feed').innerHTML = html;
+//     })
+//     .catch(error => console.error('Error fetching HTML:', error));
+//   })
+// }
 
 function numberFormat ( data ) {
 	let s=(data+""), a=s.split(""), out="", iLen=s.length;
@@ -429,7 +430,7 @@ function statusText(status) {
 // Function to fetch the countNotif from the server
 async function fetchNotificationCount() {
   try {
-    const response = await fetch('http://localhost:4000/api/notifications');
+    const response = await fetch('/api/notifications');
     const data = await response.json();
     const notifCount = document.getElementById('notifDropdown')
     // console.log(data)
@@ -447,8 +448,9 @@ function refreshDiv() {
   if(realtimeDiv) {
     realtimeDiv.forEach(container=>{
       // const currentTime = new Date().toLocaleTimeString();
-      const currentTime = new Date().toLocaleString();
-      container.textContent = currentTime
+      // const currentTime = new Date().toLocaleTimeString();
+   
+      container.textContent = realtimeDiv.value
     })
   }
 }
@@ -511,31 +513,45 @@ document.querySelectorAll('select[multiple] option').forEach(function(option) {
 });
 
 
-function formatNumberWithCommas(event) {
-  // Get the input element
-  const input = event.target;
 
-  // Remove any non-numeric characters (excluding commas)
-  let value = input.value.replace(/[^0-9]/g, '');
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.form-select').forEach(selectElement => {
+    // Attach the change event
+    selectElement.addEventListener('change', handleSelectChange);
 
-  // Check if the value is not empty or just spaces
-  if (value === '') {
-    input.value = '';
-    return;
+    // 🔁 Trigger the logic manually for the preselected option
+    handleSelectChange.call(selectElement);
+  });
+});
+
+function handleSelectChange() {
+  const selectedOption = this.options[this.selectedIndex];
+  if (selectedOption && selectedOption.value) {
+    const selectedDivision = selectedOption.dataset.division;
+    this.dataset.selected = selectedOption.value;
+    this.dataset.division = selectedDivision || selectedOption.value;
+  } else {
+    this.dataset.selected = '';
+    this.dataset.division = '';
   }
-
-  // Format the number with commas
-  value = parseInt(value, 10).toLocaleString();
-
-  // Update the input value with the formatted number
-  input.value = value;
 }
 
-const numberInputs = document.querySelectorAll('input[data-type="number"]');
+function submitGuestToken() {
+  document.getElementById('guestForm').submit();
+}
 
-// Add event listener to each input
-numberInputs.forEach(input => {
-  input.addEventListener('input', formatNumberWithCommas);
+
+document.querySelectorAll('.fa-minus-circle').forEach(removeIcon => {
+  const button = removeIcon.closest('button');
+  if (button) {
+    button.addEventListener('click', function () {
+      const row = this.closest('.row');
+      if (row) {
+        console.log('Removing row:', row.dataset.id || row.id);
+        row.remove();
+      }
+    });
+  }
 });
 
 
@@ -548,7 +564,7 @@ numberInputs.forEach(input => {
 // setInterval(refreshDiv, 1000);
 
 // Initial call to fetch the notification
-// fetchNotificationCount() // Enable this shits
+fetchNotificationCount() // Enable this shits
 
 // Periodically check for updated notif`ication count (e.g., every 5 seconds)
-// setInterval(fetchNotificationCount, 5000); // Adjust interval as needed  // Enable this shits
+setInterval(fetchNotificationCount, 5000); // Adjust interval as needed  // Enable this shits

@@ -3,7 +3,7 @@ body {
     font-family: 'Karla', sans-serif; }
   
   .intro-section {
-    background-image: url('../img/background.jpg');
+    background-image: url('../img/bg-login.jpg');
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;

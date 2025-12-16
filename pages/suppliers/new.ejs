@@ -1,0 +1,99 @@
+<!-- Header Template -->
+<%- include('../../views/header') -%>
+<div class="wrapper">
+  <%- include('../../views/sidebar') -%>
+
+  <div class="main-panel">
+    <%- include('../../views/main-header') -%>
+    
+    <div class="container" >
+      <div class="page-inner">
+        <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+          <div>
+            <h3 class="fw-bold mb-3"><%- title -%></h3>
+          <% if (false) {%>
+            <h6 class="op-7 mb-2">Update the information external organizations or individuals that provide goods, materials, or services essential to fulfilling procurement and operational needs</h6>
+          <% } else { %>
+            <h6 class="op-7 mb-2">Add new external organizations or individuals that provide goods, materials, or services essential to fulfilling procurement and operational needs.</h6>
+          <% } %>
+              
+              
+          </div>
+          <div class="ms-md-auto py-2 py-md-0">
+            <% if (false) { %>
+            <a id="updateSupplier" href="#" class="btn btn-primary btn-round"><i class="fas fa-save"></i> Update</a>
+            <% } else { %>
+            <a id="addSupplier" href="#" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Add</a>
+            <% } %>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12 col-lg-12 col-xl-6">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Details</h4>
+                  <div class="card-tools transcations-code text-uppercase"></div>
+                </div>
+              </div>
+              <div class="card-body">
+                <form id="supplierForm" method="POST" name="supplierForm">
+                  <div class="row">
+                    <div class="col-sm-3">
+                        <div class="form-group form-group-default">
+                            <label for="supplier_code">Supplier Code</label>
+                            <input class="form-control" type="text" id="supplier_code" name="supplier_code" required>
+                        </div>
+                    </div>
+                    <div class="col-sm-9">
+                        <div class="form-group form-group-default">
+                            <label for="supplier_name">Supplier Name</label>
+                            <input class="form-control" type="text" id="supplier_name" name="supplier_name" required>
+                        </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group form-group-default">
+                      <label for="contact_person">Contact Person</label>
+                      <input class="form-control" type="text" id="contact_person" name="contact_person">
+                  </div>
+
+                  <div class="form-group form-group-default">
+                      <label for="email">Email Address</label>
+                      <input class="form-control" type="email" id="email" name="email">
+                  </div>
+
+                  <div class="form-group form-group-default">
+                      <label for="phone">Phone Number</label>
+                      <input class="form-control" type="text" id="phone" name="phone">
+                  </div>
+
+                  <div class="form-group form-group-default">
+                      <label for="address">Address</label>
+                      <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+                  </div>
+
+                  <div class="form-group form-group-default selectgroup-inline">
+                      <label class="form-label">Status</label>
+                      <div class="selectgroup w-100">
+                          <label class="selectgroup-item">
+                              <input type="radio" name="status" value="active" class="selectgroup-input" checked="">
+                              <span class="selectgroup-button">Active</span>
+                          </label>
+                          <label class="selectgroup-item">
+                              <input type="radio" name="status" value="inactive" class="selectgroup-input">
+                              <span class="selectgroup-button">Inactive</span>
+                          </label>
+                      </div>
+                  </div>
+                </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+<!-- Footer Template -->
+<%- include('../../views/footer', { scripts: { 'suppliers': '/assets/js/pages/suppliers.js' } }) -%>

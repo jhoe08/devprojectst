@@ -1,9 +1,10 @@
 require('dotenv').config();
+const helpers = require('./utils/helpers');
 
 const http = require('http');
 const express = require('express');
 // const socketio = require('socket.io');
-const { createServer } = require("node:http")
+const { createServer, get } = require("node:http")
 const { Server } = require('socket.io');
 const path = require("path");
 const fetch = require('node-fetch');
@@ -15,9 +16,23 @@ const moment = require('moment');
 const bodyParser = require('body-parser');
 const ejs = require('ejs')
 const session = require('express-session');
-const passport = require('passport');
-const LocalStrategy = require('passport-local');
-const hash = require('pbkdf2-password')()
+const MySQLStore = require('express-mysql-session')(session);
+const { v4: uuidv4 } = require('uuid');
+
+const logger = require('./utils/logger');
+const { fetchSheetData } = require('./utils/sheets');
+
+
+
+const sessionStore = new MySQLStore({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE
+});
+
+
 const bcrypt = require('bcrypt')
 const saltRounds = 10
 const cron = require('node-cron');
@@ -37,11 +52,14 @@ const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { exit } = require('process');
 const { count, table } = require('console');
-const { permission } = require('node:process');
+const { permission, title } = require('node:process');
+const { trace } = require('node:console');
+const { stringify } = require('node:querystring');
+const { hash } = require('node:crypto');
  
 
 const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
-const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros, searchKey, toCapitalize, isActive} = utils
+const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros, findDivisionBySection, toCapitalize, isActive} = utils
 
 const _preDefaultData = {
     blood_type: ['N/A','O+','O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
@@ -131,60 +149,92 @@ const purchaseRequestStatuses = [
   "Backordered"          // The PR items are on backorder and will arrive later.
 ];
 
-const purchaseRequestRoles = [
-  {
-    role: "Reciever",
-    description: "The individual or department that identifies as someone to recieve the purchase request."
-  },
-  {
-    role: "Requester (Initiator)",
-    description: "The individual or department that identifies the need for a product or service and submits the purchase request."
-  },
-  {
-    role: "Approver",
-    description: "The person who reviews and approves the purchase request before it moves forward in the process."
-  },
-  {
-    role: "Reviewer",
-    description: "The person who ensures that the PR is complete and follows organizational policies before it reaches the approver."
-  },
-  {
-    role: "Canvasser",
-    description: "The person or team responsible for gathering price quotes from suppliers to compare costs and find the best option."
-  },
-  {
-    role: "Procurement Officer / Buyer",
-    description: "The professional responsible for sourcing, negotiating, and issuing a purchase order after the PR is approved."
-  },
-  {
-    role: "Budget Holder / Finance Officer",
-    description: "Responsible for ensuring that the purchase is within the organization's budget."
-  },
-  {
-    role: "Finance/Accounts Department",
-    description: "Ensures the financial aspects of the purchase, including payment processing and invoice reconciliation."
-  },
-  {
-    role: "Receiving Clerk / Warehouse Manager",
-    description: "Confirms that the purchased items are delivered and match the specifications in the PR/PO."
-  },
-  {
-    role: "Legal/Compliance Officer",
-    description: "Reviews contracts, terms, and conditions related to the purchase to ensure compliance with laws and policies."
-  },
-  {
-    role: "Supplier / Vendor",
-    description: "The external party that provides the goods or services, responds to quotes, and delivers as per the PO."
-  },
-  {
-    role: "Accounts Payable (AP)",
-    description: "The department responsible for processing payments to suppliers once goods or services are delivered."
-  },
-  {
-    role: "Internal Audit",
-    description: "Internal auditors review the purchase request and procurement process for compliance with company policies and legal regulations."
-  }
-];
+const purchaseRequestRoles = {
+  "End-User": [
+    "preparation",
+    "final_review",
+    "acceptance",
+    "final_acceptance",
+    "inspection_scheduling",
+    "documentation"
+  ],
+  "Program Coordinator": ["final_review"],
+  "Division Chief": [
+    "division_head_approval",
+    "final_review",
+    "voucher_approval"
+  ],
+  "Budget Section": ["earmarking", "fund_allocation"],
+  "Procurement Section (PS)": [
+    "philgesp_posting",
+    "preparation_quotation_form",
+    "procurement_finalization",
+    "po_preparation",
+    "award_preparation"
+  ],
+  "BAC Secretariat": [
+    "bac_review",
+    "delivery_confirmation",
+    "bac_evaluation"
+  ],
+  "BAC Members": ["bac_evaluation"],
+  "Canvassers": ["canvassing"],
+  "Supplier/Contractors": ["supplier_engaged"],
+  "RED/RTD": [
+    "executive_approval",
+    "executive_signoff",
+    "delivery_approval",
+    "final_signoff"
+  ],
+  "Admin Chief": ["final_signoff"],
+  "Accounting Section": [
+    "obligation_request",
+    "voucher_preparation",
+    "liquidation"
+  ],
+  "General Services Section": ["delivery_preparation", "inspection_scheduling", "documentation"],
+  "RAED": ["inspection_scheduling"],
+  "Inspectors": ["inspection"],
+  "Cashering Unit": ["payment_processing", "release_funds"]
+};
+
+// =========================
+// Permissions Configuration
+// =========================
+const permissions = {
+  can: ["create", "read", "update", "delete"],
+  roles: [
+    {
+      role: "Admin",
+      permissions: { create: true, read: true, update: true, delete: true }
+    },
+    {
+      role: "Editor",
+      permissions: { create: true, read: true, update: true, delete: false }
+    },
+    {
+      role: "Viewer",
+      permissions: { create: false, read: true, update: false, delete: false }
+    },
+    {
+      role: "Contributor",
+      permissions: { create: true, read: true, update: false, delete: false }
+    },
+    {
+      role: "Moderator",
+      permissions: { create: false, read: true, update: true, delete: true }
+    },
+    {
+      role: "Manager",
+      permissions: { create: false, read: true, update: true, delete: true }
+    },
+    {
+      role: "Support",
+      permissions: { create: false, read: true, update: true, delete: false }
+    }
+  ]
+};
+
 
 const department = {
   directors: {
@@ -192,7 +242,7 @@ const department = {
       stands: "Office of the Regional Executive Director",
       email: "",
       admin: "",
-      responsible: "Dir. Angel C. Enriquez, CESO III",
+      responsible: { employeeid: "107", name: "Dir. Angel C. Enriquez, CESO III" },
       acting: "",
     },
     RTDs: {
@@ -200,15 +250,27 @@ const department = {
         stands: "Regional Technical Director for Research and Regulations ",
         email: "",
         admin: "",
-        responsible: "Wilberto O. Castillo",
+        responsible: { employeeid: "108", name: "Wilberto O. Castillo" },
         acting: "",
       }, 
       RTDO: {
         stands: "Regional Technical Director for Operations",
         email: "",
         admin: "",
-        responsible: "Engr. Cirilo N. Namoc",
+        responsible: { employeeid: "109", name: "Engr. Cirilo N. Namoc" },
         acting: "",
+      }
+    }, 
+    BACs: {
+      "BAC_1": {
+          stands: "BAC Secretariat 1",
+          email: "",
+          admin: "",
+      },
+      "BAC_2": {
+          stands: "BAC Secretariat 2",
+          email: "",
+          admin: "",
       }
     }
   },
@@ -217,43 +279,62 @@ const department = {
       stands: "Administrative and Finance Division",
       email: "",
       admin: "",
-      responsible: "Melquiades B. Ibarra, Ph.D",
+      responsible: { employeeid: "110", name: "Melquiades B. Ibarra, Ph.D" },
       acting: "",
       sections: {
         HRMS: {
           stands: "Human Resource Management Section",
           email: "",
           admin: "",
-          responsible: "Maria Isabel A. Martinez",
+          responsible: { employeeid: "111", name: "Maria Isabel A. Martinez" },
           acting: "",
         },
         GS: {
           stands: "General Services Section",
           email: "",
           admin: "",
-          responsible: "Anecita A. Sespeñe",
+          responsible: { employeeid: "112", name: "Anecita A. Sespeñe" },
+          acting: "",
+        },
+        PROCUREMENT: {
+          stands: "Procurement Section",
+          email: "",
+          admin: "",
+          responsible: "",
           acting: "",
         },
         ACCOUNTING: {
           stands: "Accounting Section",
           email: "",
           admin: "",
-          responsible: "Mark Rey T. Paguray",
+          responsible: { employeeid: "113", name: "Mark Rey T. Paguray" },
           acting: "",
         },
         INFORMATION: {
           stands: "Information Section",
           email: "",
           admin: "",
-          responsible: "Cheryl M. Dela Victoria",
+          responsible: { employeeid: "114", name: "Cheryl M. Dela Victoria" },
           acting: "",
         },
         BUDGET: {
           stands: "Budget Section",
           email: "",
           admin: "",
-          responsible: "Rosalie S. Gallego",
+          responsible: { employeeid: "115", name: "Rosalie S. Gallego" },
           acting: "",
+        }
+      }
+    },
+    "ACEDD": {
+      stands: "Agricultural Competitiveness and Extension Division",
+      email: "",
+      admin: "",
+      responsible: { employeeid: "116", name: "Basta Taga Aced" },
+      acting: "",
+      sections: {
+        SPPS: {
+          stands: "Sectoral Planning and Policy Section",
         }
       }
     },
@@ -261,7 +342,7 @@ const department = {
       stands: "Information and Communications Technology Division",
       email: "",
       admin: "",
-      responsible: "Annearth V. Maribojoc",
+      responsible: { employeeid: "116", name: "Annearth V. Maribojoc" },
       acting: "",
       sections: {
         IPPTS: {
@@ -278,8 +359,8 @@ const department = {
           stands: "Network Management and Technical Support Section",
           email: "lemoref@gmail.com",
           admin: "",
-          responsible: "Feromel Magalso, Ian Roy Butron",
-          acting: "",
+          responsible: { employeeid: "117", name: "Feromel Magalso" },
+          acting: { employeeid: "118", name: "Ian Roy Butron" },
         },
         DPCS: {
           stands: "Data Privacy and Cybersecurity Section",
@@ -290,7 +371,7 @@ const department = {
           stands: "Systems Development Section",
           email: "red.mrjhon8@gmail.com",
           admin: "",
-          responsible: "Wrongrammer",
+          responsible: { employeeid: "984", name: "Wrongrammer" },
           acting: "",
         },
         DMS: {
@@ -305,7 +386,7 @@ const department = {
       stands: "Planning, Monitoring and Evaluation Division",
       "email": "",
       "admin": "",
-      responsible: "Elvin J. Milleza",
+      responsible: { employeeid: "70005", name: "Elvin J. Milleza" },
       acting: "",
       sections: {
         PPS: {
@@ -329,6 +410,7 @@ const department = {
       stands: "Regulartory Division",
       "email": "",
       "admin": "",
+      responsible: {employeeid: "180", name: "Mayolyn T. Majaducon"},
       sections: {
         RLICASS: {
           stands: "Registration/Licensing/Inspection Certification/Accreditation Service Section",
@@ -351,6 +433,7 @@ const department = {
       stands: "Research Division",
       "email": "",
       "admin": "",
+      responsible: {employeeid: "180", name: "Fabio G. Enriquez"},
       sections: {
         TPCS: {
           stands: "Technology Packaging and Commercialization Section",
@@ -408,6 +491,7 @@ const department = {
       stands: "Integrated Laboratory Division",
       email: "",
       admin: "",
+      responsible: {employeeid: "180", name: "Norma B. Repol"},
       sections: {
         SOILS: {
           stands: "Regional Soils Laboratory",
@@ -433,95 +517,115 @@ const department = {
           stands: "Regional Vaccine Production Laboratory",
           email: "",
           admin: "",
+          responsible: {employeeid: "180", name: "Ethan Turner"},
         }
       }
     },
     "AMAD": {
       stands: "Agribusiness and Marketing Assistance Division",
-      email: "",
+      email: "report@amad7.gov.ph",
       admin: "",
+      responsible: { employeeid: "70010", name: "Lorelei B. Acha" },
       sections: {
         AGRIBUSINESS: {
           stands: "AgriBusiness Promotion Section",
-          email: "",
+          email: "agribusiness@amad7.gov.ph",
           admin: "",
+          responsible: { employeeid: "70011", name: "Ligaya A. Ebarita" },
         },
         MARKET: {
           stands: "Market Development Section",
           email: "",
           admin: "",
+          responsible: {employeeid: "180", name: "Jenie F. Evardo"},
         },
         SUPPORT: {
           stands: "AgriBusiness Industry Support Section",
           email: "",
           admin: "",
+          responsible: {employeeid: "180", name: "Ana Delza S. Barimbao"},
         }
       }
     },
     "FOD": {
       stands: "Field Operations Division",
       email: "",
+      responsible: {employeeid: "180", name: "Gerry S. Avila"},
       admin: "",
       sections: {
         RICE: {
           stands: "Rice Program",
           email: "",
+          responsible: {employeeid: "180", name: "Epifanio P. Qaudicos"},
           admin: "",
         },
         LIVESTOCK: {
           stands: "Livestock Program",
           email: "",
+          responsible: {employeeid: "180", name: "Zeam Voltaire E. Ampere"},
           admin: "",
         },
         CORN: {
           stands: "Corn Program",
           email: "",
+          responsible: {employeeid: "180", name: "Luvinia A. Corpus"},
           admin: "",
         },
         HVCDP: {
           stands: "High Value-Crops Development Program",
           email: "",
+          responsible: {employeeid: "180", name: "John Dennes R. Manunulo"},
           admin: "",
         },
         OAP: {
           stands: "Organic Agriculture Program",
           email: "",
+          responsible: {employeeid: "180", name: "Mae E. Montecillo"},
           admin: "",
         },
         NUPAP: {
           stands: "National Urban and Peri-Urban Agriculture Program",
           email: "",
+          responsible: {employeeid: "180", name: "Prescilla D. Soriano"},
           admin: "",
         },
         PATCOCEBU: {
           stands: "Patco-Cebu",
           email: "",
+          responsible: "",
+          responsible: {employeeid: "180", name: "Marina C. Viniegas"},
           admin: "",
         },
         PATCOBOHOL: {
           stands: "Patco-BOHOL",
           email: "",
+          responsible: {employeeid: "180", name: "Roman M. Dabalos"},
           admin: "",
         },
         PATCONEGROSOR: {
           stands: "Patco-Negros Oriental",
           email: "",
+          responsible: {employeeid: "180", name: "Alejandro Rafal"},
           admin: "",
         },
         PATCOSIQUIJOR: {
           stands: "Patco-Siquijor",
           email: "",
+          responsible: {employeeid: "180", name: "Agnes M. Cafe"},
           admin: "",
         },
         SAAD: {
           stands: "Special Area of Agriculture Development",
           email: "",
+          responsible: {employeeid: "180", name: "Liezl S. Pagaran"},
           admin: "",
         },
         IDS: {
           stands: "Institutional Development Services",
           email: "",
+          responsible: "",
           admin: "",
+          responsible: {employeeid: "180", name: "Leonela G. Gocho"},
         },
       }
     },
@@ -529,92 +633,114 @@ const department = {
       stands: "Regional Agricultural Engineering Division",
       "email": "",
       "admin": "",
+      responsible: {employeeid: "180", name: "Edna N. Yu"},
+      admin: "",
       sections: {
         EPDSS: {
           stands: "Engineering Plans, Design and Specifications Section",
           email: "",
+          responsible: {employeeid: "180", name: "Kenneth Jaysone C. Sanchez"},
           admin: "",
         },
         PPMS: {
           stands: "Program and Project Management Section",
           email: "",
+          responsible: {employeeid: "180", name: "Noel T. Cahiles"},
           admin: "",
         },
         SRES: {
           stands: "Standard Regulation and Enforcement Section",
           email: "",
+          responsible: {employeeid: "180", name: "Rodrigo R. Pechon"},
           admin: "",
         }
       }
     },
   },
-  permissions: {
-    can: ["create", "read", "update", "delete"],
-    roles: [{
-      role: "Admin",
-      permissions: {
-        create: true,
-        read: true,
-        update: true,
-        delete: true
-      }
-    },{
-      role: "Editor",
-      permissions: {
-        create: true,
-        read: true,
-        update: true,
-        delete: false
-      }
-    },{
-      role: "Viewer",
-      permissions: {
-        create: false,
-        read: true,
-        update: false,
-        delete: false
-      }
-    },{
-      role: "Contributor",
-      permissions: {
-        create: true,
-        read: true,
-        update: false,
-        delete: false
-      }
-    },{
-      role: "Moderator",
-      permissions: {
-        create: false,
-        read: true,
-        update: true,
-        delete: true
-      }
-    },{
-      role: "Manager",
-      permissions: {
-        create: false,
-        read: true,
-        update: true,
-        delete: true
-      }
-    },{
-      role: "Support",
-      permissions: {
-        create: false,
-        read: true,
-        update: true,
-        delete: false
-      }
-    }],
-    
-
-  },
+  permissions
 }
-// console.log(purchaseRequestRoles);
 
 
+// =========================
+// Funds Availability Sample
+// =========================
+const fundsAvailability = [
+  { STO: { remaining_balance: 123456.60 } },
+  { GASS: { remaining_balance: 123456.60 } }
+];
 
+
+// =========================
+// Approval Steps (SVP)
+// =========================
+const approvalStepsSVP = [
+  { id: 1, steps_title: "End-User", stage: "prepared_by" },
+  { id: 2, steps_title: "Division Chief", stage: "division_head_approval" },
+  { id: 3, steps_title: "Budget Section", stage: "budget_earmarking" },
+  { id: 4, steps_title: "Procurement Section", stage: "philgeps_posting" },
+  { id: 5, steps_title: "BAC Secretariat", stage: "bac_review" },
+  { id: 6, steps_title: "Procurement Section", stage: "quotation_form_preparation" },
+  { id: 7, steps_title: "Canvassers", stage: "canvassing" },
+  { id: 8, steps_title: "Supplier/Contractors", stage: "supplier_engagement" },
+  { id: 9, steps_title: "BAC & BAC Secretariat", stage: "bac_evaluation" },
+  { id: 10, steps_title: "Procurement Section", stage: "procurement_finalization" },
+  { id: 11, steps_title: "RED/RTD", stage: "executive_approval" },
+  { id: 12, steps_title: "BAC Secretariat & Procurement Section", stage: "award_preparation" },
+  { id: 13, steps_title: "Procurement Section", stage: "po_preparation" },
+  { id: 14, steps_title: "End-User / Program Coordinator / Division Chief", stage: "final_review" },
+  { id: 15, steps_title: "Budget Section", stage: "fund_allocation" },
+  { id: 16, steps_title: "Accounting Section", stage: "obligation_request" },
+  { id: 17, steps_title: "RED/RTD", stage: "executive_signoff" },
+  { id: 18, steps_title: "General Services Section", stage: "delivery_preparation" },
+  { id: 19, steps_title: "RED/RTD", stage: "delivery_approval" },
+  { id: 20, steps_title: "BAC Secretariat", stage: "delivery_confirmation" },
+  { id: 21, steps_title: "GS / RAED / End-User", stage: "inspection_scheduling" },
+  { id: 22, steps_title: "Inspectors", stage: "inspection" },
+  { id: 23, steps_title: "End-User", stage: "acceptance" },
+  { id: 24, steps_title: "GS / End-User", stage: "documentation" },
+  { id: 25, steps_title: "End-User", stage: "final_acceptance" },
+  { id: 26, steps_title: "Accounting Section", stage: "voucher_preparation" },
+  { id: 27, steps_title: "Division Chief", stage: "voucher_approval" },
+  { id: 28, steps_title: "Cashiering Unit", stage: "payment_processing" },
+  { id: 29, steps_title: "Accounting Section", stage: "liquidation" },
+  { id: 30, steps_title: "RED / RTD / Admin Chief", stage: "final_signoff" },
+  { id: 31, steps_title: "Cashiering Unit", stage: "fund_release" }
+];
+
+const approvalStepsPublicBidding = [
+  { id: 1, steps_title: "End-User", stage: "prepared_by" },
+  { id: 2, steps_title: "Division Chief", stage: "division_head_approval" },
+  { id: 3, steps_title: "Budget Section", stage: "budget_earmarking" },
+  { id: 4, steps_title: "BAC Secretariat", stage: "pre_bid_documents_preparation" },
+  { id: 5, steps_title: "BAC", stage: "pre_bid_conference" },
+  { id: 6, steps_title: "Procurement Section", stage: "philgeps_posting" },
+  { id: 7, steps_title: "Suppliers", stage: "bid_submission" },
+  { id: 8, steps_title: "BAC", stage: "bid_opening" },
+  { id: 9, steps_title: "Technical Working Group", stage: "bid_evaluation" },
+  { id: 10, steps_title: "BAC", stage: "post_qualification" },
+  { id: 11, steps_title: "BAC", stage: "recommendation_for_award" },
+  { id: 12, steps_title: "HOPE (RED/RTD)", stage: "approval_of_award" },
+  { id: 13, steps_title: "BAC Secretariat", stage: "notice_of_award" },
+  { id: 14, steps_title: "Supplier", stage: "contract_signing" },
+  { id: 15, steps_title: "Procurement Section", stage: "po_preparation" },
+  { id: 16, steps_title: "Budget Section", stage: "fund_allocation" },
+  { id: 17, steps_title: "Accounting Section", stage: "obligation_request" },
+  { id: 18, steps_title: "General Services Section", stage: "delivery_preparation" },
+  { id: 19, steps_title: "Inspection Team", stage: "inspection" },
+  { id: 20, steps_title: "End-User", stage: "acceptance" },
+  { id: 21, steps_title: "Accounting Section", stage: "voucher_preparation" },
+  { id: 22, steps_title: "Division Chief", stage: "voucher_approval" },
+  { id: 23, steps_title: "Cashiering Unit", stage: "payment_processing" },
+  { id: 24, steps_title: "Accounting Section", stage: "liquidation" },
+  { id: 25, steps_title: "RED / RTD / Admin Chief", stage: "final_signoff" },
+  { id: 26, steps_title: "Cashiering Unit", stage: "fund_release" }
+];
+
+function getStepsDetails(stepNumber) {
+  return approvalStepsSVP.find(step => 
+    step.id === stepNumber
+  );
+}
 function findAminByEmail(department, emailToFind) {
   for(let division in department.divisions) {
     const divisionData = department.divisions[division]
@@ -624,6 +750,14 @@ function findAminByEmail(department, emailToFind) {
   }
   return "Admin not found"
 }
+function createSessionForGuest(guest) {
+  return jwt.sign(
+    { id: guest.id, role: 'guest' },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+}
+
 
 let transid = []
 
@@ -632,11 +766,11 @@ const router = express.Router();
 
 const clientPath = `${__dirname}/client/`;
 const modulesPath = `${__dirname}/node_modules/`;
-const csvPath = `${__dirname}/pages/`;
+const csvPath = `${__dirname}/`;
 const adminPath = `${__dirname}/demo/`;
 const viewsAssets = `${__dirname}/assets/`;
 
-// const transPath = `${__dirname}/pages/transactions.ejs`;
+// const transPath = `${__dirname}/transactions.ejs`;
 
 const SERVER_PORT = 4000;
 
@@ -644,12 +778,23 @@ const SERVER_PORT = 4000;
 //   res.end()
 // })
 
+const serverIO = require('socket.io')(http)
+
 app.set("view engine", "ejs")
-app.set("views", path.join(__dirname), "views")
+app.set("views", [
+  path.join(__dirname, "pages"),
+  path.join(__dirname, "views")
+]);
+app.set('io', serverIO)
+
 
 app.use('/', require('./routes/root'))
 app.use(bodyParser.json());
 
+
+const sheetsRouter = require('./routes/sheets');
+app.use('/api', sheetsRouter);
+app.use(express.json());
 
 //pages
 app.use('/pages', express.static(csvPath))
@@ -667,7 +812,9 @@ app.use('/uploads', express.static('uploads'));
 // ============================================
 app.use(express.urlencoded({ extended: true }))
 app.use(session({
-  secret: 'unsamansecret-ani-oi',
+  key: 'session_cookie_name',
+  secret: 'your_secret_key',
+  store: sessionStore,
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false }  // Set to `true` in production with HTTPS
@@ -680,6 +827,9 @@ const io = new Server(server)
 let connectedUserMap = new Map();
 /////// endof SERVER
 
+const { expressConnect, expressActivityLog } = _express(io, moment)
+
+expressConnect()
 // CRON JOBS
 const {checkDueNotifications, incrementNotification, sendNotification} = _cronjobs(moment, io)
 let countNotif = 0
@@ -687,12 +837,25 @@ let countNotif = 0
 const task = cron.schedule('* * * * *', async () => {
   const remarks = await connection.getRemarks()
 
-  console.log('Checking for due tasks...', new Date());
+  // console.log('Checking for due tasks...', new Date());
   const duedates = checkDueNotifications(remarks)
 }, {
-  scheduled: false
+  scheduled: false // start manually
 }); 
 task.start()
+// Job 2: runs every 5 minutes
+const fetchTask = cron.schedule('*/5 * * * *', async () => {
+  await Promise.all([
+    fetchSheetData('fund_source_current', process.env.GOOGLE_TABLE_SPREADSHEET_ID, process.env.GOOGLE_TABLE_CURRENT),
+    fetchSheetData('fund_source_continuing', process.env.GOOGLE_TABLE_SPREADSHEET_ID, process.env.GOOGLE_TABLE_CONTINUING)
+  ]);
+
+  console.log('Data refreshed at', new Date());
+}, {
+  scheduled: true // start immediately
+});
+
+
 // task.stop()
 // ENDOFCRONJOBS
 
@@ -706,87 +869,113 @@ let transporter = nodemailer.createTransport({
 });
 // endof EMAIL
 
-app.use(async function(req, res, next){
+app.use(async (req, res, next) =>{
 
   var components = ['Transactions', 'Employees', 'Documents']
 
-  const notifications = await connection.retrieveNotifications()
-  const employees = await connection.retrieveEmployee()
-  
+  const [notifications, transactions, summaryTransaction, summaryEmployee, activities] = await Promise.all([
+    connection.retrieveNotifications(),
+    connection.getTransactions(),
+    connection.getTransactionSummary(),
+    connection.getEmployeeSummary(),
+    connection.getTransactionActivity(),
+  ]);
+
   // Sort using Descending
   notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-  const defaultNullUser = {
-    employeeid: 70712,
-    firstname: 'Just',
-    middlename: 'The',
-    lastname: 'Tester',
-    extname: 'asdw',
-    birthdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-    username: 'justtest',
-    password: 'hay1122',
-    experience: {
-      lists: [{
-        office: 'DA - RFO7',
-        division: 'FOD',
-        banner: 'SAAD Program',
-        salary: '123456',
-        status: true,
-        enddate: 'present',
-        position: 'Data Controller X',
-        startdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-        employment: 'Permanent',
-        arrangements: 'On-site', 
-      }],
-    },
-    contacts: {
-      email: 'justtest@gmail.com',
-      mobile: '09913983598',
-    },
-    others: {
-      civilstatus: 'Married',
-      gender: 'Male'
-    },
-    components: ['Transactions', 'Employees', 'Documents']
-  }
-  
-  let role = ''
-  const { employeeid, components:availComponents } = req.session?.user || defaultNullUser;
-  if(employeeid) {
-    role = await connection.getCurrentUserRole(employeeid)
-    role = (role[0]?.role_name).toLowerCase() ?? 'user'
+  let role = '';
+  let userDivision = '';
+  let userSection = '';
+  let userPosition = '';
+  let availComponents = [];
+  let totalTransactions = 0;
+
+  const sessionUser = req.session?.user;
+
+  if (sessionUser) {
+    const {
+      employeeid,
+      components,
+      role: userRole,
+      experience: userExperience
+    } = sessionUser;
+
+    availComponents = components;
+
+    const filteredActivity = activities.filter(activity =>
+      activity.assigned_to === employeeid
+    );
+
+    const productIds = filteredActivity.map(activity => activity.product_id);
+    const numericUserId = parseInt(employeeid, 10);
+     // Filter transactions: created by or assigned to current user
+    const parsedTransactions = transactions.map(txn => ({
+      ...txn,
+      prepared_by: typeof txn.prepared_by === 'string'
+        ? JSON.parse(txn.prepared_by)
+        : txn.prepared_by
+    }));
+    let filteredTransactions;
+
+    filteredTransactions = parsedTransactions.filter(txn =>
+      txn.prepared_by?.employeeid === numericUserId || productIds.includes(txn.product_id)
+    );
     
+    if(sessionUser && sessionUser?.roles) {
+      sessionUser?.roles.includes('Guest') || sessionUser?.roles.includes('SuperAdmin') 
+        ? filteredTransactions = transactions 
+        : filteredTransactions = filteredTransactions;
+    }
+
+    totalTransactions = filteredTransactions.length;
+
+    try {
+      const { lists: userSession } = JSON.parse(userExperience);
+      const { division, section, position } = userSession?.[0] || {};
+
+      userDivision = division?.toUpperCase() || '';
+      userSection = section?.toUpperCase() || '';
+      userPosition = position?.toUpperCase() || '';
+
+      // Optional: Restore role from DB if needed
+      // const roleData = await connection.getCurrentUserRole(employeeid);
+      // role = roleData?.[0]?.role_name || 'user';
+
+    } catch (error) {
+      console.error('Invalid userExperience format:', error);
+    }
   }
 
-  let { experience, contacts, others } = defaultNullUser
-  experience = JSON.stringify(experience)
-  contacts = JSON.stringify(contacts)
-  others = JSON.stringify(others)
-
-  defaultNullUser.experience = experience
-  defaultNullUser.contacts = contacts
-  defaultNullUser.others = others
 
   // console.log('SESSION', req.session?.user || JSON.parse(JSON.stringify(defaultNullUser)))
   const fullUrl = req.protocol + '://' + req.get('host');
 
-  
+  const { divisions } = department
 
   res.locals = {
     HOST: fullUrl,
     ENVIRONMENT: process.env.NODE_ENV,
     TEST_MODE: process.env.TEST_MODE,
     TEST_UNIT: process.env.TEST_UNIT,
-    SESSION_USER: req.session?.user || defaultNullUser,
-    defaultNullUser,
+    SESSION_USER: req.session?.user,
+    SESSION_USER_LOG: {
+      designation: {
+        division: sessionUser ? findDivisionBySection(divisions, userDivision) : null,
+        section: sessionUser ? userSection : null,
+        position: sessionUser ? userPosition : null,
+      },
+      components: sessionUser ? availComponents : null,
+    },
+    ROUTEINFO : {
+      path: req.path,
+    },
     DEPARTMENT: JSON.stringify(department),
     // NOTIFICATIONS: countNotif,
-    // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications) // *** DO NOT REMOVE
+    // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications), // *** DO NOT REMOVE
     NOTIFICATIONS: JSON.stringify(notifications),
     logonUser: JSON.stringify(req.session.user),
-    currentRole: role ?? 'developer',
     perClassification: {},
-    employees,
     dafaultTransactionData: _preTransactionsData,
     defaultData: _preDefaultData,
     purchaseRequestStatuses,
@@ -796,12 +985,83 @@ app.use(async function(req, res, next){
     currentPath: req.path,
     isHome: req.originalUrl,
     moment,
-    peso,
-    statusText,
-    addLeadingZeros,
-    searchKey,
-    toCapitalize,
-    isActive,
+    approval_steps: approvalStepsSVP,
+    getUserDivisionResponsible: (division) => {
+      const divisionData = department.divisions[division];
+      return divisionData ? divisionData.responsible : null;
+    },
+    getUserResponsible: (division, section) => {
+      const divisionData = department.divisions[division];
+
+      const results = (() => {
+        if (!divisionData) return null;
+
+        // If section equals division → only return division responsible
+        if (division === section) {
+          return { division: divisionData.responsible };
+        }
+
+        // If section head is equal to sessions users → return division responsible only
+        if (divisionData.sections[section].responsible.employeeid == res.locals.SESSION_USER.employeeid) {
+          return { division: divisionData.responsible };
+        }
+
+        // If section exists inside division → return both
+        if (divisionData.sections?.[section]) {
+          return {
+            division: divisionData.responsible,
+            section: divisionData.sections[section].responsible
+          };
+        } 
+        
+        // Fallback → return only division responsible
+        return { division: divisionData.responsible };
+      })();
+
+      // console.log('Responsible fetched:', { division, section, results });
+      return results;
+
+    },
+    SUMMARY: {
+      transactions: JSON.stringify(summaryTransaction[0]),
+      totalTransactions,
+      employees: JSON.stringify(summaryEmployee[0])
+    },
+    STEPS: {
+      lists: approvalStepsSVP,
+      getCurrentStep: (steps, product_id) => {
+        const step = steps.find(step => step.product_id === product_id);
+        return step ? step : null;
+      },
+      getDetails: (id) => {
+        const { STEPS } = res.locals
+        return STEPS?.lists.find(step => step.id === id);
+      },
+      getTitle: (step_id) => {
+        const { STEPS } = res.locals
+        const step = STEPS?.lists.find(step => step.id === step_id);
+        return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
+      },
+    },
+    UTILS: {
+      hashPasswordUtils,
+      authenticateUserUtils,
+      peso,
+      isValidJSON,
+      statusText,
+      addLeadingZeros,
+      findDivisionBySection,
+      toCapitalize,
+      isActive,
+      getDivisionAndPosition,
+      getEmployeeById: async (id) => {
+        const result = await connection.getEmployeeById(id);
+        // console.log('Fetching employee by ID:', result);
+        return JSON.stringify(result[0]);
+      },
+      helpers,
+      groupFundSourceData,
+    },
     userAvailComponents: (component) => {
       // Single component
       if (typeof component === 'string') {
@@ -815,28 +1075,274 @@ app.use(async function(req, res, next){
   
       return false;
     },
-  }
-  // console.log('locals', res.locals.isHome)
-  // console.log(req.socket.remoteAddress )
-  // console.log(res.status(404))
-  // res.status(404).render('pages/404', {
-  //   title: 'Page not Found',
-  //   component: 'Page'
-  // });
+    isGuest: () => {
+      return SESSION_USER?.roles.includes('Guest');
+    },
+    isSuperAdmin: () => {
+      return SESSION_USER?.roles.includes('SuperAdmin')
+    },
+    trimName(fullName) {
+      const parts = fullName.trim().split(' ');
+      if (parts.length === 0) return '';
+
+      const firstInitial = parts[0].charAt(0).toUpperCase();
+      const lastName = parts[parts.length - 1];
+
+      return `${firstInitial}. ${lastName}`;
+    },
+    hasAllowedRole(allowedRoles, userRoles = SESSION_USER?.roles) {
+      // Coerce allowedRoles to array if it's a string
+      if (typeof allowedRoles === 'string') {
+        allowedRoles = [allowedRoles];
+      }
+
+      // Parse userRoles if it's a stringified array
+      if (typeof userRoles === 'string') {
+        try {
+          userRoles = JSON.parse(userRoles);
+        } catch (e) {
+          console.warn('Failed to parse userRoles string:', userRoles);
+          return false;
+        }
+      }
+
+      if (!Array.isArray(userRoles)) {
+        // console.warn('userRoles is not an array:', userRoles);
+        return false;
+      }
+
+      const normalizedUserRoles = userRoles.map(r => r.trim().toLowerCase());
+      return allowedRoles.some(role => normalizedUserRoles.includes(role.trim().toLowerCase()));
+    },
+    isCreatorOfTransaction(transaction) {
+      const SESSION_USER = res?.locals?.SESSION_USER;
+      const employeeId = SESSION_USER?.employeeid;
+
+      let preparedBy = transaction?.prepared_by;
+
+      // Check if preparedBy is a string and needs parsing
+      if (typeof preparedBy === 'string') {
+        try {
+          preparedBy = JSON.parse(preparedBy);
+        } catch (error) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('Failed to parse prepared_by:', error);
+          }
+          return false; // Invalid JSON, cannot verify ownership
+        }
+      }
+
+      const preparedById = preparedBy?.employeeid;
+      const isOwner = employeeId === preparedById;
+
+      if (process.env.NODE_ENV !== 'production') {
+        // console.log('Ownership Check:', { employeeId, preparedById, isOwner });
+      }
+
+      return isOwner;
+    },
+    canUpdateTransaction(employee, transaction_activity) {
+      // console.log({ canUpdateTransaction: { employee, transaction_activity } });
+
+      if (!transaction_activity || !transaction_activity.assigned_to) {
+        return false;
+      }
+
+      return employee.employeeid === transaction_activity.assigned_to;
+    },
+    async getEmployeesUnderDivision(id) {
+      try {
+        console.log('Fetching employees under division ID:', id);
+        const employees = await connection.getEmployeesUnderSameDivision(id);
+
+        if (!Array.isArray(employees)) {
+          console.warn('Expected an array but got:', typeof employees);
+          return [];
+        }
+        console.log(`Found ${employees.length} employees under division ID ${id}`, employees);
+        return JSON.stringify(employees);
+      } catch (error) {
+        console.error('Error fetching employees under division:', error);
+        return [];
+      }
+    },
+    getEmployeesInSameDivision(targetId) {
+      // Helper to safely extract division from experience JSON
+      const extractDivision = (employee) => {
+        try {
+          const exp = JSON.parse(employee.experience);
+          return exp.lists?.[0]?.division || null;
+        } catch (e) {
+          return null;
+        }
+      };
+
+      const targetEmployee = req.employees.find(emp => emp.employeeid === targetId);
+      if (!targetEmployee) return [];
+
+      const targetDivision = extractDivision(targetEmployee);
+      if (!targetDivision) return [];
+      const filteredEmployees = req.employees.filter(emp => extractDivision(emp) === targetDivision);
+      return JSON.stringify(filteredEmployees) || null;
+    },
+    getEmployeedDetailsById(id) {
+      if (!req.employees || !Array.isArray(req.employees)) {
+        return null;
+      }
+      console.log('Getting employee details for ID:', id);
+
+      const employee = req.employees.find(emp => emp.employeeid === id);
+      // const { password, ...rest } = employee
+      return JSON.stringify(employee) || {};
+    },
+    getCurrentHolderOfTransaction(transaction_id) {
+      const activity = activities
+        .filter(act => act.product_id === transaction_id && act.status === 'pending' && act.assigned_to);
+      return (activity.length > 0) ? activity[0].assigned_to : false;
+    },
+
+  };
+
+  const { SESSION_USER, SESSION_USER_LOG, SUMMARY } = res.locals
+  // console.log('Session User:', { SUMMARY });
+
   next();
 });
 
-function restrict(req, res, next) {
-  // Check if the user is authenticated
-  // console.log('res.locals.environment', res.locals.ENVIRONMENT)
-  if (!req.session.isAuthenticated) {
-    // Redirect to login page if not authenticated
-    return (res.locals.ENVIRONMENT === 'production') ? res.redirect('/login') : next() ; // Perform the redirect
+const loadAllTransactions = async (req, res, next) => {
+  try {
+    res.locals.transactions = await connection.getTransactions();
+    next();
+  } catch (error) {
+    console.error("Error loading transactions:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Transactions");
   }
-  
-  // If authenticated, proceed to the next middleware
-  return next();
 }
+const loadAllEmployees = async (req, res, next) => {
+  try {
+    const employees = await connection.getEmployees();
+    req.employees = employees;
+    res.locals.employees = employees;
+    next();
+  } catch (error) {
+    console.error("Error loading employees:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Employees");
+  }
+}
+const loadAllActivities = async (req, res, next) => {
+  try {
+    res.locals.activities = await connection.getActivities();
+    next();
+  } catch (error) {
+    console.error("Error loading activities:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Activities");
+  }
+}
+const loadAllSuppliers = async (req, res, next) => {
+  try {
+    res.locals.SUPPLIERS = await connection.getSuppliers();
+    next();
+  } catch (error) {
+    console.error("Error loading suppliers:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Suppliers");
+  }
+}
+
+const loadFundSources = (source = "fund_source_current") => {
+  return async (req, res, next) => {
+    try {
+      const result = await connection.getSettingByKey(source);
+      const row = Array.isArray(result) ? result[0] : result;
+      const funds = JSON.parse(row.value);
+      const fundsData = JSON.parse(funds.data);
+
+      res.locals.FUND_SOURCES = fundsData.values;
+      next();
+    } catch (error) {
+      console.error("Error loading fund sources:", error);
+      res.status(500).send("Internal Server Error: Middleware Load Fund Sources");
+    }
+  };
+};
+
+function restrict(req, res, next) {
+  // If user is authenticated, proceed
+  if (req.session && req.session.isAuthenticated) {
+    return next();
+  }
+  // If not authenticated, redirect to login (always redirect, regardless of environment)
+  return res.redirect('/login');
+}
+
+function getDivisionAndPosition(experienceJson) {
+  try {
+    const parsed = JSON.parse(experienceJson);
+    const firstEntry = parsed.lists?.[0];
+
+    if (!firstEntry) {
+      console.warn("No experience entries found.");
+      return null;
+    }
+
+    const { division, position } = firstEntry;
+    return { division, position };
+
+  } catch (error) {
+    console.error("Failed to parse experience JSON:", error);
+    return null;
+  }
+}
+
+function groupFundSourceData(data) {
+  const result = {};
+
+  data.forEach(row => {
+    const pap = row[1];   // PAP
+    const cls = row[2];   // Class
+    const obj = row[3];   // Obj Code
+    const desc = row[4];  // Description
+
+    // Ensure PAP exists
+    if (!result[pap]) {
+      result[pap] = {};
+    }
+
+    // Ensure CLASS exists under PAP
+    if (!result[pap][cls]) {
+      result[pap][cls] = {};
+    }
+
+    // Ensure OBJ CODE exists under CLASS
+    if (!result[pap][cls][obj]) {
+      result[pap][cls][obj] = [];
+    }
+
+    // Add description + remaining values if not already present
+    const exists = result[pap][cls][obj].some(d => d.DESCRIPTION === desc);
+    if (!exists) {
+      result[pap][cls][obj].push({
+        DESCRIPTION: desc, // Act as a unique identifier
+        ADJUSTED_ALLOTMENT: row[5],
+        OBLIGATION: row[6],
+        UNOBLIGATED_ALLOTMENT: row[7],
+        EARMARK: row[8],
+        BALANCE_NET_EARMARK: row[9]
+      });
+    }
+  });
+
+  return result;
+}
+
+// const source = groupData(funds_values);
+
+
+// // Example use
+// const experienceString = '{"lists": [{"office": "DA RFO7", "salary": "12333", "status": true, "enddate": "present", "division": "BUDGET", "position": "budget", "startdate": "2025-06-20", "employment": "Temporary", "arrangements": "On-site"}]}';
+
+// const result = extractDivisionAndPosition(experienceString);
+// console.log(result); // { division: "BUDGET", position: "budget" }
+
 // FILE UPLOADS
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -898,34 +1404,42 @@ app.post('/upload', upload.array('fileToUpload[]'), async (req, res) => {
   }
 });
 
-app.get('/', restrict, async function(req, res){
-  const getTotalApprovedBudget = await connection.getTotalApprovedBudget()
-  const getPerPRClassification = await connection.countPerPRClassification()
-  const getCardsData = await connection.cardsData()
-  const getDataFromLast7Days = await connection.getDataFromLast7Days('remarks', 'date')
-
-  const charts = getCardsData.reduce((acc, { table_name, row_count, total_sum }) => {
+app.get('/', restrict, loadAllTransactions, loadAllActivities, async function(req, res){
+   const [
+    totalApprovedBudget,
+    countPerPRClassification,
+    cardsData,
+    dataFromLast7Days
+  ] = await Promise.all([
+    connection.getTotalApprovedBudget(),
+    connection.countPerPRClassification(),
+    connection.cardsData(),
+    connection.getDataFromLast7Days('remarks', 'date')
+  ]);
+ 
+  var charts = cardsData.reduce((acc, { table_name, row_count, total_sum }) => {
     acc[table_name] = { row_count, total_sum };
     return acc;
   }, {});
-  
-  const perPRClassification = getPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
+
+  const safeCardsData = charts || { employees: { row_count:0, total_sum:0 }, transactions: { row_count:0, total_sum:0 }, notifications: { row_count:0, total_sum:0 } };
+
+  console.log({charts})
+
+  const perPRClassification = countPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
     acc[pr_classification] = item_count;
     return acc;
   }, {});
 
   console.log('charts', perPRClassification)
   
-  res.render('pages/index', {
+  res.render('index', {
     title: "Dashboard",
     header: "Some users", 
-    path: res.url,
-    moment,
-    peso,
-    totalApprovedBudget: JSON.stringify(getTotalApprovedBudget[0]),
+    totalApprovedBudget: JSON.stringify(totalApprovedBudget[0]),
     perClassification: JSON.stringify(perPRClassification),
-    tableDashboard: JSON.stringify(getDataFromLast7Days),
-    cardsData: charts,
+    tableDashboard: JSON.stringify(dataFromLast7Days),
+    cardsData: safeCardsData,
   });
 });
 
@@ -939,7 +1453,7 @@ app.get('/template', async function(req, res) {
     perClassification:{}, 
     path: req.path,
     path2: req.path, 
-    innerContent: '../pages/employees/index2',
+    innerContent: '../employees/index2',
     employees: []
   });
   // Rendered HTML
@@ -960,98 +1474,211 @@ app.get('/api/notifications', async (req, res) => {
 });
 
 app.get('/404', (req, res) => {
-  res.status(404).render('pages/404', {
+  res.status(404).render('404', {
     title: 'Page Not Found',
     component: 'Page'
   });
 });
 
 app.get('/unauthorized', (req, res) => {
-  res.status(404).render('pages/unauthorize', {
+  res.status(404).render('unauthorized', {
     title: 'Page Not Found',
     component: 'Page'
   });
 });
 
-app.get('/login', (req, res) => {
-  const error = req.session.error
-  
-  req.session.error = null
-
-  if (req.session.isAuthenticated) {
-    return res.redirect(302, '/');
-  } else {
-    return res.render('pages/login', {
-      title: 'Login',
-      path: res.url,
-      emitMessage: error,
-    })
-  }
- 
-});
-// STILL FIXING
-app.post('/login', async (req, res, next) => {
+app.get('/login', async (req, res) => {
   try {
-    const {username, password} = req.body
-    if (!username || !password) return res.status(400).json({ message: 'Username and password are required.' });
+    const guestToken = req.query.guest_token;
 
-    let userDetails = await connection.retrieveEmployeeByUsername( username )
-    
-    if(userDetails.length !== 0) {
-      userDetails = userDetails[0] ? JSON.stringify(userDetails[0]) : JSON.stringify({ message: 'Account Not Found' })
-      let user = JSON.parse(userDetails)
-  
-      if(!bcrypt.compareSync(password, user.password)) {
-        req.session.error = 401; // Incorrect password
-        res.status(404).redirect('/login')
-        return next()
+    // 🔐 Guest Token Login via GET
+    if (guestToken) {
+      const guest = await connection.findGuestToken(guestToken);
+
+      if (!guest || guest.status !== 'active') {
+        req.session.error = 401;
+        return res.status(404)
       }
-      const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
-  
-      req.session.user = user
-      req.session.isAuthenticated = true
-      req.session.token = token
-  
-      res.status(200).redirect('/'); // Only send one response  
-    } else {
-      req.session.error = 404; // Account Not Found
-      res.status(404).redirect('/login')
+
+      const token = jwt.sign({ guestId: guest.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+      req.session.user = guest;
+      req.session.isAuthenticated = true;
+      req.session.token = token;
+      req.session.isGuest = true;
+
+      return res.redirect('/guest-dashboard');
     }
+    if(req.session.user && req.session.isAuthenticated) {
+      return res.redirect('/')
+    }
+    // 🧭 No token? Show login page
+    res.render('login', { error: req.session.error || null, title: "Login", guestToken: uuidv4() });
   } catch (error) {
-    console.error(error);
+    console.error('Guest login error:', error);
+    res.status(500).send('Internal Server Error');
+  }
+}); 
+
+app.post('/login', async (req, res) => {
+  try {
+    const guestToken = req.query.guest_token;
+
+    // 🔐 Guest Token Login
+    if (guestToken) {
+      const guest = await connection.retrieveGuestByToken(guestToken);
+
+      if (!guest || guest.status !== 'active') {
+        req.session.error = 401;
+        return res.redirect('/login');
+      }
+
+      const token = jwt.sign({ guestId: guest.id }, 'secret_key', { expiresIn: '1h' });
+
+      req.session.user = guest;
+      req.session.isAuthenticated = true;
+      req.session.token = token;
+      req.session.isGuest = true;
+
+      return res.redirect('/');
+    }
+
+    // 👤 Standard Username/Password Login
+    const { username, password, roles } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Username and password are required.' });
+    }
+
+    if(roles && roles.includes('SuperAdmin')) {
+      req.session.isSuperAdmin = true;
+    }
+
+    const userDetails = await connection.retrieveEmployeeByUsername(username);
+    if (userDetails.length === 0) {
+      req.session.error = 404;
+      return res.redirect('/login');
+    }
+
+    const user = userDetails[0];
+    const isPasswordValid = bcrypt.compareSync(password, user.password);
+    if (!isPasswordValid) {
+      req.session.error = 401;
+      return res.redirect('/login');
+    }
+
+    const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
+
+    req.session.user = user;
+    req.session.isAuthenticated = true;
+    req.session.token = token;
+    req.session.isGuest = false;
+
+    return res.redirect('/');
+  } catch (error) {
+    console.error('Login error:', error);
     return res.status(500).json({ error: 'An error occurred while processing your request.' });
   }
+});
 
-  next()
+app.get('/token', async (req, res) => {
+  const guestToken = req.query.guest_token;
+  const guest = {
+    token: guestToken,
+    created_at: new moment().format('YYYY-MM-DD HH:mm:ss'),
+    expires_at: new moment().add(1, 'hours').format('YYYY-MM-DD HH:mm:ss'),
+    status: 'active',
+    meta:{
+      ip: req.ip,
+      user_agent: req.headers['user-agent'],
+      origin: 'guest_account_link',
+      login_time: new moment().format('YYYY-MM-DD HH:mm:ss'),
+      remarks: 'Auto-login via token'
+    }
+  }
+  console.log('Storing guest token:', guest)
+  const result = await connection.storeGuestToken(guest)
+  if(result) {
+    const guestUser = {
+      employeeid: guestToken,
+      username: 'Guest_User',
+      email: 'guest@example.com',
+      firstname: 'Guest',
+      lastname: 'User', 
+      middlename: '',
+      extname: '',
+      birthdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      experience: {
+        lists: [{
+          office: 'DA - RFO7',
+          division: 'GUEST',
+          section: 'User',
+          salary: '123456',
+          status: true,
+          enddate: 'present',
+          position: 'Data Controller X',
+          startdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+          employment: 'Permanent',
+          arrangements: 'On-site', 
+        }],
+      },
+      contacts: JSON.stringify({
+        email: 'justtest@gmail.com',
+        mobile: '09913983598',
+      }),
+      others: JSON.stringify({
+        civilstatus: 'Married',
+        gender: 'Male'
+      }),
+      components: ['Transactions'],
+      roles: JSON.stringify(['Guest'])
+    }
+
+    let { experience } = guestUser
+    experience = JSON.stringify(experience)
+
+    guestUser.experience = experience
+
+    req.session.user = res.locals.SESSION_USER = guestUser;
+    req.session.isAuthenticated = true;
+    req.session.isGuest = true;
+
+  }
+
+  return res.redirect('/')
 })
 
-app.post('/login-HUH', async (req, res) => {
-  const {username, password} = req.body
-  let userDetails = await connection.retrieveEmployeeByUsername( username );
-  
-  if(!userDetails) return res.status(200).json({message:'Username wala ni exists', response:{}})
+// app.get('/logout', function(req, res){
+//   // destroy the user's session to log them out
+//   // will be re-created next request
+//   req.session.destroy(function(){
+//     res.redirect('/login');
+//   });
+// });
 
-    userDetails = JSON.stringify(userDetails[0])
-    let user = JSON.parse(userDetails)
-    
-    let {hash, salt} = JSON.parse(user.password)
-    // console.log(user)
-    // console.log('hash', hash)
-    // console.log('salt', salt)
-    // console.log('pass', password)
+app.get('/logout', async (req, res) => {
+  const isGuest = req.session.isGuest;
+  const guestToken = req.session.user?.employeeid;
 
-    const asdf = await hashPasswordUtils(password)
-    // console.log(asdf)
-  
-  let isxMatch =  verifyPasswordCrypto(password, salt, hash, (err, isCorrect) => {
-    if (err) throw err;
-    // console.log(`Password is correct: ${isCorrect}`);
-    return isCorrect ? res.redirect('/') : res.redirect('/login')
-  })
+  if (isGuest && guestToken) {
+    const logoutMeta = {
+      ip: req.ip,
+      user_agent: req.headers['user-agent'],
+      logout_time: new moment().format('YYYY-MM-DD HH:mm:ss'),
+      remarks: 'Guest manually logged out'
+    };
 
-  return userDetails
+    await connection.markGuestTokenUsed({
+      token: guestToken,
+      status: 'used',
+      expires_at: new moment().format('YYYY-MM-DD HH:mm:ss'),
+      meta: JSON.stringify(logoutMeta)
+    });
+  }
 
-})
+  req.session.destroy(() => {
+    res.redirect('/login');
+  });
+});
 
 app.post('/verify', async (req, res) => {
   try {
@@ -1078,7 +1705,7 @@ app.get('/register', function(req, res){
   let {username} = req.params
   let {blood_type, civil_status} = _preDefaultData
 
-  res.render('pages/register', {
+  res.render('register', {
     title: 'Sign Up',
     path: res.url
     // logonUser: user
@@ -1096,7 +1723,8 @@ app.post('/register', async (req, res, next) => {
     // set.password = JSON.stringify(set.password)
 
     set.password = bcrypt.hashSync(set.password, 8);
-
+    console.log({hashedPassword: (set.password) });
+    console.log({hashedPassword: bcrypt.hashSync('Admin123!', 8)});
 
     data = {set, where}
 
@@ -1119,85 +1747,93 @@ app.post('/register/new', async (req, res) => {
   try {
     let data = JSON.stringify(req.body)
     const register = await connection.postEmployees(data)
-    if(register.length != 0) {
-      if(register?.affectedRows){
-        const {employeeid} = JSON.parse(data)
-        const notif = {
-          "message": "New user was registered",
-          "link": employeeid, 
-          "component": "employees",
-          // "created_at": convertDate(new Date())
-        }
-        await connection.postNotifications(JSON.stringify(notif))
+    if(register?.affectedRows){
+      const {employeeid} = JSON.parse(data)
+      const notif = {
+        "message": "New user was registered",
+        "link": employeeid, 
+        "component": "employees",
+        // "created_at": convertDate(new Date())
       }
-      res.status(200).json({ message: 'Account is successfully register', response: register})
-    } else {
-      res.status(200).json({ message: 'Failed to register the account',  response: register });
+      await connection.postNotifications(JSON.stringify(notif))
     }
+    res.status(200).json({ message: 'Account is successfully register', response: register})
   } catch (error) {
     console.error('There\'s issue on the system right now:', error);
     res.status(500).send('Internal Server Error');
   }
 })
 
-app.get('/logout', function(req, res){
-  // destroy the user's session to log them out
-  // will be re-created next request
-  req.session.destroy(function(){
-    res.redirect('/login');
-  });
-});
-
-app.get('/transactions', restrict, async (req, res) => {
+app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
   try {
-    const transactions = await connection.retrieveTransactions();
-    const discardedTransaction = await connection.getListOfDiscarded('transactions');
-    // console.log('discardedTransaction', discardedTransaction.length)
+    const userId = req.session?.user?.employeeid;
 
-    let filteredTransactions = transactions; // Default to the original transactions
-
-    if (discardedTransaction.length > 0) { 
-        const { data: discardedTransactionIds } = discardedTransaction[0]; 
-        filteredTransactions = transactions.filter(transaction => !discardedTransactionIds.includes(transaction.product_id)); // Adjust this if your transaction object has a different identifier 
+    if (!userId) {
+      return res.status(403).send('Unauthorized access');
     }
 
-    // console.log('filteredTransactions', filteredTransactions);
+    const [transactions, activities] = await Promise.all([
+      connection.retrieveTransactions(),
+      connection.getTransactionActivity()
+    ]);
 
-    res.render('pages/transactions/index', { 
-        title: 'Transactions',
-        transactions: filteredTransactions, // Use filteredTransactions here
-        moment: moment,
-        connection: connection,
-        predata: _preTransactionsData,
-        path: req.url,
-        peso
-    }); // Pass the data to the template
+    const filteredActivity = activities.filter(activity =>
+      activity.assigned_to === userId
+    );
+
+    const productIds = filteredActivity.map(activity => activity.product_id);
+    
+    const numericUserId = Number(userId);
+
+    const parsedTransactions = transactions.map(txn => ({
+      ...txn,
+      prepared_by: typeof txn.prepared_by === 'string'
+        ? JSON.parse(txn.prepared_by)
+        : txn.prepared_by
+    }));
+
+    const filteredTransactions = parsedTransactions.filter(txn =>
+      txn.prepared_by?.employeeid === numericUserId || productIds.includes(txn.product_id)
+    );
+
+  
+    res.render('transactions/index', {
+      title: 'Transactions',
+      transactions: res.locals.isGuest() || res.locals.isSuperAdmin()  ? transactions : filteredTransactions,
+      moment,
+      connection,
+      predata: _preTransactionsData,
+      path: req.url,
+      steps: activities.sort((a, b) => b.id - a.id),
+      peso
+    });
 
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching transactions:', error);
     res.status(500).send('Internal Server Error');
   }
-})
+});
 
-app.get('/transactions/new', restrict, async (req, res) => {
+app.get('/transactions/new', restrict, loadFundSources('fund_source_current'), async (req, res) => {
   try {
-      res.render('pages/transactions/new', { 
-        title: 'Create a new Transactions',
-        moment: moment,
-        // formatter: formatter,
-        predata: _preTransactionsData,
-        path: req.url, 
-        transactions: null,
-      }); // Pass the data to the template
+
+    res.render('transactions/new', { 
+      title: 'Create a new Transactions',
+      moment: moment,
+      // formatter: formatter,
+      predata: _preTransactionsData,
+      path: req.url, 
+      transactions: null,
+    }); // Pass the data to the template
   } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Error displaying the page:', error);
       res.status(500).send('Internal Server Error');
   }
 })
 
 app.get('/transactions/scan', restrict, async (req, res) => {
   try {
-      res.render('pages/transactions/scan', { 
+      res.render('transactions/scan', { 
         title: 'Scan Transaction QRCode',
         moment: moment,
         // formatter: formatter,
@@ -1213,34 +1849,132 @@ app.get('/transactions/scan', restrict, async (req, res) => {
 
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
-    const transactions = await connection.postTransactions( JSON.stringify(req.body) );
+    const { assigned_to, ...transactionData } = req.body;
+    const transactions = await connection.postTransactions( transactionData );
+
     if(transactions?.affectedRows){
-      const {insertId} = transactions
+      const { insertId } = transactions
       const data = {
         "message": "New transaction was created",
         "link": insertId, 
         "component": "transactions",
-        // "created_at": convertDate(new Date())
       }
-      const nofitifications = await connection.postNotifications(JSON.stringify(data))
+      await connection.postTransactionActivity(JSON.stringify({
+        steps_number: 2,
+        product_id: insertId,
+        status: "pending",
+        assigned_to,
+      }))
+      await connection.postNotifications(JSON.stringify(data))      
     }
     // console.log('transactions', transactions)
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
   } catch (error) {
-    console.error('Error addding transaction:', error);
+    console.error('Error adding transaction:', error);
     res.status(500).send('Internal Server Error');
   }
 })
 
 app.put('/transactions/update', restrict, async (req, res) => {
   try {
+    const {set} = JSON.stringify(req.body)
+    const { username } = res.locals.SESSION_USER
+
     const transactions = await connection.putTransactions( JSON.stringify(req.body) );
+    if(set.includes('amount')) {
+      await connection.putRemarks(JSON.stringify({
+        comment: `Add quoted amount of ${set?.amount}`,
+        refid: transid,
+        status: 'selectedStatusValue',
+        user: username,
+        dueDate: 'checkedCheckboxes'
+      }))
+    }
     res.status(200).json({ message: 'Transaction Successfully Updated!', response: transactions });
   } catch (error) {
-    console.error('Error addding transaction:', error);
+    console.error('Error adding transaction:', error);
     res.status(500).send('Internal Server Error');
   }
 })
+
+app.post('/transactions/assign', async (req, res) => {
+  const { transactions: rawTransactions } = req.body;
+  const assigned_to = res?.locals?.SESSION_USER?.employeeid;
+
+  try {
+    const transactions = JSON.parse(rawTransactions); // Ensure it's an array
+
+    const results = await Promise.all(
+      transactions.map(txn => connection.getTransactionByQRCode(txn))
+    );
+
+    console.log('Assigning transactions:ASSDA ', { transactions, results });
+
+    if (results.includes(null)) {
+      return res.status(400).json({ status: 400, message: 'One or more transactions not found.' });
+    }
+
+    for (const result of results) {
+      const txn = result?.[0]; // Safely access RowDataPacket
+
+      if (!txn || !txn.product_id) {
+        console.warn('Invalid transaction data:', result);
+        continue; // Skip this iteration
+      }
+
+      const getAllSteps = await connection.getTransactionActivityId(
+        JSON.stringify({ product_id: txn.product_id })
+      );
+
+      const getCurrentStep = Array.isArray(getAllSteps) && getAllSteps.length
+      ? parseInt(getAllSteps[getAllSteps.length - 1].steps_number, 10) || 0
+      : 1;
+
+      const data = {
+        set: { assigned_to, updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss') },
+        where: { status: 'pending', product_id: txn.product_id, steps_number: getCurrentStep }
+      };
+
+      // console.log('Updating transaction activity with data:', { data  } );
+
+      await connection.updateTransactionActivity(JSON.stringify(data));
+    }
+
+    res.status(200).json({ status: 200, message: 'Transactions assigned successfully.' });
+
+  } catch (error) {
+    console.error('Error assigning transaction:', error);
+    res.status(500).json({ status: 500, message: 'Error assigning transaction.' });
+  }
+});
+
+
+app.post('/transactions/assignedto', async (req, res) => {
+  try {
+    const { transactions } = req.body;
+    const mappedTransactions = transactions.map(txn => ({ product_id: txn.product_id }));
+
+    const results = await Promise.all(mappedTransactions.map(async (txn) => {
+      const data = {
+        set: {
+          assigned_to: txn.assigned_to,
+        },
+        where: {
+          product_id: txn.product_id,
+          steps_number: txn.steps_number
+        }
+      }
+
+      await connection.updateTransactionActivity(JSON.stringify(data))
+    }))
+    console.log({results})
+    res.status(200).json({ message: 'Transaction assigned successfully.' })
+  } catch (error) {
+    console.error('Error assigning transaction:', error)
+    res.status(500).json({ message: 'Error assigning transaction.' })
+  }
+})
+
 app.put('/employees/update', restrict, async (req, res) => {
   try{
     const employee = await connection.amendEmployee(JSON.stringify(req.body))
@@ -1268,7 +2002,7 @@ app.get('/transactions/:id', restrict, async (req, res) => {
     const transid = req.params.id;
 
     const transactions = await connection.getTransactionById(transid);
-      res.render('pages/transactions', { 
+      res.render('transactions', { 
         title: 'Transactions',
         transactions: transactions, 
         moment: moment,
@@ -1285,7 +2019,7 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
     const transid = req.params.id;
 
     const transactions = await connection.getTransactionById(transid);
-      res.render('pages/transactions/new', { 
+      res.render('transactions/new', { 
         predata: _preTransactionsData,
 
         title: 'Transactions',
@@ -1299,45 +2033,66 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
   }
 })
 
-app.get('/transactions/:id/view', restrict, async (req, res) => {
+app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities, loadAllSuppliers, async (req, res) => {
   try {
     const transid = req.params.id;
 
-    const transactions = await connection.getTransactionById(transid);
-    const remarks = await connection.getRemarksByRefid(transid)
-        
+    const [transactions, remarks, steps, suppliers] = await Promise.all([
+      connection.getTransactionById(transid),
+      connection.getRemarksByRefid(transid),
+      connection.getTransactionActivityId(JSON.stringify({ product_id: transid })),
+      connection.getTransactionSuppliers({ transaction_id: transid })
+    ])
+
+    const filteredActivities = res.locals.activities
+    .filter(activity => activity.product_id === Number(transid));
+
+    // console.log('filteredActivities', filteredActivities)
+    // console.log('remarks', remarks)
+
+    // expressActivityLog(filteredActivities)
+
     if(transactions[0]) {
-      res.render('pages/transactions/view', { 
+      res.render('transactions/view', { 
         title: 'Transactions: Remarks',
         transactions: transactions[0],
         remarks: remarks.sort((a, b) => b.id - a.id),
         moment: moment,
         path: res.url,
-        peso, isValidJSON
+        query: transid,
+        steps: steps.sort((a, b) => b.id - a.id),
+        _suppliers: JSON.stringify(suppliers),
       }); // Pass the data to the template
-
-      console.log('req.session.user', req.session.user)
+      
     } else {
-      res.render('pages/404', {
+      res.render('404', {
         title: '404 Transaction Not Found',
         referer: req.referer,
-        component: 'Transaction'
+        component: 'Transaction',
+        steps
       });
     }
   } catch (error) {
-      console.error('Error deleting transaction:', error);
+      console.error('Error displaying transaction:', error);
       // res.status(500).send('Internal Server Error');
-      res.status(404).render('pages/404');
+      res.status(404).render('404', {
+        title: "404 Page not found",
+        component: "Transaction"
+      });
   }
 })
 
 app.get('/transactions/:id/print', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
-    const transactions = await connection.getTransactionById(transid);
-    const remarks = await connection.getRemarksByRefid(transid)
+    
+    const [transactions, remarks] = await Promise.all([
+      connection.getTransactionById(transid),
+      connection.getRemarksByRefid(transid)
+    ])
+
     if (transactions[0]) {
-      res.render('pages/transactions/print', { 
+      res.render('transactions/print', { 
         title: "Print Tracking Sheet",
         transactions: transactions[0],
         perClassification: {},
@@ -1350,11 +2105,76 @@ app.get('/transactions/:id/print', restrict, async (req, res) => {
     }
   } catch (error) {
     console.error('Error deleting transaction:', error);
-    res.status(404).render('pages/404');
+    res.status(404).render('404');
   }
 })
 
-app.delete('/transactions/:id', restrict, async (req, res) => {
+app.post('/transactions/:id/suppliers', restrict, async (req, res) => {
+  try {
+    const transid = req.params.id;
+    console.log('req.body', req.body)
+    const results = await connection.postTransactionSuppliers(JSON.stringify({
+      refid: transid,
+      suppliers: req.body.suppliers,  
+    }))
+    console.log({ results })
+    if(results?.affectedRows){
+      res.status(200).json({ status: 200, message: 'Suppliers successfully added to the transaction.' })
+    } else {
+      res.status(500).json({ status: 500, message: 'Failed to add suppliers to the transaction.' })
+    } 
+  } catch (error) {
+    console.error('Error saving Transactions suppliers:', error);
+    res.status(404).render('404', {
+      title: "404 Page not found",
+      component: "Transaction"
+    });
+  }
+})
+
+app.delete('/transactions/:id/suppliers/:sid/delete', restrict, async (req, res) => {
+  try {
+    const {id: transaction_id, sid: supplier_id} = req.params;
+    console.log('req.body', req.body)
+    const results = await connection.deleteTransactionSuppliers(JSON.stringify({
+      transaction_id,
+      supplier_id,
+    }))
+    console.log({ results })
+  } catch (error) {
+    console.error('Error saving Transactions suppliers:', error);
+    res.status(404).render('404', {
+      title: "404 Page not found",
+      component: "Transaction"
+    });
+  }
+})
+
+app.delete('/transactions/:id/status', restrict, async (req, res) => {
+  try {
+    const fullname = `${res.locals.SESSION_USER.firstname} ${res.locals.SESSION_USER.lastname}`;
+    const employeeid = res.locals.SESSION_USER.employeeid
+    
+    const data = { 
+      pr_id: req.params.id,
+      previous_status: 'draft',
+      new_status: 'deleted',
+      // changed_by: JSON.stringify({ employeeid, name: fullname })
+      changed_by: employeeid
+    };
+
+    const results = await connection.postTransactionsStatus( JSON.stringify(data) )
+
+    return results ? 
+    res.status(200).json({ status: 200, message: 'Transaction status successfully updated.' }) : 
+    res.status(500).json({ status: 500, message: 'Failed to delete the transactions.'})
+
+  } catch (error) {
+    console.error('Error updating transaction status:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+app.delete('/transactions/:id/testing', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
 
@@ -1369,53 +2189,169 @@ app.delete('/transactions/:id', restrict, async (req, res) => {
 
 app.get('/remarks/:id', restrict, async (req, res) => {
   try {
-    const transid = req.params.id;
-    const remarks = await connection.getRemarksByRefid(transid);
-    const transactions = await connection.getTransactionById(transid)
-    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'partials', 'activity-feed.ejs'), { remarks, moment, transactions, path: req.url});
-    res.status(200).send(renderedHtml)
+    const transId = req.params.id;
+
+    const [ remarks, transactions, steps ] = await Promise.all([
+      connection.getRemarksByRefid(transId),
+      connection.getTransactionById(transId),
+      connection.getTransactionActivity()
+    ]);
+
+    console.log({remarks, transactions})
+
+    if (!remarks || !transactions) {
+      console.warn('Missing remarks or transactions data for transId:', transId);
+    }
+
+    // const renderedHtml = await ejs.renderFile(
+    //   path.join(__dirname, 'views', 'partials', 'activity-feed.ejs'),
+    //   {
+    //     remarks,
+    //     transactions,
+    //     steps: steps.sort((a, b) => b.id - a.id),
+    //   }
+    // );
+
+    // res.status(200).send(renderedHtml);
+    res.render('partials/activity-feed', {
+      remarks,
+      transactions,
+      steps: steps.sort((a, b) => b.id - a.id),
+    })
+    // res.render(renderedHtml)
   } catch (error) {
-    console.error('Error rendering EJS part:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error rendering EJS activity feed:', error);
+    res.status(500).json({ error: 'Failed to render activity feed' });
   }
 
 })
 
 app.post('/remarks/new', restrict, async (req, res) => {
   try {
-    const data = JSON.parse(JSON.stringify(req.body))
-    const { username } = res.locals.SESSION_USER
-
-    // if(res.locals.ENVIRONMENT === 'development' && currentUser === undefined) currentUser = { username: 'justtest' };
-    const updatedRemarks = { ...data, user: username };
-
-    console.log(updatedRemarks)
-    const remarks = await connection.postRemarks( JSON.stringify(updatedRemarks) );
-    if(remarks?.affectedRows){
-      const {refid, comment, status} = updatedRemarks
-      let refids = JSON.parse(refid);
-
-      refids.forEach( async (id) => {
-        const transactions = await connection.getTransactionById(id)
-        const {requisitioner} = transactions[0]
-
-        console.log('transactions', transactions)
-
-        const data = {
-          message: `New remark is added under ${id}!`,
-          link: id, 
-          component: 'remarks',
-          concerning: requisitioner,
-        }
-        await connection.postNotifications(JSON.stringify(data))
-      })
+    const data = { ...req.body };
+    const { employeeid, username } = res.locals.SESSION_USER;
+    // 🚨 Trap if employeeid is missing or empty
+    if (!employeeid) {
+      return res.status(400).json({ message: 'Invalid or missing employee ID.' });
     }
-    res.status(200).json({ message: 'New remarks is added successfully!', response: remarks });
+    
+    // Remove user from payload and attach session username
+    // delete data.user;
+    const updatedRemarks = { ...data};
+    updatedRemarks.user = username
+    updatedRemarks.date = moment().format('YYYY-MM-DD HH:mm:ss');
+    
+    // ✅ Normalize refid
+    let flattenedRefIds = [];
+    try {
+      const parsed = JSON.parse(updatedRemarks.refid);
+      flattenedRefIds = Array.isArray(parsed) ? parsed.map(String) : [Number(parsed)];
+    } catch {
+      flattenedRefIds = [Number(updatedRemarks.refid)];
+    }
+    
+    // ✅ Attach normalized refid
+    // updatedRemarks.refid = JSON.stringify(1);
+
+    // ✅ Handle dueDate if it's a number (offset in days)
+    if (typeof updatedRemarks.dueDate === 'number') {
+      updatedRemarks.dueDate = moment().add(updatedRemarks.dueDate, 'days').format('YYYY-MM-DD');
+    }
+    if(updatedRemarks.assignedto === true) {
+      updatedRemarks.assignedto = employeeid
+    }
+
+    // ✅ Post remarks
+    const remarksResults = await Promise.all(
+      flattenedRefIds.map(refid => {
+        const remarkPayload = {
+          ...updatedRemarks,
+          refid,
+        };
+        return connection.postRemarks(JSON.stringify(remarkPayload))
+          .then(result => ({ refid, result }))
+          .catch(error => ({ refid, error }));
+      })
+    );
+
+
+    // const remarks = await connection.postRemarks(JSON.stringify(updatedRemarks));
+
+    // ✅ Get current step using first refid
+    const getCurrentStep = await connection.getTransactionActivityId(
+      JSON.stringify({ product_id: flattenedRefIds[0] })
+    );
+
+    const currentStepNumber = Array.isArray(getCurrentStep) && getCurrentStep.length
+      ? parseInt(getCurrentStep[getCurrentStep.length - 1].steps_number, 10) || 0
+      : 1;
+
+    // ✅ Post transaction activity if assignedto is true
+    if (updatedRemarks.assignedto === true) {
+
+      const activityPayloads = flattenedRefIds.map(id => {
+        const productId = parseInt(id, 10);
+        if (!Number.isInteger(productId)) {
+          console.warn(`Invalid product_id: ${id}`);
+          return null;
+        }
+
+        return {
+          status: 'pending',
+          // steps_number: currentStepNumber + 1,
+          steps_number: currentStepNumber,
+          assigned_to: employeeid,
+          product_id: productId,
+          created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+          created_by: username,
+        };
+      }).filter(Boolean); // Remove nulls
+
+      await Promise.all(
+        activityPayloads.map(payload => {
+          console.log('payload', payload);
+          return connection.postTransactionActivity(JSON.stringify(payload));
+        })
+      );
+    }
+
+    // ✅ Handle notifications if remarks were posted
+    // if (remarks?.affectedRows) {
+    if (remarksResults.length) {
+      const handleNotification = async (id) => {
+        const transactions = await connection.getTransactionById(id);
+        if (!transactions?.length) {
+          console.error('No transactions found for id:', id);
+          return;
+        }
+
+        const { requisitioner } = transactions[0];
+        // console.log('transactions:', transactions);
+
+        const notificationPayload = {
+          message: `New remark is added under ${id}!`,
+          link: id,
+          component: 'remarks',
+          // concerning: requisitioner,
+        };
+
+        await connection.postNotifications(JSON.stringify(notificationPayload));
+      };
+
+      await Promise.all(flattenedRefIds.map(id => handleNotification(id)));
+
+      res.status(200).json({
+        message: 'New remark added successfully!',
+        // response: remarks,
+      });
+    } else {
+      res.status(200).json({ message: 'Failed to post new remark!' });
+    }
   } catch (error) {
-    console.error('Error addding new remarks on transaction:', error);
-    res.status(500).send('Error addding new remarks on transaction:', error);
+    console.error('Error adding new remark:', error);
+    res.status(500).send('Error adding new remark');
   }
-})
+});
 
 app.post('/notifications/new', restrict, async (req, res) => {
   try {
@@ -1437,19 +2373,20 @@ app.post('/transcodes/new', restrict, async (req, res) => {
     res.status(500).send('Error addding transaction codes:', error);
   }
 })
+
 app.get('/employees', restrict, async (req, res) => {
   const employees = await connection.retrieveEmployee()
-  const roles = await connection.retrieveEmployeeIdsWithRole()
+  // const roles = await connection.retrieveEmployeeIdsWithRole()
   // console.log(employees)
-  res.render('pages/employees/index', {
+  res.render('employees/index', {
     title: 'Employees',
     employees: JSON.stringify(employees),
-    roles,
+    // roles,
   })
 })
 
 app.get('/employees/new', restrict, function(req, res){
-  res.render('pages/employees/new', {
+  res.render('employees/new', {
     defaultData: _preDefaultData,
     title: 'Add Employee', 
     path: res.url,
@@ -1457,67 +2394,72 @@ app.get('/employees/new', restrict, function(req, res){
   })
 })
 
-app.get('/employees/:id', restrict, async function(req, res){
+app.get('/employees/:id/profile', restrict, loadAllTransactions, async function(req, res){
   try {
-    if(req.params.id == 'register') {
-      let roles = await connection.getRoles()
-      res.render('pages/employees/register', {
-        defaultData: _preDefaultData,
-        title: 'Register Employee',
-        path: res.url,
-        moment,
-        roles: JSON.stringify(roles),
+    const employee = await connection.getEmployeeById(req.params.id);
+    console.log({employee})
+    if(employee.length > 0) {
+      res.render('employees/profile', {
+        employee: employee[0],
+        title: 'Profile', 
+        employeeid: req.params.id,
       })
     } else {
-      const employee = await connection.getEmployeeById(req.params.id);
-      if(employee.length > 0) {
-        res.render('pages/employees/profile', {
-          employee: employee[0],
-          moment,
-          title: 'Profile', 
-          path: res.url
-        })
-      } else {
-        console.error('Employee not found!');
-        res.render('pages/404', {
-          title: '404 Employee Not Found',
-          referer: req.referer,
-          component: 'Employee'
-        });
-      }
-    }    
+      console.error('Employee not found!');
+      res.render('404', {
+        title: '404 Employee Not Found',
+        referer: req.referer,
+        component: 'Employee'
+      });
+    }
   } catch (error) {
-      console.error('Error retrieving employee:', error);
-      res.status(500).render('pages/404');
+    console.error('Error retrieving employee:', error);
+    res.status(500).render('404');
   }
-  
 })
 
-app.get('/employees/register', restrict, async function(req, res){
-  let roles = await connection.getRoles()
+// Utility function to fetch roles and employees
+async function getFormData(employeeId = null) {
+  const employees = employeeId
+    ? await connection.getEmployeeById(employeeId)
+    : await connection.getEmployees();
 
-  res.render('pages/employees/register', {
-    defaultData: _preDefaultData,
-    title: 'Register Employee',
-    path: res.url,
-    roles: JSON.stringify(roles),
-  })
-})
+  return {
+    employees: employeeId ? employees[0] : employees,
+  };
+}
 
-app.get('/employees/:id/update', restrict, async function(req, res){
-  const employeeid = req.params.id;
-  const employee = await connection.getEmployeeById(employeeid)
-  let roles = await connection.getRoles()
+// Register Employee Route
+app.get('/employees/register', restrict, async (req, res) => {
+  try {
+    const { roles, employees } = await getFormData();
+    res.render('employees/register', {
+      title: 'Register Employee',
+      employees,
+      mode: 'register',
+    });
+  } catch (error) {
+    console.error('Error loading register form:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
-  res.render('pages/employees/register', {
-    defaultData: _preDefaultData,
-    employees: employee[0],
-    roles: JSON.stringify(roles),
-    title: 'Update Employee',
-    path: res.url,
-    moment,
-  })
-})
+// Update Employee Route
+app.get('/employees/:id/update', restrict, async (req, res) => {
+  try {
+    const employeeId = req.params.id;
+    const { roles, employees } = await getFormData(employeeId);
+
+    res.render('employees/register', {
+      title: 'Update Employee',
+      employees,
+      mode: 'update',
+    });
+  } catch (error) {
+    console.error('Error loading update form:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 app.delete('/employees/:id', restrict, async (req, res) => {
   try {
@@ -1536,17 +2478,72 @@ app.delete('/employees/:id', restrict, async (req, res) => {
 })
 
 app.get('/inventory', restrict, async function(req, res){
-  res.render('pages/inventory/', {
+  res.render('inventory/', {
     title: "Inventory"
   })
 })
 
 app.get('/qrscanner', restrict, async function(req, res){
-  res.render('pages/scanner', {
+  res.render('scanner', {
     title: "Scan QR Code"
   })
 })
+app.get('/suppliers', restrict, loadAllSuppliers, async function(req, res){
+  res.render('suppliers/index', {
+    title: "Suppliers"
+  })
+})
+app.get('/suppliers/:id/view', restrict, loadAllSuppliers, async function(req, res){
+  try {
+    const supplier = await connection.getSuppliersById(req.params.id);
+    console.log({supplier})
+    
+    res.render('suppliers/profile', {
+      title: "Suppliers",
+      results: supplier[0],
+    })
+    
+  } catch (error) {
+    console.error('Error retrieving supplier:', error);
+    res.status(500).render('404');
+  }
+  
+})
+app.get('/suppliers/new', restrict, async function(req, res){
+  res.render('suppliers/new', {
+    title: "Suppliers"
+  })
+})
+app.post('/suppliers/add', restrict, async function (req, res) {
+  try {
+    const {
+      supplier_code,
+      supplier_name,
+      contact_person,
+      email,
+      phone,
+      address,
+      status
+    } = req.body;
 
+    // Defensive: check if all fields are empty
+    console.log('Received supplier data:', req.body);
+    const allEmpty = [supplier_code, supplier_name, contact_person, email, phone, address, status]
+      .every(field => !field || field.trim() === '');
+
+    if (allEmpty) {
+      return res.status(400).json({ error: 'All fields are empty. Please provide supplier details.' });
+    }
+
+    // Insert into DB (example using MySQL with async/await)
+    const result = await connection.postSuppliers(JSON.stringify(req.body));
+    console.log('Supplier added with ID:', result);
+    res.status(200).json({ message: 'Supplier added successfully.' });
+  } catch (error) {
+    console.error('Error adding supplier:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
 // DOCUMENTS
 app.get('/documents', restrict, async function(req, res){
   const results = await connection.getDocumentTrackerData()
@@ -1556,7 +2553,7 @@ app.get('/documents', restrict, async function(req, res){
   analysisData = analysisData[0]
   analysisDataReplies = analysisDataReplies[0]
 
-  res.render('pages/documents/index', {
+  res.render('documents/index', {
     title: 'Documents',
     displayData: results,
     analysis: {analysisData, analysisDataReplies},
@@ -1564,7 +2561,7 @@ app.get('/documents', restrict, async function(req, res){
 })
 
 app.get('/documents/template/newEmail', restrict, function(req, res) {
-  res.render('pages/emails/new2', {
+  res.render('emails/new2', {
     title: 'Template on New Email'
   })
 })
@@ -1661,11 +2658,11 @@ app.get('/documents/:id', restrict, async function(req, res){
       const { username } = res.locals.SESSION_USER
       var { priority, created_by } = results[0]
       if (priority === 'confidential' && created_by !== username) {
-        res.render('pages/unauthorize', {
+        res.render('unauthorize', {
           title: "Unauthorized Access", 
         })
       } else { 
-        res.render('pages/documents/id', {
+        res.render('documents/id', {
           title: "Document", 
           displayData: results[0], 
           activities: activities.sort((a, b) => b.id - a.id),
@@ -1676,31 +2673,12 @@ app.get('/documents/:id', restrict, async function(req, res){
     
   } catch (error) {
     console.error('Error on displaying the document:', error);
-    res.status(404).render('pages/404', {
+    res.status(404).render('404', {
       title: "Document", 
       component: "Document"
     });
   }
 })
-
-// app.put('/document/:id', restrict, async function(req, res) {
-//   try {
-//     const updateDocumentData = {
-//       set: {
-//         attachments,
-//         updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-//       },
-//       where: {
-//         id
-//       }
-//     }
-//     // const transactions = await connection.updateDocumentTrackerStatus( updateDocumentData );
-//     res.status(200).json({ message: 'Document Successfully Updated!', response: transactions });
-//   } catch (error) {
-//     console.error('Failed to update the Document: ', error);
-//     res.status(500).send('Failed to update the Document');
-//   }
-// })
 
 app.post('/documents/:id/activity', restrict, async function(req, res){
   try { 
@@ -1716,11 +2694,100 @@ app.post('/documents/:id/activity', restrict, async function(req, res){
 // To Be Feature
 app.get('/calendar', restrict, async function(req, res){
   
-  res.render('pages/documents/calendar', {
+  res.render('documents/calendar', {
     title: 'Calendar',
   })
 })
 
+
+// Express route to approve a step
+app.post("/approve", async (req, res) => {
+  // const { trans_id: prId, steps_number:stepNumber, updated_by:approverName } = req.body;
+  const { product_id, steps_number, updated_by, remarks } = req.body;
+  const { username } = res.locals.SESSION_USER
+  try {
+    // console.log([trans_id, steps_number, updated_by]) 
+    const data = {
+      set: {
+        status: 'approved',
+        updated_by,
+        updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+        remarks
+      },
+      where: {
+        product_id,
+        steps_number,
+      }
+    }
+    // console.log('data', {data, steps_number})
+    await connection.updateTransactionActivity(JSON.stringify(data))
+    io.emit('retrieveActitivities', product_id);
+    // if(steps_number > 1) {
+    //   await connection.postRemarks(JSON.stringify({
+    //     comment: 'Out of Office', 
+    //     user: username, 
+    //     status: 'success', 
+    //     refid: product_id,
+    //     date: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+    //   }))
+    // }
+   
+    // console.log([trans_id, steps_number + 1])
+    await connection.postTransactionActivity(JSON.stringify({
+      status: 'pending', 
+      product_id, 
+      created_at: moment(new Date()).add(1, 'minute').format('YYYY-MM-DD HH:mm:ss'),
+      steps_number: parseInt(steps_number, 10) + 1,
+      updated_by, 
+    }))
+
+    await connection.postNotifications(JSON.stringify({
+      message: remarks,
+      link: product_id,
+      component: 'transactions',
+    }))
+
+    res.json({ success: true, message: "Approval step advanced." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to advance approval." });
+  }
+});
+
+app.post("/disapprove", async (req, res) => {
+  const { product_id, steps_number, remarks, updated_by } = req.body;
+  console.log('disapprove steps', {product_id, steps_number, remarks})
+  try {
+    const data = {
+      set: {
+        status: 'disapproved',
+        updated_by, 
+        updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+        remarks
+      },
+      where: {
+        product_id,
+        steps_number,
+      }
+    }
+    const updateResult = await connection.updateTransactionActivity(JSON.stringify(data))
+
+    // console.log([trans_id, steps_number + 1])
+    // await connection.postTransactionActivity(JSON.stringify({
+    //   status: 'pending', 
+    //   product_id, 
+    //   created_at: moment(new Date()).add(1, 'minute').format('YYYY-MM-DD HH:mm:ss'),
+    //   steps_number: parseInt(steps_number, 10),
+    //   updated_by, 
+    // }))
+
+    updateResult ? res.status(200).json({ success: true, message: "Request has been disapproved." }) : null;
+    // 
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Failed to disapproved the request." });
+  }
+})
 // APIs
 app.route('/api/employees')
   .all(restrict)
@@ -1740,15 +2807,43 @@ app.route('/api/transactions/:id')
   .all(restrict)
   .get(async (req, res) => {
     const { id } = req.params;
-    // if (!Number(id)) {
-    //   return res.status(400).json({ response: 'Invalid ID format' });
-    // }
-
     const transaction = await connection.getTransactionById(id);
-    if (transaction) {
-      return res.status(200).json({ response: transaction });
-    }
+    if (transaction) return res.status(200).json({ response: transaction });
     return res.status(404).json({ response: 'Transaction Not Found!' });
+  });
+app.route('/api/employees/:id')
+  .all(restrict)
+  .get(async (req, res) => {
+    const { id } = req.params;
+    const employees = await connection.getEmployeeById(id);
+
+    if (!employees || employees.length === 0) {
+      return res.status(400).json({ response: 'No Record is Found!' });
+    }
+
+    // Decode and sanitize each employee record
+    const sanitized = employees.map(emp => {
+      const {
+        password, // omit
+        experience,
+        contacts,
+        others,
+        components,
+        roles,
+        ...rest
+      } = emp;
+
+      return {
+        ...rest,
+        experience: JSON.parse(experience || '{}'),
+        contacts: JSON.parse(contacts || '{}'),
+        others: JSON.parse(others || '{}'),
+        components: JSON.parse(components || '[]'),
+        roles: JSON.parse(roles || '[]')
+      };
+    });
+
+    return res.status(200).json({ response: sanitized });
   });
 app.route('/api/documents/:id')
   .all(restrict)
@@ -1767,7 +2862,7 @@ app.route('/api/qrcode/:id')
    .get(async (req, res) => {
     const {id} = req.params
 
-    let results = await connection.getTransactionById(id)
+    let results = await connection.getTransactionByQRCode(id)
     
     if(results.length > 0) { 
       results = JSON.stringify(results[0])
@@ -1782,34 +2877,54 @@ app.route('/api/qrcode/:id')
     return res.status(400).json({ response: 'No data related to the QR Code', component: false });  
    })
 
-
+// SETTINGS page
+// Status: Super Admin only, restrict to access
 app.get('/settings', restrict, async function(req, res){
-  const results = await connection.getSettings()
-  let employees = await connection.retrieveEmployee()
-  const { username } = res.locals.SESSION_USER
-  employees.sort((a, b) => 
-    a.lastname.toLowerCase() < b.lastname.toLowerCase() ? -1 : 
-    (a.lastname.toLowerCase() > b.lastname.toLowerCase() ? 1 : 0)
-  );
-  if(username === 'justtest') { // user is admin
-    res.render('pages/settings', {
-      title: "Settings",
-      settings: JSON.parse(JSON.stringify(results)),
-      employees: JSON.parse(JSON.stringify(employees))
-    })
+  try {
+    const results = await connection.getSettings() ?? {}
+    let employees = await connection.retrieveEmployee()
+    const { username } = res.locals.SESSION_USER
+    employees.sort((a, b) => 
+      a.lastname.toLowerCase() < b.lastname.toLowerCase() ? -1 : 
+      (a.lastname.toLowerCase() > b.lastname.toLowerCase() ? 1 : 0)
+    );
+
+    if (res.locals.isSuperAdmin()) { // user is admin
+
+      const results = await connection.getSettings();
+      // Convert rows into { key_name: value } object for easy mapping to inputs
+      const mapped = {};
+      results.forEach(row => {
+        mapped[row.key_name] = row.value;
+      });
+
+      // res.status(200).json({ settings: mapped });
+
+      return res.render('settings', {
+        title: "Settings",
+        settings: JSON.parse(JSON.stringify(results)),
+        employees: JSON.parse(JSON.stringify(employees)),
+        settings: mapped,
+      })
+    }
+    res.status(404).render('unauthorized', {
+      title: 'Page Not Found',
+      component: 'Page'
+    });
+  } catch (error) {
+    res.status(404).render('404', {
+      title: 'Page Not Found',
+      component: 'Page'
+    });
   }
-  res.status(404).render('pages/unauthorize', {
-    title: 'Page Not Found',
-    component: 'Page'
-  });
 })
 
 app.post('/settings', restrict, async function(req, res){
   try {
-    const settings = {
-      settings: JSON.stringify(req.body)
-    }
-    const results = await connection.postSettings('settings', JSON.stringify(settings))
+    const settingsData = req.body
+    const values = settingsData.map(item => [item.key_name, item.key_value, 'string', null, 1]);
+
+    const results = await connection.postSettings(values)
     res.status(200).json({ message: 'Settings updated!', response: results})
   } catch (error) {
     res.status(400).json({ message: `Error saving settings: ${error}`, response: {} });
@@ -1821,14 +2936,42 @@ app.get('/forms/forms.html', restrict, function (req, res) {
   res.redirect('/demo/forms/forms.html');
 });
 app.get('/request', function(req, res){
-  res.render('pages/request',{
+  res.render('request',{
     title: "Request",
     path: res.path,
   })
 })
 
+
+app.get('/media', (req, res) => {
+  const mediaDir = path.join(__dirname, 'uploads');
+
+  fs.readdir(mediaDir, (err, files) => {
+    if (err) return res.status(500).send('Error reading media folder');
+
+    const fileData = files.map(file => {
+      const filePath = path.join(mediaDir, file);
+      const stats = fs.statSync(filePath);
+      const ext = path.extname(file).slice(1);
+      return {
+        name: file,
+        size: (stats.size / 1024).toFixed(2) + ' KB', // or use MB if preferred
+        type: ext || 'unknown'
+      };
+    });
+
+    res.render('media', {
+      title: 'Media Gallery',
+      files: fileData,
+      basePath: '/uploads'
+    });
+  });
+});
+
+
+
 app.use(async function(req, res, next){
-  res.status(404).render('pages/404', {
+  res.status(404).render('404', {
     title: 'Page not Found',
     component: 'Page'
   });
@@ -1856,8 +2999,8 @@ app.use(async function(req, res, next){
 // });
 
 
-const { expressConnect } = _express(io, moment)
-expressConnect()
+
+
 
 // io.on('connection', (socket)=>{
 //   console.log('a user connected', socket.id)
@@ -1869,5 +3012,6 @@ server.on('error', (err) => {
 });
 
 server.listen(SERVER_PORT, '0.0.0.0', () => {
+  logger.info(`Server running on port ${SERVER_PORT}`);
   console.log('Server started on', SERVER_PORT);
 });

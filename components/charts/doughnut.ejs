@@ -1,13 +1,33 @@
+<%
+  const { points, labels } = datasets
+%>
 <div class="card">
     <div class="card-header">
-      <div class="card-title">Doughnut Chart</div>
+      <div class="card-head-row card-tools-still-right">
+        <div class="card-title"><%= title %></div>
+        <div class="card-tools">
+          <div class="dropdown">
+            <button class="btn btn-icon btn-clean me-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+              <i class="fas fa-ellipsis-h"></i>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" data-popper-placement="bottom-end" style="position: absolute; inset: 0px 0px auto auto; margin: 0px; transform: translate3d(0px, 37.3333px, 0px);">
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="card-body">
       <div class="chart-container">
         <canvas
-          id="doughnutChart"
+          id="<%= id ?? 'doughnutChart' %>"
           style="width: 50%; height: 50%"
+          data-points="<%= JSON.stringify(points) %>"
+          data-labels="<%= JSON.stringify(labels) %>"
         ></canvas>
       </div>
     </div>
   </div>
+<!-- Displays distribution analytics showing total transaction values across current divisions, sections, or units handling the transactions -->

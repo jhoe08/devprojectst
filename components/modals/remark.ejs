@@ -8,12 +8,12 @@
         <div class="modal-body">
           <div class="row mb-3 mt-3">
             <div class="form-group hidden">
-              <label>Current Approver</label>
-              <input id="Name" type="text" class="form-control" placeholder="Fill Name">
+              <label for="currentApprover">Current Approver</label>
+              <input id="currentApprover" name="currentApprover" type="text" class="form-control" placeholder="Fill Name">
             </div>
             <div class="form-group">
-              <label class="form-label">Select Status</label>
-              <div class="row gutters-xs">
+              <label for="selectedStatus" class="form-label">Select Status</label>
+              <div id="selectedStatus" class="row gutters-xs hidden">
                 <div class="col-auto">
                   <label class="colorinput">
                     <input name="color" type="radio" value="black" class="colorinput-input">
@@ -57,6 +57,16 @@
                   </label>
                 </div>
               </div>
+              <select class="form-select" id="selectedStatus">
+                <option value="black">Back to office</option>
+                <option value="primary">For Approval</option>
+                <option value="secondary">Lack of Signature</option>
+                <option value="info">Lack of Attachments</option>
+                <option value="success">Ready to move</option>
+                <option value="warning">Waiting</option>
+                <option value="danger">Issue occured</option>
+              </select>
+
             </div>
             <div class="form-group hidden">
               <label for="purchaseRequestStatuses">Select Status</label>
@@ -70,13 +80,31 @@
                 } %>
               </select>
             </div>
+            <div class="form-group hidden">
+              <label for="fundsAvailability">Select Funds Availability</label>
+              <select class="form-select form-control" id="fundsAvailability">
+                <% if(purchaseRequestStatuses) {
+                  purchaseRequestStatuses.forEach(status => {
+                %>
+                <option><%=status%></option>
+                <%
+                  })
+                } %>
+              </select>
+            </div>
             <div class="form-group">
               <label for="comment">Comment</label>
               <textarea class="form-control" id="comment" rows="5" required></textarea>
             </div>
-            <div class="form-group">
-              <label class="form-label">Reglementary Period</label>
-              <div class="selectgroup selectgroup-pills">
+            <div class="form-check hidden">
+              <input class="form-check-input" type="checkbox" value="" id="assignedto">
+              <label class="form-check-label" for="assignedto">
+                Assign to me
+              </label>
+            </div>
+            <div class="form-group hidden">
+              <label for="reglementaryPeriod" class="form-label">Reglementary Period</label>
+              <div id="reglementaryPeriod" class="selectgroup selectgroup-pills">
                 <label class="selectgroup-item">
                   <input type="checkbox" name="period" value="1" class="selectgroup-input" checked="">
                   <span class="selectgroup-button">1hr</span>
@@ -108,21 +136,13 @@
               </div>
             </div>
             <div class="form-group hidden">
-              <label class="form-label">Reglementary Period</label>
-              <div class="input-group input-daterange">
-                <input type="date" class="form-control" name="dateIn">
-                <div class="input-group-addon" style="padding: 10px;">to</div>
-                <input type="date" class="form-control" name="dateOut">
-              </div>
-            </div>
-            <div class="form-group hidden">
               <span class="badge badge-danger fs-5">The PR is not out of the division office yet!</span>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary btn-border" data-bs-dismiss="modal">Close</button>
-          <a id="createRemarks" href="#" type="button" class="btn button btn-primary" data-transid="">New Remarks</a>
+          <a id="createRemarks" href="#" type="button" class="btn button btn-primary" data-transid="<%= refid ?? '' %>">New Remarks</a>
         </div>
       </div>
     </div>

@@ -3,19 +3,19 @@
 <% 
 
   let { directors, divisions } = JSON.parse(DEPARTMENT)
-  const { experience } = SESSION_USER
+  const { firstname, experience } = SESSION_USER
   const { lists } = JSON.parse(experience)
   const { office, salary, startdate, enddate, position, division, banner } = lists[0] 
 
-  function getRoleByEmployeeId(employeeid) {
+  /* function getRoleByEmployeeId(employeeid) {
     // Find the role object that matches the given employeeid
     const role = roles.find(role => role.employeeid === employeeid);
     
     // Return the role_name if found, or a message if not found
     return role ? role.role_name : 'Role not found';
-  }
+  } */
 %>
-<div class="wrapper" data-role="<%=currentRole%>" data-test="<%= currentRole.includes(['Contributor', 'Viewer']) %>" data-position="<%=position%>">
+<div class="wrapper">
     <%- include('../../views/sidebar') -%>
 
     <div class="main-panel">
@@ -30,8 +30,9 @@
                   </div>
                   <div class="ms-md-auto py-2 py-md-0">
                     <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="employees" data-column="4,8">Manage</a>
-                  <% if (currentRole=='SuperAdmin') { %>
-                    <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#addEmployeeModal"><i class="fas fa-plus"></i> Add New</a>
+                  <% if (hasAllowedRole(["SuperAdmin"])) { %>
+                    <!-- <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#addEmployeeModal"><i class="fas fa-plus"></i> Add New</a> -->
+                     <a href="/employees/register" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Add New</a>
                   <% } %>
                   </div>
                 </div>
@@ -89,52 +90,53 @@
                                     if (employees) { 
                                       employees.forEach(function(user, key){ 
                                       var {firstname, lastname, middlename, extname, birthdate, experience, username, password, employeeid} = user 
+                                      const fullname = UTILS.helpers.fullName(firstname, middlename, lastname, extname);
+
                                       var { lists } = experience ? JSON.parse(experience) : {}
                                       
                                       if (lists) {
-                                        var { office, division, banner, salary, status, enddate, position, startdate, employment, arrangements } = lists[0];
+                                        var { office, division, section, salary, status, enddate, position, startdate, employment, arrangements } = lists[0];
                                       }
                                       
                                       var today = moment()
                                       var age = today.diff(birthdate, 'years')
-                                      division = division.toUpperCase()
+                                      // division = division.toUpperCase()
                                   %>
                                     <tr data-rowid="<%=key%>" data-employeeid="<%=employeeid%>">
-                                      <td class="text-capitalize" data-column="name"><%= [firstname, lastname].filter(Boolean).join(' ') %></td>
-                                      <td data-column="position" class="text-capitalize" ><%= position || '-' %></td>
-                                      <td data-column="office"><%= office || '-' %></td>
-                                      <td class="text-uppercase" data-column="division" data-order="<%= division %>">
-                                        <%= searchKey(divisions, division) %>
-                                        <span class="badge badge-info"><%= division %></span>
+                                      <td data-head="Name" class="text-capitalize"><%= fullname %></td>
+                                      <td data-head="Position" class="text-capitalize" ><%= position || '-' %></td>
+                                      <td data-head="Office"><%= office || '-' %></td>
+                                      <td data-head="Division" class="text-uppercase" data-order="<%= division %>">
+                                        <%= division %>
+                                        <span class="badge badge-info"><%= section %></span>
                                       </td>
-                                      <td data-column="age"><%= age %></td>
-                                      <td data-column="startdate"><%= moment(startdate).format('LL') || '-' %></td>
-                                      <td data-column="salary"><%= peso(salary) || '-' %></td>
-                                      <td data-column="username"><%= username %></td>
-                                      <td data-column="password"><%= password ? '•••••••' : '' %></td>
-                                      <td>
+                                      <td data-head="Age"><%= age %></td>
+                                      <td data-head="Start Date"><%= moment(startdate).format('LL') || '-' %></td>
+                                      <td data-head="Salary"><%= UTILS.peso(salary) || '-' %></td>
+                                      <td data-head="Username"><%= username %></td>
+                                      <td data-head="Password"><%= password ? '•••••••' : '' %></td>
+                                      <td data-head="Action">
                                         <div class="form-button-action" data-employeeid="<%= employeeid %>">
-                                          <a href="/employees/<%= employeeid %>" data-transid="<%= employeeid %>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="View Employee">
+                                          <a href="/employees/<%= employeeid %>/profile" data-transid="<%= employeeid %>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="View Employee">
                                             <i class="fa fa-eye"></i>
                                           </a>
+                                          <% if (hasAllowedRole(["SuperAdmin"])) { %>
                                           <a href="/employees/<%= employeeid %>/update" data-transid="<%= employeeid %>" type="button" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Edit Employee">
                                             <i class="fa fa-edit"></i>
                                           </a>
                                           
-                                          <button data-bs-toggle="modal" data-bs-target="#rolesModal"  data-bs-toggle="tooltip" title="Add Role" class="btn btn-link btn-warning" data-role="<%=getRoleByEmployeeId(employeeid)%>">
+                                          <button data-bs-toggle="modal" data-bs-target="#rolesModal"  data-bs-toggle="tooltip" title="Add Role" class="btn btn-link btn-warning" >
                                             <i class="fa fa-user" ></i>
                                           </button>
-                                          <button data-id="<%= employeeid %>" data-name="<%= [firstname, middlename ? middlename.charAt(0) + '.' : '', lastname, extname].filter(Boolean).join(' ') %>" type="button" data-bs-toggle="tooltip" title="Delete?" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_<%= employeeid %>">
+                                          
+                                          <button data-id="<%= employeeid %>" data-name="<%= fullname %>" type="button" data-bs-toggle="tooltip" title="Delete?" class="btn btn-link btn-danger" data-original-title="Remove"  id="alert_<%= employeeid %>">
                                             <i class="fa fa-trash"></i>
                                           </button>
+                                          <% } %>
                                         </div>
                                       </td>
                                     </tr>
-                                  <% }) } else { %>
-                                    <tr>
-                                      <td>No Records is Found</td>
-                                    </tr>
-                                  <% }  %>
+                                  <% }) } %>
                                 </tbody>
                               </table>
                             </div>

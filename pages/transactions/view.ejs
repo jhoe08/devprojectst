@@ -1,19 +1,47 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
-<%
-if(logonUser) {
-  logonUser = JSON.stringify(logonUser)
-  const { experience } = logonUser || {}
-  if(experience) {
-      const { lists } = JSON.parse(experience)
-      const { position, division: employeeDivision } = lists[0] || {}
+<% 
+  const { peso } = UTILS
+  let sessionUserPosition = ''
+  const { employeeid, roles } = SESSION_USER
 
-      console.log(`asd ${division}`)
+  if (SESSION_USER_LOG) {
+    const { designation, division } = SESSION_USER_LOG
+    sessionUserPosition = designation.position
+    sessionUserPosition = sessionUserPosition.toLowerCase()
   }
+  if (transactions) {
+    const { product_id, pr_date, prepared_by } = transactions
+    const requestID = UTILS.addLeadingZeros(product_id)
+    const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
 
-} %>
-<% if(transactions) { %>
-<div class="wrapper">
+    const { lists, getCurrentStep, getDetails, getTitle } = STEPS
+
+    let current_step = getCurrentStep(steps, product_id)
+    current_step_number = current_step?.steps_number
+    current_step_title = getTitle(current_step_number)
+
+    const currentHolder = getCurrentHolderOfTransaction(transactions.product_id)
+    let userDetailsExp, employeesInSameDivision = {}
+    if(currentHolder){
+      userDetailsExp = getEmployeedDetailsById(currentHolder)
+      let raw = getEmployeesInSameDivision(currentHolder);
+
+      try {
+        employeesInSameDivision = raw ? JSON.parse(raw) : {};
+      } catch (err) {
+        console.error("Failed to parse JSON:", err);
+        employeesInSameDivision = {};
+      }
+    }
+
+    preparedby = prepared_by ? JSON.parse(prepared_by) : {}
+    preparedbyname = preparedby?.name || ''
+    preparedbyid = preparedby?.employeeid || ''
+
+    const layoutDesign = 2
+%>
+<div class="wrapper" data-product-id="<%= transactions.product_id %>">
     <%- include('../../views/sidebar') -%>
 
     <div class="main-panel">
@@ -21,20 +49,29 @@ if(logonUser) {
       
       <div class="container" data-transaction-id="<%- transactions.product_id -%>">
           <div class="page-inner">
-            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+            <div class="page-header d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div class="col-md-1 mr-4">
-                <div id="transid-<%- transactions.product_id -%>" data-qrcode="<%- transactions.product_id -%>" class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- transactions.product_id -%>"></div>
+                <div id="transid-<%- trackerid -%>" data-qrcode="<%- trackerid -%>" class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- trackerid -%>"></div>
               </div>
-              <div class="col-md-8">
-                  <h3 class="fw-bold mb-3"><%- transactions.bid_notice_title -%></h3>
+              <div class="col-md-6" data-current-steps="<%= steps %>">
+                  <h3 class="fw-bold mb-3"><span class="badge badge-info me-2 fs-5"><%= trackerid %></span><%- transactions.bid_notice_title -%></h3>
+                  <h6 class="text-muted hidden">System Generated Code: <small id="trackingCode"><%= trackerid %></small></h6>
+                  <h6 class="text-muted">Prepared by: <a href="/employees/<%= preparedbyid %>/profile"><%= preparedbyname %></a></h6>
+                  <%- include('../../views/partials/progress', {length: 30, progress: steps[0]?.steps_number || 1, title: steps[0]?.steps_title }) -%>
               </div>
-              <div class="ms-md-auto py-2 py-md-0">
+              <div class="ms-md-auto py-2 py-md-0" data-current-step="<%= JSON.stringify(current_step) %>">
                   <a href="/transactions/<%- transactions.product_id -%>/print" class="btn btn-label-info btn-round me-2" id="btnPrint"><i class="fas fa-print"></i> Print</a>
+                  <% if (canUpdateTransaction(SESSION_USER, current_step) || isSuperAdmin()) { %>
                   <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add Remarks</a>
+                  <button data-product-id="<%= transactions.product_id %>" href="#" class="alert_confirm btn btn-success btn-round" data-step="<%= current_step_number %>"><i class="fas fa-check"></i> Approve</button>
+                  <a data-product-id="<%= transactions.product_id %>" id="disapproveBtn" href="#" class="alert_deny btn btn-danger btn-round" data-step="<%= current_step_number %>"><i class="fas fa-times"></i> Disapprove</a>
+                  <% } else if (current_step == null && isCreatorOfTransaction(transactions)) { %>
+                  <a href="#" class="alert_confirm btn btn-success btn-round" data-product-id="<%= transactions.product_id %>" data-step="1">Publish</a>
+                  <% } %>
               </div>
             </div>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-lg-12 col-xl-6">
                     <div class="card">
                       <div class="card-header">
                         <div class="card-head-row">
@@ -60,37 +97,47 @@ if(logonUser) {
                       </div>
                       <div class="card-body">
                         <div class="d-flex">
-                          <div class="avatar">
-                            <span class="avatar-title rounded-circle border border-white bg-secondary"><i class="fas fa-user-circle"></i></span>
+                          <div class="col-md-6 d-flex">
+                            <div class="avatar">
+                              <span class="avatar-title rounded-circle border border-white bg-secondary"><i class="fas fa-calendar-alt"></i></span>
+                            </div>
+                            <div class="flex-1 ms-3 pt-1">
+                              <h6 class="text-uppercase fw-bold mb-1">
+                                
+                                <span><%- moment(transactions.pr_date).format('LL') -%></span>
+                              </h6>
+                              <span class="text-muted">Created Date</span>
+                            </div>
+                            <div class="float-end pt-1">
+                            </div>
                           </div>
-                          <div class="flex-1 ms-3 pt-1">
-                            <h6 class="text-uppercase fw-bold mb-1">
-                              <%- transactions.requisitioner -%>
-                              <span class="badge badge-success" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Division"><%- transactions.division -%></span>
-                            </h6>
-                            <span class="text-muted">Requisitioner</span>
+                          <div class="col-md-6 d-flex">
+                            <div class="avatar">
+                              <span class="avatar-title rounded-circle border border-white bg-secondary">
+                                <i class="fas fa-user-circle"></i>
+                              </span>
+                            </div>
+                            <div class="flex-1 ms-3 pt-1">
+                              <h6 class="text-uppercase fw-bold mb-1"><%= transactions.requisitioner %></h6>
+                              <span class="text-muted">Requisitioner</span>
+                            </div>
+                            <div class="float-end pt-1 hidden"></div>
                           </div>
-                          <div class="float-end pt-1">
+                          <div class="hidden col-md-6 d-flex">
+                             <div class="avatar">
+                              <span class="avatar-title rounded-circle border border-white bg-info">
+                                <i class="fas fa-user-gear"></i>
+                              </span>
+                            </div>
+                            <div class="flex-1 ms-3 pt-1">
+                              <h6 class="text-uppercase fw-bold mb-1"></h6>
+                              <span class="text-muted">Managed by: </span>
+                            </div>
                           </div>
                         </div>
                         <div class="separator-dashed"></div>
                         <div class="d-flex">
-                          <div class="avatar">
-                            <span class="avatar-title rounded-circle border border-white bg-secondary"><i class="fas fa-calendar-alt"></i></span>
-                          </div>
-                          <div class="flex-1 ms-3 pt-1">
-                            <h6 class="text-uppercase fw-bold mb-1">
-                              
-                              <span><%- moment(transactions.pr_date).format('LL') -%></span>
-                            </h6>
-                            <span class="text-muted">Created Date</span>
-                          </div>
-                          <div class="float-end pt-1">
-                          </div>
-                        </div>
-                        <div class="separator-dashed"></div>
-                        <div class="d-flex">
-                          <div class="col-md-6 d-flex abc">
+                          <div class="col-md-12 d-flex abc">
                             <div class="avatar">
                               <span class="avatar-title rounded-circle border border-white bg-info">₱</span>
                             </div>
@@ -120,33 +167,9 @@ if(logonUser) {
                               <small class="text-muted"></small>
                             </div>
                           </div>
-                          <div class="col-md-6 d-flex approved" data-approvedBudget="">
-                            <div class="avatar">
-                              <span class="avatar-title rounded-circle border border-white bg-info"><i class="fas fa-thumbs-up"></i></span>
-                            </div>
-                            <div class="flex-1 ms-3 pt-1">
-                              <h6 class="text-uppercase fw-bold mb-1">
-                                <%
-                                  var {approved_budget : budget} = transactions 
-                                  var cleanBudget = budget.replace(/,/g, '');
-                                
-                                  budget = parseFloat(cleanBudget)
-                                  const discount = budget * .10
-                                  budget = budget - discount
-                                %>
-                                <%- peso(budget) -%>
-                              </h6>
-                              <span class="text-muted">Estimate Budget</span>
-                            </div>
-                            <div class="float-end pt-1">
-                              <button  data-bs-toggle="modal" data-bs-target="#approvedBudgetModal" id="addBudget" class="btn btn-icon btn-link op-8 me-1">
-                                <i class="fas fa-plus-circle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Set Approved Budget"></i>
-                              </button>
-                            </div>
-                          </div>
                         </div>
-                        <div class="separator-dashed"></div>
-                        <div class="d-flex">
+                        <div class="separator-dashed hidden"></div>
+                        <div class="d-flex hidden">
                           <div class="avatar">
                             <span class="avatar-title rounded-circle border border-white bg-secondary"><i class="fas fa-hashtag"></i></span>
                           </div>
@@ -169,22 +192,22 @@ if(logonUser) {
                             </button>
                           </div>
                         </div>
-                        <div class="separator-dashed"></div>
+                      </div>
+                    </div>
+                    <div class="card hidden">
+                      <div class="card-header">
+                        <div class="card-head-row">
+                          <div class="card-title">Purchase Order History</div>
+                          <div class="card-tools"></div>
+                        </div>
+                      </div>
+                      <div class="card-body">
                         <div class="d-flex">
                           <div class="avatar">
                             <span class="avatar-title rounded-circle border border-white bg-secondary"><i class="fas fa-truck"></i></span>
                           </div>
                           <div class="flex-1 ms-3 pt-1">
-                            <h6 class="text-uppercase fw-bold mb-1">
-                            <% if(transactions?.trans_code && isValidJSON(transactions.trans_code)) { 
-                              trans_code = JSON.parse(transactions.trans_code)
-                              trans_code.forEach(function(code){ if(code) { %>
-                              <span class="badge badge-count"><%= code %></span>
-                              <% } })%>
-                            <% } else { %>
-                              <span class="badge badge-count"><%= transactions?.trans_code %></span>
-                            <% } %>
-                            </h6>
+                            <h6 class="text-uppercase fw-bold mb-1"></h6>
                             <span class="text-muted">Purchase Order Number</span>
                           </div>
                           <div class="float-end pt-1">
@@ -195,43 +218,120 @@ if(logonUser) {
                         </div>
                       </div>
                     </div>
+                    <!-- SHOW ONLY WHEN THE CURRENT STAGE IS [quotation_form_preparation, canvassing, supplier_engagement, bac_evaluation, procurement_finalization] -->
+                    <% 
+                      const stageCanvassing = steps[0]?.steps_number >= 6 && steps[0]?.steps_number <= 10
+            
+                      if (stageCanvassing) { 
+                        let haveSuppliers = false;
+
+                        if (_suppliers && _suppliers.length > 0) {
+                          haveSuppliers = true;
+                        }
+                      %>
+                      
+                    <div class="card">
+                      <div class="card-header">
+                        <div class="card-head-row card-tools-still-right">
+                            <h4 class="card-title">Suppliers</h4>
+                            <div class="card-tools transcations-code text-uppercase form-group-add">
+                                <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
+                                  <span class="fa fa-plus"></span>
+                                </button>
+                            </div>
+                        </div>
+                      </div>
+                      <div class="card-body">
+                        <div id="supplierInfo" data-suppliers="<%= JSON.parse(_suppliers) %>">
+                          <% 
+                          const lists = JSON.parse(_suppliers) 
+
+                            if (lists && lists.length > 0) { %>
+                            <% lists.forEach( (supplier, index) => { 
+                              const { supplier_id, quoted_price } = supplier
+                              const formattedPrice = n => new Intl.NumberFormat('en-US').format(n);
+                              // if(index === 0) return; // skip the first one as it's already rendered above
+                            %>
+                            <div id="supplier_<%= index %>" class="row" data-id="<%= index %>" data-supplier-id="<%= supplier_id %>" data-transaction-id="<%= product_id %>">
+                              <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
+                                  <div class="form-group form-group-default form-group-minus">
+                                      <label for="minusButton_<%= index %>">Rmv</label>
+                                      <button id="minusButton_<%= index %>" class="form-control fas fa-minus-circle"></button>
+                                  </div>
+                              </div>
+                              <div class="col-md-8 ml-0">
+                                  <%- include('../../views/partials/selectSuppliers', { key: index, filtered: supplier_id }) %>
+                              </div>
+                              <div class="col-md-3">
+                                <div class="form-group form-group-default">
+                                  <label for="quoted_price<%= index %>">Quoted Price</label>
+                                  <div class="input-icon" data-value="<%= formattedPrice(quoted_price) %>">
+                                    <input id="quoted_price<%= index %>" name="quoted_price" data-type="number" type="text" class="form-control" value="<%= formattedPrice(quoted_price) %>">
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          <% }) } else { %>
+                            <% const key = 0 %>
+                            <div id="supplier_<%= key %>" class="row" data-id="<%= key %>">
+                              <div class="col-md-1 col-xs-1 pd-0" style="padding-right: 0;">
+                                  <div class="form-group form-group-default form-group-minus">
+                                      <label for="minusButton_<%= key %>">Rmv</label>
+                                      <button id="minusButton_<%= key %>" class="form-control fas fa-minus-circle"></button>
+                                  </div>
+                              </div>
+                              <div class="col-md-8 ml-0">
+                                  <%- include('../../views/partials/selectSuppliers', { key, filtered: '' }) %>
+                              </div>
+                              <div class="col-md-3">
+                                <div class="form-group form-group-default">
+                                  <label for="qouted_price_<%= key %>">Qouted Price</label>
+                                  <div class="input-icon">
+                                    <input id="qouted_price_<%= key %>" name="qouted_price" data-type="number" type="text" class="form-control" value="">
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          <% } %>
+                        </div>
+                      </div>
+                      <div class="card-action align-right" style="padding: 15px 30px;">
+                        <% if (haveSuppliers) { %>
+                        <button id="submitSupplier" class="btn btn-success">Submit</button>
+                        <% } else { %>
+                        <button id="updateSupplier" class="btn btn-warning">Update</button>
+                        <% } %>
+                      </div>
+                    </div>
+                    <% } %>
                   </div>
-                <div class="col-md-6">
+                <div class="col-lg-12 col-xl-6">
                   <div class="card">
                     <div class="card-header">
                       <div class="card-head-row card-tools-still-right">
                         <div class="card-title">Next Responsible Person</div>
-                        <button class="btn btn-primary btn-round ms-auto" id="forwardBtn">
+                        <% if(employeesInSameDivision && Array.isArray(employeesInSameDivision)) { %>
+                        <button class="btn btn-warning btn-round ms-auto" id="assignedToBtn">
                           <i class="fa fa-forward"></i>
-                          Forward
+                          Assigned To
                         </button>
+                        <% } %>
                       </div>
                     </div>
-                    <div class="card-body">
-                      <div class="form-group form-group-default">
-                        <label>Select</label>
-                        <select class="form-select">
-                          <% employees.forEach(employee => { 
-                            var {employeeid, firstname, lastname, middlename} = employee 
-                            var fullname = `${lastname}, ${firstname} ${middlename}` %>
-                            <option value="<%= employeeid  %>"><%= fullname %></option>
-                          <% }) %>
-                          <!-- <option value="Accounting Section">Accounting Section</option>
-                          <option value="BAC Secretariat">BAC Secretariat</option>
-                          <option value="Canvassers">Canvassers</option>
-                          <option value="Division Chief">Division Chief</option>
-                          <option value="End-User">End-User</option>
-                          <option value="General Services Section">General Services Section</option>
-                          <option value="Inspectors">Inspectors</option>
-                          <option value="RAED">RAED</option>
-                          <option value="RED">RED</option>
-                          <option value="Procurement Section">Procurement Section</option>
-                          <option value="RTD">RTD</option>
-                          <option value="Supplier">Supplier</option>
-                          <option value="Cashering Unit">Cashering Unit</option> -->
-                        </select>
-                        
-                      </div>
+                    <div class="card-body" data-holder="<%= currentHolder %>" data-holder-division="">
+                      <% if(employeesInSameDivision && Array.isArray(employeesInSameDivision)) { %>
+                      <select class="form-select" id="nextResponsible" name="nextResponsible">
+                        <option value="">Select next responsible person</option>
+                        <%
+                          employeesInSameDivision.forEach( employee => {
+                            const { employeeid, firstname, lastname, middle } = employee
+                        %>
+                        <option value="<%= employeeid %>"><%= [firstname, lastname].join(' ')%></option>
+                        <%  }) %>
+                      </select>
+                      <% } else { %>
+                        <p class="text-muted">*** Please assign it to yourself so you can <strong>able to set the next responsible person</strong> for the transaction.</p>
+                      <% } %>
                     </div>
                   </div>
                   <div class="card">
@@ -246,8 +346,9 @@ if(logonUser) {
                       </div>
                     </div>
                     <div class="card-body">
-                      <ol class="activity-feed mb-0">
-                        <%- include('../../views/partials/activity-feed') -%>
+                      <ol class="activity-feed mb-0" data-current-steps="<%= steps[0]?.steps_number %>">
+                        <% var {approved_budget : budget} = transactions  %>
+                        <%- include('../views/partials/activity-feed', { budget, approval_steps }) -%>
                       </ol>
                     </div>
                   </div>
@@ -260,7 +361,7 @@ if(logonUser) {
 </div>
 
 <!-- Transaction: Remarks -->
-<%- include('../../components/modals/transactions/remark') -%>
+<%- include('../../components/modals/remark', { refid: JSON.stringify([transactions?.product_id]) }) -%>
 <!-- Transaction: Codes -->
 <%- include('../../components/modals/transactions/code') -%>
 <!-- Transaction: PO Number -->
@@ -271,6 +372,6 @@ if(logonUser) {
 <!-- <script> 
   new QRCode(`transid-<%- transactions.product_id %>`, `<%- transactions.product_id %>`); 
 </script> -->
-<% } %> endof IF transactions
+<% } %>
 <!-- Footer Template -->
-<%- include('../../views/footer') -%>
+<%- include('../../views/footer', { scripts: { 'suppliers': '/assets/js/pages/suppliers.js' } }) -%>

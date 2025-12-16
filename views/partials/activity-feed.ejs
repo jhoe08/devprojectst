@@ -1,100 +1,164 @@
 <% 
   const format2 = 'MMM DD YYYY hh:mm:ss';
-  const format = 'MMMM Do YYYY, h:mm:ss a'
-  for (let i = remarks.length - 1; i >= 0; i--) { 
-  const remark = remarks[i];
-  
-  if (!remark) continue; // Skip if there's no remark at all
-  
-  const { dueDate, date, status, comment, id, experience } = remark;
+  const format = 'MMMM Do YYYY, h:mm:ss a';
 
-  if(experience) { 
-    var { lists } = JSON.parse(experience)
-    var {office, division, banner, salary, startdate, enddate, position, employment } = lists[0] 
-    var employeeDivision = division
-    var employeeBanner = banner
+  // Combine remarks and reversedSteps into a single array for unified sorting
+  let feedItems = [];
+
+  // Prepare remarks feed items
+  for (let i = 0; i < remarks.length; i++) {
+    const remark = remarks[i];
+    if (!remark) continue;
+
+    const { id, dueDate, date, status, comment, refid, experience, firstname, section } = remark;
+    let firstLetter = (firstname && typeof firstname === 'string' ? firstname : '').charAt(0);
+
+    feedItems.push({
+      id,
+      type: 'remark',
+      refid,
+      date: date,
+      dueDate,
+      status,
+      comment,
+      experience,
+      firstname,
+      section,
+      firstLetter,
+      statusClass: (status === 'dark') ? `feed-item-black` : status ? `feed-item-${status}` : 'feed-item-default'
+    });
   }
-  
-  // Format dates
-  const displayDate = dueDate ? moment(dueDate).fromNow() : `<a href="#" data-bs-toggle="modal" data-bs-target="#remarksModal" data-action="update">Set</a>`;
-  const now = moment()
-  const startTime = moment(date);
-  const endTime = moment(dueDate);
 
-  const duration = moment.duration(endTime.diff(now));
-  const remainingHours = duration.hours();
-  const remainingMinutes = duration.minutes();
-  const remainingSeconds = duration.seconds();
+  // Prepare reversedSteps feed items
+  STEPS.lists.forEach(function(step) {
+    if (step.id != 1 && steps.length > 0) {
+      const step_id = step.id;
+      const current = steps[0]?.steps_number;
+      const max = STEPS.lists.length;
+      const count_steps = [];
+      for (let i = current + 1; i <= max; i++) {
+        count_steps.push(i);
+      }
+      const hide = count_steps;
 
-  
-  // Calculate duration
-  <!-- const displayDate2 = moment.duration(endTime.diff(startTime)).humanize(); -->
-  <!-- const displayDate2 = endTime.toNow() -->
-  const displayDate2 = `${remainingHours}h: ${remainingMinutes}m: ${remainingSeconds}s`
+      function getStepsDetails(steps, stepNumber) {
+        return steps.find(step => step.steps_number === stepNumber);
+      }
 
-  // Handle dueDate display fallback
-  const duedate = dueDate ? displayDate : displayDate;
-  
-  // Class for status
-  const statusClass = (status === 'dark') ? `feed-item-black` : status ? `feed-item-${status}` : 'feed-item-default'; // Default class if no status
-  
-  let tooltipHTML = 'data-bs-toggle="tooltip" data-bs-placement="left" '
-  switch(status) {
-    case 'dark':
-    case 'black':
-      tooltipHTML += 'data-bs-title="Back to office"'
-    break;
-    case 'secondary':
-      tooltipHTML += 'data-bs-title="Lack of Signature"'
-    break;
-    case 'info':
-      tooltipHTML += 'data-bs-title="Lack of Attachments"'
-    break;
-    case 'success':
-      tooltipHTML += 'data-bs-title="Read to move"'
-    break;
-    case 'warning':
-      tooltipHTML += 'data-bs-title="Waiting"'
-    break;
-    case 'danger':
-      tooltipHTML += 'data-bs-title="Issue occured"'
-    break;
-    default:
-      tooltipHTML += 'data-bs-title="For Approval"'
-  }
+      const stepsDetails = getStepsDetails(steps, step_id);
+      const isHidden = hide.includes(step.id) ? 'hidden' : '';
+      const status =  (stepsDetails?.status == 'approved') 
+                      ? 'success' : (stepsDetails?.status == 'disapproved') 
+                      ? 'danger' : 'warning';
+      const title  =  (stepsDetails?.status == 'approved') 
+                      ? 'Approved' : (stepsDetails?.status == 'return') 
+                      ? 'Return to End-User' : (stepsDetails?.status == 'disapproved') 
+                      ? 'Disapproved' : 'Waiting for Approval';
+
+      feedItems.push({
+        type: 'step',
+        id: step.id,
+        date: stepsDetails?.created_at,
+        updated_at: stepsDetails?.updated_at,
+        stepsDetails,
+        step,
+        isHidden,
+        status,
+        title
+      });
+    }
+  });
+
+  let typeRemark = 1;
+  // console.log('Combined Feed Items:', feedItems);
+  // Sort all feed items by date descending (latest first)
+  feedItems.sort((a, b) => new Date(b.date) - new Date(a.date));
 %>
 
-  <% 
-    if (remark.status) { 
-    %>
-    <% let firstLetter = (remark.firstname && typeof remark.firstname === 'string' ? remark.firstname : '').charAt(0); %>
+<% feedItems.forEach(function(item, i) { %>
+  <% if (item.type === 'remark') { 
+    let section = '', division = '';
+    if (item.experience) {
+      try {
+        const { lists } = JSON.parse(item.experience);
+        if (Array.isArray(lists) && lists.length > 0) {
+          const {
+            office = '',
+            division: div = '',
+            section: sec = '',
+            salary,
+            startdate,
+            enddate,
+            position,
+            employment
+          } = lists[0];
+          section = sec;
+          division = div;
+        }
+      } catch (err) {
+        console.error('Invalid experience JSON:', err);
+      }
+    }
 
-    <li id="remark-<%=id%>" class="feed-item <%- statusClass %> d-flex justify-content-between" data-index="<%- i %>" data-startdate="<%- moment(date).format(format) %>" data-duedate="<%- moment(dueDate).format(format) %>" data-division="<%- division %>" <%-tooltipHTML%>>
+    %>
+    <li data-item="<%= item.experience %>" id="remark-<%=item.id%>" class="feed-item <%- item.statusClass %> d-flex justify-content-between" data-index="<%- i %>" data-startdate="<%- moment(item.date).format(format) %>" data-duedate="<%- moment(item.dueDate).format(format) %>" data-division="<%- item.experience?.division %>">
       <div class="d-flex">
-        <!-- <span class="user fs-2 mr-3"><i class="far fa-user-circle"></i></span> -->
         <div class="avatar">
-          <span class="avatar-title rounded-circle border border-white bg-info"><%- firstLetter %></span>
+          <span class="avatar-title rounded-circle border border-white bg-info"><%- item.firstLetter %></span>
         </div>
         <div class="flex-1 ms-3 pt-1">
-          <div class="username"><%- remark.firstname %> • <%- division %> <%- banner ? `- ${banner}` : '' %></div>
+          <div class="username"><%- item.firstname %> • <%- item.experience ? `${section} ${division}` : '' %></div>
           <div class="text">
-            <span class="badge badge-<%- (status === 'dark') ? 'black' : ((i % 2 === 0) ? 'success' : 'info') %> mr-3">
-              <%- (i % 2 === 0) ? 'In' : 'Out' %>
+            <span class="badge badge-<%- (item.status === 'dark') ? 'black' : ((typeRemark % 2 === 0) ? 'info' : 'success') %> mr-3">
+              <%- (typeRemark % 2 === 0) ? 'In' : 'Out' %>
             </span>
-            <%- comment %>
+            <%- item.comment %>
           </div>
         </div>
       </div>
       <div class="text-capitalize">
-        <time class="date hidden" datetime="<%- moment(date).format(format) %>">
-          <%- moment(date).format(format) %>
+        <time class="date hidden" datetime="<%- moment(item.date).format(format) %>">
+          <%- moment(item.date).format(format) %>
         </time>
-        <span id="timeCheck" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="<%- moment(date).format(format) %>"><%- displayDate %></span>
+        <span id="timeCheck" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="<%- moment(item.date).format(format) %>"><%- item.dueDate ? moment(item.dueDate).fromNow() : 'Set' %></span>
+      </div>
+    </li>
+  <% typeRemark++; 
+    } else if (item.type === 'step') {
+      let { date, updated_at } = item;
+      const now = new Date();
+
+      created_at = new Date(date);
+      updated_at = new Date(updated_at || now);
+     
+      const diffMs = Math.abs(updated_at - created_at);
+      
+      const totalSeconds = Math.floor(diffMs / 1000);
+      const days = Math.floor(totalSeconds / (3600 * 24));
+      const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+  %>
+    <li data-step="<%= JSON.stringify(item.stepsDetails) %>" class="feed-item feed-item-black d-flex justify-content-between <%= item.isHidden %>" data-id="" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="<%= item.title %>">
+      <div class="d-flex">
+        <span class="user fs-3 mr-3"><i class="fas fa-door-open"></i></span>
+        <div class="details">
+          <time class="date" datetime="<%- moment(created_at).format(format) %>" dataupdated="<%- moment(updated_at).format(format) %>">
+            <%- moment(created_at).format(format) %>
+          </time>
+          <span class="text">
+            <span class="badge badge-<%= item.status %> mr-3"><%= (item.step.id == item.stepsDetails?.steps_number) ? item.stepsDetails?.status : '' %></span>
+            <%= item.step.steps_title %>
+          </span>
+        </div>
+        <span></span>
+      </div>
+      <div class="total-response-time">
+        <%= `${days}d ${hours}h ${minutes}m ${seconds}s` %>
       </div>
     </li>
   <% } %>
-
-<% } %>
+<% }); %>
 
 <!-- Remarks from published -->
 <li class="feed-item feed-item-black pb-0 d-flex justify-content-between" data-order="first" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Out of office">

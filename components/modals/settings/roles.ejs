@@ -52,7 +52,7 @@
                 <select class="form-select" id="role_employees" multiple>
                 <% employees.forEach(employee => { 
                   const { employeeid, firstname, middlename, lastname, extname } = employee
-                  const fullname = `${lastname}, ${firstname} ${middlename}`
+                  const fullname = UTILS.helpers.fullName(firstname, middlename, lastname, extname);
                   %>
                   <option class="<%= JSON.parse(employeeid) %> sentence" title="<%= fullname %>" value="<%= fullname %>"><%= fullname %></option>
                 <% }) %>

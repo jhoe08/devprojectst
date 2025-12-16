@@ -4,10 +4,13 @@
 <div class="container-fluid">
     <div class="row">
       <div class="col-sm-6 col-md-7 intro-section">
-        <div class="brand-wrapper">
+        <div class="brand-wrapper d-flex flex-row align-items-center">
           <img src="./assets/img/da-logo.png" alt="Department of Agriculture" />
-          <h1 class="text-success">Department of Agriculture</h1>
-          <h2 class="text-black">Regional Field Office 7</h2>
+          <div class="brand-text">
+            <h6 class="text-black">Republic of the Philippines</h6>
+            <h1 class="text-secondary">Department of Agriculture</h1>
+            <h2 class="text-black">Regional Field Office 7</h2>
+          </div>
         </div>
         <div class="intro-content-wrapper">
           <h1 class="intro-title">"Masaganang Agrikultura, Maunlad na Ekonomiya"</h1>
@@ -35,7 +38,7 @@
       <div class="col-sm-6 col-md-5 form-section">
         <div class="login-wrapper">
           <h2 class="login-title">Sign in</h2>
-          <form action="/login" method="post" data-message="<%=emitMessage%>">
+          <form action="/login" method="post">
             <div class="form-floating form-floating-custom mb-3">
               <input type="text" class="form-control" name="username" id="floatingUsernameInput">
               <label for="floatingUsernameInput">Username</label>
@@ -49,6 +52,15 @@
               <a href="#!" class="forgot-password-link">Password?</a>
             </div>
           </form>
+          <div class="form-group mt-3 text-center">
+            <a href="/token?guest_token=<%= guestToken || '' %>" class="btn btn-outline-primary" onclick="submitGuestToken()">
+              Continue as Guest
+            </a>
+            <form id="guestForm" method="POST" action="/login">
+              <input type="hidden" name="guest_token" value="<%= guestToken || '' %>">
+            </form>
+
+          </div>
           <p class="login-wrapper-footer-text">Need an account? <a href="/register" class="text-reset">Signup here</a></p>
         </div>
       </div>

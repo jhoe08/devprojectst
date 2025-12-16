@@ -1,17 +1,96 @@
 <!-- Header Template -->
 <%- include('../views/header') -%>
 <% 
-  const { transactions } = cardsData
+  // const { transactions } = cardsData
   
   // Destructuring the object
-  const {
+  /* const {
     employees: { row_count: employeesRowCount, total_sum: employeesTotalSum },
     transactions: { row_count: transactionsRowCount, total_sum: transactionsTotalSum },
     notifications: { row_count: notificationsRowCount, total_sum: notificationsTotalSum }
-  } = cardsData;
-  
+  } = cardsData; */
+
+  const employeesRowCount = cardsData?.employees?.row_count || 0;
+  const employeesTotalSum = cardsData?.employees?.total_sum || 0;
+  const transactionsRowCount = cardsData?.transid?.row_count || 0;
+  const transactionsTotalSum = cardsData?.transid?.total_sum || 0;
+  const notificationsRowCount = cardsData?.notifications?.row_count || 0;
+  const notificationsTotalSum = cardsData?.notifications?.total_sum || 0;
+
+  let componentTransaction = transactions
+  let componentActivity = activities
+
+
+  // componentTransaction = JSON.parse(JSON.stringify(componentTransaction))
+
+  const parseAmount = (str) => parseFloat(str.replace(/,/g, '').trim()) || 0;
+
+  const monthlyTotals = {};
+
+  /* componentTransaction.forEach(({ pr_date, fund_source }) => {
+    const month = new Date(pr_date).toLocaleString('default', { month: 'long', year: 'numeric' });
+    fund_source = JSON.parse(fund_source);
+    const totalAmount = fund_source.reduce((sum, entry) => sum + parseAmount(entry.amount), 0);
+
+    console.log('Monthly', month);
+
+    monthlyTotals[month] = (monthlyTotals[month] || 0) + totalAmount;
+  }); */
+
+  // Step 1: Initialize all months with zero
+  const allMonths = Array.from({ length: 12 }, (_, i) => {
+    const date = new Date(2025, i); // Use any year
+    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+  });
+
+  allMonths.forEach(month => {
+    monthlyTotals[month] = 0;
+  });
+
+
+  // Step 2: Process transactions
+  componentTransaction.forEach(({ pr_date, fund_source }) => {
+    const month = new Date(pr_date).toLocaleString('default', { month: 'long', year: 'numeric' });
+    fund_source = JSON.parse(fund_source);
+    const totalAmount = fund_source.reduce((sum, entry) => sum + parseAmount(entry.amount), 0);
+
+    monthlyTotals[month] += totalAmount;
+  });
+
+  const months = Object.entries(monthlyTotals).map(([key, _]) => key.split(" ")[0]);
+  const jsonMonths = JSON.stringify(months);
+  const values = Object.entries(monthlyTotals).map(([_, value]) => value);
+
+  const latestStepsByProduct = {}
+  const latestStepsByProduct2 = {}
+  let arrayProductIds = []
+
+  componentActivity.forEach(entry => {
+    const { product_id, steps_number, status } = entry;
+
+    if(!latestStepsByProduct[product_id] || steps_number > latestStepsByProduct[product_id]) {
+      // latestStepsByProduct[product_id] = steps_number;
+      if (!latestStepsByProduct2[steps_number] && status === 'pending') {
+        latestStepsByProduct2[steps_number] = [];
+      }
+      if(status === 'pending') {
+        latestStepsByProduct2[steps_number].push(product_id);
+      }
+    } 
+  })
+
+  // const stepsIndex = Object.values(latestStepsByProduct).map(key => STEPS.getTitle(Number(key)));
+  // const stepsValues = Object.keys(latestStepsByProduct)
+
+  const stepsIndex = Object.keys(latestStepsByProduct2).map(key => STEPS.getTitle(Number(key)));
+  const stepsValues = Object.values(latestStepsByProduct2).map(productIds => {
+    const length = productIds.length
+    // console.log('Distribution', length)
+    // const title = STEPS.getTitle(Number(length))
+    return length
+  });
 %>
-<div class="wrapper">
+<div class="wrapper" data-transactions="<%=JSON.stringify({latestStepsByProduct2, stepsIndex, stepsValues})%>">
   <%- include('../views/sidebar') -%>
 
   <div class="main-panel">
@@ -31,8 +110,8 @@
             <a href="/transactions/scan" class="btn btn-primary btn-round"><i class="fas fa-qrcode"></i> Scan Transaction</a>
           </div>
         </div>
-        <div class="row">
-          <div class="col-sm-6 col-md-3">
+        <div class="row <%= hasAllowedRole(['Admin', 'SuperAdmin']) ? '' : 'hidden' %>">
+          <div class="col-sm-6 col-md-3 hidden">
             <div class="card card-stats card-round">
               <div class="card-body">
                 <div class="row align-items-center">
@@ -53,7 +132,7 @@
               </div>
             </div>
           </div>
-          <div class="col-sm-6 col-md-3">
+          <div class="col-sm-6 col-md-3 hidden">
             <div class="card card-stats card-round">
               <div class="card-body">
                 <div class="row align-items-center">
@@ -87,15 +166,15 @@
                   </div>
                   <div class="col col-stats ms-3 ms-sm-0">
                     <div class="numbers">
-                      <p class="card-category">Budget</p>
-                      <h4 class="card-title" data-totalBudget="<%=transactionsTotalSum%>"><%=peso(transactionsTotalSum)%></h4>
+                      <p class="card-category">Total ABC Transactions</p>
+                      <h4 class="card-title" data-totalBudget="<%= transactionsTotalSum %>"><%= UTILS.peso(transactionsTotalSum) %></h4>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-sm-6 col-md-3">
+          <div class="col-sm-6 col-md-3 hidden">
             <div class="card card-stats card-round">
               <div class="card-body">
                 <div class="row align-items-center">
@@ -108,7 +187,72 @@
                   </div>
                   <div class="col col-stats ms-3 ms-sm-0">
                     <div class="numbers">
-                      <p class="card-category">Completed Transaction</p>
+                      <p class="card-category">Total Disbursement</p>
+                      <h4 class="card-title">2</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row <%= hasAllowedRole(['User']) ? '' : 'hidden' %>">
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small"
+                    >
+                      <i class="fas fa-inbox"></i>
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">Transactions</p>
+                      <h4 class="card-title"><%=transactionsRowCount%></h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small text-white"
+                    >
+                      GS
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">General Service</p>
+                      <h4 class="card-title">3</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small text-white"
+                    >
+                     PS
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">Procurement</p>
                       <h4 class="card-title">1</h4>
                     </div>
                   </div>
@@ -116,14 +260,79 @@
               </div>
             </div>
           </div>
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small text-white"
+                    >
+                      BS
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">Budget</p>
+                      <h4 class="card-title">2</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small text-white"
+                    >
+                      AS
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">Accounting</p>
+                      <h4 class="card-title">1</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-2 col-md-2">
+            <div class="card card-stats card-round">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-icon">
+                    <div
+                      class="icon-big text-center icon-primary bubble-shadow-small text-white"
+                    >
+                      CS
+                    </div>
+                  </div>
+                  <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="numbers">
+                      <p class="card-category">Cashiering</p>
+                      <h4 class="card-title">1</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
           <div class="col-sm-12 col-md-12 col-lg-6">
-            <%- include('../components/charts/multipleLine', { id:"prcreation", title: "Purchase Request", description: "" }) -%>
+            <%- include('../components/charts/multipleLine', { title: "Purchase Request", description: "", datasets: {months:jsonMonths, amounts:[], abcs: values, disbursements: []} }) -%>
           </div>
-          <div class="col-sm-12 col-md-12 col-lg-3" >
-            <%- include('../components/charts/pie', { id:"chartClassification", title: "Classification", datasets: perClassification }) -%>
+          <div class="col-sm-12 col-md-6 col-lg-3" >
+            <%- include('../components/charts/pie', { id:"chartClassification", title: "PR Classification", datasets: perClassification }) -%>
           </div>
-          <div class="col-sm-12 col-md-12 col-lg-3">
-            <%- include('../components/charts/doughnut') -%>
+          <div class="col-sm-12 col-md-6 col-lg-3">
+            <%- include('../components/charts/doughnut', { id:"chartDistribution", title: "Distribution Analytics", datasets: {points: stepsValues, labels: stepsIndex} }) -%>
           </div>
           <div class="col-sm-12 col-md-12 col-lg-12">
             <%- include('../components/datatables/index') -%>

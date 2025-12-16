@@ -9,12 +9,12 @@
     />
     <link
       rel="icon"
-      href="/assets/img/da-logo.ico"
+      href="/assets/img/favicon.ico"
       type="image/x-icon"
     />
 
     <!-- Fonts and icons -->
-    <script src="/assets/js/plugin/webfont/webfont.min.js"></script>
+    <script src="/demo/assets/js/plugin/webfont/webfont.min.js"></script>
     <script>
       WebFont.load({
         google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -25,61 +25,79 @@
             "Font Awesome 5 Brands",
             "simple-line-icons",
           ],
-          urls: ["/assets/css/fonts.min.css"],
+          urls: ["/demo/assets/css/fonts.min.css"],
         },
         active: function () {
           sessionStorage.fonts = true;
         },
       });
-
-      // Number Format
-      // const locale = 'en';
-      // const options = {style: 'currency', currency: 'php', minimumFractionDigits: 2, maximumFractionDigits: 2};
-      // let formatter = new Intl.NumberFormat(locale, options);
-      // // How to use
-      // var amount = 5000.25;
-      // console.log(formatter.format(amount));
       
     </script>
-    <script src="/assets/js/core/qrcode.min.js"></script>
+    <!-- QR Code -->
+    <script src="/assets/js/plugins/qrcode/qrcode.min.js"></script>
+
     <!-- <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script> -->
 
     <script type="module" src="/assets/js/head.js"></script>
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/assets/css/plugins.min.css" />
-    <link rel="stylesheet" href="/assets/css/kaiadmin.min.css" />
+    <!-- CSS Themes Files -->
+    <link rel="stylesheet" href="/demo/assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/demo/assets/css/plugins.min.css" />
+    <link rel="stylesheet" href="/demo/assets/css/kaiadmin.min.css" />
+    <link rel="stylesheet" href="/demo/assets/css/demo.css" />
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="/assets/css/upload.css" />
-    <link rel="stylesheet" href="/assets/css/demo.css" />
+    <link rel="stylesheet" href="/assets/css/media.css" />
+
+    <!-- Client CSS -->
     <link rel="stylesheet" href="/assets/css/scanner.css" />
     <link rel="stylesheet" href="/assets/css/timer.css" />
     <link rel="stylesheet" href="/assets/css/animation.css" />
     <link rel="stylesheet" href="/assets/css/print.css" />
-    <script>
+    <link rel="stylesheet" href="/assets/css/transactions.css" />
 
-      document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
-        if(calendarEl){
-          var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth'
-          });
-          calendar.render();
-        }
-        
-      });
+    <!-- Index  CSS -->
+    <link rel="stylesheet" href="/assets/css/index.css" />
+    <style>
+      
 
-    </script>
+      
+    </style>
   </head>
-  <%
-    const {employeeid, username, firstname, lastname, middlename } = SESSION_USER
-  %>
-  <body data-env="<%=ENVIRONMENT%>" data-testmode="<%=TEST_MODE%>" data-currentuser="<%=JSON.stringify({employeeid, username})%>">
-<% if(SESSION_USER){
-  const { employeeid, username, firstname, lastname, middlename } = SESSION_USER %>
-  <input id="created_by" type="hidden" value="<%=username??'justtest-'%>">
-  <input id="session_firstname" type="hidden" value="<%=firstname??'justtest-'%>">
-  <input id="session_middlename" type="hidden" value="<%=middlename??'justtest-'%>">
-  <input id="session_lastname" type="hidden" value="<%=lastname??'justtest-'%>">
+
+  <body class='<%= hasAllowedRole(["SuperAdmin"]) ? "superclass" : "" %> <%= SESSION_USER ? "userLogged" : ""%>' data-env="<%= ENVIRONMENT %>" data-testmode="<%= TEST_MODE %> %>">
+
+<% 
+  const { divisions } = JSON.parse(DEPARTMENT)
+
+  if(SESSION_USER){
+    const { employeeid, username, firstname, lastname, middlename, experience, roles } = SESSION_USER;
+    const { lists } = JSON.parse(experience)
+    let { office, salary, startdate, enddate, position, division, section, banner } = lists[0] 
+   // section = section.toUpperCase()
+
+  const safeMiddle = middlename?.trim();
+  const fullname = safeMiddle
+    ? `${firstname} ${safeMiddle[0]}. ${lastname}`
+    : `${firstname} ${lastname}`;
+
+%>
+  <input 
+    id="created_by" 
+    type="hidden"
+    value="<%= JSON.stringify({employeeid, name: fullname }) %>" 
+    data-responsible="<%= JSON.stringify(getUserResponsible(division, section)) %>"
+    data-user-role="<%= roles %>"
+    data-has-allowed-roles="<%= hasAllowedRole(roles) %>"
+    />
+  <input 
+    id="sessionUser"
+    type="hidden"
+    data-details="<%= JSON.stringify(SESSION_USER_LOG) %>"
+    />
+  <input 
+    id="assignedTransactions" 
+    type="hidden"
+    value='' 
+    />
 <% } %>

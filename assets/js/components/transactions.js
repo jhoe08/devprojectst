@@ -1,13 +1,11 @@
 // let notifyIcon = ['check', 'close', 'exclamation', 'bell'];
 (() => {
-  const exampleModal = document.getElementById('viewTransactionModal')
-
   const createTransactionCode = document.getElementById('createTransactionCode')
   const createTransactions = document.getElementById('createTransactions')
   const updateTransactions = document.getElementById('updateTransactions')
   const createRemarks = document.getElementById('createRemarks')
   const updateRemarks = document.getElementById('updateRemakrs')
-  const deleteTransaction = document.querySelectorAll('.form-button-action .btn-danger');
+  const deleteTransaction = document.querySelectorAll('.form-button-action .btn-delete');
   const printRemarks = document.getElementById('btnPrint')
   const printTracking = document.querySelectorAll('button[id*="print_"]')
 
@@ -27,6 +25,11 @@
 
   const created_by = document.getElementById('created_by')
 
+  const approveBtn = document.getElementById('approveBtn')
+  const disapproveBtn = document.getElementById('disapproveBtn')
+  
+  const setQoutedAmount = document.getElementById('setQoutedAmount')
+
   function getClosestDivision(element) {
     let sibling = element.previousElementSibling;
 
@@ -39,68 +42,43 @@
     }
     return null;  // No division found
   }
-  if (exampleModal) {
-    exampleModal.addEventListener('show.bs.modal', event => {
-      // Button that triggered the modal
-      const button = event.relatedTarget
-      // Extract info from data-bs-* attributes
-      const recipient = button.getAttribute('data-bs-whatever')
-      const transaction = JSON.parse(button.parentNode.dataset.transaction)
-      // console.log(transaction)
-  
-      let {approved_budget, bac_unit, banner_program, bid_notice_title, division, fund_source, pr_classification, pr_date,  product_id, requisitioner, trans_code} = transaction
-  
-      // const {}
-      // If necessary, you could initiate an Ajax request here
-      // and then do the updating in a callback.
-  
-      // Update the modal's content.
-      const modalTitle = exampleModal.querySelector('.modal-title')
-  
-      // pr_date = moment(pr_date).format('MMM Do YYYY')
-  
-      const modalBodyTitle = exampleModal.querySelector('.modal-body h3')
-      const modalClassification = exampleModal.querySelector('.modal-body .badge-count')
-      const modalBACUnit = exampleModal.querySelector('.modal-body .badge-danger')
-      const modalBannerProgram = exampleModal.querySelector('.modal-body .badge-info')
-      const modalPRDate= exampleModal.querySelector('.modal-body .badge-black')
-      const modalFundSource = exampleModal.querySelector('.modal-body .btn-border.btn-round span')
-      const modalBudget = exampleModal.querySelector('.modal-body .btn-round')
-      const modalRequisitioner = exampleModal.querySelector('.modal-body .text-muted')
-      const modalFooterLink = exampleModal.querySelector('.modal-footer a')
-      const modalQRCode = exampleModal.querySelector('.qrcode')
-      modalQRCode.innerHTML = ''
-      modalQRCode.setAttribute('id', `transid-${recipient}`)
-  
-      // approved_budget = parseInt(approved_budget)
-      // approved_budget = formatter.format(formatter.format(amount))
 
-      var chargingTo = JSON.parse(fund_source)
-      if(Array.isArray(chargingTo)) {
-        chargingTo = chargingTo.map(item => `${item.division}-${item.section}`).join(', ');
-      } else {
-        chargingTo = 'N/A'
+  function trimFullName(){ 
+    // Select the element containing the attribute
+    const el = document.querySelector('[data-responsible]');
+
+    if (el) {
+      // Get the raw HTML-encoded JSON string
+      const raw = el.getAttribute('data-responsible');
+
+      try {
+        // Decode and parse the string
+        const responsibleData = JSON.parse(raw);
+
+        // Access the names
+        const divisionName = responsibleData.division?.name;
+        const sectionName = responsibleData.section?.name;
+
+        // Optionally format to initials
+        const formatName = full => {
+          if (!full || typeof full !== 'string') return '';
+          const parts = full.trim().split(' ');
+          return parts.length ? `${parts[0][0].toUpperCase()}. ${parts.at(-1)}` : '';
+        };
+
+        const formattedDivision = formatName(divisionName);
+        const formattedSection = formatName(sectionName);
+
+        const parts = [formattedDivision, formattedSection].filter(Boolean);
+
+        return parts.join(' / ');
+
+      } catch (err) {
+        console.error('Invalid JSON in data-responsible:', err);
       }
-      
-  
-      modalTitle.textContent = `Transaction ID #${recipient}`
-      modalClassification.textContent = pr_classification
-      modalBACUnit.textContent = bac_unit
-      modalBannerProgram.textContent = banner_program
-      modalPRDate.textContent = dateFormat(pr_date)
-      modalBodyTitle.textContent = bid_notice_title
-      modalBudget.textContent = peso(approved_budget)
-      modalFundSource.textContent = chargingTo
-      modalRequisitioner.innerHTML = `<i class="fas fa-user-circle"></i> ${requisitioner} — <span class="badge badge-warning">${division}</span> `
-  
-  
-      new QRCode("transid-"+recipient, recipient);
-  
-      modalFooterLink.setAttribute('href', `/transactions/${recipient}/view`)
-  
-      // modalBodyInput.value = recipient
-    })
+    }
   }
+
   if (setApprovedBudgetBtn) {
     setApprovedBudgetBtn.addEventListener('click', function () {
       const approvedBudgetContainer = document.querySelector('.approved')
@@ -152,110 +130,115 @@
     let bannerProgram = document.querySelector('#bannerProgram')
     let bacUnit = document.querySelector('#bacUnit')
     let remarks = document.querySelector('#remarks')
-    
+    const created_by = document.querySelector('#created_by')
+    const responsibleData = created_by.dataset.responsible ? JSON.parse(created_by.dataset.responsible) : null;
+
+    console.log({responsibleData})
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
+    requisitioner.value = trimFullName()
+
+    if(Object.keys(responsibleData).length === 0){ 
+      console.error('No responsible data found');
+      requisitioner.closest('.form-group').classList.add('has-error');
+      requisitioner.closest('.form-group').querySelector('.input-icon').classList.add('text-danger');
+    }
+
     createTransactions.addEventListener('click', async () => {
-      let charge = []
-      let funds =  chargingTo.querySelectorAll('.row')
-      funds.forEach(fund => {
-        let element = fund.querySelector('select[name="division"]')
-        let selectedOption = element.options[element.selectedIndex];
-        let divisionValue = selectedOption.dataset.division;
-
-        let amount = fund.querySelector('input[name="unitCount"]')
-            amount = amount.value
-        charge.push({division: divisionValue, section: (element.value), amount })
-      })
-
-
       try {
-        let bidNoticeTitleValue = bidNoticeTitle.value
-        let prClassificationValue = prClassification.value
-        let requisitionerValue = requisitioner.value
-        // let divisionValue = division.value
-        let budgetValue = budget.value
-          // let bannerProgramValue = bannerProgram.value
-        let bacUnitValue = bacUnit.value
-        // let remarksValue = remarks.value
+        // 🔄 Collect fund source data
+        const charge = Array.from(chargingTo.querySelectorAll('.row')).map(fund => {
+          const select = fund.querySelector('select[name*="division_"]');
+          const selectedOption = select.options[select.selectedIndex];
+          const divisionValue = selectedOption.dataset.division;
+          const sectionValue = select.value;
+          const amountValue = fund.querySelector('input[name="unitCount"]').value;
 
-        if (bidNoticeTitleValue === '' || budgetValue === 0 || requisitionerValue === '') {
-          notifyCustom('exclamation', 'Fields are empty', 'Either this fields are empty Bid Notice Title, Budget, and Requisitioner', 'danger')
-          return
-        };
+          return {
+            division: divisionValue,
+            section: sectionValue,
+            amount: amountValue
+          };
+        });
 
-        const apiUrl = '/transactions/new';
-        let data = {
+        // 🧼 Extract and validate form values
+        const bidNoticeTitleValue = bidNoticeTitle.value.trim();
+        const prClassificationValue = prClassification.value;
+        const requisitionerValue = requisitioner.value.trim();
+        const budgetRawValue = budget.value.replace(/,/g, '');
+        const bacUnitValue = bacUnit.value;
+
+        if (!bidNoticeTitleValue || !requisitionerValue || parseFloat(budgetRawValue) === 0) {
+          notifyCustom(
+            'exclamation',
+            'Fields are empty',
+            'Submission failed: Bid Notice Title, Budget, and Requisitioner are mandatory fields.',
+            'danger'
+          );
+          return;
+        }
+
+        const approvedBudget = parseFloat(budgetRawValue);
+
+        // 🧠 Parse next responsible data
+        let nextResponsible;
+        try {
+          nextResponsible = JSON.parse(created_by.dataset.responsible);
+        } catch (err) {
+          notifyCustom('bell', 'Invalid responsible data', 'Could not parse next responsible person.', 'danger');
+          return;
+        }
+
+        // 📦 Prepare payload
+        const payload = {
           bid_notice_title: bidNoticeTitleValue,
           pr_classification: prClassificationValue,
           requisitioner: requisitionerValue,
-          // division: divisionValue,
-          approved_budget: budgetValue,
+          approved_budget: approvedBudget,
           fund_source: JSON.stringify(charge),
-          // banner_program: bannerProgramValue,
           bac_unit: bacUnitValue,
-          remarks: {
-            createby: created_by,
-            message: 'Created Transaction',
-          }
+          remarks: JSON.stringify({
+            message: 'Created Transaction'
+          }),
+          prepared_by: created_by.value,
+          assigned_to: nextResponsible.division?.employeeid || null
         };
 
-        console.log('data', data)
+        console.log('Payload:', payload);
 
-        const requestOptions = {
+        // 🚀 Send request
+        const response = await fetch('/transactions/new', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data)
-        };
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-        console.log(requestOptions.body)
+        if (!response.ok) {
+          notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger');
+          return;
+        }
 
-        fetch(apiUrl, requestOptions)
-          .then(response => {
-            if (!response.ok) {
-              // throw new Error('Network response was not ok');
-              notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
-            }
-            return response.json();
-          })
-          .then(data => {
-            if (!data) {
-              notifyCustom('bell', 'Error', 'Failed to create the Transaction!', 'danger')
-            }
+        const result = await response.json();
 
-            let { message, response } = data
-            let { insertId } = response
+        if (!result || !result.response?.insertId) {
+          notifyCustom('bell', 'Error', 'Failed to create the Transaction!', 'danger');
+          return;
+        }
 
-            notifyCustom('bell', message, `Transaction ID#${insertId}`, 'success')
-            // Clearing the fields
-            // bidNoticeTitle.value = ''
-            // prClassification.value = ''
-            // requisitioner.value = ''
-            // division.value = ''
-            // budget.value = ''
-            // fundSource.value = ''
-            // bannerProgram.value = ''
-            // bacUnit.value = ''
+        const { message, response: { insertId } } = result;
+        notifyCustom('bell', message, `Transaction ID#${insertId}`, 'success');
 
-          })
-          .catch(error => {
-            notifyCustom('bell', 'There was an error on the system!', error, 'danger')
-          });
+        // 🧹 Optional: Clear form fields here if needed
+        // [bidNoticeTitle, prClassification, requisitioner, budget, bacUnit].forEach(el => el.value = '');
+
       } catch (error) {
-        notifyCustom('close', 'Field is empty please check!', error, 'danger')
+        notifyCustom('close', 'Unexpected error occurred', error.message || error, 'danger');
       }
     });
-
-    // if(divisionsSelect) {
-    //     divisionsSelect.addEventListener('change', uUasdlwaWW)
-    //     bannerProgramSelect.addEventListener('change', uUasdlwaWW)
-    //     unitCount.addEventListener('keypress', uUasdlwaWW)
-    // }
   }
+  // Update
   if (updateTransactions) {
     let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
     let prClassification = document.querySelector('#prClassification')
@@ -281,15 +264,19 @@
       let charge = []
       let funds =  chargingTo.querySelectorAll('.row')
       funds.forEach(fund => {
-        let element = fund.querySelector('select[name="division"]')
+        let element = fund.querySelector('select[name^="division_"]');
         let selectedOption = element.options[element.selectedIndex];
         let divisionValue = selectedOption.dataset.division;
 
-        let amount = fund.querySelector('input[name="unitCount"]')
-            amount = amount.value
-        
-        charge.push({division: divisionValue, section: (element.value), amount })
-      })
+        let amount = fund.querySelector('input[name="unitCount"]').value;
+
+        charge.push({
+          division: divisionValue,
+          section: element.value,
+          amount
+        });
+      });
+
 
       if (bidNoticeTitleValue === '' || budgetValue <= 0 || requisitionerValue === '') {
         notifyCustom('bell', 'Empty Fieldsssssssssss', 'Please fill up those fields and try again.')
@@ -371,75 +358,78 @@
         });
     })
   }
-  if (createRemarks) {
-    let comment = document.querySelector('#comment')
+  // if (createRemarks) {
 
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
+  //   const myHeaders = new Headers();
+  //   myHeaders.append("Content-Type", "application/json");
 
-    createRemarks.addEventListener('click', async () => {
-      console.log(createRemarks)
-      try {
-        let selectedStatus = document.querySelector('input[name="color"]:checked');
-        let selectedPeriod = document.querySelectorAll('input[name="period"]');
-        let { transid } = createRemarks.dataset
-        let selectedStatusValue = selectedStatus.value
+  //   createRemarks.addEventListener('click', async () => {
+  //     console.log('Creating remarks...')
+  //     try {
+  //       let comment = document.querySelector('#comment')
+  //       let assignedto = document.querySelector('#assignedto')
+  //       let selectedStatus = document.querySelector('input[name="color"]:checked');
+  //       let selectedPeriod = document.querySelectorAll('input[name="period"]');
+  //       let { transid } = createRemarks.dataset
+  //       let selectedStatusValue = selectedStatus.value
 
-        const checkedCheckboxes = Array.from(selectedPeriod)
-          .filter(checkbox => checkbox.checked)
-          .map(checkbox => parseFloat(checkbox.value))
-          .reduce((sum, value) => sum + value, 0);
+  //       const checkedCheckboxes = Array.from(selectedPeriod)
+  //         .filter(checkbox => checkbox.checked)
+  //         .map(checkbox => parseFloat(checkbox.value))
+  //         .reduce((sum, value) => sum + value, 0);
 
-        let preloaded = {
-          comment: comment.value,
-          refid: transid,
-          status: selectedStatusValue,
-          user: 'justjoe',
-          dueDate: checkedCheckboxes
-        }
-        console.log(preloaded)
-        const apiUrl = '/remarks/new'
+  //       const data = {
+  //         comment: comment.value,
+  //         refid: transid,
+  //         status: selectedStatusValue,
+  //         dueDate: checkedCheckboxes,
+  //         // assignedto: assignedto.checked
+  //       }
+  //       const apiUrl = '/remarks/new'
 
-        const requestOptions = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(preloaded)
-        };
+  //       const requestOptions = {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify(data)
+  //       };
 
-        fetch(apiUrl, requestOptions)
-          .then(response => {
-            if (!response.ok) {
-              // throw new Error('Network response was not ok');
-              notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
-            }
-            return response.json();
-          })
-          .then(data => {
-            if (!data) {
-              notifyCustom('bell', 'Error', 'Failed to create new remarks', 'danger')
-            }
+  //       console.log('preloaded', requestOptions.body)
 
-            let { message } = data
-            if (refreshActivity) {
-              refreshActivity.click()
-            }
 
-            // clearing fields
-            selectedStatus.checked = false
-            comment.value = ''
-            // return notifications
-            notifyCustom('check', `${message}`, 'Successfully added the remarks on the transactions!', 'success')
-          })
-          .catch(error => {
-            notifyCustom('exclamation', `There was an error on the system!`, `${error}`, 'danger')
-          });
-      } catch (error) {
-        notifyCustom('exclamation', `Field is empty please check!`, `${error}`, 'danger')
-      }
-    })
-  }
+  //       fetch(apiUrl, requestOptions)
+  //         .then(response => {
+  //           if (!response.ok) {
+  //             // throw new Error('Network response was not ok');
+  //             notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
+  //           }
+  //           return response.json();
+  //         })
+  //         .then(data => {
+  //           if (!data) {
+  //             notifyCustom('bell', 'Error', 'Failed to create new remarks', 'danger')
+  //           }
+  //           console.log(data)
+  //           let { message } = data
+  //           // if (refreshActivity) {
+  //           //   refreshActivity.click()
+  //           // }
+
+  //           // clearing fields
+  //           selectedStatus.checked = false
+  //           comment.value = ''
+  //           // return notifications
+  //           notifyCustom('check', `${message}`, 'Successfully added the remarks on the transactions!', 'success')
+  //         })
+  //         .catch(error => {
+  //           notifyCustom('exclamation', `There was an error on the system!`, `${error}`, 'danger')
+  //         });
+  //     } catch (error) {
+  //       notifyCustom('exclamation', `Field is empty please check!`, `${error}`, 'danger')
+  //     }
+  //   })
+  // }
   if (deleteTransaction) {
     // const table = new DataTable('#basic-datatables')
 
@@ -455,20 +445,19 @@
         event.target.closest('tr').classList.add('selected')
         // console.dir(event.target.closest('tr'))
 
-        title = `Are you sure to delete ${transid}?`
-        message = "Once deleted, you will not be able to recover this file!"
+        title = `Are you sure you want to delete this Transaction ${transid} file?`
 
         swal({
           title,
-          text: "Once deleted, you will not be able to recover this transaction file!",
+          text: "Once deleted, it cannot be recovered.",
           icon: "warning",
-          buttons: ["Cancel", "Delete it!"],
+          buttons: ["Cancel", "Confirm"],
           dangerMode: true,
         })
           .then((willDelete) => {
             if (willDelete) {
 
-              let url = `/transactions/${transid}`
+              let url = `/transactions/${transid}/status`
 
               fetch(url, {
                 method: 'DELETE'
@@ -477,11 +466,11 @@
                   return res.text()
                 }) // or res.json()
                 .then(data => {
-                  swal("Poof! Transaction file has been deleted!", {
+                  swal(`Transaction ${transid} file has been deleted!`, {
                     icon: "success",
                   });
                   // if Yes
-                  document.querySelector('tr.selected').remove().draw(false)
+                  document.querySelector('tr.selected').remove()/*.draw(false)*/
                 }) // endof fetch()
             } else {
               document.querySelectorAll('#transactions-datatables tr').forEach(row => row.classList.remove('selected'));
@@ -495,12 +484,22 @@
     addButton.addEventListener('click', function () {
       // Find the closest row element
       // const row = this.closest('.row');
-      const row = document.querySelector('#chargingTo .row')
+      const chargingRow = document.querySelector('#chargingTo .row');
+      const supplierRow = document.querySelector('#supplierInfo .row');
+
+      const row = chargingRow || supplierRow;
+      if (!row) return; // Defensive: no row found
 
       // Clone the row
       const clonedForm = row.cloneNode(true); // true means deep clone (including child nodes)
-            clonedForm.setAttribute('id', `charging_${rowCount}`)
             clonedForm.dataset.id = rowCount
+      
+      if (chargingRow) {
+        clonedForm.setAttribute('id', `charging_${rowCount}`);
+      } else if (supplierRow) {
+        clonedForm.setAttribute('id', `supplier_${rowCount}`);
+      }
+
       // Remove the "Add" button from the cloned row to prevent duplication
       // const addButtonInClonedRow = clonedForm.querySelector('.form-group-add');
       // addButtonInClonedRow.remove();
@@ -513,20 +512,22 @@
 
       inputs.forEach(input => {
         // Generate new ID based on current row count
-        const newId = input.id.split('-')[0] + rowCount; // Assuming ID pattern is like "divisions-1"
+        const newId = input.id.split('_')[0] + rowCount; // Assuming ID pattern is like "divisions-1"
         input.id = newId; // Update the ID attribute
         input.value = ''; // Clear the value
       });
 
       labels.forEach(label => {
         const inputId = label.getAttribute('for');
-        const baseId = inputId.split('-')[0];
+        const baseId = inputId.split('_')[0];
         label.setAttribute('for', baseId + rowCount);
       })
 
       // Add a "Remove" button to the cloned row
       const removeButton = clonedForm.querySelector('.fa-minus-circle');
+      console.log({removeButton});
       removeButton.addEventListener('click', function () {
+        console.log('Remove button clicked for row:', clonedForm.dataset.id);
         clonedForm.remove(); // Remove the clicked row
       });
 
@@ -534,10 +535,14 @@
       rowCount++;
 
       // Append the cloned row to the form container
-      const formContainer = document.getElementById('chargingTo');
+      const formContainer = document.getElementById('chargingTo') || document.getElementById('supplierInfo');
       formContainer.appendChild(clonedForm);
     });
   }
+ 
+  
+
+
   if (printTracking) {
     function printSpecificURL(path) {
       var url = path; // Replace with the URL you want to print
@@ -560,7 +565,7 @@
     $('.input-daterange input').each(function () {
       $(this).daterangepicker('clearDates');
     });
-  }
+  }``
   //
   if (divisionsSelect && divisionsContainer) {
     // divisionsSelect.addEventListener('change', function (event) {
@@ -610,4 +615,197 @@
     });
     console.log(charging)
   }
+
+  if (approveBtn) {
+    approveBtn.addEventListener('click', function (e) {
+
+      const create_by = document.getElementById('created_by').value
+      const currentSteps = Number(document.querySelector('.activity-feed').dataset.currentSteps);
+      const product_id = Number(document.querySelector('.container').dataset.transactionId);
+      const apiUrl = '/approve';
+      const data = { product_id:product_id, steps_number:currentSteps, updated_by: create_by}
+      
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      };
+      console.log(requestOptions)
+
+      fetch(apiUrl, requestOptions)
+      .then(response => {
+        if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
+        return response.json()
+      })
+      .then(data => {
+        if (!data) return notifyCustom('', 'Error', 'Failed to Approved the PR#', 'danger')
+
+        notifyCustom('', 'Success', 'Approved the PR# successfully', 'info')
+      })
+      .catch(error => {
+        notifyCustom('Error', error, 'danger')
+      })
+    })
+  }
+
+  if (disapproveBtn) {
+   disapproveBtn.addEventListener('click', function() {
+    const create_by = document.getElementById('created_by').value
+    const currentSteps = Number(document.querySelector('.activity-feed').dataset.currentSteps);
+  })                                                                                                                                                                                                           
+  }
+
+  if (setQoutedAmount) {
+    setQoutedAmount.addEventListener('click', function(e){
+      var getAmount = document.getElementById('qoutedAmount')
+      
+      if (!getAmount || getAmount.value.trim() === "") {
+        return; // exits the function or block silently
+      }
+
+      const transid = this.dataset.transid
+      const apiUrl = '/transactions/update';
+
+      console.log(getAmount.value)
+      let cleaned = getAmount.value.replace(/,/g, "")
+      let decimalValue = parseFloat(cleaned)
+     
+      console.log(getAmount)
+      const data = { set:{amount: decimalValue}, where: {product_id: transid}}
+      
+
+      const requestOptions = {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      };
+
+      console.log(data)
+      fetch(apiUrl, requestOptions)
+      .then(response => {
+        if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
+        return response.json()
+      })
+      .then(data => {
+        if (!data) return notifyCustom('', 'Error', 'Failed to get the details', 'danger')
+          console.log(data)
+        notifyCustom('', 'Success', 'Successfully updated the Transaction', 'info')
+      })
+      .catch(error => {
+        notifyCustom('Error', error, 'danger')
+      })
+    })
+  }
+
+  const assignedToBtn = document.getElementById('assignedToBtn');
+  if (assignedToBtn) {
+    assignedToBtn.addEventListener('click', function (){
+      const nextResponsible = document.getElementById('nextResponsible');
+      const productId = document.querySelector('.wrapper').dataset.productId;
+      let selectedPerson = nextResponsible.value;
+      const currentSteps = Number(document.querySelector('.activity-feed').dataset.currentSteps);
+    
+
+      if (!selectedPerson) {
+        notifyCustom('exclamation', 'No Selection', 'Please select a person to assign.', 'warning');
+        return;
+      }
+      const apiUrl = '/transactions/assign';
+      const data = {
+        product_id: productId,
+        steps_number: currentSteps,
+        assigned_to: selectedPerson
+      };
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      };
+      fetch(apiUrl, requestOptions)
+      .then(response => {
+        if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
+        return response.json()
+      })
+      .then(data => {
+        if (!data) return notifyCustom('', 'Error', 'Failed to set responsible person for the PR#' + productId, 'danger')
+
+        notifyCustom('', 'Success', 'Successfully set responsible person for the PR#' + productId, 'info')
+      })
+      .catch(error => {
+        notifyCustom('Error', error, 'danger')
+      })
+    })
+  }
+
+  // Function to sum all unitCount fields and update totalCo
+  function updateTotal(selector) {
+    const inputs = document.querySelectorAll(selector);
+    let total = 0;
+    inputs.forEach(input => {
+      const val = parseInt(input.value.replace(/,/g, ''), 10);
+      // console.log('ASD', val)
+      if (!isNaN(val)) total += val;
+    });
+    // console.log('Total:', total);
+    const totalCountEl = document.getElementById('totalCount');
+    const budgetEl = document.getElementById('budget');
+    
+    if (totalCountEl) {
+      totalCountEl.value = total;
+    }
+    if (budgetEl) {
+      budgetEl.value = total.toLocaleString('en-US', { style: 'decimal', minimumFractionDigits: 0 });
+    }
+  }
+
+  function formatNumberWithCommas(event) {
+    // Get the input element
+    const input = event.target;
+
+    // Remove any non-numeric characters (excluding commas)
+    let value = input.value.replace(/[^0-9]/g, '');
+
+    // Check if the value is not empty or just spaces
+    if (value === '') {
+      input.value = '';
+      return;
+    }
+
+    // Format the number with commas
+    value = parseInt(value, 10).toLocaleString();
+
+    // Update the input value with the formatted number
+    input.value = value;
+  }
+
+  if(document.getElementById('budget') || document.querySelector('input[data-type="number"]')){
+    setInterval(() => {
+      updateTotal('input[name="unitCount"]');
+    }, 1000);
+    setInterval(() => {
+      const numberInputs = document.querySelectorAll('input[data-type="number"]');
+      // if (!numberInputs) return;
+      // console.log(numberInputs);
+      // Add event listener to each input
+      numberInputs.forEach(input => {
+        input.addEventListener('input', formatNumberWithCommas);
+      });
+    }, 1000);
+  }
+ 
+  
+  // On document ready, find all readonly input fields and add a 'readonly' class to their parent '.form-group'.
+  // This allows styling or behavior adjustments for groups containing readonly inputs.
+  $(function() {
+    $('input[readonly]').closest('.form-group').addClass('readonly');
+  });
+  
+
+  
 })()

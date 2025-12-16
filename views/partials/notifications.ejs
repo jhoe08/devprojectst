@@ -1,27 +1,7 @@
 
 <%
-  let notifs = JSON.parse(NOTIFICATIONS)
-  const { username } = SESSION_USER
-
-  let filteredData = notifs.filter(item => {
-    if(!item.concerning){
-      return false
-    }
-    let concerningArray
-    try {
-      concerningArray = JSON.parse(item.concerning)
-    } catch(e) {
-      return false
-    }
-    return concerningArray.includes(username)
-  })
-
-  let countNotif = notifs ? notifs.length : 0
-
-  if(filteredData && filteredData.length === 0) {
-    notifs = []
-    countNotif = 0
-  }
+  const notifications = JSON.parse(NOTIFICATIONS)
+  const notifs_length = notifications.length;
 %>
 
   <li class="nav-item topbar-icon dropdown hidden-caret">
@@ -35,25 +15,26 @@
       aria-expanded="false"
     >
       <i class="fa fa-bell"></i>
-      <span class="notification countNotif"><%= countNotif %></span>
+      <span class="notification countNotif"><%= notifs_length %></span>
     </a>
     <ul
       class="dropdown-menu notif-box animated fadeIn"
       aria-labelledby="notifDropdown"
     >
     <!-- NOTIFICATIONS -->
-    
+      <% if (notifs_length === 0) { %>
       <li class="">
         <div class="dropdown-title">
-          You have <span class="countNotif"><%= countNotif %></span> new notification
+          You have <span class="countNotif"><%= notifs_length %></span> new notification
         </div>
       </li>
+      <% } %>
       <li>
         <div class="notif-scroll scrollbar-outer">
           <div class="notif-center">
           <% 
-            if(notifs.length > 0) {
-            notifs.forEach(notif=>{ 
+            if(notifs_length > 0) {
+            notifications.forEach(notif=>{ 
               const {id, message, link, component, created_at, updated_at} = notif
               let path = `/${component}/${link}`;
               const date = moment(created_at).fromNow()
@@ -123,7 +104,7 @@
           </div>
         </div>
       </li>
-      <li>
+      <li class="hidden">
         <a class="see-all" href="javascript:void(0);"
           >See all notifications<i class="fa fa-angle-right"></i>
         </a>

@@ -20,7 +20,7 @@
     const gender = document.getElementById('gender')
     const civilstatus = document.getElementById('civilstatus')
     const companyname = document.getElementById('companyname')
-      const division = document.getElementById('division')
+      let division = document.getElementById('division')
       const banner = document.getElementById('banner')
     const position = document.getElementById('position')
     const salary = document.getElementById('salary')
@@ -60,11 +60,27 @@
     }
     if (registerEmployee) {
       const apiUrl = '/register/new';
-  
       
       registerEmployee.addEventListener('click', function(){
+         let divisionValue = ''
+         let sectionValue = ''
+        
+        if(typeof division == 'undefined' || division === null) {
+          division  = document.getElementById('division_0')
+          sectionValue = division.dataset.selected
+          divisionValue = division.dataset.division
+
+          console.log({sectionValue, divisionValue})
+        }
+
         var checkedComponents = document.querySelectorAll('input[name="components"]:checked');
+        var checkedRoles = document.querySelectorAll('input[name="roles"]:checked');
+        
         var checkedComponentsValues = Array.from(checkedComponents).map(function(checkbox) {
+            return checkbox.value;
+        });
+
+        var checkedRolesValues = Array.from(checkedRoles).map(function(checkbox) {
             return checkbox.value;
         });
       
@@ -78,7 +94,8 @@
           experience: {
             lists: [{
               office: companyname.value,
-              division: division.value,
+              division: divisionValue ?? division.value,
+              section: sectionValue ?? division.value,
               salary: salary.value,
               status: true,
               enddate: 'present',
@@ -96,8 +113,10 @@
             civilstatus: civilstatus.value,
             gender: gender.value
           },
-          components: JSON.stringify(checkedComponentsValues)
+          components: JSON.stringify(checkedComponentsValues),
+          roles: JSON.stringify(checkedRolesValues),
         }
+
         // into JSON format
         let {experience, contacts, others} = data
         experience = JSON.stringify(experience)
@@ -107,6 +126,8 @@
         data.contacts = contacts
         data.others = others
   
+        console.log({data})
+
         const requestOptions = {
           method: 'POST',
           headers: {
@@ -149,6 +170,7 @@
         });
       })
     }
+    
     if (updateEmployee) {
       const apiUrl = '/employees/update';
       
@@ -157,9 +179,23 @@
       fieldsUpdated(container)
 
       updateEmployee.addEventListener('click', function(){
+
+        if(typeof division == 'undefined' || division === null) {
+          division  = document.getElementById('division_0')
+          sectionValue = division.dataset.selected
+          divisionValue = division.dataset.division
+
+          console.log({sectionValue, divisionValue})
+        }
+
         extname = document.querySelector('input[name="nameExtension"]:checked')
         var checkedComponents = document.querySelectorAll('input[name="components"]:checked');
         var checkedComponentsValues = Array.from(checkedComponents).map(function(checkbox) {
+            return checkbox.value;
+        });
+
+        var checkedRoles = document.querySelectorAll('input[name="roles"]:checked');
+        var checkedRolesValues = Array.from(checkedRoles).map(function(checkbox) {
             return checkbox.value;
         });
 
@@ -173,7 +209,8 @@
           experience: {
             lists: [{
               office: companyname.value,
-              division: division.value,
+              division: divisionValue ?? division.value,
+              section: sectionValue ?? division.value,
               salary: salary.value,
               status: true,
               enddate: 'present',
@@ -191,7 +228,8 @@
             civilstatus: civilstatus.value,
             gender: gender.value
           },
-          components: JSON.stringify(checkedComponentsValues)
+          components: JSON.stringify(checkedComponentsValues),
+          roles: JSON.stringify(checkedRolesValues),
         }
 
         let {experience, contacts, others} = data
@@ -201,7 +239,30 @@
         if(!lastname.classList.contains('updated')) delete data.lastname
         if(!extname.classList.contains('updated')) delete data.extname
         if(!dob.classList.contains('updated')) delete data.birthdate
-        if(!checkedComponents.closest('.selectgroup').classList.contains('updated')) delete data.checkedComponents
+        // const componentSelect = checkedComponents.closest('.selectgroup')
+        // const roleSelect = checkedRoles.closest('.selectgroup')
+        // if(componentSelect && !componentSelect.classList.contains('updated')) delete data.checkedComponents
+        // if(roleSelect && !roleSelect.classList.contains('updated')) delete data.checkedRoles
+
+        // Check if ANY of the checked components are inside a .selectgroup with class 'updated'
+        const hasUpdatedComponents = Array.from(checkedComponents).some(component => {
+          const selectGroup = component.closest('.selectgroup');
+          console.log({selectGroup: selectGroup.classList.contains('updated')})
+          return selectGroup && selectGroup.classList.contains('updated');
+        });
+
+        if (!hasUpdatedComponents) {
+          delete data.components;
+        }
+
+        const hasUpdatedRoles = Array.from(checkedRoles).some(role => {
+          const selectGroup = role.closest('.selectgroup')
+          return selectGroup && selectGroup.classList.contains('updated')
+        })
+
+        if(!hasUpdatedRoles) {
+          delete data.roles;
+        }
     
         
         data.experience = JSON.stringify(experience)

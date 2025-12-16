@@ -1,6 +1,15 @@
     <!-- Main Scripts added -->
     <%- include('scripts') -%>
 
+    <%  if(typeof scripts !== 'undefined' && scripts) { const extractedScripts = Object.entries(scripts).map(([title, source]) => ({
+          title,
+          source
+        }));
+        extractedScripts.forEach(({ title, source }) => {
+    %>
+        <script type="module" title="<%= title %>" src="<%= source %>"></script>
+    <% }); } %>
+
     <% if (path2.startsWith('/transactions')) { %> 
     <script src="/assets/js/components/transactions.js"></script>
     <% } else if (path2.startsWith('/employees')) { %>
@@ -12,17 +21,29 @@
     <% } else if (path2.startsWith('/qrscanner')) { %>
     <script src="/assets/js/scanner.js"></script>
     <% } else { %>
-    <script src="/assets/js/global.js"></script>
+   
     <% } %>
 
     <script>
+      function progressBar(length, progress) {
+        if (progress > 0) {
+          step = parseInt(progress)
+
+          progress = Number((progress / length) * 100).toFixed(2);
+          var html = `<div class="progress" style="height: 5px;"><div class="progress-bar" style="width: ${progress}%" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="${step}"></div></div>`
+        }
+
+        return (progress > 0) ? html : '';
+      }
+
       // For All
       $(".datatables").each(function() {
         // Read the 'data-order' attribute to determine sorting order (asc or desc)
         var order = $(this).data('sort') || 'asc';  // Default to 'asc' if no data-order is set
         var hideColumns = $(this).data('hide-columns')
         var hideColumnsArray = hideColumns ? hideColumns.split(',').map(Number) : [];
-        // Initialize the DataTable with custom options
+        // Initialize the DataTable with custom options(2 / 30) × 100 = 6.67%
+
         $(this).DataTable({
             ordering: true,        // Enable ordering
             order: [[0, order]],   // Set the default sort column (column 0) and sort direction (asc or desc)
@@ -35,26 +56,33 @@
         });
     });
 
-      $(".basicDatatables").DataTable({
+      const basicTable = $(".basicDatatables").DataTable({
         "pageLength": -1,
         "ordering": false,
         "paging": false,
         responsive: true
       });
 
-      let tables = $("#justTables").DataTable();
+
+      let tables = $("#justTables, .datatables").DataTable();
+      // const requestID = UTILS.addLeadingZeros(product_id)
+      // const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
       const transactions = $("#transactions-datatables").DataTable({
+        responsive: true,
+        rowReorder: {
+          selector: 'td:nth-child(2)'
+        },
         "order": [[0, 'desc']],
         columnDefs: [{
-            render: (data, type, row) => '<div><span data-head="Classification" class="badge badge-count mr-3">' + row[9] + '</span></div><div class="mb-0">'+ data +'</div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div>',
+            render: (data, type, row) => '<div class="d-flex justify-content-between"><div><span class="badge badge-info mr-3">'+ row[0] +'</span><span data-head="Classification" class="badge badge-count mr-3" >' + row[9] + '</span></div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div></div><div class="mb-0">'+ data +'</div>'+progressBar(30, row[12]),
             targets: 1
           }, {
-            render: (data, type, row) => `${data} <br><span data-head="Division" class="badge badge-warning">${row[3]}<span>`,
+            render: (data, type, row) => `${data} ${row[3] != '' ? `<br><span data-head="Division" class="badge badge-warning  ${row[3]}">${row[3]}<span>` : ''}`,
             targets: 2
           }, {
             render: $.fn.dataTable.render.number(',', '.', 2, '₱'),
             targets: 5
-          }, { visible: false, targets: [3,7,8,9] }
+          }, { visible: false, targets: [0,3,7,8,9,12] }
         ],
         responsive: true,
         initComplete: function () {
@@ -84,9 +112,63 @@
           // });
         }, 
       })
+
+      const userDesignation = document.querySelector('body[data-user-designation]')
+
+      if(userDesignation) {
+        // const userDesignationData = JSON.parse(userDesignation.dataset.userDesignation);
+        // const userDivision = userDesignationData.division;
+        // const userSection = userDesignationData.section;
+        // const userPosition = userDesignationData.position;
+
+        // $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        //   const rowNode = transactions.row(dataIndex).node()
+        //   const stepIndex = $(rowNode).data('current-steps');
+        //   const stepTitle = $(rowNode).data('step-title')
+        //   const transactionDivision = $(rowNode).data('user-chief');
+
+        //   console.log({stepTitle, stepIndex})
+
+        //   if (userPosition === 'Chief') {
+        //     if (userDivision === transactionDivision && stepIndex == 2) {
+        //       return $(rowNode).data('user-chief') === transactionDivision;
+        //     } 
+        //   } else {
+        //     $.fn.dataTable.ext.search.pop();
+        //     return false;
+        //   }
+
+        // });
+        // transactions.draw();
+      }
+
+      // $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+      //   const rowNode = transactions.row(dataIndex).node()
+      //   console.log($(rowNode).data('current-steps'))
+      //   return $(rowNode).data('current-steps') == '2';
+      // });
+
+      // transactions.draw();
+
+      // Select the <tr> you're working with
+      const allRows  = document.querySelectorAll('tr[data-step-title]');
+      allRows.forEach(row => {
+         // Get the data-step-title value
+        const stepTitle = row.getAttribute('data-step-title');
+
+        // Find the .progress-bar inside the same row
+        const progressBarDiv = row.querySelector('.progress-bar');
+
+        // Set the data-bs-title attribute to the extracted step title
+        if (progressBarDiv) {
+          progressBarDiv.setAttribute('data-bs-title', stepTitle);
+        }
+
+      })
+     
       
       // const employeesHiddenColumns = []
-      const employeesHiddenColumns = [2,5,6,8] 
+      const employeesHiddenColumns = [2,5,6,8]
       let employees = $("#employees").DataTable({
         
         layout: {
@@ -223,11 +305,23 @@
 
     </script>
 
-    <!-- <script src="/assets/js/charts/charts.js"></script> -->
-    <script src="/assets/js/charts/multipleLine.js"></script>
-    <script src="/assets/js/charts/lineWithLegend.js"></script>
-    <script src="/assets/js/charts/pie.js"></script>
-    <script src="/assets/js/charts/doughnut.js"></script>
+    <script src="/demo/assets/js/plugin/chart.js/chart.min.js"></script>
+     <script src="/assets/js/global.js"></script>
+    <!-- <script src="/demo/assets/js/charts/multipleLine.js"></script>
+    <script src="/demo/assets/js/charts/lineWithLegend.js"></script>
+    <script src="/demo/assets/js/charts/pie.js"></script>
+    <script src="/demo/assets/js/charts/doughnut.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/autonumeric@latest"></script>
+    <script>
+      // Initialize AutoNumeric for all elements with the class 'custom-number'
+      if(document.querySelector('.custom-number')) {
+        // This will apply AutoNumeric to all elements with the class 'custom-number'
+        // and format them as currency in PHP format
+        new AutoNumeric('.custom-number');
+      } 
+      
+    </script>
+
     <script data-path="<%= path %>">
       const root = document.documentElement;
       const primaryGreen = getComputedStyle(root).getPropertyValue('--primary-green');
@@ -241,62 +335,810 @@
       const accentYellow = getComputedStyle(root).getPropertyValue('--accent-yellow');
 
       // This will only work if the site is a homepage
-      if('<%=path%>' === '' || '<%=path%>' === '/') {
+      if(window.location.pathname === '/') {
         var classificationData = JSON.parse('<%- perClassification || {} %>');
         var chartClassificationLabel = Object.keys(classificationData)
         var chartClassificationValue = Object.values(classificationData)
 
-        createPieChart("chartClassification", chartClassificationValue, chartClassificationLabel, [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow]);
+        // createPieChart("chartClassification", chartClassificationValue, chartClassificationLabel, [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow]);
 
-        createLineChartWithHtmlLegend(
-        "htmlLegendsChart",   // chartId
-        "myChartLegend",      // legend container ID
-        [                     // chartData (arrays for each dataset)
-          {
-            label: "Amount",
-            legendColor: primaryGreen,
-            values: [154, 184, 175, 203, 210, 231, 240, 278, 252, 312, 320, 374]
-          },
-          {
-            label: "Disbursement",
-            legendColor: primaryOrange,
-            values: [256, 230, 245, 287, 240, 250, 230, 295, 331, 431, 456, 521]
-          },
-          {
-            label: "ABC",
-            legendColor: lightGreen,
-            values: [542, 480, 430, 550, 530, 453, 380, 434, 568, 610, 700, 900]
-          }
-        ],
-        ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],  // chartLabels
-        [
-          [primaryGreen], // gradientColors
-          [primaryOrange],
-          [lightGreen]
-        ]
-      );
-      createDoughnutChart(
-          "doughnutChart", // ID of the canvas
-          [10, 20, 30], // Data points
-          ["Red", "Yellow", "Blue"], // Labels
-          [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow], // Colors for slices
-          {
-            legend: {
-              position: "bottom",
+        const lineChart = document.getElementById('lineChart')
+        let lineChartMonths = JSON.parse(lineChart.dataset.months);
+        const lineChartData = {
+          amounts: JSON.parse(lineChart.dataset.amounts),
+          disbursements: JSON.parse(lineChart.dataset.disbursements),
+          abcs: JSON.parse(lineChart.dataset.abcs),
+        };
+
+        lineChartMonths = JSON.parse(lineChartMonths)
+
+        /* createLineChartWithHtmlLegend(
+          "lineChart",   // chartId
+          "myChartLegend",      // legend container ID
+          [                     // chartData (arrays for each dataset)
+            {
+              label: "Amount",
+              legendColor: primaryGreen,
+              values: lineChartData.amounts
             },
-            layout: {
-              padding: {
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: 20,
-              },
+            {
+              label: "ABC",
+              legendColor: lightGreen,
+              values: lineChartData.abcs
             },
-          }
-        );
+            {
+              label: "Disbursement",
+              legendColor: primaryOrange,
+              values: lineChartData.disbursements
+            },
+          ],
+          lineChartMonths,  // chartLabels
+          [
+            [primaryGreen], // gradientColors
+            [primaryOrange],
+            [lightGreen]
+          ]
+        ); */ 
+        const doughnutChart = document.getElementById('doughnutChart')
+        const doughnutChartData = {
+          points: JSON.parse(doughnutChart.dataset.points),
+          labels: JSON.parse(doughnutChart.dataset.labels)
+        };
+
+        // createDoughnutChart(
+        //   "doughnutChart", // ID of the canvas
+        //   doughnutChartData.points, // Data points
+        //   doughnutChartData.labels, // Labels
+        //   [primaryGreen, primaryOrange, lightGreen, darkGreen, darkOrange, neutralBeige, neutralDarkGray, accentBlue, accentYellow], // Colors for slices
+        //   {
+        //     legend: {
+        //       position: "bottom",
+        //     },
+        //     layout: {
+        //       padding: {
+        //         left: 20,
+        //         right: 20,
+        //         top: 20,
+        //         bottom: 20,
+        //       },
+        //     },
+        //   }
+        // );
     
       }
+      const verificationMessage = {
+        initial: {
+          title: "Verify Annual Procurement Plan (APP)",
+          text: "Click ‘Confirm’ to proceed with verification of the APP."
+        },
+        confirmed: {
+          title: "Verification Complete",
+          text: "The Annual Procurement Plan has been successfully validated."
+        }
+      };
+    const verificationMessages = {
+      1: {
+        initial: {
+          title: "Submit Purchase Request",
+          text: "Click 'Confirm' to submit the Purchase Request for processing.",
+        },
+        confirmed: {
+          title: "Request Submitted",
+          text: "The Purchase Request has been successfully submitted.",
+        },
+        denied: {
+          title: "Submission Denied",
+          text: "The Purchase Request was not submitted by the End-User.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "The End-User's denial has been successfully recorded.",
+        }
+      },
+      2: {
+        initial: {
+          title: "Confirm Approval",
+          text: "Please click 'Confirm' to approve this Purchase Request and continue to the next step.",
+        },
+        confirmed: {
+          title: "Approval Confirmed",
+          text: "The Purchase Request has been successfully forwarded to the next approver.",
+        },
+        denied: {
+          title: "Approval Denied",
+          text: "The Purchase Request was not approved by the Division Chief.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "The Division Chief's denial has been successfully recorded.",
+        }
+      },
+      3: {
+        initial: {
+          title: "Confirm Funds Availability",
+          text: "Click 'Confirm' to complete the process.",
+        },
+        confirmed: {
+          title: "Approval Confirmed",
+          text: "Funds availability has been approved.",
+        },
+        denied: {
+          title: "Funds Not Approved",
+          text: "The Budget Office has denied the availability of funds for this request. Click 'Confirm' to complete the process.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "The denial of funds availability has been successfully recorded.",
+        }
+      },
+      4: {
+        initial: {
+          title: "Verify Annual Procurement Plan (APP)",
+          text: "Click ‘Confirm’ to proceed with verification of the APP.",
+        },
+        confirmed: {
+          title: "Verification Complete",
+          text: "The Annual Procurement Plan has been successfully validated.",
+        },
+        denied: {
+          title: "Verification Denied",
+          text: "The APP verification was not approved by the Procurement Office.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "The denial of APP verification has been successfully recorded.",
+        }
+      },
+      5: {
+        initial: {
+          title: "Review Purchase Request",
+          text: "Click 'Confirm' to complete BAC Secretariat review.",
+        },
+        confirmed: {
+          title: "Review Completed",
+          text: "BAC Secretariat has completed the review.",
+        },
+        denied: {
+          title: "Review Denied",
+          text: "BAC Secretariat did not approve the request.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "BAC Secretariat's denial has been successfully recorded.",
+        }
+      },
+      6: {
+        initial: {
+          title: "Prepare Quotation Form",
+          text: "Click 'Confirm' to proceed with quotation form preparation.",
+        },
+        confirmed: {
+          title: "Form Prepared",
+          text: "Quotation form has been successfully prepared.",
+        },
+        denied: {
+          title: "Preparation Denied",
+          text: "Quotation form preparation was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Denial of quotation form preparation has been recorded.",
+        }
+      },
+      7: {
+        initial: {
+          title: "Start Canvassing",
+          text: "Click 'Confirm' to begin the canvassing process.",
+        },
+        confirmed: {
+          title: "Canvassing Started",
+          text: "Canvassing has been successfully initiated.",
+        },
+        denied: {
+          title: "Canvassing Denied",
+          text: "Canvassing was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Canvassing denial has been successfully recorded.",
+        }
+      },
+      8: {
+        initial: {
+          title: "Engage Supplier",
+          text: "Click 'Confirm' to proceed with supplier engagement.",
+        },
+        confirmed: {
+          title: "Supplier Engaged",
+          text: "Supplier has been successfully engaged.",
+        },
+        denied: {
+          title: "Engagement Denied",
+          text: "Supplier engagement was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Supplier engagement denial has been recorded.",
+        }
+      },
+      9: {
+        initial: {
+          title: "Evaluate Canvass Results",
+          text: "Click 'Confirm' to complete BAC evaluation.",
+        },
+        confirmed: {
+          title: "Evaluation Complete",
+          text: "BAC evaluation has been successfully completed.",
+        },
+        denied: {
+          title: "Evaluation Denied",
+          text: "BAC did not approve the evaluation results.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "BAC evaluation denial has been recorded.",
+        }
+      },
+      10: {
+        initial: {
+          title: "Finalize Procurement",
+          text: "Click 'Confirm' to finalize procurement details.",
+        },
+        confirmed: {
+          title: "Procurement Finalized",
+          text: "Procurement details have been finalized.",
+        },
+        denied: {
+          title: "Finalization Denied",
+          text: "Procurement finalization was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Procurement finalization denial has been recorded.",
+        }
+      },
+      11: {
+        initial: {
+          title: "Executive Approval",
+          text: "Click 'Confirm' to request RED/RTD approval.",
+        },
+        confirmed: {
+          title: "Approval Granted",
+          text: "Executive approval has been granted.",
+        },
+        denied: {
+          title: "Approval Denied",
+          text: "Executive approval was not granted.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Executive denial has been recorded.",
+        }
+      },
+      12: {
+        initial: {
+          title: "Prepare Award",
+          text: "Click 'Confirm' to begin preparation of the award documents.",
+        },
+        confirmed: {
+          title: "Award Prepared",
+          text: "The award has been successfully prepared.",
+        },
+        denied: {
+          title: "Award Preparation Denied",
+          text: "Award preparation was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Award preparation denial has been recorded.",
+        }
+      },
+      13: {
+        initial: {
+          title: "Prepare Purchase Order",
+          text: "Click 'Confirm' to prepare the Purchase Order.",
+        },
+        confirmed: {
+          title: "Purchase Order Prepared",
+          text: "The Purchase Order has been successfully prepared.",
+        },
+        denied: {
+          title: "Preparation Denied",
+          text: "Purchase Order preparation was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Purchase Order preparation denial has been recorded.",
+        }
+      },
+      14: {
+        initial: {
+          title: "Final Review",
+          text: "Click 'Confirm' to complete the final review of the request.",
+        },
+        confirmed: {
+          title: "Review Completed",
+          text: "Final review has been successfully completed.",
+        },
+        denied: {
+          title: "Review Denied",
+          text: "Final review was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Final review denial has been recorded.",
+        }
+      },
+      15: {
+        initial: {
+          title: "Allocate Funds",
+          text: "Click 'Confirm' to allocate the necessary funds.",
+        },
+        confirmed: {
+          title: "Funds Allocated",
+          text: "Funds allocation has been successfully completed.",
+        },
+        denied: {
+          title: "Allocation Denied",
+          text: "Funds allocation was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Funds allocation denial has been recorded.",
+        }
+      },
+      16: {
+        initial: {
+          title: "Request Obligation",
+          text: "Click 'Confirm' to proceed with the obligation request.",
+        },
+        confirmed: {
+          title: "Obligation Requested",
+          text: "Obligation request has been successfully processed.",
+        },
+        denied: {
+          title: "Request Denied",
+          text: "The obligation request was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Obligation request denial has been recorded.",
+        }
+      },
+      17: {
+        initial: {
+          title: "Executive Sign-off",
+          text: "Click 'Confirm' to request executive sign-off.",
+        },
+        confirmed: {
+          title: "Sign-off Granted",
+          text: "Executive sign-off has been successfully completed.",
+        },
+        denied: {
+          title: "Sign-off Denied",
+          text: "Executive sign-off was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Executive sign-off denial has been recorded.",
+        }
+      },
+      18: {
+        initial: {
+          title: "Prepare Delivery",
+          text: "Click 'Confirm' to prepare items for delivery.",
+        },
+        confirmed: {
+          title: "Delivery Prepared",
+          text: "Delivery preparation has been successfully completed.",
+        },
+        denied: {
+          title: "Preparation Denied",
+          text: "Delivery preparation was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Delivery preparation denial has been recorded.",
+        }
+      },
+      19: {
+        initial: {
+          title: "Approve Delivery",
+          text: "Click 'Confirm' to approve delivery.",
+        },
+        confirmed: {
+          title: "Delivery Approved",
+          text: "Delivery approval has been successfully granted.",
+        },
+        denied: {
+          title: "Approval Denied",
+          text: "Delivery approval was not granted.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Delivery approval denial has been recorded.",
+        }
+      },
+      20: {
+        initial: {
+          title: "Confirm Delivery",
+          text: "Click 'Confirm' to confirm delivery.",
+        },
+        confirmed: {
+          title: "Delivery Confirmed",
+          text: "Delivery has been successfully confirmed.",
+        },
+        denied: {
+          title: "Confirmation Denied",
+          text: "Delivery confirmation was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Delivery confirmation denial has been recorded.",
+        }
+      },
+      21: {
+        initial: {
+          title: "Schedule Inspection",
+          text: "Click 'Confirm' to schedule the inspection.",
+        },
+        confirmed: {
+          title: "Inspection Scheduled",
+          text: "Inspection has been successfully scheduled.",
+        },
+        denied: {
+          title: "Scheduling Denied",
+          text: "Inspection scheduling was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Inspection scheduling denial has been recorded.",
+        }
+      },
+      22: {
+        initial: {
+          title: "Conduct Inspection",
+          text: "Click 'Confirm' to complete the inspection.",
+        },
+        confirmed: {
+          title: "Inspection Completed",
+          text: "Inspection has been successfully completed.",
+        },
+        denied: {
+          title: "Inspection Denied",
+          text: "Inspection results were not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Inspection denial has been recorded.",
+        }
+      },
+      23: {
+        initial: {
+          title: "Accept Delivery",
+          text: "Click 'Confirm' to accept the delivered items.",
+        },
+        confirmed: {
+          title: "Delivery Accepted",
+          text: "End-User has successfully accepted the delivery.",
+        },
+        denied: {
+          title: "Acceptance Denied",
+          text: "Delivery acceptance was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Delivery acceptance denial has been recorded.",
+        }
+      },
+      24: {
+        initial: {
+          title: "Prepare Documentation",
+          text: "Click 'Confirm' to prepare the necessary documentation.",
+        },
+        confirmed: {
+          title: "Documentation Completed",
+          text: "Documentation has been successfully prepared.",
+        },
+        denied: {
+          title: "Documentation Denied",
+          text: "Documentation preparation was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Documentation preparation denial has been recorded.",
+        }
+      },
+      25: {
+        initial: {
+          title: "Final Acceptance",
+          text: "Click 'Confirm' to record final acceptance.",
+        },
+        confirmed: {
+          title: "Acceptance Completed",
+          text: "Final acceptance has been successfully recorded.",
+        },
+        denied: {
+          title: "Acceptance Denied",
+          text: "Final acceptance was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Final acceptance denial has been recorded.",
+        }
+      },
+      26: {
+        initial: {
+          title: "Prepare Voucher",
+          text: "Click 'Confirm' to prepare the disbursement voucher.",
+        },
+        confirmed: {
+          title: "Voucher Prepared",
+          text: "Voucher preparation has been successfully completed.",
+        },
+        denied: {
+          title: "Preparation Denied",
+          text: "Voucher preparation was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Voucher preparation denial has been recorded.",
+        }
+      },
+      27: {
+        initial: {
+          title: "Approve Voucher",
+          text: "Click 'Confirm' to approve the disbursement voucher.",
+        },
+        confirmed: {
+          title: "Voucher Approved",
+          text: "Voucher approval has been successfully completed.",
+        },
+        denied: {
+          title: "Approval Denied",
+          text: "Voucher approval was not granted.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Voucher approval denial has been recorded.",
+        }
+      },
+      28: {
+        initial: {
+          title: "Process Payment",
+          text: "Click 'Confirm' to process the payment.",
+        },
+        confirmed: {
+          title: "Payment Processed",
+          text: "Payment has been successfully processed.",
+        },
+        denied: {
+          title: "Payment Denied",
+          text: "Payment processing was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Payment processing denial has been recorded.",
+        }
+      },
+      29: {
+        initial: {
+          title: "Process Liquidation",
+          text: "Click 'Confirm' to process liquidation.",
+        },
+        confirmed: {
+          title: "Liquidation Completed",
+          text: "Liquidation has been successfully completed.",
+        },
+        denied: {
+          title: "Liquidation Denied",
+          text: "Liquidation was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Liquidation denial has been recorded.",
+        }
+      },
+      30: {
+        initial: {
+          title: "Final Sign-off",
+          text: "Click 'Confirm' to complete the final sign-off.",
+        },
+        confirmed: {
+          title: "Sign-off Completed",
+          text: "Final sign-off has been successfully completed.",
+        },
+        denied: {
+          title: "Sign-off Denied",
+          text: "Final sign-off was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Final sign-off denial has been recorded.",
+        }
+      },
+      31: {
+        initial: {
+          title: "Release Funds",
+          text: "Click 'Confirm' to release the allocated funds.",
+        },
+        confirmed: {
+          title: "Funds Released",
+          text: "Funds have been successfully released.",
+        },
+        denied: {
+          title: "Release Denied",
+          text: "Fund release was not approved.",
+        },
+        confirmedDenied: {
+          title: "Denial Recorded",
+          text: "Fund release denial has been recorded.",
+        }
+      }
+    };
+
+    function showConfirmationAlert(options) {
+      const {
+        title = "Are you sure?",
+        text = "Click ‘Confirm’ to proceed.",
+        confirmText = "Confirm",
+        cancelText = "Cancel",
+        icon = "warning",
+        requestUrl,
+        requestMethod = "POST",
+        requestData = {},
+        successTitle = "Success",
+        successText = "Your request was processed successfully.",
+        errorTitle = "Error",
+        errorText = "Something went wrong.",
+      } = options;
+
+      swal({
+        title,
+        text,
+        icon,
+        buttons: {
+          confirm: {
+            text: confirmText,
+            className: "btn btn-success",
+          },
+          cancel: {
+            text: cancelText,
+            visible: true,
+            className: "btn btn-danger",
+          },
+        },
+      }).then((confirmed) => {
+        if (confirmed) {
+          $.ajax({
+            url: requestUrl,
+            method: requestMethod,
+            data: requestData,
+            success: function (response) {
+              swal({
+                title: successTitle,
+                text: successText,
+                icon: "success",
+                buttons: {
+                  confirm: {
+                    className: "btn btn-success",
+                  },
+                },
+              });
+              setTimeout(() => {
+                location.reload();
+              }, 1500);
+            },
+            error: function (xhr, status, error) {
+              swal({
+                title: errorTitle,
+                text: errorText,
+                icon: "error",
+                buttons: {
+                  confirm: {
+                    className: "btn btn-danger",
+                  },
+                },
+              });
+            }
+          });
+        } else {
+          swal.close();
+        }
+      });
+    }
+
+    // Function to validate supplier and quoted price inputs
+    function validateSuppliers() {
+        let isValid = true;
+        let messages = [];
+
+        // Get all supplier rows
+        const rows = document.querySelectorAll('#supplierInfo .row');
+
+        rows.forEach((row, index) => {
+            const supplierSelect = row.querySelector('select[id^="supplier_name_"]');
+            const priceInput = row.querySelector('input[id^="qouted_price_"]');
+
+            // Check supplier selection
+            if (!supplierSelect || supplierSelect.value.trim() === "") {
+                isValid = false;
+                messages.push(`Row ${index + 1}: Supplier must be selected.`);
+            }
+
+            // Check quoted price
+            if (!priceInput || priceInput.value.trim() === "") {
+                isValid = false;
+                messages.push(`Row ${index + 1}: Quoted price is required.`);
+            } else if (isNaN(priceInput.value) /*|| Number(priceInput.value) <= 0*/) {
+                isValid = false;
+                messages.push(`Row ${index + 1}: Quoted price must be a positive number.`);
+            }
+        });
+
+        // Show validation result
+        if (!isValid) {
+            alert(messages.join("\n"));
+        }
+
+        return isValid;
+    }
+
+    // // Example usage: attach to form submission
+    // document.querySelector("form").addEventListener("submit", function(e) {
+    //     if (!validateSuppliers()) {
+    //         e.preventDefault(); // Stop form submission if invalid
+    //     }
+    // });
+
+    $(document).on("click", ".alert_confirm", function(e){
+      e.preventDefault()
+      const productId = $(this).data('product-id')
+      const currentStep = $(this).data('step')
+      const updatedBy = $('#created_by').val()
       
+      if ([6, 7, 8].includes(currentStep)) {
+        // const suppliers = document.getElementById(`suppliers_step`).value;
+        if(!validateSuppliers()) {
+          e.preventDefault();
+        }
+        console.log({productId, currentStep, updatedBy})
+      }
+
+      showConfirmationAlert({
+        title: verificationMessages[currentStep].initial.title,
+        text: verificationMessages[currentStep].initial.text,
+        requestUrl: "/approve",
+        requestMethod: "POST",
+        requestData: {
+          product_id: productId,
+          steps_number: currentStep,
+          updated_by: updatedBy, 
+          remarks: verificationMessages[currentStep].confirmed.text
+        },
+        successTitle: verificationMessages[currentStep].confirmed.title,
+        successText: verificationMessages[currentStep].confirmed.text,
+      })
+    })
+    $(document).on("click", ".alert_deny", function(e){
+      const productId = $(this).data('product-id')
+      const currentStep = $(this).data('step')
+      showConfirmationAlert({
+        title: verificationMessages[currentStep].denied.title,
+        text: verificationMessages[currentStep].denied.text,
+        requestUrl: "/disapprove",
+        requestMethod: "POST",
+        requestData: {
+          //const { trans_id, steps_number, updated_by } = req.body;
+          product_id: productId,
+          steps_number: currentStep,
+          remarks: verificationMessages[currentStep].confirmedDenied.text,
+        },
+        successTitle: verificationMessages[currentStep].confirmedDenied.title,
+        successText: verificationMessages[currentStep].confirmedDenied.text,
+      })
+    })
+
 
     </script>
 

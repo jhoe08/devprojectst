@@ -1,6 +1,9 @@
-CREATE TABLE `transto`.`remarks` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `message` TEXT(255) NULL,
-  `user` VARCHAR(45) NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE);
+CREATE TABLE `transid_activity` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `trans_id` int DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  `remarks` text,
+  `updated_by` varchar(100) DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+);

@@ -16,7 +16,8 @@
               </div>
               <div class="ms-md-auto py-2 py-md-0">
                 <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="transactions" data-column="11">Manage</a>
-                <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add Remarks</a>
+                <a href="#" class="btn btn-primary btn-round hidden" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add Remarks</a>
+                <a id="assignedto" href="#" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Assign to Me</a>
               </div>
             </div>
             <div class="row">
@@ -55,19 +56,19 @@
                         </div>
                       <div class="card-body">
                         <div class="col-md-12">
-                          <table id="basic-datatables" class="display table table-striped table-hover dataTable" role="grid" aria-describedby="basic-datatables_info">
+                          <table id="basicDatatables" class="display table table-striped table-hover dataTable" role="grid">
                               <thead>
                                 <tr role="row">
                                   <th>Title</th>
                                   <th>Type</th>
-                                  <th>Created By</th>
+                                  <th>Requisitioner</th>
                                 </tr>
                               </thead>
                               <tfoot>
-                                <tr role="row">
+                                <tr role="row" class="text-uppercase">
                                   <th>Title</th>
                                   <th>Type</th>
-                                  <th>Created By</th>
+                                  <th>Requisitioner</th>
                                 </tr>
                               </tfoot>
                               <tbody>
@@ -82,6 +83,6 @@
       </div>
     </div>
 </div>
-<%- include('../components/modals/remark') -%>
+<%- include('../components/modals/remark', {refid: ''}) -%>
 <!-- Footer Template -->
-<%- include('../views/footer') -%>
+<%- include('../views/footer', { scripts: { 'assignedtome': '/assets/js/assignedtome.js' } }) -%>

@@ -4,7 +4,7 @@
 <option
     class="<%= classes %>"
     value="<%= key %>" 
-    <%= (dataset) ? `data-${dataset[0]}=${dataset[1]}` : '' %>
+    <%= (dataset.length > 0) ? `data-${dataset[0]}=${dataset[1]}` : '' %>
     <%= (filtered===key) ? 'selected' : '' %>
     >
     <%- stands %>

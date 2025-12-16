@@ -1,0 +1,107 @@
+<%
+  const funds_source = UTILS.groupFundSourceData(FUND_SOURCES)
+%>
+
+<div class="form-group">
+  <label class="form-label">Funds</label>
+  <div class="selectgroup w-100">
+    <label class="selectgroup-item">
+      <input type="radio" name="_funds" value="fund_source_current" class="selectgroup-input" checked="">
+      <span class="selectgroup-button">Current</span>
+    </label>
+    <label class="selectgroup-item">
+      <input type="radio" name="_funds" value="fund_source_continuing" class="selectgroup-input">
+      <span class="selectgroup-button">Continuing</span>
+    </label>
+  </div>
+
+  <div id="fundsPapContainer"></div>
+
+</div>
+
+<script>
+  const funds_source = `<%- JSON.stringify(funds_source) %>`;
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    const fundsInputs = document.querySelectorAll('input[name="_funds"]');
+    const container = document.getElementById('fundsPapContainer');
+
+    // Ensure dependencies exist
+    if (typeof buildNestedOptions !== 'function') {
+      console.error('buildNestedOptions is not defined');
+      return;
+    }
+    if (typeof funds_source === 'undefined') {
+      console.error('funds_source is not defined');
+      return;
+    }
+    if (!container) {
+      console.error('#fundsPapContainer not found');
+      return;
+    }
+
+    // Render on initial checked input
+    const initiallyChecked = Array.from(fundsInputs).find(i => i.checked);
+    if (initiallyChecked) {
+      renderPapSelect(initiallyChecked.value);
+    }
+
+    // Use 'change' for radios/checkboxes
+    fundsInputs.forEach(input => {
+      input.addEventListener('change', function () {
+        if (this.checked) {
+          renderPapSelect(this.value);
+        }
+      });
+    });
+
+    function renderPapSelect(selectedFundValue) {
+      console.log('Rendering PAP for fund:', selectedFundValue);
+
+      // Clear container
+      container.innerHTML = '';
+
+      // Build wrapper
+      const wrapper = document.createElement('div');
+      wrapper.className = 'form-group form-group-default';
+
+      const label = document.createElement('label');
+      label.setAttribute('for', 'funds_pap');
+      label.textContent = 'Cass';
+      wrapper.appendChild(label);
+
+      const select = document.createElement('select');
+      select.id = 'funds_pap';
+      select.name = 'funds_pap';
+      select.className = 'form-select';
+
+      // Build options (column 1 = PAP)
+      buildSurfaceOptions(select, funds_source);
+
+      wrapper.appendChild(select);
+      container.appendChild(wrapper);
+    }
+    function buildSurfaceOptions(selectEl, data) {
+      Object.keys(data).forEach(fundKey => {
+        const option = document.createElement('option');
+        option.value = fundKey;
+        option.textContent = fundKey;
+        selectEl.appendChild(option);
+      });
+    }
+
+    function buildNestedOptions(selectEl, data) {
+      Object.entries(data).forEach(([fundKey, fundObj]) => {
+        Object.keys(fundObj).forEach(subKey => {
+          const option = document.createElement('option');
+          option.value = `${fundKey} - ${subKey}`;
+          option.textContent = `${fundKey} (${subKey})`;
+          selectEl.appendChild(option);
+        });
+      });
+    }
+
+
+
+  });
+</script>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Add your CSS links here -->
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="mb-4"><%= title %></h1>
+    <div class="alert alert-info">
+      Welcome, Guest! Your guest ID is: <strong><%= guest_id %></strong>
+    </div>
+    <p>
+      You have limited access. Please contact an administrator if you need more features.
+    </p>
+    <a href="/logout" class="btn btn-secondary mt-3">Logout</a>
+  </div>
+</body>
+</html>

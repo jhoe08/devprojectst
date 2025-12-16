@@ -1,0 +1,78 @@
+.feed-item {
+  .icon {
+    i {
+      width: 28px;
+    }
+  }
+}
+
+.form-button-action > * > i {
+  pointer-events: none;
+}
+
+.fullwidth {
+  width: 100%;
+}
+
+.card-body .activity-feed {
+  max-height: 40vh;
+  overflow-y: scroll;
+}
+
+#transactions-datatables {
+  tr {
+    &:hover {
+      .progress {
+        background-color: #ddd;
+      }
+    }
+  }
+}
+
+.form-group.readonly {
+  background-color: #e8e8e8;
+}
+
+.total-response-time {
+  color: #fff;
+}
+
+/* Datatables in Mobile */
+/* @media (max-width: 768px) {
+ .dataTable {
+  display: block;
+  
+  & thead, & tbody, & th, & td, & tr {
+      display: block;
+  }
+
+  & thead tr,
+  & tfoot tr {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      display: none;
+  }
+
+  & tr {
+    border: 1px solid #ccc;
+  }
+  & td {
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 50%;
+    white-space: normal;
+    text-align:right;
+  }
+  & td:before {
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align:left;
+    font-weight: bold;
+  }
+  & td:before {
+    content: attr(data-head);
+  }
+ }
+} */

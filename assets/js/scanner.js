@@ -8,7 +8,6 @@ const text = document.getElementById('qrCodeText')
 let transIDs = [];
 let tempQRCodes = []
 const btnRemarks = document.getElementById('createRemarks')
-        
 
 if(video && output) {
     
@@ -26,12 +25,12 @@ if(video && output) {
         if (video.videoWidth && video.videoHeight) {
             requestAnimationFrame(scanQRCode);
         } else {
-            console.error('Error: video dimensions not available.');
+            console.warn('Error: video dimensions not available.');
         }
         };
     })
     .catch(err => {
-        console.error('Error accessing the camera: ', err);
+        console.warn('Error accessing the camera: ', err);
         output.innerText = 'Error accessing the camera.';
     });
     
@@ -49,15 +48,43 @@ if(video && output) {
         const decoded = jsQR(imageData.data, canvas.width, canvas.height);
     
         if (decoded) {
+            const qrNumber = decoded.data
             output.innerText = `QR Code data: ${decoded.data}`;
+            
             if(!transIDs.includes(decoded.data) && decoded.data !== "") {
                 transIDs.push(decoded.data)
-                const data = await fetchTransactionById(decoded.data)
-                const {approved_budget, bid_notice_title, product_id} = data
-                if(data.length > 0) {
-                    addNewRow(data)
-                    btnRemarks.dataset.transid = JSON.stringify(transIDs)
+                // const data = await fetchTransactionById(decoded.data)
+                const data = await fetchQRCode(decoded.data)
+                
+
+                // console.log('scanQRCode',data)
+
+                const { response, component } = data;
+
+                let tempTitle, tempCreatedBy = '';
+                if (component === "transactions") {
+                    ({ bid_notice_title: tempTitle, requisitioner: tempCreatedBy } = response);
+                } else if (component === "documents") {
+                    ({ title: tempTitle, created_by: tempCreatedBy } = response);
                 }
+
+                const tempData = { component, tempTitle, tempCreatedBy };
+                // console.log('tempData', tempData)
+                // console.log(data && data.length > 0)
+                if (data) {
+                    tempQRCodes.push(qrNumber);
+                    addNewRow(tempData);
+                    btnRemarks.dataset.transid = JSON.stringify(tempQRCodes);
+                    document.getElementById('assignedTransactions').value = JSON.stringify(tempQRCodes);
+                    text.value = '';
+                }
+                console.log(tempQRCodes)
+                
+
+                // if(data.length > 0) {
+                //     addNewRow(data)
+                //     btnRemarks.dataset.transid = JSON.stringify(transIDs)
+                // }
                 
             }
     
@@ -95,8 +122,10 @@ if(text) {
 
         try {
             const qrNumber = text.value;
+            // console.log(qrNumber)
             if (!tempQRCodes.includes(qrNumber) && qrNumber !== "") {
                 const data = await fetchQRCode(qrNumber);
+                // console.log('data', data)
                 const { response, component } = data;
 
                 let tempTitle, tempCreatedBy = '';
@@ -107,15 +136,16 @@ if(text) {
                 }
 
                 const tempData = { component, tempTitle, tempCreatedBy };
-                console.log(tempData)
+                // console.log('tempData', tempData)
                 // console.log(data && data.length > 0)
                 if (data) {
                     tempQRCodes.push(qrNumber);
                     addNewRow(tempData);
                     btnRemarks.dataset.transid = JSON.stringify(tempQRCodes);
+                    document.getElementById('assignedTransactions').value = JSON.stringify(tempQRCodes);
                     text.value = '';
                 }
-                console.log(tempQRCodes)
+                // console.log(tempQRCodes)
             }
         } catch (error) {
             console.error("Error fetching or processing QR code:", error);
@@ -127,75 +157,78 @@ if(text) {
     
 }
 
-if(createRemarks) {
-    let comment = document.querySelector('#comment')
+// if(createRemarks) {
+//     let comment = document.querySelector('#comment')
+//     let assignedto = document.querySelector('#assignedto')
+//     let refreshActivity = document.getElementById('refreshActivity')
 
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
+//     const myHeaders = new Headers();
+//     myHeaders.append("Content-Type", "application/json");
 
-    createRemarks.addEventListener('click', async () => {
-        console.log(createRemarks)
-        try {
-            let selectedStatus = document.querySelector('input[name="color"]:checked');
-            let selectedPeriod = document.querySelectorAll('input[name="period"]');
-            let {transid} = createRemarks.dataset
-            let selectedStatusValue = selectedStatus.value
+//     createRemarks.addEventListener('click', async () => {
+//         console.log(createRemarks)
+//         try {
+//             let selectedStatus = document.querySelector('input[name="color"]:checked');
+//             let selectedPeriod = document.querySelectorAll('input[name="period"]');
+//             let {transid} = createRemarks.dataset
+//             let selectedStatusValue = selectedStatus.value
             
-            const checkedCheckboxes = Array.from(selectedPeriod)
-            .filter(checkbox => checkbox.checked)
-            .map(checkbox => parseFloat(checkbox.value))
-            .reduce((sum, value) => sum + value, 0);
+//             const checkedCheckboxes = Array.from(selectedPeriod)
+//             .filter(checkbox => checkbox.checked)
+//             .map(checkbox => parseFloat(checkbox.value))
+//             .reduce((sum, value) => sum + value, 0);
         
-            let preloaded = { 
-                comment: comment.value, 
-                refid: transid, 
-                status: selectedStatusValue,
-                user:'justjoe',
-                dueDate: checkedCheckboxes
-            }
-            console.log(preloaded)
-            const apiUrl = '/remarks/new'
+//             let preloaded = { 
+//                 comment: comment.value, 
+//                 refid: transid, 
+//                 status: selectedStatusValue,
+//                 dueDate: checkedCheckboxes,
+//                 assignedto: assignedto.checked,
+//             }
+//             console.log(preloaded)
+//             const apiUrl = '/remarks/new'
         
-            const requestOptions = {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(preloaded)
-            };
+//             const requestOptions = {
+//                 method: 'POST',
+//                 headers: {
+//                 'Content-Type': 'application/json',
+//                 },
+//                 body: JSON.stringify(preloaded)
+//             };
         
-            fetch(apiUrl, requestOptions)
-            .then(response => {
-                if (!response.ok) {
-                    // throw new Error('Network response was not ok');
-                    notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
-                }
-                return response.json();
-            })
-            .then(data => {
-                if(!data) {
-                    notifyCustom('bell', 'Error', 'Failed to create new remarks', 'danger')
-                }
+//             fetch(apiUrl, requestOptions)
+//             .then(response => {
+//                 if (!response.ok) {
+//                     // throw new Error('Network response was not ok');
+//                     notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
+//                 }
+//                 return response.json();
+//             })
+//             .then(data => {
+//                 if(!data) {
+//                     notifyCustom('bell', 'Error', 'Failed to create new remarks', 'danger')
+//                 }
         
-                let {message} = data
-                if(refreshActivity) {
-                    refreshActivity.click()
-                }
+//                 let {message} = data
+//                 if(refreshActivity) {
+//                     refreshActivity.click()
+//                 }
                 
-                // clearing fields
-                selectedStatus.checked = false
-                comment.value = ''
-                // return notifications
-                notifyCustom('check', `${message}`, 'Successfully added the remarks on the transactions!', 'success')
-            })
-            .catch(error => {
-                notifyCustom('exclamation', `There was an error on the system!`, `${error}`, 'danger')
-            });
-        } catch (error) {
-            notifyCustom('exclamation', `Field is empty please check!`, `${error}`, 'danger')
-        }
-    })
-}
+//                 // clearing fields
+//                 selectedStatus.checked = false
+//                 comment.value = ''
+//                 // return notifications
+//                 notifyCustom('check', `${message}`, 'Successfully added the remarks on the transactions!', 'success')
+//             })
+//             .catch(error => {
+//                 notifyCustom('exclamation', `There was an error on the system!`, `${error}`, 'danger')
+//             });
+//         } catch (error) {
+//             notifyCustom('exclamation', `Field is empty please check!`, `${error}`, 'danger')
+//         }
+//     })
+// }
+
 
 async function fetchTransactionByIdWorking(id) {
     try {
@@ -250,7 +283,8 @@ async function fetchTransactionById(id) {
 async function fetchQRCode(id) {
     try {
         const response = await fetch(`/api/qrcode/${id}`); // Assuming your API endpoint is like this
-        const data = await response.json(); // Parse JSON response
+        const data = await response.json(); // Parse JSON response 
+        // alert(data)
         if (response.ok) {
             const {response, component} = data
             return {response, component}
@@ -267,17 +301,17 @@ async function fetchQRCode(id) {
 }
 
 
-        const transactionsIDs = $("#basic-datatables").DataTable()
+const transactionsIDs = $("#basicDatatables").DataTable()
 
-      function addNewRow(data) {
-        // alert(data)
-        // console.log(data)
-        const { component, tempTitle, tempCreatedBy } = data
-        const newRowData = [
-            tempTitle,           // Product ID
-            component,     // Notice Title
-            tempCreatedBy,        // Initiator
-        ];
-        // console.log('asdadadasdasdasdadad', newRowData)
-        transactionsIDs.row.add(newRowData).draw();
-      }
+function addNewRow(data) {
+    // console.log(data)
+    const { component, tempTitle, tempCreatedBy } = data
+    const newRowData = [
+        tempTitle,           // Product ID
+        component,           // Notice Title
+        tempCreatedBy,       // Initiator
+    ];
+    // console.log(data)
+    // console.log('asdadadasdasdasdadad', newRowData)
+    transactionsIDs.row.add(newRowData).draw();
+}
