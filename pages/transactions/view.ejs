@@ -40,6 +40,11 @@
     preparedbyid = preparedby?.employeeid || ''
 
     const layoutDesign = 2
+
+    const listSuppliers = _suppliers && _suppliers.length > 0 
+      ? JSON.stringify(_suppliers) 
+      : JSON.stringify([])
+
 %>
 <div class="wrapper" data-product-id="<%= transactions.product_id %>">
     <%- include('../../views/sidebar') -%>
@@ -242,7 +247,7 @@
                         </div>
                       </div>
                       <div class="card-body">
-                        <div id="supplierInfo" data-suppliers="<%= JSON.parse(_suppliers) %>">
+                        <div id="supplierInfo" data-suppliers="<%= listSuppliers %>">
                           <% 
                           const lists = JSON.parse(_suppliers) 
 
