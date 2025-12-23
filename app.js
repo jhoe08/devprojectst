@@ -2061,7 +2061,10 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
         path: res.url,
         query: transid,
         steps: steps.sort((a, b) => b.id - a.id),
-        _suppliers: JSON.stringify(suppliers),
+        _suppliers: suppliers && suppliers.length > 0 
+                  ? JSON.stringify(suppliers) 
+                  : null
+,
       }); // Pass the data to the template
       
     } else {

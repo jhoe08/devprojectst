@@ -1,3 +1,8 @@
+<%
+    const { requisitioner, prepared_by } = transactions
+    const {employeeid: nagprepared, name: pangan} = JSON.parse(prepared_by)
+    console.log({ asdf: nagprepared })
+%>
 
 <%- include('../../views/header') -%>
 <div class="wrapper">
@@ -48,7 +53,7 @@
                             <%= console.log(remarks) %>
                             <tr>
                                 <td title="Responsible" class="text-start">1. End-User</td>
-                                <td title="Name"></td>
+                                <td title="Name"><%= pangan %></td>
                                 <td title="Signature"></td>
                                 <td title="Date In"></td>
                                 <td title="Date Out"></td>
