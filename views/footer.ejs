@@ -974,6 +974,24 @@
           title: "Denial Recorded",
           text: "Fund release denial has been recorded.",
         }
+      },
+      "completed": {
+        initial: {
+          title: "Process Already Completed",
+          text: "This transaction has already been completed.",
+        },
+        confirmed: {
+          title: "No Further Action",
+          text: "No further action is required as the process is complete.",
+        },
+        denied: {
+          title: "Process Already Completed",
+          text: "This transaction has already been completed.",
+        },
+        confirmedDenied: {
+          title: "No Further Action",
+          text: "No further action is required as the process is complete.",
+        }
       }
     };
 
@@ -1055,9 +1073,9 @@
       const updatedBy = $('#created_by').val()
       
       if ([6, 7, 8].includes(currentStep)) {
-        const suppliers = document.getElementById(`suppliers_step`).value;
+        // const suppliers = document.getElementById(`suppliers_step`).value;
 
-        console.log({productId, currentStep, updatedBy})
+        // console.log({productId, currentStep, updatedBy})
       }
 
       showConfirmationAlert({

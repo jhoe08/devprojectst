@@ -674,8 +674,8 @@ const fundsAvailability = [
 const approvalStepsSVP = [
   { id: 1, steps_title: "End-User", stage: "prepared_by" },
   { id: 2, steps_title: "Division Chief", stage: "division_head_approval" },
-  { id: 3, steps_title: "Budget Section", stage: "budget_earmarking" },
-  { id: 4, steps_title: "Procurement Section", stage: "philgeps_posting" },
+  { id: 3, steps_title: "Procurement Section", stage: "philgeps_posting" },
+  { id: 4, steps_title: "Budget Section", stage: "budget_earmarking" },
   { id: 5, steps_title: "BAC Secretariat", stage: "bac_review" },
   { id: 6, steps_title: "Procurement Section", stage: "quotation_form_preparation" },
   { id: 7, steps_title: "Canvassers", stage: "canvassing" },
@@ -698,7 +698,7 @@ const approvalStepsSVP = [
   { id: 24, steps_title: "GS / End-User", stage: "documentation" },
   { id: 25, steps_title: "End-User", stage: "final_acceptance" },
   { id: 26, steps_title: "Accounting Section", stage: "voucher_preparation" },
-  { id: 27, steps_title: "Division Chief", stage: "voucher_approval" },
+  { id: 27, steps_title: "RED/RTD", stage: "voucher_approval" },
   { id: 28, steps_title: "Cashiering Unit", stage: "payment_processing" },
   { id: 29, steps_title: "Accounting Section", stage: "liquidation" },
   { id: 30, steps_title: "RED / RTD / Admin Chief", stage: "final_signoff" },
@@ -733,6 +733,21 @@ const approvalStepsPublicBidding = [
   { id: 25, steps_title: "RED / RTD / Admin Chief", stage: "final_signoff" },
   { id: 26, steps_title: "Cashiering Unit", stage: "fund_release" }
 ];
+
+const modesOfProcurement = [
+  "Competitive Bidding",
+  "Limited Source Bidding",
+  "Direct Contracting",
+  "Repeat Order",
+  "Shopping",
+  "Negotiated Procurement",
+  "Emergency Procurement",
+  "Direct Procurement from Government Entities",
+  "Community Participation",
+  "Public-Private Partnership (PPP) Procurement",
+  "Other Fit-for-Purpose Modalities"
+];
+
 
 function getStepsDetails(stepNumber) {
   return approvalStepsSVP.find(step => 
@@ -971,6 +986,7 @@ app.use(async (req, res, next) =>{
     isHome: req.originalUrl,
     moment,
     approval_steps: approvalStepsSVP,
+    modesOfProcurement,
     getUserDivisionResponsible: (division) => {
       const divisionData = department.divisions[division];
       return divisionData ? divisionData.responsible : null;
@@ -1968,31 +1984,29 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
     const filteredActivities = res.locals.activities
     .filter(activity => activity.product_id === Number(transid));
 
-    console.log('filteredActivities', filteredActivities)
-    console.log('remarks', remarks)
-
     // expressActivityLog(filteredActivities)
-
-    if(transactions[0]) {
-      res.render('transactions/view', { 
-        title: 'Transactions: Remarks',
-        transactions: transactions[0],
-        remarks: remarks.sort((a, b) => b.id - a.id),
-        moment: moment,
-        path: res.url,
-        query: transid,
-        steps: steps.sort((a, b) => b.id - a.id),
-        _suppliers: JSON.stringify(suppliers),
-      }); // Pass the data to the template
-      
-    } else {
+    console.log({transactions})
+    if(Array.isArray(transactions) && transactions.length === 0) {
       res.render('404', {
         title: '404 Transaction Not Found',
         referer: req.referer,
         component: 'Transaction',
         steps
       });
+      return;
     }
+    
+    res.render('transactions/view', { 
+      title: 'Transactions: Remarks',
+      transactions: transactions[0],
+      remarks: remarks.sort((a, b) => b.id - a.id),
+      moment: moment,
+      path: res.url,
+      query: transid,
+      steps: steps.sort((a, b) => b.id - a.id),
+      _suppliers: JSON.stringify(suppliers || []),
+    }); // Pass the data to the template
+    
   } catch (error) {
       console.error('Error displaying transaction:', error);
       // res.status(500).send('Internal Server Error');
@@ -2870,7 +2884,11 @@ app.get('/media', (req, res) => {
   });
 });
 
-
+app.get('/charts/distributions', (req, res) => {
+  res.render('charts/distributions', {
+    title: 'Charts - Distributions'
+  });
+});
 
 app.use(async function(req, res, next){
   res.status(404).render('404', {

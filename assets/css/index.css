@@ -98,3 +98,14 @@ body {
 [data-head="Notice Title"] .progress {
   height: 5px;
 }
+
+
+.notif-center {
+  .notif-content {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    width: 200px;
+  }
+}

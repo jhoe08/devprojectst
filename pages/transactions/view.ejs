@@ -28,9 +28,9 @@
       let raw = getEmployeesInSameDivision(currentHolder);
 
       try {
-        employeesInSameDivision = raw ? JSON.parse(raw) : {};
+        employeesInSameDivision = raw ? JSON.parse(raw || {}) : {};
       } catch (err) {
-        console.error("Failed to parse JSON:", err);
+        console.error("View page: Failed to parse JSON:", err);
         employeesInSameDivision = {};
       }
     }
@@ -63,8 +63,12 @@
                   <a href="/transactions/<%- transactions.product_id -%>/print" class="btn btn-label-info btn-round me-2" id="btnPrint"><i class="fas fa-print"></i> Print</a>
                   <% if (canUpdateTransaction(SESSION_USER, current_step) || isSuperAdmin()) { %>
                   <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add Remarks</a>
+                  <% if(steps[0]?.steps_number == 31) { %> 
                   <button data-product-id="<%= transactions.product_id %>" href="#" class="alert_confirm btn btn-success btn-round" data-step="<%= current_step_number %>"><i class="fas fa-check"></i> Approve</button>
                   <a data-product-id="<%= transactions.product_id %>" id="disapproveBtn" href="#" class="alert_deny btn btn-danger btn-round" data-step="<%= current_step_number %>"><i class="fas fa-times"></i> Disapprove</a>
+                  <% } else { %> 
+                      <a data-product-id="<%= transactions.product_id %>" id="approveBtn" href="#" class="alert_confirm btn btn-success btn-round" data-step="completed"><i class="fas fa-check"></i> Complete </a>
+                  <% } %>
                   <% } else if (current_step == null && isCreatorOfTransaction(transactions)) { %>
                   <a href="#" class="alert_confirm btn btn-success btn-round" data-product-id="<%= transactions.product_id %>" data-step="1">Publish</a>
                   <% } %>
@@ -168,8 +172,8 @@
                             </div>
                           </div>
                         </div>
-                        <div class="separator-dashed hidden"></div>
-                        <div class="d-flex hidden">
+                        <div class="separator-dashed"></div>
+                        <div class="d-flex">
                           <div class="avatar">
                             <span class="avatar-title rounded-circle border border-white bg-secondary"><i class="fas fa-hashtag"></i></span>
                           </div>
@@ -178,13 +182,13 @@
                             <% if(transactions?.trans_code && isValidJSON(transactions.trans_code)) { 
                               trans_code = JSON.parse(transactions.trans_code)
                               trans_code.forEach(function(code){ if(code) { %>
-                              <span class="badge badge-count"><%= code %></span>
+                              <span class="badge badge-count"><%= code || 'ABC' %></span>
                               <% } })%>
                             <% } else { %>
-                              <span class="badge badge-count"><%= transactions?.trans_code %></span>
+                              <span class="badge badge-count"><%= transactions?.trans_code || 'ABC' %></span>
                             <% } %>
                             </h6>
-                            <span class="text-muted">Purchase Request Number</span>
+                            <span class="text-muted">Transaction Codes</span>
                           </div>
                           <div class="float-end pt-1">
                             <button  data-bs-toggle="modal" data-bs-target="#codeModal" id="addTransactionCodes" class="btn btn-icon btn-link op-8 me-1">
