@@ -58,11 +58,17 @@
 
     <!-- Index  CSS -->
     <link rel="stylesheet" href="/assets/css/index.css" />
-    <style>
       
-
+    <% 
+      if(typeof styles !== 'undefined' && styles) { const extractedStyles = Object.entries(styles).map(([title, source]) => ({
+          title,
+          source
+        }));
+        extractedStyles.forEach(({ title, source }) => {
+    %>
+        <link rel="stylesheet" href="<%= source %>" />
+    <% }); } %>
       
-    </style>
   </head>
 
   <body class='<%= hasAllowedRole(["SuperAdmin"]) ? "superclass" : "" %> <%= SESSION_USER ? "userLogged" : ""%>' data-env="<%= ENVIRONMENT %>" data-testmode="<%= TEST_MODE %> %>">

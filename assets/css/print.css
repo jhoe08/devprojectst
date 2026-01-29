@@ -61,7 +61,7 @@
     }
 }
 
-table {
+table#trackingSheetTable {
     font-size: .8em;
     width: 100%;
 

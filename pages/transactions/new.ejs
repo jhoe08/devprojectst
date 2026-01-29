@@ -14,10 +14,10 @@
   var requested_by = fullname
   var fund_source = '{}'
   if(transactions) {
-    var {requisitioner:requested_by, division: e_division, fund_source } = transactions
+    var {product_id, requisitioner:requested_by, division: e_division, fund_source } = transactions
   }
 %>
-<div class="wrapper" data-null-user="<%=fullname%>">
+<div class="wrapper" data-null-user="<%=fullname%>" data-transaction-id="<%= transactions ? product_id : '' %>">
   <%- include('../../views/sidebar') -%>
 
   <div class="main-panel">
@@ -151,6 +151,26 @@
                 </div>
               </div>
             </div>
+             <% if (transactions) { %>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Market Scoping Activity</h4>
+                  <div class="card-tools">
+                    <a href="market-scope" class="btn btn-label-info btn-round btn-sm">
+                      <span class="btn-label">
+                        <i class="fa fa-bookmark"></i>
+                      </span>
+                      View Document
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body">
+                <p data-template="Market scoping activities for the Procurement of ICT Equipment FY2026 (PR-2026-00123) were conducted from January 5–10, 2026 by the ICT Unit, RFO VII in compliance with Section 10 of RA 12009 and its IRR. The team participated in summits and conferences, reviewed technical and financial reports, and examined product brochures and industry publications. These activities provided sufficient market insights to guide procurement planning, ensuring proportionality and alignment with the Project Procurement Management Plan.">Market scoping activities for the {Particulars} (PR #) were conducted from {Date Conducted} by the {End-User},{Implementing Unit} in compliance with Section 10 of RA 12009 and its IRR. {Activities Conducted}. These activities provided sufficient market insights to guide procurement planning, ensuring proportionality and alignment with the Project Procurement Management Plan.</p>
+              </div>
+            </div>
+            <% } %>
           </div>
           <div class="col-md-12 col-lg-12 col-xl-6">
               <div class="card">
@@ -178,14 +198,14 @@
                       totalCount += parseFloat(amount);
                       %>
                     <div id="charging_<%= key %>" class="row" data-id="<%= key %>">
-                      <div class="col-md-9">
-                        <div class="col-md-1 col-xs-1" style="padding-right: 0;">
+                      <div class="col-md-9 d-flex">
+                        <div class="col-md-2 col-xs-1" style="padding-right: 0;">
                           <div class="form-group form-group-default form-group-minus">
                               <label for="minusButton_<%= key %>">Rmv</label>
                               <button id="minusButton_<%= key %>" class="form-control fas fa-minus-circle"></button>
                           </div>
                         </div>
-                        <div class="col-md-8 ml-0">
+                        <div class="col-md-10 ml-0">
                             <%- include('../../views/partials/selectDivisions', { key, filtered: (transactions) ? section : '' }) %>
                         </div>
                       </div>

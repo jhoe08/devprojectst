@@ -14,10 +14,12 @@
                   <h3 class="fw-bold mb-3"><%- title -%></h3>
                   <h6 class="op-7 mb-2">List of request like Purchase Request, Travel Order, and etc...</h6>
               </div>
+              <% if (PROCUREMENT.currentLaw !== 'RA120092025') { %>
               <div class="ms-md-auto py-2 py-md-0">
                 <a id="manageBtn" href="#" class="btn btn-label-info btn-round me-2" data-component="transactions" data-column="11">Manage</a>
                 <a href="/transactions/new" class="btn btn-primary btn-round"><i class="fas fa-plus"></i> Add New</a>
               </div>
+              <% } %>
             </div>
             <div class="row">
                 <div class="col-md-12">
@@ -102,6 +104,10 @@
                                   const requestID = UTILS.addLeadingZeros(product_id)
                                   const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
 
+                                  const COMPLETION_STEP = 31;
+                                  const isComplete = current_step_number >= COMPLETION_STEP;
+
+
                               %>
                                
                                 <tr 
@@ -135,7 +141,7 @@
                                           <i class="fa fa-eye"></i>
                                         </a>
                                       </span>
-                               
+                                      
                                       <% if (userDivision=='admin' && userSection=='budget' && current_step_number===3) { %>
                                       <span data-bs-toggle="tooltip" title="Approve Fund Availability">
                                         <button data-product-id="<%= product_id %>" type="button" class="btn alert_confirm btn-link btn-success" data-original-title="Remove" id="alert_confirm" data-step="<%= current_step_number %>">
@@ -162,7 +168,7 @@
                                       </button>
                                         <% } %>
                                       <% } %>
-                                      <% if(isCreatorOfTransaction(transactions[i])) { %>
+                                      <% if(isCreatorOfTransaction(transactions[i]) && !isComplete) { %>
                                       <span data-bs-toggle="tooltip" title="Edit Transaction">
                                       <a href="/transactions/<%= product_id %>/edit" data-transid="<%= product_id %>" type="button"  class="btn btn-link btn-primary" data-original-title="Edit Transaction" data-bs-toggle="tooltip" data-bs-placement="top" data-title="Edit Transaction">
                                         <i class="fa fa-edit"></i>
@@ -173,8 +179,17 @@
                                       <button data-href="/transactions/<%= product_id %>/print" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-warning" data-original-title="Print"  id="print_<%= product_id %>">
                                         <i class="fas fa-print"></i>
                                       </button>
-                                       <% } %>
-                                      <% if (hasAllowedRole(['SuperAdmin'])) { %>
+                                      <% } %>
+                                      
+                                      <% if (isComplete) { %>
+                                      <span data-bs-toggle="tooltip" title="Completed Transactions">
+                                        <a href="#" data-transid="<%= product_id %>" type="button" class="btn btn-link btn-success">
+                                          <i class="fas fa-check-circle"></i>
+                                        </a>
+                                      </span>
+                                      <% } %>
+                                      
+                                      <% if (hasAllowedRole(['SuperAdmin']) && !isComplete) { %>
                                       <button data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-delete btn-link btn-danger" data-original-title="Remove"  id="alert_demo_<%= product_id %>">
                                         <i class="fa fa-trash"></i>
                                       </button>

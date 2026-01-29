@@ -18,7 +18,7 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const { v4: uuidv4 } = require('uuid');
 
-const logger = require('./utils/logger');
+// const logger = require('./utils/logger');
 
 
 
@@ -806,6 +806,7 @@ app.use(bodyParser.json());
 
 
 const sheetsRouter = require('./routes/sheets');
+const { styleText } = require('node:util');
 app.use('/api', sheetsRouter);
 app.use(express.json());
 
@@ -873,12 +874,13 @@ app.use(async (req, res, next) =>{
 
   var components = ['Transactions', 'Employees', 'Documents']
 
-  const [notifications, transactions, summaryTransaction, summaryEmployee, activities] = await Promise.all([
+  const [notifications, transactions, summaryTransaction, summaryEmployee, activities, summaryMarketScopes] = await Promise.all([
     connection.retrieveNotifications(),
     connection.getTransactions(),
     connection.getTransactionSummary(),
     connection.getEmployeeSummary(),
     connection.getTransactionActivity(),
+    connection.getMarketScopesSummary(),
   ]);
 
   // Sort using Descending
@@ -987,6 +989,10 @@ app.use(async (req, res, next) =>{
     moment,
     approval_steps: approvalStepsSVP,
     modesOfProcurement,
+    PROCUREMENT: {
+      currentLaw: 'RA120092025',
+      previousLaw: 'RA91842002',
+    },
     getUserDivisionResponsible: (division) => {
       const divisionData = department.divisions[division];
       return divisionData ? divisionData.responsible : null;
@@ -1026,7 +1032,8 @@ app.use(async (req, res, next) =>{
     SUMMARY: {
       transactions: JSON.stringify(summaryTransaction[0]),
       totalTransactions,
-      employees: JSON.stringify(summaryEmployee[0])
+      employees: JSON.stringify(summaryEmployee[0]),
+      market_scopes: JSON.stringify(summaryMarketScopes[0])
     },
     STEPS: {
       lists: approvalStepsSVP,
@@ -1135,7 +1142,7 @@ app.use(async (req, res, next) =>{
       const isOwner = employeeId === preparedById;
 
       if (process.env.NODE_ENV !== 'production') {
-        console.log('Ownership Check:', { employeeId, preparedById, isOwner });
+        // console.log('Ownership Check:', { employeeId, preparedById, isOwner });
       }
 
       return isOwner;
@@ -1246,6 +1253,17 @@ const loadAllSuppliers = async (req, res, next) => {
     res.status(500).send("Internal Server Error: Middleware Load Suppliers");
   }
 }
+const loadAllMarketScopes = async (req, res, next) => {
+  try {
+    const marketScopes = await connection.getMarketScopes();
+    res.MARKET_SCOPES = marketScopes;
+    res.locals.MARKET_SCOPES = marketScopes;
+    next();
+  } catch (error) {
+    console.error("Error loading market scopes:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Market Scopes");
+  }
+}
 
 function restrict(req, res, next) {
   // If user is authenticated, proceed
@@ -1342,43 +1360,157 @@ app.post('/upload', upload.array('fileToUpload[]'), async (req, res) => {
   }
 });
 
-app.get('/', restrict, loadAllTransactions, loadAllActivities, async function(req, res){
-   const [
-    totalApprovedBudget,
-    countPerPRClassification,
-    cardsData,
-    dataFromLast7Days
-  ] = await Promise.all([
-    connection.getTotalApprovedBudget(),
-    connection.countPerPRClassification(),
-    connection.cardsData(),
-    connection.getDataFromLast7Days('remarks', 'date')
-  ]);
- 
-  var charts = cardsData.reduce((acc, { table_name, row_count, total_sum }) => {
-    acc[table_name] = { row_count, total_sum };
-    return acc;
-  }, {});
-
-  const safeCardsData = charts || { employees: { row_count:0, total_sum:0 }, transactions: { row_count:0, total_sum:0 }, notifications: { row_count:0, total_sum:0 } };
-
-  console.log({charts})
-
-  const perPRClassification = countPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
-    acc[pr_classification] = item_count;
-    return acc;
-  }, {});
-
-  console.log('charts', perPRClassification)
+app.get('/', restrict, loadAllTransactions, loadAllActivities, loadAllMarketScopes, async function(req, res){
+  const [
+      totalApprovedBudget,
+      countPerPRClassification,
+      cardsData,
+      dataFromLast7Days
+    ] = await Promise.all([
+      connection.getTotalApprovedBudget(),
+      connection.countPerPRClassification(),
+      connection.cardsData(),
+      connection.getDataFromLast7Days('remarks', 'date')
+    ]);
   
-  res.render('index', {
-    title: "Dashboard",
-    header: "Some users", 
-    totalApprovedBudget: JSON.stringify(totalApprovedBudget[0]),
-    perClassification: JSON.stringify(perPRClassification),
-    tableDashboard: JSON.stringify(dataFromLast7Days),
-    cardsData: safeCardsData,
-  });
+    var charts = cardsData.reduce((acc, { table_name, row_count, total_sum }) => {
+      acc[table_name] = { row_count, total_sum };
+      return acc;
+    }, {});
+
+    const safeCardsData = charts || { employees: { row_count:0, total_sum:0 }, transactions: { row_count:0, total_sum:0 }, notifications: { row_count:0, total_sum:0 } };
+
+    console.log({safeCardsData})
+
+    const perPRClassification = countPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
+      acc[pr_classification] = item_count;
+      return acc;
+    }, {});
+
+  
+  if(res.locals.PROCUREMENT.currentLaw !== 'RA120092025') {
+    
+    res.render('index', {
+      title: "Dashboard",
+      header: "Some users", 
+      totalApprovedBudget: JSON.stringify(totalApprovedBudget[0]),
+      perClassification: JSON.stringify(perPRClassification),
+      tableDashboard: JSON.stringify(dataFromLast7Days),
+      cardsData: safeCardsData,
+    });
+  } else {
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      { 
+        scripts: [],
+        styles: [],
+        innerContent: '../pages/ra12009/index',
+        title: "Dashboard",
+        description: "Department of Agriculture - Regional Field Office 7",
+        ...res.locals,
+        totalApprovedBudget: JSON.stringify(totalApprovedBudget[0]),
+        perClassification: JSON.stringify(perPRClassification),
+        tableDashboard: JSON.stringify(dataFromLast7Days),
+        cardsData: safeCardsData,
+      });
+      // Rendered HTML
+      res.status(200).send(renderedHtml)
+  }
+  
+});
+
+app.get('/market-scope', restrict, loadAllMarketScopes, async (req, res) => {
+  try {
+    const marketScopes = await connection.getMarketScopes();
+
+    // Map over each record and add actions
+    const enrichedMarketScopes = marketScopes.map(scope => ({
+      ...scope, // keep existing fields
+      actions: JSON.stringify({
+        view:   `/market-scope/${scope.id}/view`,
+        update: `/market-scope/${scope.id}/update`,
+        delete: `/market-scope/${scope.id}/delete`
+      })
+    }));
+
+    console.log('Enriched Market Scopes:', enrichedMarketScopes);
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+    { 
+      scripts: ['/assets/js/pages/market-scope.js'],
+      styles: ['/assets/css/market-scope.css'],
+      innerContent: '../pages/market-scope/index',
+      title: "Market Scope List",
+      description: "List of Market Scope Analysis Submissions",
+      datatables: enrichedMarketScopes,
+      ...res.locals,
+    });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/market-scope/new', restrict, async (req, res) => {
+  try {
+      const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'), 
+      { 
+        scripts: ['/assets/js/pages/market-scope.js'],
+        innerContent: '../pages/market-scope/new',
+        title: "Add New Market Scope",
+        description: "Republic Act No. 12009 — Section 10, IRR, and Project Procurement Management Plan (Principle of Proportionality)",
+        ...res.locals,
+      });
+      // Rendered HTML
+      res.status(200).send(renderedHtml)
+  } catch (error) {
+      console.error('Error fetching page template:', error);
+      res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/market-scope/:id', restrict, async (req, res) => {
+  try {
+      const innerHTML = await connection.getMarketScopes({id: req.params.id})
+      
+      if(!innerHTML || innerHTML.length === 0) {
+        return res.status(404).send('Market Scope Analysis Not Found');
+      }
+      
+      const { project_title, reference_number } = innerHTML[0];
+      const tables = await connection.getTransactionById(reference_number)
+      const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'), 
+      { 
+        scripts: ['/assets/js/pages/market-scope.js'],
+        innerContent: '../pages/market-scope/view',
+        title: project_title,
+        description: "",
+        results: innerHTML[0],
+        datatables: tables,
+        options: {
+          hideTitle: true,
+          uniqueId: req.params.id
+        },
+        ...res.locals,
+      });
+      // Rendered HTML
+      res.status(200).send(renderedHtml)
+  } catch (error) {
+      console.error('Error Viewing Market Scope:', error);
+      res.status(500).send('Internal Server Error');
+  }
+})
+
+app.post('/api/market-scope', restrict, async (req, res) => {
+  try {
+    console.log('Market Scope Analysis Request Body:', req.body);
+    const scopeResults = await connection.postMarketScope(req.body);
+    res.status(201).json({ message: 'Market Scope Analysis Submitted!', response: scopeResults });
+  } catch (error) {
+    console.error('Error fetching market scope analysis:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 app.get('/template', async function(req, res) {
@@ -1786,7 +1918,7 @@ app.get('/transactions/scan', restrict, async (req, res) => {
 
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
-    const { assigned_to, ...transactionData } = req.body;
+    const { assigned_to, marketScopeID, ...transactionData } = req.body;
     const transactions = await connection.postTransactions( transactionData );
 
     if(transactions?.affectedRows){
@@ -1802,7 +1934,13 @@ app.post('/transactions/new', restrict, async (req, res) => {
         status: "pending",
         assigned_to,
       }))
-      await connection.postNotifications(JSON.stringify(data))      
+      await connection.postNotifications(JSON.stringify(data))
+      await connection.amendData('market_scoping', JSON.stringify({
+        set: {
+          reference_number: insertId,
+        },
+        where: { id: marketScopeID, }
+      }))
     }
     // console.log('transactions', transactions)
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
@@ -1814,11 +1952,11 @@ app.post('/transactions/new', restrict, async (req, res) => {
 
 app.put('/transactions/update', restrict, async (req, res) => {
   try {
-    const {set} = JSON.stringify(req.body)
+    const { set } = req.body
     const { username } = res.locals.SESSION_USER
 
     const transactions = await connection.putTransactions( JSON.stringify(req.body) );
-    if(set.includes('amount')) {
+    if(Object.keys(set).includes("amount")) {
       await connection.putRemarks(JSON.stringify({
         comment: `Add quoted amount of ${set?.amount}`,
         refid: transid,
@@ -1829,7 +1967,7 @@ app.put('/transactions/update', restrict, async (req, res) => {
     }
     res.status(200).json({ message: 'Transaction Successfully Updated!', response: transactions });
   } catch (error) {
-    console.error('Error adding transaction:', error);
+    console.error('Error updating transaction:', error);
     res.status(500).send('Internal Server Error');
   }
 })
@@ -1939,12 +2077,12 @@ app.get('/transactions/:id', restrict, async (req, res) => {
     const transid = req.params.id;
 
     const transactions = await connection.getTransactionById(transid);
-      res.render('transactions', { 
-        title: 'Transactions',
-        transactions: transactions, 
-        moment: moment,
-        path: res.url
-      }); // Pass the data to the template
+    res.render('transactions', { 
+      title: 'Transactions',
+      transactions: transactions, 
+      moment: moment,
+      path: res.url
+    }); // Pass the data to the template
   } catch (error) {
       console.error('Error deleting transaction:', error);
       res.status(500).send('Internal Server Error');
@@ -2932,6 +3070,6 @@ server.on('error', (err) => {
 });
 
 server.listen(SERVER_PORT, '0.0.0.0', () => {
-  logger.info(`Server running on port ${SERVER_PORT}`);
+  // logger.info(`Server running on port ${SERVER_PORT}`);
   console.log('Server started on', SERVER_PORT);
 });

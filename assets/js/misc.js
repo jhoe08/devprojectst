@@ -376,27 +376,34 @@ function notifyCustom(type, title, message, status) {
 }
 
 function fieldsUpdated(container) {
-  const fields = document.querySelectorAll(`${container} .form-control, ${container} .form-select, ${container} input[type="checkbox"]`);
+  const fields = document.querySelectorAll(`
+    ${container} .form-control,
+    ${container} .form-select,
+    ${container} input[type="checkbox"],
+    ${container} textarea
+  `);
 
   fields.forEach(field => {
-    // console.dir(field.tagName)
-      if (field.tagName === 'INPUT') {
-        field.addEventListener('input', function() {
-            this.classList.toggle('updated', !!this.value);
-        });
-      }
-      // For select elements, listen for the 'change' event
-      if (field.tagName === 'SELECT') {
-          field.addEventListener('change', function() {
-              this.classList.toggle('updated', !!this.value);
-          });
-      }
-      // For checkbox elements, listen for the 'input' event
-      if (field.tagName === 'INPUT' && field.type === 'checkbox') {
-        field.addEventListener('input', function() {
-          field.closest('.selectgroup').classList.toggle('updated', !!this.value);
-        });
-      }
+    // For text inputs and textareas
+    if (field.tagName === 'INPUT' || field.tagName === 'TEXTAREA') {
+      field.addEventListener('input', function() {
+        this.classList.toggle('updated', !!this.value);
+      });
+    }
+
+    // For select elements
+    if (field.tagName === 'SELECT') {
+      field.addEventListener('change', function() {
+        this.classList.toggle('updated', !!this.value);
+      });
+    }
+
+    // For checkbox elements
+    if (field.tagName === 'INPUT' && field.type === 'checkbox') {
+      field.addEventListener('input', function() {
+        field.closest('.selectgroup').classList.toggle('updated', this.checked);
+      });
+    }
   });
 }
 

@@ -1,0 +1,35 @@
+<table 
+  id="<%= tableId %>" 
+  class="table table-striped table-hover table-bordered align-middle"
+  <%= (hideColumns && hideColumns.length > 0) 
+        ? 'data-hide-columns="' + hideColumns.join(',') + '"' 
+        : '' %>>
+  
+  <thead class="table-light">
+    <tr>
+      <% thead.forEach((header, index) => { %>
+        <th data-index="<%= index %>" class="<%= header === 'Actions' ? 'nosort text-center' : '' %>">
+          <%= header %>
+        </th>
+      <% }); %>
+    </tr>
+  </thead>
+
+  <tbody>
+  <% tbody.forEach(list => { %>
+    <tr>
+    <% Object.entries(list).forEach(([key, value], index) => { %>
+      <td data-index="<%= index %>"><%= value %></td>
+    <% }); %>
+    </tr>
+  <% }); %>
+  </tbody>
+
+  <tfoot class="table-light text-uppercase">
+    <tr>
+      <% thead.forEach(header => { %>
+        <td><%= header %></td>
+      <% }); %>
+    </tr>
+  </tfoot>
+</table>

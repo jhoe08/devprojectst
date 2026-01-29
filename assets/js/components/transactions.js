@@ -30,6 +30,8 @@
   
   const setQoutedAmount = document.getElementById('setQoutedAmount')
 
+  const transactionID = document.querySelector('.wrapper').dataset.transactionId
+
   function getClosestDivision(element) {
     let sibling = element.previousElementSibling;
 
@@ -191,6 +193,16 @@
           return;
         }
 
+        // Get the query string from the URL
+        const queryString = window.location.search; // "?market-scope=1"
+
+        // Parse it using URLSearchParams
+        const urlParams = new URLSearchParams(queryString);
+
+        // Extract the value of "market-scope"
+        const marketScope = urlParams.get("market-scope");
+
+
         // 📦 Prepare payload
         const payload = {
           bid_notice_title: bidNoticeTitleValue,
@@ -203,7 +215,8 @@
             message: 'Created Transaction'
           }),
           prepared_by: created_by.value,
-          assigned_to: nextResponsible.division?.employeeid || null
+          assigned_to: nextResponsible.division?.employeeid || null,
+          marketScopeID: marketScope
         };
 
         console.log('Payload:', payload);
@@ -245,10 +258,29 @@
     let requisitioner = document.querySelector('#requisitioner')
     // let division = document.querySelector('#divisions')
     let budget = document.querySelector('#budget')
-    let fundSource = document.querySelector('#fundSource')
+    let fundSource = document.querySelector('#chargingTo')
     // let bannerProgram = document.querySelector('#bannerProgram')
     let bacUnit = document.querySelector('#bacUnit')
-    let remarks = document.querySelector('#remarks')
+    // let remarks = document.querySelector('#remarks')
+
+    // Get the element
+    const el = document.getElementById("chargingTo");
+
+    // Parse the JSON from the data attribute
+    const transactions = JSON.parse(el.dataset.transactions);
+
+    // Retrieve only the remarks
+    const remarks = transactions.remarks
+    console.log({remarks})
+    let remarksObj = {}
+    if (typeof remarks === "string") {
+      try {
+        remarksObj = JSON.parse(remarks);
+      } catch (e) {
+        console.error("Failed to parse remarks:", e);
+        remarksObj = {};
+      }
+    }
 
     const container = '#lastestModificationsTransactions'
     fieldsUpdated(container)
@@ -295,10 +327,11 @@
         fund_source: charge,
         // banner_program: bannerProgramValue,
         bac_unit: bacUnitValue,
-        remarks: {
-          updatedBy: (created_by.value),
+        remarks: JSON.stringify({
+          ...remarksObj,
+          updatedBy: JSON.parse(created_by.value),
           updatedAt: new Date()
-        }
+        })
       };
 
       // console.log(bidNoticeTitle.classList.contains('updated'))
@@ -307,20 +340,18 @@
       if (!requisitioner.classList.contains('updated')) delete data.requisitioner
       // if (!division.classList.contains('updated')) delete data.division
       if (!budget.classList.contains('updated')) delete data.approved_budget
-      // if (!fundSource.classList.contains('updated')) delete data.fund_source
+      if (!fundSource.classList.contains('updated')) delete data.fund_source
       // if (!bannerProgram.classList.contains('updated')) delete data.banner_program
       if (!bacUnit.classList.contains('updated')) delete data.bac_unit
 
-      // let { remarks } = data
-      // remarks = JSON.stringify(remarks)
-      // data.remarks = remarks
+      const payload = {set: data, where: {product_id: transactionID}}
 
       const requestOptions = {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
       };
 
       fetch(apiUrl, requestOptions)
@@ -335,12 +366,12 @@
           if (!data) {
             notifyCustom('bell', 'Error', 'Failed to update the Transaction', 'danger')
           }
-          console.log(data)
+          // console.log(data)
           // let {message, response } = data
           // let {insertId} = response
 
 
-          notifyCustom('bell', `${message}`, `Transaction ID#${insertId}`, 'success')
+          notifyCustom('bell', `${data.message}`, `Done.`, 'success')
 
           // Clearing the fields
           // bidNoticeTitle.value = ''

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>4. Market Scoping Results</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --ink: #2c3e50;
+      --paper: #ffffff;
+      --line: #d9dee3;
+      --mute: #6b7c93;
+      --accent: #0b6bcb;
+      --bg: #f6f8fb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Segoe UI, Arial, sans-serif;
+      margin: 32px;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    header { margin-bottom: 16px; }
+    h1 { font-size: 1.5rem; margin: 0 0 8px; }
+    .subtitle { color: var(--mute); font-size: 0.95rem; }
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    p { margin: 0 0 12px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 12px;
+      vertical-align: top;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    thead th {
+      background: #f1f4f8;
+      font-weight: 700;
+    }
+    select, textarea, input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+    textarea { min-height: 84px; resize: vertical; }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: 1px solid var(--accent);
+    }
+    .muted { color: var(--mute); font-size: 0.9rem; }
+    @media print {
+      body { background: #fff; margin: 0; }
+      .btn, .actions { display: none !important; }
+      .card { box-shadow: none; border: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>4. Market Scoping Results</h1>
+    <div class="subtitle">Indicate recommendations based on the market scoping activities undertaken (RA 12009 IRR, Section 10.4).</div>
+  </header>
+
+  <form class="card">
+    <p>
+      Indicate recommendations in the column provided based on the results of the market scoping activities undertaken. These recommendations shall be considered in the development of a comprehensive and realistic PPMP, taking into account the parameters outlined under Section 10.4 of the IRR of RA 12009, as may be applicable.
+    </p>
+
+    <table aria-label="Market scoping results">
+      <thead>
+        <tr>
+          <th style="width: 34%;">Parameters</th>
+          <th style="width: 180px;">Considered? (Yes/No/Not Applicable)</th>
+          <th>Recommendations based on the Market Scoping (Attach additional documents if necessary)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>a. Project Cost Estimate:</strong> Does the cost estimate align with current market prices?</td>
+          <td>
+            <select name="costEstimate_considered" aria-label="Project cost estimate considered">
+              <option value="">Select…</option>
+              <option>Yes</option>
+              <option>No</option>
+              <option>Not Applicable</option>
+            </select>
+          </td>
+          <td>
+            <textarea name="costEstimate_reco" placeholder="Summarize price canvass, variance vs. historical costs, and any adjustment rationale."></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>b. Project Design and Specification:</strong> Do available supplier/s meet technical and financial requirements?</td>
+          <td>
+            <select name="designSpec_considered" aria-label="Project design and specification considered">
+              <option value="">Select…</option>
+              <option>Yes</option>
+              <option>No</option>
+              <option>Not Applicable</option>
+            </select>
+          </td>
+          <td>
+            <textarea name="designSpec_reco" placeholder="Note compliant models/vendors, alternative specs, and budgetary implications."></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>c. Technical Criteria:</strong> Does the market support the proposed technical requirements?</td>
+          <td>
+            <select name="techCriteria_considered" aria-label="Technical criteria considered">
+              <option value="">Select…</option>
+              <option>Yes</option>
+              <option>No</option>
+              <option>Not Applicable</option>
+            </select>
+          </td>
+          <td>
+            <textarea name="techCriteria_reco" placeholder="Identify minimum viable specs, interoperability needs, certifications, and recommended adjustments."></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>d. Delivery Lead Time:</strong> Are the timelines for delivery feasible?</td>
+          <td>
+            <select name="leadTime_considered" aria-label="Delivery lead time considered">
+              <option value="">Select…</option>
+              <option>Yes</option>
+              <option>No</option>
+              <option>Not Applicable</option>
+            </select>
+          </td>
+          <td>
+            <textarea name="leadTime_reco" placeholder="State typical lead times, phased delivery options, and schedule constraints."></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>e. Storage and Warehousing Requirements:</strong> Can the storage/warehousing needs be met (e.g., temperature, humidity, handling)?</td>
+          <td>
+            <select name="storage_considered" aria-label="Storage and warehousing considered">
+              <option value="">Select…</option>
+              <option>Yes</option>
+              <option>No</option>
+              <option>Not Applicable</option>
+            </select>
+          </td>
+          <td>
+            <textarea name="storage_reco" placeholder="Specify storage conditions, capacity, handling protocols, and any mitigation needs."></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>f. Identified Risk/s:</strong> Were there any market risks identified? (e.g., limited suppliers, price volatility)</td>
+          <td>
+            <select name="risks_considered" aria-label="Identified risks considered">
+              <option value="">Select…</option>
+              <option>Yes</option>
+              <option>No</option>
+              <option>Not Applicable</option>
+            </select>
+          </td>
+          <td>
+            <textarea name="risks_reco" placeholder="List key risks and propose mitigations (e.g., alternative sources, buffer timelines, price ceilings)."></textarea>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Save results</button>
+      <button type="reset" class="btn">Clear</button>
+      <span class="muted">Attach supporting files (price canvass, reports, screenshots) when submitting.</span>
+    </div>
+  </form>
+</body>
+</html>

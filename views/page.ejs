@@ -1,11 +1,32 @@
 <%- include('header') -%>
 
-<div class="wrapper">
+<div class="wrapper" data-template="<%= PROCUREMENT.currentLaw %>">
+  <% if (PROCUREMENT.currentLaw === 'RA120092025') { %>
+    <%- include('../views/ra12009/sidebar') -%>
+  <% } else { %>
     <%- include('sidebar') -%>
-    <div class="main-panel">
-        <%- include('../views/main-header') -%>
-        <%- include(innerContent) -%>
+  <% } %>
+  
+  <div class="main-panel">
+    <%- include('../views/main-header') -%>
+    <div class="container" >
+      <div class="page-inner">
+        <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+        <% const hideTitle = (typeof options !== "undefined" && options.hideTitle) ? options.hideTitle : false; %>
+        <% if (!hideTitle) { %>
+          <div>
+              <h3 class="fw-bold mb-3"><%- title -%></h3>
+              <%- description 
+                ? '<h6 class="op-7 mb-2">' + description + '</h6>' 
+                : '' %>
+          </div>
+        <% } %>
+        </div>
+        <div class="row">
+            <%- include(innerContent) -%>
+        </div>
     </div>
+  </div>
 </div>
 
-<%- include('footer') -%>
+<%- include('footer', { scripts }) -%>

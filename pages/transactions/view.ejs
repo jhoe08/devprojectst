@@ -62,16 +62,57 @@
               <div class="ms-md-auto py-2 py-md-0" data-current-step="<%= JSON.stringify(current_step) %>">
                   <a href="/transactions/<%- transactions.product_id -%>/print" class="btn btn-label-info btn-round me-2" id="btnPrint"><i class="fas fa-print"></i> Print</a>
                   <% if (canUpdateTransaction(SESSION_USER, current_step) || isSuperAdmin()) { %>
-                  <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add Remarks</a>
-                  <% if(steps[0]?.steps_number == 31) { %> 
-                  <button data-product-id="<%= transactions.product_id %>" href="#" class="alert_confirm btn btn-success btn-round" data-step="<%= current_step_number %>"><i class="fas fa-check"></i> Approve</button>
-                  <a data-product-id="<%= transactions.product_id %>" id="disapproveBtn" href="#" class="alert_deny btn btn-danger btn-round" data-step="<%= current_step_number %>"><i class="fas fa-times"></i> Disapprove</a>
-                  <% } else { %> 
-                      <a data-product-id="<%= transactions.product_id %>" id="approveBtn" href="#" class="alert_confirm btn btn-success btn-round" data-step="completed"><i class="fas fa-check"></i> Complete </a>
+                  
+
+                  <% if (steps[0]?.steps_number <= 31) { %>
+                    <!-- Add Remarks -->
+                    <a href="#" 
+                      class="btn btn-primary btn-round" 
+                      data-bs-toggle="modal" 
+                      data-bs-target="#remarksModal">
+                      <i class="fas fa-plus"></i> Add Remarks
+                    </a>
+
+                    <!-- Approve / Disapprove -->
+                    <button 
+                      type="button"
+                      class="alert_confirm btn btn-success btn-round" 
+                      data-product-id="<%= transactions.product_id %>" 
+                      data-step="<%= current_step_number %>">
+                      <i class="fas fa-check"></i> Approve
+                    </button>
+
+                    <button 
+                      type="button"
+                      id="disapproveBtn"
+                      class="alert_deny btn btn-danger btn-round" 
+                      data-product-id="<%= transactions.product_id %>" 
+                      data-step="<%= current_step_number %>">
+                      <i class="fas fa-times"></i> Disapprove
+                    </button>
+                  <% } else { %>
+                    <!-- Complete -->
+                    <button 
+                      type="button"
+                      id="completeBtn"
+                      class="btn btn-success btn-round" 
+                      data-product-id="<%= transactions.product_id %>" 
+                      data-step="completed"
+                      disabled>
+                      <i class="fas fa-check"></i> Complete
+                    </button>
                   <% } %>
-                  <% } else if (current_step == null && isCreatorOfTransaction(transactions)) { %>
-                  <a href="#" class="alert_confirm btn btn-success btn-round" data-product-id="<%= transactions.product_id %>" data-step="1">Publish</a>
-                  <% } %>
+
+                <% } else if (!current_step && isCreatorOfTransaction(transactions)) { %>
+                  <!-- Publish -->
+                  <button 
+                    type="button"
+                    class="alert_confirm btn btn-success btn-round" 
+                    data-product-id="<%= transactions.product_id %>" 
+                    data-step="1">
+                    Publish
+                  </button>
+                <% } %>
               </div>
             </div>
             <div class="row">
@@ -81,21 +122,26 @@
                         <div class="card-head-row">
                           <div class="card-title">Details</div>
                           <div class="card-tools">
-                            <ul class="nav nav-pills nav-secondary nav-pills-no-bd nav-sm" id="pills-tab" role="tablist">
-                              <li class="nav-item submenu" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="PR Classification">
-                                <span class="nav-link active" id="pills-today" data-bs-toggle="pill" href="#pills-today" role="tab" aria-selected="false" tabindex="-1" aria-labelledby="pills-today"><%- transactions.pr_classification -%></span>
-                              </li>
-                              <% if(transactions?.banner_program) { %>
-                              <li class="nav-item" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Banner Program">
-                                <span class="nav-link" id="pills-week" data-bs-toggle="pill" href="#pills-week" role="tab" aria-selected="false" aria-labelledby="pills-week" tabindex="-1"><%- transactions.banner_program -%></span>
-                              </li>
-                              <% } %>
-                              <% if(transactions?.bac_unit) { %>
-                              <li class="nav-item submenu" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="BAC Unit">
-                                <span class="nav-link" id="pills-month" data-bs-toggle="pill" href="#pills-month" role="tab" aria-selected="false" tabindex="-1" aria-labelledby="pills-month"><%- transactions.bac_unit -%></span>
-                              </li>
-                              <% } %>
-                            </ul>
+                            <button disabled="disabled" href="market-scope" class="btn btn-label-info btn-round btn-sm">
+                              <span class="btn-label">
+                                <i class="fa fa-list"></i>
+                              </span>
+                              <%- transactions.pr_classification -%>
+                            </button>
+                            <% if(transactions?.bac_unit) { %>
+                            <button disabled="disabled" href="market-scope" class="btn btn-label-info btn-round btn-sm">
+                              <span class="btn-label">
+                                <i class="fa fa-list"></i>
+                              </span>
+                              <%- transactions.bac_unit -%>
+                            </button>
+                            <% } %>
+                            <a href="market-scope" class="btn btn-warning text-white btn-round btn-sm">
+                              <span class="btn-label">
+                                <i class="fa fa-bookmark"></i>
+                              </span>
+                              View Document
+                            </a>
                           </div>
                         </div>
                       </div>
@@ -315,7 +361,7 @@
                       <div class="card-head-row card-tools-still-right">
                         <div class="card-title">Next Responsible Person</div>
                         <% if(employeesInSameDivision && Array.isArray(employeesInSameDivision)) { %>
-                        <button class="btn btn-warning btn-round ms-auto" id="assignedToBtn">
+                        <button class="btn btn-warning btn-round ms-auto btn-sm" id="assignedToBtn">
                           <i class="fa fa-forward"></i>
                           Assigned To
                         </button>

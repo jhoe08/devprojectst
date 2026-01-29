@@ -8,4 +8,7 @@ if not exist "%BACKUP_DIR%" (
     mkdir "%BACKUP_DIR%"
 )
 
-"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe" -u root -p"1jsQM#7bTmKv*vDBroot" --databases procurementtracker > "%BACKUP_DIR%\procurementtracker_%TIMESTAMP%.sql"
+"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe" ^
+    -u root -p"1jsQM#7bTmKv*vDBroot" ^
+    --no-data --databases procurementtracker ^
+    > "%BACKUP_DIR%\procurementtracker_%TIMESTAMP%.sql"

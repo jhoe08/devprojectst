@@ -16,6 +16,7 @@ const tables = {
   document: 'documents',
   notification: 'notifications',
   settings: 'settings',
+  market_scope: 'market_scoping',
 }
 const TEST_UNIT = process.env.TEST_UNIT
 
@@ -106,6 +107,8 @@ const databaseUtils = {
         COUNT(*) AS row_count,
         SUM(approved_budget) AS total_sum
       FROM ${prefix}.${tables.transaction}`;
+
+    console.log({query})
     connection.query(query, (error, results) => {
       if (error) {
         return reject(error);
@@ -181,6 +184,22 @@ const databaseUtils = {
         });
       });
   },
+  getMarketScopesSummary: async () => {
+    const query = `SELECT 
+        'market_scoping' AS table_name,
+        COUNT(*) AS row_count
+      FROM ${prefix}.${tables.market_scope}`;
+
+    return new Promise((resolve, reject) => {
+        connection.query(query, (error, results) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+  },
   getTransactionSummary: async () => {
     const query = `SELECT 
         '${tables.transaction}' AS table_name,
@@ -208,6 +227,7 @@ const databaseUtils = {
   getTransactions: async (data) => {
      if (data) {
       data = JSON.parse(data)
+      console.log({data})
       return await databaseUtils.retrieveData(`${tables.transaction}`, '*', data)
     }
     return await databaseUtils.retrieveData(`${tables.transaction}`)
@@ -319,7 +339,15 @@ const databaseUtils = {
     })
   }),
   putTransactions: async (data) => {
-    console.log('data - updating transactions', data)
+     // Trap if either is missing, not an object, or empty
+    const { set, where } = JSON.parse(data);
+    if (
+      !set || typeof set !== 'object' || Object.keys(set).length === 0 ||
+      !where || typeof where !== 'object' || Object.keys(where).length === 0
+    ) {
+      return false;
+    }
+
     return await databaseUtils.amendData(tables.transaction, data)
   },
   hideToDisplay: async (component, id) => {
@@ -605,36 +633,37 @@ const databaseUtils = {
   amendData: async (table, data) => {
     try {
       let { set, where } = JSON.parse(data);
+
+      console.log({ set, where });
+
+      // Trap if either is missing, not an object, or empty
+      if (
+        !set || typeof set !== 'object' || Object.keys(set).length === 0 ||
+        !where || typeof where !== 'object' || Object.keys(where).length === 0
+      ) {
+        throw new Error("Invalid input: 'set' or 'where' is empty or undefined");
+      }
+
+      // Trim string values in set
       set = Object.fromEntries(
         Object.entries(set).map(([key, value]) => {
-          // Check if value is a string, and apply TRIM
           if (typeof value === 'string') {
-            return [key, value.trim()]
+            return [key, value.trim()];
           }
-          return [key, value]; // Leave other types unchanged
+          return [key, value];
         })
       );
-      // Construct SQL query
-      // let query = `UPDATE ${prefix}.${table} SET `;
-      // query += Object.entries(set)
-      //   .map(([key, value]) => `${key}='${value}'`)
-      //   .join(', ');
-      // query += ' WHERE ';
-      // query += Object.entries(where)
-      //   .map(([key, value]) => `${key}='${value}'`)
-      //   .join(' AND ');
 
       const keys = Object.keys(set);
       const values = Object.values(set);
+
       const conditions = Object.entries(where)
-        .map(([key, value]) => `${key} = ?`)
+        .map(([key]) => `${key} = ?`)
         .join(' AND ');
 
       const query = `UPDATE ${prefix}.${table} SET ${keys.map(k => `${k} = ?`).join(', ')} WHERE ${conditions}`;
       const params = [...values, ...Object.values(where)];
 
-
-      console.log({query})
       // Execute the query
       return new Promise((resolve, reject) => {
         connection.query(query, params, (error, results) => {
@@ -644,7 +673,7 @@ const databaseUtils = {
       });
 
     } catch (error) {
-      console.log('amendData', error)
+      console.log('amendData', error);
       return Promise.reject(error);
     }
 
@@ -654,14 +683,31 @@ const databaseUtils = {
   // { id: 1234 } or { refid: 1234 }
   // filter = column_name
   retrieveData: (table, filter, where) => new Promise((resolve, reject) => {
-    if (!filter) { filter = '*'; }
-    let query = `SELECT ${filter} FROM ${prefix}.${table}`
+    if (!filter) { 
+      filter = '*'; 
+    }
+
+    let query = `SELECT ${filter} FROM ${prefix}.${table}`;
+
     if (where) {
-      query += " WHERE"
+      query += " WHERE";
       query += Object.entries(where)
         .map(([key, value]) => {
-          if (value === '' || value === null) return ` ${key} IS NULL`;
-          return ` ${key}='${value}'`
+          if (value === '' || value === null) {
+            return ` ${key} IS NULL`;
+          }
+
+          // Check if value is JSON array
+          try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) {
+              return ` ${key} IN (${parsed.map(v => `'${v}'`).join(', ')})`;
+            }
+          } catch (e) {
+            // Not JSON, continue
+          }
+
+          return ` ${key}='${value}'`;
         })
         .join(' AND');
     }
@@ -675,10 +721,6 @@ const databaseUtils = {
     })
   }),
   retrieveDatas: (tables, filter, where) => new Promise((resolve, reject) => {
-    // SELECT doc.*, act.*
-    // FROM ${prefix}.documents AS doc
-    // INNER JOIN ${prefix}.documents_activity AS act ON doc.id = act.refid
-    // WHERE act.refid = 3;
 
   }),
   ///////////////////////////////////////////////////////////////
@@ -1015,7 +1057,104 @@ const databaseUtils = {
       });
     });
   },
+  // END GUEST TOKENS
 
+  /////////////////////////////////////////////////////
+  // MARKET SCOPE
+
+  postMarketScope: async (data) => {
+    const {
+      projectTitle: project_title,
+      refNo: reference_number,
+      endUser: end_user_unit,
+      dateConducted: date_conducted,
+      activity_consultations: consultations_with_suppliers,
+      activity_summits: participation_in_summits,
+      activity_reports: review_reports,
+      activity_brochures: review_brochures,
+      activity_price_sourcing: price_sourcing,
+      activity_philgeps: use_philgeps_data,
+      activity_other: other_activity,
+      preparedBy,
+      preparedDate: prepared_by_date,
+      preparedSignature: prepared_by_signature,
+      reviewedBy,
+      reviewedDate: reviewed_by_date,
+      reviewedSignature: reviewed_by_signature,
+    } = data;
+    console.log('postMarketScope', data);
+    // Safely split names and positions
+    const [prepared_by_name = null, prepared_by_position = null] =
+      preparedBy?.split(", ").map((s) => s.trim()) || [];
+
+    const [reviewed_by_name = null, reviewed_by_position = null] =
+      reviewedBy?.split(", ").map((s) => s.trim()) || [];
+
+    const query = `
+      INSERT INTO ${prefix}.market_scoping (
+        project_title,
+        reference_number,
+        end_user_unit,
+        date_conducted,
+        consultations_with_suppliers,
+        participation_in_summits,
+        review_reports,
+        review_brochures,
+        price_sourcing,
+        use_philgeps_data,
+        other_activity,
+        prepared_by_name,
+        prepared_by_position,
+        prepared_by_date,
+        prepared_by_signature,
+        reviewed_by_name,
+        reviewed_by_position,
+        reviewed_by_date,
+        reviewed_by_signature
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const values = [
+      project_title || null,
+      reference_number || null,
+      end_user_unit || null,
+      date_conducted || null,
+      consultations_with_suppliers || null,
+      participation_in_summits || null,
+      review_reports || null,
+      review_brochures || null,
+      price_sourcing || null,
+      use_philgeps_data || null,
+      other_activity || null,
+      prepared_by_name,
+      prepared_by_position,
+      prepared_by_date || null,
+      prepared_by_signature || null,
+      reviewed_by_name,
+      reviewed_by_position,
+      reviewed_by_date || null,
+      reviewed_by_signature || null,
+    ];
+
+    return new Promise((resolve, reject) => {
+      connection.query(query, values, (error, results) => {
+        if (error) {
+          console.error("Error inserting market scope:", error.sqlMessage);
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+  },
+
+  getMarketScopes: async (data) => {
+    if (data) {
+      return await databaseUtils.retrieveData(`${tables.market_scope}`, '*', data)
+    }
+    return await databaseUtils.retrieveData(`${tables.market_scope}`)
+  },
 }
 
 module.exports = databaseUtils

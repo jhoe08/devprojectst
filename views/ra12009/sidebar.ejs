@@ -1,7 +1,8 @@
   <%
-    const {transactions, totalTransactions, employees} = SUMMARY
+    const {transactions, totalTransactions, employees, market_scopes} = SUMMARY
     const { row_count:total_transactions } = JSON.parse(transactions)
     const { row_count:total_employees } = JSON.parse(employees)
+    const { row_count:total_market_scopes } = JSON.parse(market_scopes)
   %>
   <!-- Sidebar -->
   <div class="sidebar" data-background-color="white">
@@ -53,7 +54,7 @@
               <ul class="nav nav-collapse">
                 <li>
                   <a href="/market-scope">
-                    <span class="sub-item">Lists <span class="badge badge-secondary pull-right">2</span></span>
+                    <span class="sub-item">Lists <span class="badge badge-secondary pull-right"><%= total_market_scopes %></span></span>
                   </a>
                 </li>
                 <li>
@@ -80,30 +81,20 @@
             </a>
           </li>
           <% } %>
-          
-          <% if (userAvailComponents('Transactions') ) { %>
-          <li class="nav-section" <%=userAvailComponents('Transactions')%>>
+          <li class="nav-section">
             <span class="sidebar-mini-icon">
               <i class="fa fa-ellipsis-h"></i>
             </span>
-            <h4 class="text-section">Transactions</h4>
+            <h4 class="text-section">Pages</h4>
           </li>
+          <% if (userAvailComponents('Transactions') ) { %>
           <li class="nav-item <%= UTILS.isActive(currentPath, '/transactions') %>">
             <a href="/transactions">
               <i class="fas fa-file"></i>
-              <p>Lists <span class="badge badge-secondary pull-right"><%= totalTransactions %></span></p>
+              <p>Transactions <span class="badge badge-secondary pull-right"><%= totalTransactions %></span></p>
               <!-- <span class="caret"></span> -->
             </a>
           </li> 
-          <% if(!isGuest()) { %>
-          <li class="nav-item <%= UTILS.isActive(currentPath, '/transactions/new') %>">
-            <a href="/transactions/new">
-              <i class="fas fa-plus"></i>
-              <p>Add New</p>
-              <!-- <span class="caret"></span> -->
-            </a>
-          </li>
-          <% } %>
           <li class="nav-section" <%=userAvailComponents('Transactions')%>>
             <span class="sidebar-mini-icon">
               <i class="fa fa-ellipsis-h"></i>

@@ -109,3 +109,14 @@ body {
     width: 200px;
   }
 }
+
+
+.nav-collapse {
+    .sub-item {
+        width: 100%;
+    }
+}
+
+table.dataTable {
+  width: 100% !important;
+}

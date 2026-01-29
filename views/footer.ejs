@@ -7,7 +7,7 @@
         }));
         extractedScripts.forEach(({ title, source }) => {
     %>
-        <script type="module" title="<%= title %>" src="<%= source %>"></script>
+        <script type="module" title="<%= title || source %>" src="<%= source %>"></script>
     <% }); } %>
 
     <% if (path2.startsWith('/transactions')) { %> 
@@ -23,6 +23,16 @@
     <% } else { %>
    
     <% } %>
+
+    <script type="module">
+      import configTransactions from '/assets/js/pages/transactions.js';
+      import configMarketScopes from '/assets/js/pages/market-scope.js';
+      // Example usage
+      $('#transactions-datatables').DataTable(configTransactions());
+
+      $('#marketScope').DataTable(configMarketScopes());
+      // console.log(marketScopeTable.columns());
+    </script>
 
     <script>
       function progressBar(length, progress) {
@@ -43,18 +53,26 @@
         var hideColumns = $(this).data('hide-columns')
         var hideColumnsArray = hideColumns ? hideColumns.split(',').map(Number) : [];
         // Initialize the DataTable with custom options(2 / 30) × 100 = 6.67%
-
-        $(this).DataTable({
-            ordering: true,        // Enable ordering
-            order: [[0, order]],   // Set the default sort column (column 0) and sort direction (asc or desc)
-            paging: true,          // Enable pagination
-            searching: true,       // Enable searching
-            // lengthMenu: [5, 10, 15, 20], // Number of records per page options
-            columnDefs: [
-              { visible: false, targets: hideColumnsArray }
-            ],
-        });
-    });
+        
+        if (this.id && this.id.includes('marketScope')) {
+          console.log('Initializing marketScope table with special config');
+          // Apply special configuration for marketScope tables
+          // $(this).DataTable(marketScope.config);
+        } else {
+          // Default configuration for other tables
+          $(this).DataTable({
+            ordering: true,
+            order: [[0, order]],        // sort by first column
+            paging: true,
+            searching: true,
+            // lengthMenu: [5, 10, 15, 20],
+            columnDefs: hideColumnsArray?.length
+              ? [{ visible: false, targets: hideColumnsArray }]
+              : []
+          });
+        }
+        
+       });
 
       const basicTable = $(".basicDatatables").DataTable({
         "pageLength": -1,
@@ -67,51 +85,53 @@
       let tables = $("#justTables, .datatables").DataTable();
       // const requestID = UTILS.addLeadingZeros(product_id)
       // const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
-      const transactions = $("#transactions-datatables").DataTable({
-        responsive: true,
-        rowReorder: {
-          selector: 'td:nth-child(2)'
-        },
-        "order": [[0, 'desc']],
-        columnDefs: [{
-            render: (data, type, row) => '<div class="d-flex justify-content-between"><div><span class="badge badge-info mr-3">'+ row[0] +'</span><span data-head="Classification" class="badge badge-count mr-3" >' + row[9] + '</span></div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div></div><div class="mb-0">'+ data +'</div>'+progressBar(30, row[12]),
-            targets: 1
-          }, {
-            render: (data, type, row) => `${data} ${row[3] != '' ? `<br><span data-head="Division" class="badge badge-warning  ${row[3]}">${row[3]}<span>` : ''}`,
-            targets: 2
-          }, {
-            render: $.fn.dataTable.render.number(',', '.', 2, '₱'),
-            targets: 5
-          }, { visible: false, targets: [0,3,7,8,9,12] }
-        ],
-        responsive: true,
-        initComplete: function () {
-          this.api()
-          // .columns()
-          // .every(function () {
-          //   var column = this;
-          //   var select = $('<select class="form-select"><option value=""></option></select>')
-          //     .appendTo($(column.footer()).empty())
-          //     .on("change", function () {
-          //       var val = $.fn.dataTable.util.escapeRegex($(this).val());
+      
 
-          //       column
-          //         .search(val ? "^" + val + "$" : "", true, false)
-          //         .draw();
-          //     });
+      // const transactions = $("#transactions-datatables").DataTable({
+      //   responsive: true,
+      //   rowReorder: {
+      //     selector: 'td:nth-child(2)'
+      //   },
+      //   "order": [[0, 'desc']],
+      //   columnDefs: [{
+      //       render: (data, type, row) => '<div class="d-flex justify-content-between"><div><span class="badge badge-info mr-3">'+ row[0] +'</span><span data-head="Classification" class="badge badge-count mr-3" >' + row[9] + '</span></div><div data-head="Transaction Codes">' + (stringToArray(row[7], item => { return `<span class="badge badge-success">${item}</span>` })) + '</div></div><div class="mb-0">'+ data +'</div>'+progressBar(30, row[12]),
+      //       targets: 1
+      //     }, {
+      //       render: (data, type, row) => `${data} ${row[3] != '' ? `<br><span data-head="Division" class="badge badge-warning  ${row[3]}">${row[3]}<span>` : ''}`,
+      //       targets: 2
+      //     }, {
+      //       render: $.fn.dataTable.render.number(',', '.', 2, '₱'),
+      //       targets: 5
+      //     }, { visible: false, targets: [0,3,7,8,9,12] }
+      //   ],
+      //   responsive: true,
+      //   initComplete: function () {
+      //     this.api()
+      //     // .columns()
+      //     // .every(function () {
+      //     //   var column = this;
+      //     //   var select = $('<select class="form-select"><option value=""></option></select>')
+      //     //     .appendTo($(column.footer()).empty())
+      //     //     .on("change", function () {
+      //     //       var val = $.fn.dataTable.util.escapeRegex($(this).val());
 
-          //   column
-          //     .data()
-          //     .unique()
-          //     .sort()
-          //     .each(function (d, j) {
-          //       select.append(
-          //         '<option value="' + d + '">' + d + "</option>"
-          //       );
-          //     });
-          // });
-        }, 
-      })
+      //     //       column
+      //     //         .search(val ? "^" + val + "$" : "", true, false)
+      //     //         .draw();
+      //     //     });
+
+      //     //   column
+      //     //     .data()
+      //     //     .unique()
+      //     //     .sort()
+      //     //     .each(function (d, j) {
+      //     //       select.append(
+      //     //         '<option value="' + d + '">' + d + "</option>"
+      //     //       );
+      //     //     });
+      //     // });
+      //   }, 
+      // })
 
       const userDesignation = document.querySelector('body[data-user-designation]')
 
@@ -304,6 +324,9 @@
       
 
     </script>
+
+
+
 
     <script src="/demo/assets/js/plugin/chart.js/chart.min.js"></script>
      <script src="/assets/js/global.js"></script>
