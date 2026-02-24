@@ -340,7 +340,7 @@ const department = {
       stands: "Information and Communications Technology Division",
       email: "",
       admin: "",
-      responsible: { employeeid: "116", name: "Annearth V. Maribojoc" },
+      responsible: { employeeid: "116", name: "Annearth V. Maribojoc", position: "Information System Analyst II" },
       acting: "",
       sections: {
         IPPTS: {
@@ -548,7 +548,7 @@ const department = {
     "FOD": {
       stands: "Field Operations Division",
       email: "",
-      responsible: {employeeid: "180", name: "Gerry S. Avila"},
+      responsible: {employeeid: "180", name: "Gerry S. Avila", position: "Field Operations Head"},
       admin: "",
       sections: {
         RICE: {
@@ -669,12 +669,12 @@ const fundsAvailability = [
 
 
 // =========================
-// Approval Steps (SVP)
+// Approval Steps (Small Value Procurement)
 // =========================
 const approvalStepsSVP = [
   { id: 1, steps_title: "End-User", stage: "prepared_by" },
   { id: 2, steps_title: "Division Chief", stage: "division_head_approval" },
-  { id: 3, steps_title: "Procurement Section", stage: "philgeps_posting" },
+  { id: 3, steps_title: "Procurement Section", stage: "pr_numbering" },
   { id: 4, steps_title: "Budget Section", stage: "budget_earmarking" },
   { id: 5, steps_title: "BAC Secretariat", stage: "bac_review" },
   { id: 6, steps_title: "Procurement Section", stage: "quotation_form_preparation" },
@@ -704,34 +704,39 @@ const approvalStepsSVP = [
   { id: 30, steps_title: "RED / RTD / Admin Chief", stage: "final_signoff" },
   { id: 31, steps_title: "Cashiering Unit", stage: "fund_release" }
 ];
-
-const approvalStepsPublicBidding = [
-  { id: 1, steps_title: "End-User", stage: "prepared_by" },
-  { id: 2, steps_title: "Division Chief", stage: "division_head_approval" },
-  { id: 3, steps_title: "Budget Section", stage: "budget_earmarking" },
-  { id: 4, steps_title: "BAC Secretariat", stage: "pre_bid_documents_preparation" },
-  { id: 5, steps_title: "BAC", stage: "pre_bid_conference" },
-  { id: 6, steps_title: "Procurement Section", stage: "philgeps_posting" },
-  { id: 7, steps_title: "Suppliers", stage: "bid_submission" },
-  { id: 8, steps_title: "BAC", stage: "bid_opening" },
-  { id: 9, steps_title: "Technical Working Group", stage: "bid_evaluation" },
-  { id: 10, steps_title: "BAC", stage: "post_qualification" },
-  { id: 11, steps_title: "BAC", stage: "recommendation_for_award" },
-  { id: 12, steps_title: "HOPE (RED/RTD)", stage: "approval_of_award" },
-  { id: 13, steps_title: "BAC Secretariat", stage: "notice_of_award" },
-  { id: 14, steps_title: "Supplier", stage: "contract_signing" },
-  { id: 15, steps_title: "Procurement Section", stage: "po_preparation" },
-  { id: 16, steps_title: "Budget Section", stage: "fund_allocation" },
-  { id: 17, steps_title: "Accounting Section", stage: "obligation_request" },
-  { id: 18, steps_title: "General Services Section", stage: "delivery_preparation" },
-  { id: 19, steps_title: "Inspection Team", stage: "inspection" },
-  { id: 20, steps_title: "End-User", stage: "acceptance" },
-  { id: 21, steps_title: "Accounting Section", stage: "voucher_preparation" },
-  { id: 22, steps_title: "Division Chief", stage: "voucher_approval" },
-  { id: 23, steps_title: "Cashiering Unit", stage: "payment_processing" },
-  { id: 24, steps_title: "Accounting Section", stage: "liquidation" },
-  { id: 25, steps_title: "RED / RTD / Admin Chief", stage: "final_signoff" },
-  { id: 26, steps_title: "Cashiering Unit", stage: "fund_release" }
+// =========================
+// Approval Steps (Public Bidding)
+// =========================
+const approvalStepsPB = [
+  { id: 1, steps_title: "Regional Agricultural Engineering Division/End-User", stage: "prepared_by" },
+  { id: 2, steps_title: "Program Coordinator End-User/Program Coordinator", stage: "pr_preparation" },
+  { id: 3, steps_title: "Division Chief", stage: "division_head_approval" },
+  { id: 4, steps_title: "Procurement Section", stage: "pr_numbering" },
+  { id: 5, steps_title: "Budget Section", stage: "fund_allocation" },
+  { id: 6, steps_title: "RED/RTD/Division Chief", stage: "approval_pr" },
+  { id: 7, steps_title: "BAC/BAC Secretariat", stage: "bidding_process" },
+  { id: 8, steps_title: "TWG Concerned", stage: "evaluation" },
+  { id: 9, steps_title: "BAC Secretariat", stage: "bac_resolution" },
+  { id: 10, steps_title: "Procurement Section", stage: "po_contract_preparation" },
+  { id: 11, steps_title: "End-User/Program Coordinator/Div. Chief", stage: "ors_burs_signing" },
+  { id: 12, steps_title: "Budget Section", stage: "budget_endorsement" },
+  { id: 13, steps_title: "Accounting Section", stage: "funds_availability" },
+  { id: 14, steps_title: "RED/RTD", stage: "po_contract_approval" },
+  { id: 15, steps_title: "General Services Section", stage: "supplier_confirmation" },
+  { id: 16, steps_title: "RED/RTD", stage: "ntp_approval" },
+  { id: 17, steps_title: "General Services Section", stage: "ntp_confirmation" },
+  { id: 18, steps_title: "BAC Secretariat", stage: "posting_update" },
+  { id: 19, steps_title: "General Services Section/End-Users/Regional Agricultural Engineering Division", stage: "project_implementation" },
+  { id: 20, steps_title: "Regional Agricultural Engineering Division/Inspectors", stage: "inspection" },
+  { id: 21, steps_title: "End-User", stage: "turnover_docs" },
+  { id: 22, steps_title: "General Services Section/End-User", stage: "voucher_preparation" },
+  { id: 23, steps_title: "End-User", stage: "voucher_signing" },
+  { id: 24, steps_title: "Division Chief", stage: "voucher_approval" },
+  { id: 25, steps_title: "Accounting Section", stage: "voucher_processing" },
+  { id: 26, steps_title: "Cashiering Unit", stage: "check_preparation" },
+  { id: 27, steps_title: "Accounting Section", stage: "ada_review" },
+  { id: 28, steps_title: "RED/RTD/Admin. Chief", stage: "check_signing" },
+  { id: 29, steps_title: "Cashiering Unit", stage: "release_payment" }
 ];
 
 const modesOfProcurement = [
@@ -806,8 +811,13 @@ app.use(bodyParser.json());
 
 
 const sheetsRouter = require('./routes/sheets');
+const employeeRouter = require('./routes/employees');
+const trasactionRouter = require('./routes/transactions');  
+
 const { styleText } = require('node:util');
 app.use('/api', sheetsRouter);
+app.use('/api', employeeRouter);
+app.use('/api', trasactionRouter);
 app.use(express.json());
 
 //pages
@@ -873,18 +883,44 @@ let transporter = nodemailer.createTransport({
 app.use(async (req, res, next) =>{
 
   var components = ['Transactions', 'Employees', 'Documents']
+  // console.log({ huh: res.locals.SESSION_USER })
+  const { firstname, middlename, lastname } = req.session?.user || { firstname: '', middlename: '', lastname: '' };
 
-  const [notifications, transactions, summaryTransaction, summaryEmployee, activities, summaryMarketScopes] = await Promise.all([
+  // Get only the first character of middlename, if it exists
+  const middleInitial = middlename ? `${middlename.charAt(0)}.` : '';
+
+  const fullname = `${firstname} ${middleInitial} ${lastname}`;
+
+  // console.log(fullname);
+
+  const [notifications, transactions, summaryTransaction, summaryEmployee, activities, summaryMarketScopes, filteredTransactions] = await Promise.all([
     connection.retrieveNotifications(),
     connection.getTransactions(),
     connection.getTransactionSummary(),
     connection.getEmployeeSummary(),
     connection.getTransactionActivity(),
     connection.getMarketScopesSummary(),
+    connection.getTransactions({"JSON_UNQUOTE(JSON_EXTRACT(prepared_by, '$.name'))" : fullname })
   ]);
 
   // Sort using Descending
   notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  const filteredNotifications = notifications
+  .filter(n => 
+    filteredTransactions.some(txn => txn.product_id === Number(n.link))
+  )
+  .map(n => {
+    const match = filteredTransactions.find(
+      txn => txn.product_id === Number(n.link)
+    );
+    return {
+      ...n,
+      transaction: match
+    };
+  });
+
+  console.log('Filtered Notifications:', filteredNotifications.length);
 
   let role = '';
   let userDivision = '';
@@ -918,6 +954,7 @@ app.use(async (req, res, next) =>{
         ? JSON.parse(txn.prepared_by)
         : txn.prepared_by
     }));
+    
     let filteredTransactions;
 
     filteredTransactions = parsedTransactions.filter(txn =>
@@ -975,7 +1012,7 @@ app.use(async (req, res, next) =>{
     DEPARTMENT: JSON.stringify(department),
     // NOTIFICATIONS: countNotif,
     // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications), // *** DO NOT REMOVE
-    NOTIFICATIONS: JSON.stringify(notifications),
+    NOTIFICATIONS: JSON.stringify(filteredNotifications),
     logonUser: JSON.stringify(req.session.user),
     perClassification: {},
     dafaultTransactionData: _preTransactionsData,
@@ -1037,6 +1074,12 @@ app.use(async (req, res, next) =>{
     },
     STEPS: {
       lists: approvalStepsSVP,
+      getCurrentProgress: (steps, product_id) => {
+        let current_step = getCurrentStep(steps, product_id)
+        const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
+        const current_step_title = getTitle(current_step_number)
+        return {current_step_title, current_step_number};
+      },
       getCurrentStep: (steps, product_id) => {
         const step = steps.find(step => step.product_id === product_id);
         return step ? step : null;
@@ -1066,6 +1109,10 @@ app.use(async (req, res, next) =>{
         const result = await connection.getEmployeeById(id);
         // console.log('Fetching employee by ID:', result);
         return JSON.stringify(result[0]);
+      },
+      generatePRCode: (row) => {
+         const requestID = addLeadingZeros(row.product_id)
+        return `PR${moment(row.pr_date).format('YYYYMMDD')}-${requestID}`
       }
     },
     userAvailComponents: (component) => {
@@ -1206,7 +1253,9 @@ app.use(async (req, res, next) =>{
         .filter(act => act.product_id === transaction_id && act.status === 'pending' && act.assigned_to);
       return (activity.length > 0) ? activity[0].assigned_to : false;
     },
-
+    getTransactionMarketScope(id) {
+      
+    }
   };
 
   const { SESSION_USER, SESSION_USER_LOG, SUMMARY } = res.locals
@@ -1470,35 +1519,116 @@ app.get('/market-scope/new', restrict, async (req, res) => {
   }
 })
 
-app.get('/market-scope/:id', restrict, async (req, res) => {
+app.get('/market-scope/:id/view', restrict, loadAllTransactions, async (req, res) => {
   try {
-      const innerHTML = await connection.getMarketScopes({id: req.params.id})
-      
-      if(!innerHTML || innerHTML.length === 0) {
-        return res.status(404).send('Market Scope Analysis Not Found');
-      }
-      
-      const { project_title, reference_number } = innerHTML[0];
-      const tables = await connection.getTransactionById(reference_number)
-      const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'), 
-      { 
-        scripts: ['/assets/js/pages/market-scope.js'],
-        innerContent: '../pages/market-scope/view',
-        title: project_title,
-        description: "",
-        results: innerHTML[0],
-        datatables: tables,
-        options: {
-          hideTitle: true,
-          uniqueId: req.params.id
-        },
-        ...res.locals,
-      });
-      // Rendered HTML
-      res.status(200).send(renderedHtml)
+    // const innerHTML = await connection.getMarketScopes({id: req.params.id})
+    const [innerHTML, activities] = await Promise.all([
+      connection.getMarketScopes({id: req.params.id}),
+      connection.getTransactionActivity()
+    ]);
+    
+    if(!innerHTML || innerHTML.length === 0) {
+      return res.status(404).send('Market Scope Analysis Not Found');
+    }
+    
+    const { project_title, reference_number } = innerHTML[0];
+    const tables = await connection.getTransactionById(reference_number)
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'), 
+    { 
+      styles: ['/assets/css/pages/market-scope.css'],
+      scripts: ['/assets/js/pages/market-scope.js'],
+      innerContent: '../pages/market-scope/view',
+      title: project_title,
+      description: "",
+      results: innerHTML[0],
+      _datatables: tables,
+      _steps: activities.sort((a, b) => b.id - a.id),
+      options: {
+        hideTitle: true,
+        uniqueId: req.params.id
+      },
+      ...res.locals,
+    });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
   } catch (error) {
-      console.error('Error Viewing Market Scope:', error);
-      res.status(500).send('Internal Server Error');
+    console.error('Error Viewing Market Scope: Results', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/market-scope/:id/results', restrict, async(req, res) => {
+  try {
+    const [innerHTML, scopesResults, activities] = await Promise.all([
+      connection.getMarketScopes({id: req.params.id}),
+      connection.getMarketScopesResults({scoping_id: req.params.id}),
+      connection.getTransactionActivity()
+    ]);
+
+    if(!innerHTML || innerHTML.length === 0) {
+      return res.status(404).send('Market Scope Analysis Not Found');
+    }
+    
+    const { project_title, reference_number } = innerHTML[0];
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'), 
+    { 
+      scripts: ['/assets/js/pages/market-scope.js'],
+      innerContent: '../pages/market-scope/results',
+      title: "Market Scoping Results",
+      description: "Indicate recommendations based on the market scoping activities undertaken (RA 12009 IRR, Section 10.4).",
+      results: {0:innerHTML[0], 1: scopesResults[0]},
+      // _datatables: tables,
+      _steps: activities.sort((a, b) => b.id - a.id),
+      options: {
+        // hideTitle: true,
+        uniqueId: req.params.id
+      },
+      ...res.locals,
+    });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error Viewing Market Scope:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/market-scope/:id/print', restrict, async(req, res) => {
+  try {
+    const [innerHTML, scopesResults, activities] = await Promise.all([
+      connection.getMarketScopes({id: req.params.id}),
+      connection.getMarketScopesResults({scoping_id: req.params.id}),
+      connection.getTransactionActivity()
+    ]);
+
+    if(!innerHTML || innerHTML.length === 0) {
+      return res.status(404).send('Market Scope Analysis Not Found');
+    }
+    
+    const { project_title, reference_number } = innerHTML[0];
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'custom-page.ejs'), 
+    { 
+      scripts: ['/assets/js/pages/market-scope.js'],
+      innerContent: '../pages/market-scope/print',
+      title: "Market Scoping Results",
+      description: "Indicate recommendations based on the market scoping activities undertaken (RA 12009 IRR, Section 10.4).",
+      results: {0:innerHTML[0], 1: scopesResults[0]},
+      // _datatables: tables,
+      _steps: activities.sort((a, b) => b.id - a.id),
+      options: {
+        hideTitle: true,
+        uniqueId: req.params.id
+      },
+      ...res.locals,
+    });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error Viewing Market Scope:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 
@@ -1512,6 +1642,31 @@ app.post('/api/market-scope', restrict, async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+app.post('/api/market-scope-results', restrict, async (req, res) => {
+  try {
+    console.log('Market Scope Analysis Results:', req.body);
+    const scopeResults = await connection.postMarketScopeResults(req.body);
+    res.status(201).json({ message: 'Market Scope Analysis Results Submitted!', response: scopeResults });
+  } catch (error) {
+    console.error('Error fetching market scope analysis results:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/check-scoping/:id', async (req, res) => {
+  const scopingId = req.params.id;
+
+  try {
+    const rows = await connection.getMarketScopesResults({scoping_id: scopingId})
+
+    res.json({ exists: rows.length > 0 });
+  } catch (err) {
+    console.error("Error checking scoping:", err);
+    res.status(500).json({ exists: false, error: err.message });
+  }
+});
+
 
 app.get('/template', async function(req, res) {
   let renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'), 
@@ -1757,7 +1912,7 @@ app.post('/verify', async (req, res) => {
     // Retrieve data accessing the database
     // console.log(data)
     const employees = await connection.retrieveEmployee( data );
-    // console.log(employees)
+    console.log({data, employees})
     if (employees.length != 0) {
       res.status(200).json({ message: 'Account found!',  response: employees });
     } else {
@@ -1793,8 +1948,8 @@ app.post('/register', async (req, res, next) => {
     // set.password = JSON.stringify(set.password)
 
     set.password = bcrypt.hashSync(set.password, 8);
-    console.log({hashedPassword: (set.password) });
-    console.log({hashedPassword: bcrypt.hashSync('Admin123!', 8)});
+    // console.log({hashedPassword: (set.password) });
+    // console.log({hashedPassword: bcrypt.hashSync('Admin123!', 8)});
 
     data = {set, where}
 
@@ -1866,17 +2021,51 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
       txn.prepared_by?.employeeid === numericUserId || productIds.includes(txn.product_id)
     );
 
-  
-    res.render('transactions/index', {
-      title: 'Transactions',
-      transactions: res.locals.isGuest() || res.locals.isSuperAdmin()  ? transactions : filteredTransactions,
-      moment,
-      connection,
-      predata: _preTransactionsData,
-      path: req.url,
-      steps: activities.sort((a, b) => b.id - a.id),
-      peso
-    });
+    const enrichedTransactions = transactions.map(scope => ({
+      ...scope, // keep existing fields
+      actions: JSON.stringify({
+        view:   `/transactions/${scope.product_id}/view`,
+        update: `/transactions/${scope.product_id}/update`,
+        delete: `/transactions/${scope.product_id}/delete`
+      })
+    }));
+
+    const enrichedfilteredTransactions = filteredTransactions.map(scope => ({
+      ...scope, // keep existing fields
+      actions: JSON.stringify({
+        view:   `/transactions/${scope.product_id}/view`,
+        update: `/transactions/${scope.product_id}/update`,
+        delete: `/transactions/${scope.product_id}/delete`
+      })
+    }));
+
+    if (res.locals.PROCUREMENT.currentLaw !== 'RA120092025') {
+      // Log the transactions being rendered
+      res.render('transactions/index', {
+        title: 'Transactions',
+        transactions: res.locals.isGuest() || res.locals.isSuperAdmin()  ?  transactions : filteredTransactions,
+        moment,
+        connection,
+        predata: _preTransactionsData,
+        path: req.url,
+        steps: activities.sort((a, b) => b.id - a.id),
+        peso
+      });
+    } else {
+      const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      { 
+        scripts: [],
+        styles: [],
+        innerContent: '../pages/ra12009/transactions/index',
+        title: "Transactions",
+        description: "List of Purchase Request",
+        _datatables: res.locals.isGuest() || res.locals.isSuperAdmin()  ? enrichedTransactions : enrichedfilteredTransactions,
+        _steps: activities.sort((a, b) => b.id - a.id),
+        ...res.locals,
+      });
+      // Rendered HTML
+      res.status(200).send(renderedHtml)
+    }
 
   } catch (error) {
     console.error('Error fetching transactions:', error);
@@ -1935,12 +2124,45 @@ app.post('/transactions/new', restrict, async (req, res) => {
         assigned_to,
       }))
       await connection.postNotifications(JSON.stringify(data))
-      await connection.amendData('market_scoping', JSON.stringify({
-        set: {
-          reference_number: insertId,
-        },
-        where: { id: marketScopeID, }
-      }))
+      // const getReferenceNumber = await connection.retrieveData('market_scoping', 'reference_number', { id: marketScopeID })
+      // console.log({getReferenceNumber})
+      // await connection.amendData('market_scoping', JSON.stringify({
+      //   set: {
+      //     reference_number: insertId,
+      //   },
+      //   where: { id: marketScopeID, }
+      // }))
+
+      // Step 1: retrieve current value
+      const rows = await connection.retrieveData(
+        'market_scoping',
+        'reference_number',
+        { id: marketScopeID }
+      );
+
+      const currentRef = rows[0]?.reference_number;
+
+      // Step 2: normalize to array
+      let refArray;
+      try {
+        refArray = JSON.parse(currentRef);
+        if (!Array.isArray(refArray)) refArray = [currentRef];
+      } catch {
+        refArray = [currentRef];
+      }
+
+      // Step 3: append new insertId
+      refArray.push(insertId);
+
+      // Step 4: update back to DB
+      await connection.amendData(
+        'market_scoping',
+        JSON.stringify({
+          set: { reference_number: JSON.stringify(refArray) },
+          where: { id: marketScopeID }
+        })
+      );
+
     }
     // console.log('transactions', transactions)
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
@@ -2979,9 +3201,9 @@ app.post('/settings', restrict, async function(req, res){
     const values = settingsData.map(item => [item.key_name, item.key_value, 'string', null, 1]);
 
     const results = await connection.postSettings(values)
-    res.status(200).json({ message: 'Settings updated!', response: results})
+    res.status(200).json({ message: 'Settings updated!', response: results, success: true})
   } catch (error) {
-    res.status(400).json({ message: `Error saving settings: ${error}`, response: {} });
+    res.status(400).json({ message: `Error saving settings: ${error}`, response: {}, success: false });
   } 
 })
 

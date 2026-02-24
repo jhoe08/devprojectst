@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sample Print Page</title>
+  <style>
+    /* Page setup */
+    @page {
+      size: letter portrait;   /* Letter size, portrait orientation */
+      margin: 0.5in;           /* Half-inch margins */
+
+      @bottom-left {
+        content: "Page " counter(page) " of " counter(pages) " | Market Scoping Checklist";
+        font-size: 10pt;
+        color: #555;
+        content: element(footer);
+
+      }
+    }
+
+    /* Print-specific styles */
+    @media print {
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 12pt;
+        line-height: 1.5;
+      }
+
+      h1, h2 {
+        page-break-after: avoid; /* Keep headings with content */
+      }
+
+      .page-break {
+        page-break-before: always; /* Force new page */
+      }
+    }
+
+    /* Screen styles (optional) */
+    body {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+
+    .footer {
+        position: running(footer);
+        }
+
+  </style>
+</head>
+<body>
+  <h1>Sample Document</h1>
+  <p>
+    This is a demonstration of printing with CSS. The page is set to
+    portrait orientation, letter size, and half-inch margins.
+  </p>
+
+  <h2>Page 1 Content</h2>
+  <p>
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.
+    Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.
+  </p>
+
+  <div class="page-break"></div>
+
+  <h2>Page 2 Content</h2>
+  <p>
+    Here begins the second page. You can force page breaks with the
+    `.page-break` class or let content flow naturally across pages.
+  </p>
+
+  <div class="page-break"></div>
+
+  <h2>Page 3 Content</h2>
+  <p>
+    This is the third page. Notice how the margins and layout remain consistent.
+  </p>
+</body>
+</html>

@@ -2,6 +2,7 @@
 <%
   const notifications = JSON.parse(NOTIFICATIONS)
   const notifs_length = notifications.length;
+
 %>
 
   <li class="nav-item topbar-icon dropdown hidden-caret">
@@ -62,7 +63,7 @@
                 <i class="fa fa-<%=icon%>"></i>
               </div>
               <div class="notif-content">
-                <span class="block"> <%=message%> </span>
+                <span class="block"><%=message%> </span>
                 <span class="time" data-created="<%-created_at%>"><%=date%></span>
               </div>
             </a>

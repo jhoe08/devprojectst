@@ -35,7 +35,7 @@ const _express = (io, moment) => {
         console.log(`A user connected with Socket ID: ${socketID} from IP: ${clientIpAddress.connection.remoteAddress}`);
         ///////////////////////////
         socket.join(socketID)
-        // socket.emit('notificationCount', { countNotif });
+        socket.emit('notificationCount', { countNotif });
 
         setInterval(function(){
           countNotif++;

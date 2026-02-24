@@ -24,15 +24,20 @@
    
     <% } %>
 
-    <script type="module">
-      import configTransactions from '/assets/js/pages/transactions.js';
-      import configMarketScopes from '/assets/js/pages/market-scope.js';
-      // Example usage
-      $('#transactions-datatables').DataTable(configTransactions());
+    <% if (path2.startsWith('/transactions')) { %>
+      <script type="module">
+        import configTransactions from '/assets/js/pages/transactions.js';
+        $('#ra12009Transactions').DataTable(configTransactions());
+      </script>
+    <% } %>
 
-      $('#marketScope').DataTable(configMarketScopes());
-      // console.log(marketScopeTable.columns());
-    </script>
+    <% if (path2.startsWith('/market-scope')) { %>
+      <script type="module">
+        import { configMarketScopes, configMarketScopesTransactions } from '/assets/js/pages/market-scope.js';
+        $('#marketScope').DataTable(configMarketScopes());
+        $('#ra12009MarketScopeTransactions').DataTable(configMarketScopesTransactions());
+      </script>
+    <% } %>
 
     <script>
       function progressBar(length, progress) {
@@ -492,6 +497,13 @@
         confirmedDenied: {
           title: "Denial Recorded",
           text: "The denial of funds availability has been successfully recorded.",
+        },
+        responsible: {
+          section: 'GS',
+          tasks: {
+            svp: ['pr_numbering', 'budget_allocated', 'canvass_preparation', 'signing_canvass'],
+            public: ['pr_numbering', 'notation']
+          }
         }
       },
       4: {
@@ -708,7 +720,7 @@
         confirmedDenied: {
           title: "Denial Recorded",
           text: "Funds allocation denial has been recorded.",
-        }
+        } // Accounting -> additional input ORS numbering
       },
       16: {
         initial: {
@@ -1134,6 +1146,26 @@
         successText: verificationMessages[currentStep].confirmedDenied.text,
       })
     })
+
+    
+    // $('#periodOfMarketScoping').datepicker({
+    //   format: "mm/yyyy",       // show month and year
+    //   startView: "months",     // start at months view
+    //   minViewMode: "months"    // restrict to month selection only
+    // });
+
+    $('#periodOfMarketScoping').daterangepicker({
+      locale: {
+        format: 'MM/YYYY'
+      },
+      showDropdowns: true,
+      // minDate: moment(),
+    }, function(start, end) {
+      console.log("Selected range: " + start.format('MM/DD/YYYY hh:mm:ss') + " to " + end.format('MM/DD/YYYY hh:mm:ss'));
+    });
+
+    // CSS tweak to hide the day grid
+    // $('.daterangepicker .calendar-table').hide();
 
 
     </script>

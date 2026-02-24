@@ -88,7 +88,7 @@
     })
   }
   if (createTransactionCode) {
-    const transCodeText = document.getElementById('transCodeText')
+    const transCodeText = document.getElementById('po_transCodeText')
     createTransactionCode.addEventListener('click', function (e) {
       if (transCodeText.value === '') return
       const transid = e.target.dataset.transid
@@ -807,24 +807,31 @@
   }
 
   function formatNumberWithCommas(event) {
-    // Get the input element
-    const input = event.target;
+  const input = event.target;
 
-    // Remove any non-numeric characters (excluding commas)
-    let value = input.value.replace(/[^0-9]/g, '');
+  // Allow digits and a single decimal point
+  let value = input.value.replace(/[^0-9.]/g, '');
 
-    // Check if the value is not empty or just spaces
-    if (value === '') {
-      input.value = '';
-      return;
-    }
-
-    // Format the number with commas
-    value = parseInt(value, 10).toLocaleString();
-
-    // Update the input value with the formatted number
-    input.value = value;
+  // Prevent multiple decimals
+  const parts = value.split('.');
+  if (parts.length > 2) {
+    value = parts[0] + '.' + parts.slice(1).join('');
   }
+
+  // If empty, clear input
+  if (value === '') {
+    input.value = '';
+    return;
+  }
+
+  // Format integer part with commas
+  let integerPart = parts[0];
+  let decimalPart = parts[1] ? '.' + parts[1] : '';
+
+  integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  input.value = integerPart + decimalPart;
+}
 
   if(document.getElementById('budget') || document.querySelector('input[data-type="number"]')){
     setInterval(() => {

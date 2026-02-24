@@ -7,7 +7,7 @@
         <div class="container">
             <div class="documentToPrint legal s-border">
                 <%
-                    var {approved_budget : budget} = transactions 
+                    var {approved_budget : budget, } = transactions 
                     var cleanBudget = budget.replace(/,/g, '');
 
                     budget = parseFloat(cleanBudget)

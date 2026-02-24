@@ -132,7 +132,15 @@ table#trackingSheetTable {
     }
 }
 @media print {
-    * { 
+    input::placeholder,
+    textarea::placeholder {
+        color: transparent; /* makes it invisible */
+    }
+
+
+    body:not(.superclass) *,
+    .superclass .sidebar,
+    .superclass .main-header { 
         overflow: hidden;
         visibility: hidden;
     } 

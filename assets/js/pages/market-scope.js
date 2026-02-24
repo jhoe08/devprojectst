@@ -1,7 +1,10 @@
 const marketScope = {
   init() {
-    const form = document.getElementById('marketScope');
+    const form = document.getElementById('marketScopeForm');
+    const formResults = document.getElementById('marketScopeResults')
     const dateInput = document.querySelectorAll('input[type="date"]');
+    const dates = document.querySelectorAll('.date');
+    // const print = document.querySelector('a[href="print"]')
 
     let tables = $("#marketScope").DataTable();
 
@@ -21,9 +24,29 @@ const marketScope = {
         }
       });
     }
+
+    if (dates) {
+      dates.forEach(date => {
+        const dateObj = new Date(date.textContent);
+        date.textContent = dateObj.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      });
+    }
+
+    if (formResults) {
+      formResults.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.handleSubmitResults(e);
+      });
+    }
+
+    this.autoFill()
+
     console.log('Market Scope page initialized');
   },
-
   handleSubmit(e) {
     let payload = {};
     e.target.querySelectorAll('input, select, textarea, checkbox').forEach(input => {
@@ -58,34 +81,113 @@ const marketScope = {
         alert('An error occurred while submitting the form.');
       });
   },
+  handleSubmitResults(e) {
+    e.preventDefault();
 
+    // Build JSON payload from form inputs
+    const payload = {};
+    const form = e.target;
+
+    // Collect dropdowns and textareas
+    form.querySelectorAll('select, textarea').forEach(input => {
+      const name = input.name; // e.g., "project_cost.considered" or "project_cost.recommendation"
+      const value = input.value;
+      
+      // Split into parameter + field (e.g., "project_cost" + "considered")
+      const [param, field] = name.split('.');
+      if (!payload[param]) payload[param] = {};
+      payload[param][field] = value;
+    });
+
+    // Example: attach metadata
+    const requestData = {
+      scoping_id: form.dataset.scopingId, // assume scoping_id stored in form attribute
+      results: payload,
+      document_reference: form.querySelector('input[name="document_reference"]')?.value || null
+    };
+
+    // Debug log
+    console.log("Submitting Market Scoping Results:", requestData);
+
+    // Send to backend API
+    fetch('/api/market-scope-results', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestData)
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log('Success:', data);
+      alert('Market Scoping Results submitted successfully!');
+      form.reset();
+      location.reload()
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      alert('An error occurred while submitting the results.');
+    });
+  },
+  checkDateConducted(date) {
+    // Determine icon class
+    const iconClass = !row[3]
+      ? (row[20] ? 'fas fa-user-check text-success' : 'fas fa-user-times text-danger')
+      : 'fas fa-user-clock';
+
+    // Determine display text
+    const displayText = [row[17], row[18]].filter(Boolean).join(', ');
+
+    // Render
+    return `
+      <i class="${iconClass}"></i>
+      ${displayText}
+    `;
+  },
+  autoFill() {
+    const preparedBy = document.getElementById('preparedBy')
+    const reviewedBy = document.getElementById('reviewedBy')
+
+    if (preparedBy && reviewedBy) {
+        const localUser = document.getElementById('created_by')
+
+        // Parse the JSON string from the hidden input value
+        const userData = JSON.parse(localUser.value)
+
+        // Parse the JSON string from the data-responsible attribute
+        const userResponsible = JSON.parse(localUser.dataset.responsible)
+
+        preparedBy.value = `${userData.name}, ${userData.position}`
+        reviewedBy.value =  userResponsible?.section ? `${userResponsible.section.name}, ${userResponsible.section.position || 'Section Head'}` : userResponsible?.division ? `${userResponsible.division.name}, ${userResponsible.division.position || 'Division Head'}` : 'Dir. Angel C. Enriquez, DA-RFO7' 
+    }
+  }
 };
 
-export default function configMarketScopes() {
+export function configMarketScopes() {
   return {
     paging: true,
     searching: true,
     ordering: true,
     info: true,
     responsive: true,
-    columnDefs: [{
-      render: (data, type, row) => `
+    order: [[0, 'desc']],
+    columnDefs: [
+      {
+        render: (data, type, row) => `
         <div class="p-2 projectTitle">
           <div class="d-flex justify-content-between">
             <span class="id fw-bold badge badge-info">#${row[0]}</span>
-            <span class="dateCreated text-muted">${row[15]}</span>
+            <span class="dateCreated date text-muted">${row[17]}</span>
           </div>
           <div class="mt-1">
             <h6 class="title mb-1">${data}</h6>
             <small class="d-flex justify-content-between">
-              <span class="unit">${row[4]}</span>
+              <span class="unit">${row[5]}</span>
               <span class="activities">
-                ${row[5] ? '<span class="badge badge-count">consultations_with_suppliers</span>' : ''}
-                ${row[6] ? '<span class="badge badge-black">participation_in_summits</span>' : ''}
-                ${row[7] ? '<span class="badge badge-primary">review_reports</span>' : ''}
-                ${row[8] ? '<span class="badge badge-info">review_brochures</span>' : ''}
-                ${row[9] ? '<span class="badge badge-success">price_sourcing</span>' : ''}
-                ${row[10] ? '<span class="badge badge-warning">use_philgeps_data</span>' : ''}
+                ${row[6] ? '<span class="badge badge-count">consultations_with_suppliers</span>' : ''}
+                ${row[7] ? '<span class="badge badge-black">participation_in_summits</span>' : ''}
+                ${row[8] ? '<span class="badge badge-primary">review_reports</span>' : ''}
+                ${row[9] ? '<span class="badge badge-info">review_brochures</span>' : ''}
+                ${row[10] ? '<span class="badge badge-success">price_sourcing</span>' : ''}
+                ${row[11] ? '<span class="badge badge-warning">use_philgeps_data</span>' : ''}
                 ${row[11] ? '<span class="badge badge-danger">other_activity</span>' : ''}
                 ${row[12] ? '<span class="badge badge-secondary">documentation</span>' : ''}
               </span>
@@ -93,17 +195,23 @@ export default function configMarketScopes() {
           </div>
           <div class="mt-2 d-flex justify-content-between">
             <div class="preparedBy">
-              <strong>Prepared by:</strong> <br>${row[13]}, ${row[14]}
-              <i class="${row[16] ? 'icon-check text-success' : 'icon-trash text-danger'}"></i>
+              <strong>Prepared by:</strong> <br>
+              <i class="${row[17] ? 'fas fa-user-edit text-success' : 'fas fa-user-times text-danger'}"></i>
+              ${row[15]}, ${row[16]}
             </div>
             <div class="reviewedBy">
-              <strong>Reviewed by:</strong> <br>${row[17] ? row[17] + ', ' + row[18] : ''}
-              <i class="${row[20] ? 'icon-check text-success' : 'icon-trash text-danger'}"></i>
+              <strong>${!row[3] == null ? 'Reviewed by:' : 'Reviewing...'}</strong> <br>
+              <i class="${!row[3] == null
+                ? (row[21] ? 'fas fa-user-check text-success' : 'fas fa-user-times text-danger')
+                : 'fas fa-user-clock text-warning'
+              }"></i>
+              ${row[19] ? row[19] + ', ' + row[20] : ''}
             </div>
           </div>
         </div>
       `, targets: 1
-      }, {
+      }, 
+      {
       render: function (data, type, row) {
         const actions = JSON.parse(data);
         return  `
@@ -125,18 +233,65 @@ export default function configMarketScopes() {
             </span>
           </div>
         `;
-        }, targets: 23
-      }
-      , { targets: [1, 2, 3, -1], visible: true }
-      , { targets: '_all', visible: false }
-      , { targets: 'nosort', orderable: false }
+        }, targets: 25
+      } ,
+      { targets: [1, 3, 4, -1], visible: true } ,
+      { targets: '_all', visible: false } ,
+      { targets: 'nosort', orderable: false }
     ]
   };
 }
 
+export function configMarketScopesTransactions() {
+  return {
+    responsive: true,
+    order: [[0, 'desc']],
+    columnDefs: [
+      {
+        render: (data, type, row) => {
+          console.log(row[4].display)
+          return `
+          <div class="d-flex justify-content-between">
+            <div>
+              <span class="badge badge-info mr-2">${row[0]}</span>
+              <span data-head="Classification" class="badge badge-secondary mr-2">${row[9]}</span>
+              <span data-head="Classification" class="badge badge-warning mr-2">${row[10]}</span>
+            </div>
+            <div>${row[4].display}</div>
+          </div>
+          ${data}
+          <div class="requisitioner text-muted">Requisitioner: ${row[2]}</div>
+          `
+        },
+        targets: 1
+      },
+      {
+        render: (data, type, row) => {
+          const values = (row[6] || '').split(', ');
+          const html = values.map(val => 
+            `<span class="badge badge-count">${val}</span>`
+          ).join(' ');
+
+          return `
+          <div class="d-flex flex-column text-end">
+            <h6>${peso(data)}</h6>
+            ${html}
+          </div>
+          `
+        },
+        targets: 5
+      },
+      { targets: -2, width: "200px" },
+      { visible: true, targets: [1, 5, -2] }, //[4, 6, 10, 12, -1]
+      { visible: false, targets: '_all' },
+    ]
+  };
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   marketScope.init();
+
+  
 });
 
 

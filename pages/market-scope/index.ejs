@@ -9,8 +9,7 @@
     <%- 
       include('../../components/datatables/tables', { 
         tableId: "marketScope", 
-        thead: [
-            "ID", "Project Title", "Reference #", "Date Conducted", "End-User Unit", "Consultations with Suppliers", "Participation in Summits", "Review    Reports", "Review Brochures", "Price Sourcing", "Use Philgeps Data", "Other-Activity", "Documentation", "Prepared By", "Prepared By Position", "Date Prepared", "Prepared By Signature", "Review By Name", "Reviewed By Position", "Date Reviewed", "Reviewed by Signature", "Created", "Update", "Actions"],
+        thead: Object.keys(datatables[0] || {}),
         tbody: datatables, 
         hideColumns: [] 
       }) 

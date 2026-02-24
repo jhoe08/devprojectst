@@ -131,7 +131,7 @@
                             <% if(transactions?.bac_unit) { %>
                             <button disabled="disabled" href="market-scope" class="btn btn-label-info btn-round btn-sm">
                               <span class="btn-label">
-                                <i class="fa fa-list"></i>
+                                <i class="fas fa-layer-group"></i>
                               </span>
                               <%- transactions.bac_unit -%>
                             </button>
@@ -140,7 +140,7 @@
                               <span class="btn-label">
                                 <i class="fa fa-bookmark"></i>
                               </span>
-                              View Document
+                              Market Scope
                             </a>
                           </div>
                         </div>
@@ -187,7 +187,7 @@
                         </div>
                         <div class="separator-dashed"></div>
                         <div class="d-flex">
-                          <div class="col-md-12 d-flex abc">
+                          <div class="col-md-6 d-flex abc">
                             <div class="avatar">
                               <span class="avatar-title rounded-circle border border-white bg-info">₱</span>
                             </div>
@@ -217,6 +217,21 @@
                               <small class="text-muted"></small>
                             </div>
                           </div>
+                          <div class="col-md-6 d-flex <%= current_step_number >= 13 ? '' : 'hidden' %>">
+                            <div class="avatar">
+                              <span class="avatar-title rounded-circle border border-white bg-info"><i class="fas fa-piggy-bank"></i></span>
+                            </div>
+                            <div class="flex-1 ms-3 pt-1">
+                              <%
+                                const obligationAmount = budget-1000
+                                const amountSave = budget - obligationAmount
+                                const savingFraction = (amountSave / budget) * 100
+                              %>
+                              <h6 class="text-uppercase mb-1"><%= peso(obligationAmount) %><span class="ms-3 text-success">(<%= savingFraction.toFixed(2) %>% saved)</span></h6>
+                              <span class="text-muted">Obligation Amount</span>
+                            </div>
+                            <div class="float-end pt-1"></div>
+                          </div>
                         </div>
                         <div class="separator-dashed"></div>
                         <div class="d-flex">
@@ -225,7 +240,7 @@
                           </div>
                           <div class="flex-1 ms-3 pt-1">
                             <h6 class="text-uppercase fw-bold mb-1">
-                            <% if(transactions?.trans_code && isValidJSON(transactions.trans_code)) { 
+                            <% if(transactions?.trans_code && UTILS.isValidJSON(transactions.trans_code)) { 
                               trans_code = JSON.parse(transactions.trans_code)
                               trans_code.forEach(function(code){ if(code) { %>
                               <span class="badge badge-count"><%= code || 'ABC' %></span>
@@ -236,11 +251,13 @@
                             </h6>
                             <span class="text-muted">Transaction Codes</span>
                           </div>
+                          <% if ([2,3].includes(current_step_number)) { %>
                           <div class="float-end pt-1">
                             <button  data-bs-toggle="modal" data-bs-target="#codeModal" id="addTransactionCodes" class="btn btn-icon btn-link op-8 me-1">
                               <i class="fas fa-plus-circle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add PR Number"></i>
                             </button>
                           </div>
+                          <% } %>
                         </div>
                       </div>
                     </div>

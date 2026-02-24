@@ -6,6 +6,7 @@
       --mute: #6b7c93;
       --accent: #0b6bcb;
       --bg: #f6f8fb;
+      --warning: #ffad46;
     }
     * { box-sizing: border-box; }
     body {
@@ -74,6 +75,11 @@
         padding: 12px 14px;
         font-size: 0.95rem;
     }
+    .supplier-quotations {
+        background: #fae7c9;
+        border: 1px solid #fae7c9;
+        border-left: 4px solid var(--warning);
+    }
     .footer-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -121,7 +127,7 @@
     }
 </style>
 
-<form id="marketScope" class="card">
+<form id="marketScopeForm" class="card">
     <section aria-labelledby="context">
         <p>
         This confirms that market scoping activities were conducted in accordance with Section 10 of Republic Act No. 12009
@@ -135,16 +141,20 @@
             <input id="projectTitle" name="projectTitle" type="text" placeholder="e.g., Procurement of ICT Equipment FY2026" />
         </div>
         <div>
-            <label for="refNo">Reference / PR number</label>
-            <input id="refNo" name="refNo" type="text" placeholder="e.g., PR-2026-00123" />
+            <label for="estimatedBudget">Estimated Budget</label>
+            <input id="estimatedBudget" name="estimatedBudget" type="text" placeholder="e.g., 100,000,000.00" />
         </div>
         <div>
             <label for="endUser">End-user / implementing unit</label>
             <input id="endUser" name="endUser" type="text" placeholder="e.g., ICT Unit, RFO VII" />
         </div>
         <div>
-            <label for="dateConducted">Date(s) conducted</label>
-            <input id="dateConducted" name="dateConducted" type="text" placeholder="e.g., Jan 5–10, 2026" />
+            <label for="periodOfMarketScoping">Period of Market Scoping</label>
+            <input id="periodOfMarketScoping" name="periodOfMarketScoping" type="text" placeholder="e.g., January - February, 2026" />
+        </div>
+        <div>
+            <label for="expectedDateOfDelivery">Expected date of Delivery</label>
+            <input id="expectedDateOfDelivery" name="expectedDateOfDelivery" type="text" placeholder="e.g., January 2026" />
         </div>
         </div>
     </section>
@@ -201,7 +211,22 @@
         </tbody>
         </table>
     </section>
-
+    <section id="supplier-quotations" class="notes supplier-quotations" style="display: none;">
+        <strong>Supplier Quotations</strong>
+        <table id="quotations-table">
+            <thead>
+            <tr>
+                <th>Supplier Name</th>
+                <th>Quoted Amount (₱)</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Rows will be added dynamically -->
+            </tbody>
+        </table>
+        <button class="btn btn-info mt-3" type="button" onclick="addQuotationRow()">Add Supplier</button>
+    </section>
     <section class="notes" aria-labelledby="notes">
         <strong>Notes:</strong>
         <ul>
@@ -213,11 +238,11 @@
     <section class="footer-grid" aria-labelledby="signatures">
         <div class="sig">
         <label for="preparedBy">Prepared by</label>
-        <input id="preparedBy" name="preparedBy" type="text" placeholder="Name, Position" />
+        <input data-dialog="false" data-type="employees" data-show="firstname, lastname, experience" id="preparedBy" name="preparedBy" type="text" placeholder="Name, Position" readonly />
         <div class="grid" style="margin-top:8px;">
             <div>
             <label for="preparedDate">Date</label>
-            <input id="preparedDate" name="preparedDate" type="date" />
+            <input id="preparedDate" name="preparedDate" type="date" value="<%= moment() %>" />
             </div>
             <div>
             <label for="preparedSignature">Signature/Initials</label>
@@ -227,7 +252,7 @@
         </div>
         <div class="sig">
         <label for="reviewedBy">Reviewed/validated by</label>
-        <input id="reviewedBy" name="reviewedBy" type="text" placeholder="Name, Position" />
+        <input id="reviewedBy" name="reviewedBy" type="text" placeholder="Name, Position" readonly/>
         <div class="grid" style="margin-top:8px;">
             <div>
             <label for="reviewedDate">Date</label>
@@ -241,9 +266,67 @@
         </div>
     </section>
 
-    <div class="actions">
+    <div class="actions align-items-center">
         <button type="submit" class="btn btn-primary">Confirm</button>
         <button type="reset" class="btn">Clear</button>
         <span class="muted">Save or print after completing fields and checking applicable activities.</span>
     </div>
 </form>
+<!-- <script>
+    // Example: listen when an item is selected from the global dialog
+    document.addEventListener('DOMContentLoaded', () => {
+        const preparedBy = document.getElementById('preparedBy')
+        if (preparedBy) {
+            preparedBy.addEventListener('dialog:selected', (e) => {
+                // e.detail.item is the selected record object
+                console.log('Dialog selected:', e.detail.item)
+            })
+        }
+    })
+</script> -->
+
+<script>
+    
+    document.querySelector("input[name='activity_price_sourcing']").addEventListener("change", function() {
+    const section = document.getElementById("supplier-quotations");
+    if (this.checked) {
+        section.style.display = "block"; // show
+    } else {
+        section.style.display = "none";  // hide
+    }
+    });
+
+
+
+    function addQuotationRow(supplier = "", amount = "") {
+        const tbody = document.querySelector("#quotations-table tbody");
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td><input type="text" class="form-control" name="supplier_name" value="${supplier}" placeholder="Supplier Name"></td>
+            <td><input type="number" class="form-control" name="supplier_amount" value="${amount}" placeholder="Amount"></td>
+            <td><button class="btn btn-danger" type="button" onclick="this.closest('tr').remove()"><i class="fa fa-trash"></i> Remove</button></td>
+        `;
+
+        tbody.appendChild(row);
+    }
+
+    // Example: populate from JSON
+    function populateQuotations(quotations) {
+    quotations.forEach(q => addQuotationRow(q.supplier, q.amount));
+    }
+
+    // Example JSON data
+    const results = {
+    supplier_quotations: [
+        // { supplier: "Supplier A", amount: 50000 },
+        // { supplier: "Supplier B", amount: 52000 }
+    ]
+    };
+
+    // Populate on page load
+    document.addEventListener("DOMContentLoaded", () => {
+    populateQuotations(results.supplier_quotations);
+    });
+</script>
+

@@ -17,6 +17,7 @@ const tables = {
   notification: 'notifications',
   settings: 'settings',
   market_scope: 'market_scoping',
+  market_scope_results: 'market_scoping_results',
 }
 const TEST_UNIT = process.env.TEST_UNIT
 
@@ -219,15 +220,15 @@ const databaseUtils = {
   },
   getEmployees: async (data) => {
     if (data) {
-      data = JSON.parse(data)
+      data = isValidJSON(data) ? JSON.parse(data) : data;
       return await databaseUtils.retrieveData(`${tables.employee}`, '*', data)
     }
     return await databaseUtils.retrieveData(`${tables.employee}`)
   },
   getTransactions: async (data) => {
+    // console.log('getTransactions - data:', data);
      if (data) {
-      data = JSON.parse(data)
-      console.log({data})
+      data = isValidJSON(data) ? JSON.parse(data) : data;
       return await databaseUtils.retrieveData(`${tables.transaction}`, '*', data)
     }
     return await databaseUtils.retrieveData(`${tables.transaction}`)
@@ -688,7 +689,7 @@ const databaseUtils = {
     }
 
     let query = `SELECT ${filter} FROM ${prefix}.${table}`;
-
+    
     if (where) {
       query += " WHERE";
       query += Object.entries(where)
@@ -745,6 +746,7 @@ const databaseUtils = {
       console.error('Error during employee and role storage:', error);
     }
   },
+  // END OF EMPLOYEES
 
   // NOTIFICATIONS
   retrieveNotifications: async (data) => {
@@ -1066,8 +1068,10 @@ const databaseUtils = {
     const {
       projectTitle: project_title,
       refNo: reference_number,
+      estimatedBudget: estimated_budget,
       endUser: end_user_unit,
-      dateConducted: date_conducted,
+      periodOfMarketScoping: date_conducted,
+      expectedDateOfDelivery: expected_delivery,
       activity_consultations: consultations_with_suppliers,
       activity_summits: participation_in_summits,
       activity_reports: review_reports,
@@ -1094,8 +1098,10 @@ const databaseUtils = {
       INSERT INTO ${prefix}.market_scoping (
         project_title,
         reference_number,
+        estimated_budget,
         end_user_unit,
         date_conducted,
+        expected_delivery
         consultations_with_suppliers,
         participation_in_summits,
         review_reports,
@@ -1112,14 +1118,16 @@ const databaseUtils = {
         reviewed_by_date,
         reviewed_by_signature
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
       project_title || null,
       reference_number || null,
+      estimated_budget || null,
       end_user_unit || null,
       date_conducted || null,
+      expected_delivery || null,
       consultations_with_suppliers || null,
       participation_in_summits || null,
       review_reports || null,
@@ -1149,12 +1157,51 @@ const databaseUtils = {
     });
   },
 
+  postMarketScopeResults: async (data) => {
+    const { scoping_id, results, document_reference } = data;
+
+    try {
+      const query = `
+        INSERT INTO market_scoping_results 
+        (scoping_id, results, document_reference) 
+        VALUES (?, ?, ?)
+      `;
+      const values = [scoping_id, JSON.stringify(results), document_reference];
+
+      return new Promise((resolve, reject) => {
+        connection.query(query, values, (error, res) => {
+          if (error) {
+            console.error("Error inserting market scope:", error.sqlMessage);
+            reject(error);
+          } else {
+            resolve({
+              success: true,
+              insertId: res.insertId,
+              affectedRows: res.affectedRows
+            });
+          }
+        });
+      });
+
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      throw err; // propagate error to caller
+    }
+  },
+
   getMarketScopes: async (data) => {
     if (data) {
       return await databaseUtils.retrieveData(`${tables.market_scope}`, '*', data)
     }
     return await databaseUtils.retrieveData(`${tables.market_scope}`)
   },
+
+  getMarketScopesResults: async (data) => {
+    if (data) {
+      return await databaseUtils.retrieveData(tables.market_scope_results, '*', data)
+    }
+    return await databaseUtils.retrieveData(tables.market_scope_results)
+  }
 }
 
 module.exports = databaseUtils

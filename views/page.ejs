@@ -1,11 +1,7 @@
 <%- include('header') -%>
 
 <div class="wrapper" data-template="<%= PROCUREMENT.currentLaw %>">
-  <% if (PROCUREMENT.currentLaw === 'RA120092025') { %>
-    <%- include('../views/ra12009/sidebar') -%>
-  <% } else { %>
-    <%- include('sidebar') -%>
-  <% } %>
+  <%- include('sidebar') -%>
   
   <div class="main-panel">
     <%- include('../views/main-header') -%>

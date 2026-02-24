@@ -165,8 +165,15 @@
                               <input name="integration_client_secret" id="integration_client_secret" type="text" class="form-control" value="<%= integration_client_secret || '' %>">
                             </div>
                           </div>
-                          <div class="card-action">
+                          <div class="card-action d-flex justify-content-between">
                             <button id="saveIntegration" class="btn btn-success">Save Integration</button>
+                            <% if (integration_api_key) { %>
+                            <div>
+                              <label>View Sheets: </label>
+                              <a href="/api/sheets?sheetId=1alv_rcdABMcTuS7q5OBez9_CDboToPvmjXNRn2GI9pM&range=ALL%20CURRENT" id="viewSheets" target="_blank" class="btn btn-primary">Current</a>
+                              <a href="/api/sheets?sheetId=1alv_rcdABMcTuS7q5OBez9_CDboToPvmjXNRn2GI9pM&range=ALL%20CONTINUING" id="viewSheets" target="_blank" class="btn btn-info">Continuing</a>
+                            </div>
+                            <% } %>
                           </div>
                         </div>
                       </div>
@@ -256,7 +263,7 @@
                               <td>
                                 <div class="form-button-action" data-transid="1">
                                   <span data-bs-toggle="tooltip" data-bs-placement="top" title="Edit <%= type.charAt(0).toUpperCase() + type.slice(1) %>">
-                                    <a href="#settingsModal" class="btn btn-link btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#settingsModal" data-modalTitle="Edit <%= type.charAt(0).toUpperCase() + type.slice(1) %>" data-modalBody="<%=JSON.stringify(data)%>">
+                                    <a class="actionsEdit" data-type="organization" href="#settingsModal" class="btn btn-link btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#settingsModal" data-modalTitle="Edit <%= type.charAt(0).toUpperCase() + type.slice(1) %>" data-modalBody="<%=JSON.stringify(data)%>">
                                       <i class="fa fa-edit"></i>
                                     </a>
                                   </span>
