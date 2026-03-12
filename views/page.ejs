@@ -1,28 +1,34 @@
 <%- include('header') -%>
-
-<div class="wrapper" data-template="<%= PROCUREMENT.currentLaw %>">
-  <%- include('sidebar') -%>
-  
-  <div class="main-panel">
-    <%- include('../views/main-header') -%>
-    <div class="container" >
-      <div class="page-inner">
-        <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
-        <% const hideTitle = (typeof options !== "undefined" && options.hideTitle) ? options.hideTitle : false; %>
-        <% if (!hideTitle) { %>
-          <div>
-              <h3 class="fw-bold mb-3"><%- title -%></h3>
-              <%- description 
-                ? '<h6 class="op-7 mb-2">' + description + '</h6>' 
-                : '' %>
+  <div class="wrapper" data-template="<%= PROCUREMENT.currentLaw %>">
+    <%- include('sidebar') -%>
+      <div class="main-panel">
+        <%- include('../views/main-header') -%>
+          <div class="container">
+            <div class="page-inner">
+              <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+              <% const hideTitle=(typeof options !=="undefined" && options.hideTitle) ? options.hideTitle : false; %>
+              <% if (!hideTitle) { %>
+                <div>
+                  <h3 class="fw-bold mb-3"><%- title -%></h3>
+                  <%- description ? '<h6 class="op-7 mb-2">' + description + '</h6>' : '' %>
+                </div>
+                <% const button=(typeof options !=="undefined" && options.buttons) ? ((transactions) ?
+                options.buttons[0] : options.buttons[1]) : false ; %>
+                <% if(button) { %>
+                <div class="ms-md-auto py-2 py-md-0">
+                  <a id="<%= button.id %>" href="#" class="btn btn-primary btn-round">
+                    <i class="fas <%= button.icon %>"></i>
+                    <%= button.title %>
+                  </a>
+                </div>
+                <% } %>
+              <% } %>
+              </div>
+              <div class="row">
+                <%- include(innerContent) -%>
+              </div>
+            </div>
           </div>
-        <% } %>
-        </div>
-        <div class="row">
-            <%- include(innerContent) -%>
-        </div>
-    </div>
+      </div>
   </div>
-</div>
-
-<%- include('footer', { scripts }) -%>
+  <%- include('footer', { scripts }) -%>

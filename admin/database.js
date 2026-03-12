@@ -594,34 +594,30 @@ const databaseUtils = {
 
     // Build SELECT blocks for each row
     const selectBlocks = dataArray.map(data => {
-      const values = keys.map(k => mysql.escape(data[k])).join(', ');
-      const whereClause = keys
-        .filter(k => k === 'product_id' || k === 'supplier_id') // adjust as needed
-        .map(k => `target.\`${k}\` = ${mysql.escape(data[k])}`)
-        .join(' AND ');
-
-      return `
-        SELECT ${values}
-        WHERE NOT EXISTS (
-          SELECT 1 FROM ${escapedTable} AS target
-          WHERE ${whereClause}
-        )
-      `;
+      const values = keys.map(k => `${mysql.escape(data[k])} AS \`${k}\``).join(', ');
+      return `SELECT ${values}`;
     });
 
+    // Wrap in a derived table with alias "new"
     let query = `
       INSERT INTO ${escapedTable} (${escapedKeys})
-      ${selectBlocks.join(' UNION ALL ')}
+      SELECT * FROM (
+        ${selectBlocks.join(' UNION ALL ')}
+      ) AS new
     `;
 
-    // ✅ Add ON DUPLICATE KEY UPDATE clause if restrictDuplicate is true
+    // ✅ Use alias instead of deprecated VALUES()
     if (restrictDuplicate) {
+      const updateClause = keys
+        .map(k => `\`${k}\` = new.\`${k}\``)
+        .join(', ');
+
       query += `
-        ON DUPLICATE KEY UPDATE quoted_price = VALUES(quoted_price)
+        ON DUPLICATE KEY UPDATE ${updateClause}
       `;
     }
 
-    // console.log({ query });
+    console.log({ query });
 
     connection.query(query, (error, results) => {
       if (error) {
@@ -712,7 +708,7 @@ const databaseUtils = {
         })
         .join(' AND');
     }
-    // console.log('Retrieving Data...', query)
+    console.log('Retrieving Data...', query)
     connection.query(query, (error, results) => {
       if (error) {
         reject(error)
@@ -978,13 +974,23 @@ const databaseUtils = {
       quoted_price: parseFloat(supplier.quoted_price.replace(/,/g, ''))
     }));
 
-    // console.log('dataArray', dataArray)
+    console.log('dataArray', dataArray)
 
     return await databaseUtils.storeMultipleData('suppliers_activity', dataArray, true)
   },
   getTransactionSuppliers: async (data) => {
     console.log('getTransactionSuppliers', data)
     return await databaseUtils.retrieveData('suppliers_activity', '*', data)
+  },
+  awardTransactionSupplier: async (data) => {
+    const { transaction_id, supplier_id } = JSON.parse(data)
+    return await databaseUtils.amendData('suppliers_activity', JSON.stringify({
+      set: { is_winner: true },
+      where: { transaction_id, supplier_id }
+    }))
+  }, 
+  getAwardedSupplier: async (transaction_id) => {
+    return await databaseUtils.retrieveData('suppliers_activity', '*', { transaction_id, is_winner: 1 })
   },
   // Sample
   divisions: (division) => {
@@ -1101,7 +1107,7 @@ const databaseUtils = {
         estimated_budget,
         end_user_unit,
         date_conducted,
-        expected_delivery
+        expected_delivery,
         consultations_with_suppliers,
         participation_in_summits,
         review_reports,
@@ -1201,6 +1207,41 @@ const databaseUtils = {
       return await databaseUtils.retrieveData(tables.market_scope_results, '*', data)
     }
     return await databaseUtils.retrieveData(tables.market_scope_results)
+  },
+
+  getMarketScopingByTransactionId: async(transactionId) => {
+    try {
+      const query = `SELECT *
+                    FROM ${tables.market_scope}
+                    WHERE JSON_CONTAINS(reference_number, ?)`;
+                    
+       return new Promise((resolve, reject) => {
+        connection.query(query, transactionId , (error, results) => {
+          if (error) {
+            console.error("Error getting market scope:", error.sqlMessage);
+            reject(error);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+    } catch (error) {
+      console.error("Unexpected error: getMarketScopingByTransactionId()", err);
+      throw err; // propagate error to caller
+    }
+  },
+
+  getFunds: async (source) => {
+    const normalized = (source || '').trim().toLowerCase();
+
+    if(normalized === 'current') {
+      return await databaseUtils.getSettingByKey('fund_source_current')
+    } else if (normalized === 'continuing') {
+      return await databaseUtils.getSettingByKey('fund_source_continuing')
+    } else {
+      console.warn(`Main Source was loaded as fallback for funds. Please check the key "funds_source" in settings.`)
+      return await databaseUtils.getSettingByKey('funds_source')
+    }
   }
 }
 

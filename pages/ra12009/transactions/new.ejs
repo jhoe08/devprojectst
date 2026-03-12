@@ -1,0 +1,222 @@
+<%
+  let { directors, divisions } = JSON.parse(DEPARTMENT);
+  const { employeeid, username, firstname, lastname, middlename } = SESSION_USER; 
+  const safeMiddle = middlename?.trim();
+  const fullname = safeMiddle
+    ? `${firstname} ${safeMiddle[0]}. ${lastname}`
+    : `${firstname} ${lastname}`;
+
+  directors = Object.entries(directors);
+  divisions = Object.entries(divisions);
+
+  var requested_by = fullname;
+  var fund_source = '{}';
+  if(transactions) {
+    var {product_id, requisitioner:requested_by, division: e_division, fund_source } = transactions;
+  }
+%>
+
+<div class="row">
+          <div class="col-md-12 col-lg-12 col-xl-5">
+            <div class="card hidden">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Tracking Sheet</h4>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <div class="selectgroup w-100">
+                    <label class="selectgroup-item">
+                      <input type="radio" name="trackingSheet" value="public_bidding" class="selectgroup-input">
+                      <span class="selectgroup-button">Public Bidding</span>
+                      <em>* Above ₱500,000</em>
+                    </label>
+                    <label class="selectgroup-item">
+                      <input type="radio" name="trackingSheet" value="small_value" class="selectgroup-input" checked>
+                      <span class="selectgroup-button">Small Value</span>
+                      <em class="text-center">* ₱500,000 or below</em>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Transaction Details</h4>
+                  <div class="card-tools transcations-code text-uppercase"></div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="lastestModificationsTransactions">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="form-group form-group-default">
+                        <label for="bidNoticeTitle">Bid Notice Title</label>
+                        <textarea id="bidNoticeTitle" name="bidNoticeTitle" class="form-control" rows="3"><%- transactions?.bid_notice_title %></textarea>
+                      </div>
+                      
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group form-group-default form-group-select">
+                        <label for="prClassification">Classification</label>
+                        <%
+                          const classification = predata.classification || [];
+                          const selectedClass = transactions?.pr_classification || 'Others';
+                        %>
+                        <select id="prClassification" name="prClassification" class="form-select">
+                          <% classification.forEach(item => { %>
+                            <option value="<%= item %>" <%= item === selectedClass ? 'selected' : '' %>>
+                              <%= item %>
+                            </option>
+                          <% }) %>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group form-group-default form-group-select">
+                        <label for="procurementType">Procurement Type</label>  
+                        <% var procurementType = modesOfProcurement %>
+                        <select id="procurementType" name="procurementType" class="form-select">
+                          <% for(var i=0; i < procurementType.length; i++) { %>
+                          <option value="<%= procurementType[i] %>" <%- (transactions?.procurement_type == procurementType[i]) ?'selected':''  %>><%= procurementType[i] %></option>
+                          <% } %>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-5">
+                      <% 
+                        var budget = 0
+                        var cleanBudget = 0
+                        if (transactions) {
+                        budget = transactions?.approved_budget
+                        cleanBudget = budget.replace(/,/g, '');
+                        budget = parseFloat(cleanBudget)
+                        }
+                      %>
+                      <div class="form-group form-group-default" data-budget="<%-budget%>">
+                        <label for="budget">Approved Budget of the Contract</label>
+                        <div class="input-group">
+                        <span class="input-group-text">₱</span>
+                        
+                        <input id="budget" name="budget" type="text" class="form-control mt-0" value="<%-budget%>" readonly>
+                        </div>
+                      </div>
+                    </div>                   
+                    <div class="col-md-4">
+                      <div class="form-group form-group-default">
+                        <label for="bidNoticeTitle">Requisitioner</label>
+                        <div class="input-icon">
+                          <span class="input-icon-addon"><i class="fa fa-user"></i></span>
+                          <input id="requisitioner" name="requisitioner" type="text" class="form-control" placeholder="Juan Tamad" value="<%= requested_by %>">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group form-group-default form-group-select">
+                            <label for="bacUnit">BAC Unit</label>  
+                            <% var bacUnit = predata.bac_unit %>
+                            <select id="bacUnit" name="bacUnit" class="form-select">
+                                <% for(var i=0; i < bacUnit.length; i++) { %>
+                                <option value="<%= bacUnit[i] %>" <%- (transactions?.bac_unit == bacUnit[i]) ?'selected':'' %>><%= bacUnit[i] %></option>
+                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+             <% if (transactions) { %>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Market Scoping Activity</h4>
+                  <div class="card-tools">
+                    <a href="market-scope" class="btn btn-label-info btn-round btn-sm">
+                      <span class="btn-label">
+                        <i class="fa fa-bookmark"></i>
+                      </span>
+                      View Document
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body">
+                <p data-template="Market scoping activities for the Procurement of ICT Equipment FY2026 (PR-2026-00123) were conducted from January 5–10, 2026 by the ICT Unit, RFO VII in compliance with Section 10 of RA 12009 and its IRR. The team participated in summits and conferences, reviewed technical and financial reports, and examined product brochures and industry publications. These activities provided sufficient market insights to guide procurement planning, ensuring proportionality and alignment with the Project Procurement Management Plan.">Market scoping activities for the {Particulars} (PR #) were conducted from {Date Conducted} by the {End-User},{Implementing Unit} in compliance with Section 10 of RA 12009 and its IRR. {Activities Conducted}. These activities provided sufficient market insights to guide procurement planning, ensuring proportionality and alignment with the Project Procurement Management Plan.</p>
+              </div>
+            </div>
+            <% } %>
+          </div>
+          <div class="col-md-12 col-lg-12 col-xl-7">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Charged To:</h4>
+                  <div class="card-tools transcations-code text-uppercase form-group-add">
+                    <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
+                      <span class="fa fa-plus"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <% 
+                var totalCount = 0
+                fund_source = JSON.parse(fund_source)
+                const _hidden = true
+              %>
+            
+              <div class="card-body" id="chargingTo" data-transactions="<%= JSON.stringify(transactions) %>">
+              
+              <% if(Array.isArray(fund_source)) {
+
+                fund_source.forEach((funds, key) => { 
+                  var {division:e_division, section, amount} = funds 
+                  totalCount += parseFloat(amount);
+                  %>
+                <div id="charging_<%= key %>" class="row" data-id="<%= key %>">
+                  <div class="col-md-9 d-flex">
+                    <div class="col-md-1 col-xs-1" style="padding-right: 0;">
+                      <div class="form-group form-group-default form-group-minus">
+                          <label for="minusButton_<%= key %>">Rmv</label>
+                          <button id="minusButton_<%= key %>" class="form-control fas fa-minus-circle"></button>
+                      </div>
+                    </div>
+                    <div class="col-md-11 ml-0">
+                        <%- include('../../views/partials/selectDivisions', { key, filtered: (transactions) ? section : '' }) %>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-3">
+                    <div class="form-group form-group-default">
+                      <label for="unitCount_<%= key %>">Amount</label>
+                      <div class="input-icon">
+                        <input id="unitCount_<%= key %>" name="unitCount" data-type="number" type="text" class="form-control" value="<%= amount %>">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% }) } else { %>
+                <div class="row" id="charging_0" data-id="0">
+                  <div class="col-md-12 d-flex">
+                    <div class="col-md-1 pe-3">
+                      <div class="form-group form-group-default form-group-minus">
+                        <label for="minusButton_0">Rmv</label>
+                        <button id="minusButton_0" class="form-control fas fa-minus-circle"></button>
+                      </div>
+                    </div>
+                    <div class="col-md-11">
+                      <%- include('../../../views/partials/selectFunds') %>
+                    </div>
+                  </div>
+                </div>
+              <% } %>
+              
+              </div>
+            </div>
+          </div>
+         
+        </div>
+
+<%- include('../../../components/modals/transactions/funds') %>

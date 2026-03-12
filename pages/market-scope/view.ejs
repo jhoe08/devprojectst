@@ -12,12 +12,24 @@
 
   const filteredTransactions = transactions.filter(tx => {
     const prepared = JSON.parse(tx.prepared_by); // parse JSON string
-    return prepared.name === prepared_by_name;
+    return prepared?.name === prepared_by_name;
   });
 
   const percentagePreparedBy = filteredTransactions ? (totalRef / filteredTransactions.length) * 100 : 0
 
-  console.log({ totalTransactions })
+  const formatMonthYear = (str) => {
+    const [month, year] = str.split('/');
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${months[parseInt(month, 10) - 1]} ${year}`;
+  };
+  const formattedDateConducted = (() => {
+    if (!date_conducted) return 'Not yet conducted';
+    const [start, end] = date_conducted.split(' - ');
+    const startDate = formatMonthYear(start);
+    const endDate = formatMonthYear(end);
+    return (startDate && endDate) ? `${startDate} - ${endDate}` : 'Not yet conducted';
+  })();
+
 %>
   
 <div class="row mt--2">
@@ -27,7 +39,7 @@
         <div class="d-flex justify-content-between">
           <div>
             <h5 data-reference-number="<%= arrReferenceNumber %>"><b><%= project_title %></b></h5>
-            <p class="text-muted"><%= date_conducted || 'Not yet conducted' %></p>
+            <p class="text-muted"><%= formattedDateConducted || 'Not yet conducted' %></p>
           </div>
           <h3 class="text-info fw-bold"><%= arrReferenceNumber?.length || 0 %></h3>
         </div>
@@ -201,8 +213,16 @@
                     var cleanBudget = budget.replace(/,/g, '');
 
                     budget = parseFloat(cleanBudget)
+                    
                     fund_source = JSON.parse(fund_source)
-                    fund_source = (Object.keys(fund_source).length === 0) ? '-' : fund_source.map(item => `${item.division}-${item.section}`).join(', ');
+
+                    var fundsAllocations = ''
+                    if (Array.isArray(fund_source)) {
+                      fund_source.forEach(item => {
+                        // Build a string with cls_obj_desc and charge
+                        fundsAllocations = `${item.funds_source} | ${item.paps} | ${item.cls_obj_desc}`;
+                      });
+                    }
 
                     const { lists, getCurrentStep, getDetails, getTitle } = STEPS
 
@@ -239,7 +259,7 @@
                     <td data-head="Division"><%= division %></td>
                     <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>" data-order="<%= moment(pr_date).unix(); %>"><%= date %></td>
                     <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>" class="align-right"><%= budget %></td>
-                    <td data-head="Fund Sources"><%- fund_source -%></td>
+                    <td data-head="Fund Sources"><%- fundsAllocations -%></td>
                     <td data-head="Codes"><%- trans_code -%></td>
                     <td data-head="Banner"><%= banner_program %></td>
                     <td data-head="Classification"><%= pr_classification %></th>

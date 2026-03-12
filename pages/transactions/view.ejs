@@ -38,10 +38,17 @@
     preparedby = prepared_by ? JSON.parse(prepared_by) : {}
     preparedbyname = preparedby?.name || ''
     preparedbyid = preparedby?.employeeid || ''
+
+    const { quoted_price:awardedQuotedPrice, supplier_id:awardedSupplierID } = JSON.parse(_awardedSupplier || '{}') || {}
+    const { id:scopeId } = JSON.parse(_marketScopeId || '{}')
+
+    console.log({ _marketScopeId })
+
+    const marketScopeLink = `/market-scope/${scopeId}/view`
 %>
     
   %>
-<div class="wrapper" data-product-id="<%= transactions.product_id %>">
+<div id="innerContent" class="wrapper" data-product-id="<%= transactions.product_id %>">
     <%- include('../../views/sidebar') -%>
 
     <div class="main-panel">
@@ -136,12 +143,14 @@
                               <%- transactions.bac_unit -%>
                             </button>
                             <% } %>
-                            <a href="market-scope" class="btn btn-warning text-white btn-round btn-sm">
+                            <% if (scopeId) { %>
+                            <a href="<%= marketScopeLink %>" class="btn btn-warning text-white btn-round btn-sm">
                               <span class="btn-label">
                                 <i class="fa fa-bookmark"></i>
                               </span>
                               Market Scope
                             </a>
+                            <% } %>
                           </div>
                         </div>
                       </div>
@@ -196,19 +205,24 @@
                                 <%
                                   var {approved_budget : budget, fund_source} = transactions 
                                   var cleanBudget = budget.replace(/,/g, '');
-  
+                                  var textFundSource = ''
                                   budget = parseFloat(cleanBudget)
                                   fund_source = JSON.parse(fund_source)
                                   
-                                  var result = 'N/A'
-                                  if(Array.isArray(fund_source)) {
-                                    result = fund_source.map(item => `${item.division}-${item.section}`).join(', ');
+                                  if (Array.isArray(fund_source)) {
+                                    fund_source.forEach(item => {
+                                      const ppp = item.paps;
+                                      const [cls, obj, desc] = (item.cls_obj_desc)?.split(" | ") || []
+                                      const __cls_desc = item.cls_obj_desc ? `${obj} | ${desc}` : 'sourcing...'
+                                      fund_source = `${ppp} | ${cls} | ${obj} | ${desc}`
+                                      textFundSource = `${item?.source || __cls_desc}`;
+                                    });
                                   }
                                 %>
 
                                 <%- peso(budget) -%>
-                                <span  class="text-warning ps-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Fund Source">
-                                  <%- result -%>
+                                <span  class="text-warning ps-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Fund Source <%= fund_source %>">
+                                  <%- textFundSource -%>
                                 </span>
                               </h6>
                               <span class="text-muted">Approved Budget of the Contract</span>
@@ -217,18 +231,18 @@
                               <small class="text-muted"></small>
                             </div>
                           </div>
-                          <div class="col-md-6 d-flex <%= current_step_number >= 13 ? '' : 'hidden' %>">
+                          <div class="col-md-6 d-flex <%= current_step_number >= 14 ? '' : 'hidden' %>">
                             <div class="avatar">
                               <span class="avatar-title rounded-circle border border-white bg-info"><i class="fas fa-piggy-bank"></i></span>
                             </div>
-                            <div class="flex-1 ms-3 pt-1">
+                            <div class="flex-1 ms-3 pt-1 "">
                               <%
-                                const obligationAmount = budget-1000
-                                const amountSave = budget - obligationAmount
-                                const savingFraction = (amountSave / budget) * 100
+
+                                const savings = budget - awardedQuotedPrice
+                                const savingsPercent  = (savings / budget) * 100
                               %>
-                              <h6 class="text-uppercase mb-1"><%= peso(obligationAmount) %><span class="ms-3 text-success">(<%= savingFraction.toFixed(2) %>% saved)</span></h6>
-                              <span class="text-muted">Obligation Amount</span>
+                              <h6 class="text-uppercase mb-1"><%= peso(awardedQuotedPrice) %><span class="ms-3 text-success" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%= peso(savings.toFixed(2)) %>">(<%= savingsPercent.toFixed(2) %>% saved)</span></h6>
+                              <span class="text-muted">Price Quoted</span>
                             </div>
                             <div class="float-end pt-1"></div>
                           </div>
@@ -287,33 +301,47 @@
                     </div>
                     <!-- SHOW ONLY WHEN THE CURRENT STAGE IS [quotation_form_preparation, canvassing, supplier_engagement, bac_evaluation, procurement_finalization] -->
                     <% 
-                      const stageCanvassing = steps[0]?.steps_number >= 6 && steps[0]?.steps_number <= 10
+                      const stepNum = steps[0]?.steps_number || 0;
+
+                      const stageCanvassing = [6, 7, 8, 9, 10].includes(steps[0]?.steps_number);
+                      const stageAward = [10, 11, 12].includes(steps[0]?.steps_number);
+                      const stagePO = [13, 14].includes(steps[0]?.steps_number);
+                      
             
-                      if (stageCanvassing) { 
+                      if ( stepNum >= 6) { 
                         let haveSuppliers = false;
 
                         if (_suppliers && _suppliers.length > 0) {
                           haveSuppliers = true;
                         }
                       %>
-                      
                     <div class="card">
                       <div class="card-header">
                         <div class="card-head-row card-tools-still-right">
-                            <h4 class="card-title">Suppliers</h4>
-                            <div class="card-tools transcations-code text-uppercase form-group-add">
-                                <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
-                                  <span class="fa fa-plus"></span>
-                                </button>
-                            </div>
+                          <%
+                            const getStageTitle = () => {
+                              if (stageCanvassing) return "Canvassing Suppliers";
+                              if (stagePO) return "Awarding Suppliers";
+                              return "Awarded Suppliers";
+                            };
+                          %>
+                          <h4 class="card-title"><%= getStageTitle() %></h4>
+
+                          <% if (stepNum >= 10 && stepNum < 15) { %>
+                          <div class="card-tools transcations-code text-uppercase form-group-add">
+                              <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
+                                <span class="fa fa-plus"></span>
+                              </button>
+                          </div>
+                          <% } %>
                         </div>
                       </div>
-                      <div class="card-body">
+                      <div class="card-body" data-check=" <%= { stageAward, stagePO } %>">
+                        <% if (stageCanvassing) { %>
                         <div id="supplierInfo" data-suppliers="<%= JSON.parse(_suppliers) %>">
-                          <% 
-                          const lists = JSON.parse(_suppliers) 
-
-                            if (lists && lists.length > 0) { %>
+                          <%  const lists = JSON.parse(_suppliers)  %>
+                          
+                          <% if (lists && lists.length > 0) { %>
                             <% lists.forEach( (supplier, index) => { 
                               const { supplier_id, quoted_price } = supplier
                               const formattedPrice = n => new Intl.NumberFormat('en-US').format(n);
@@ -361,14 +389,64 @@
                             </div>
                           <% } %>
                         </div>
-                      </div>
-                      <div class="card-action align-right" style="padding: 15px 30px;">
-                        <% if (haveSuppliers) { %>
-                        <button id="submitSupplier" class="btn btn-success">Submit</button>
-                        <% } else { %>
-                        <button id="updateSupplier" class="btn btn-warning">Update</button>
+                        <% } if (stepNum >= 15) { %>
+                        <div id="supplierWinner " class="selectgroup w-100">
+                          <% 
+                            const suppliersArray = SUPPLIERS || [];  
+                            const getSupplierName = id => {
+                              const supplier = suppliersArray.find(s => s.id === id);
+                              return supplier ? supplier.supplier_name : '';
+                            };
+
+                            const listsArray = JSON.parse(_suppliers || '[]');
+
+                            // Sort by quoted_price ascending (lowest first)
+                            listsArray.sort((a, b) => a.quoted_price - b.quoted_price);
+                          %>
+
+                          <% if (listsArray.length > 0) { %>
+                            <% listsArray.forEach((supplier, index) => {  
+                                const { supplier_id, quoted_price } = supplier;
+                                const formattedPrice = n => new Intl.NumberFormat('en-US').format(n);
+                            %>
+                              <label class="selectgroup-item">
+                                <input 
+                                  type="radio" 
+                                  name="awarded_supplier" 
+                                  value="<%= supplier_id %>" 
+                                  class="selectgroup-input"
+                                  <%= supplier_id === awardedSupplierID ? 'checked' : '' %>
+                                  <%= stepNum >= 15 ? 'disabled' : '' %>
+                                >
+                                <div class="card selectgroup-button p-3 mb-0">
+                                  <div class="d-flex align-items-center">
+                                    <span class="stamp stamp-md <% if(index === 0) { %>bg-success<% } else if(index === 1) { %>bg-primary<% } else { %>bg-info<% } %> me-3 text-white"><%= index + 1 %></span>
+                                    <div>
+                                      <h5 class="mb-1">
+                                        <b><%= peso(quoted_price) %></b>
+                                      </h5>
+                                      <small class="text-muted"><%= getSupplierName(supplier_id) %></small>
+                                    </div>
+                                  </div>
+                                </div>
+                              </label>
+                            <% }) %>
+                          <% } %>
+                        </div>
                         <% } %>
                       </div>
+                      <% if (stepNum >= 6 && stepNum < 13) { %>
+                      <div class="card-action align-right" style="padding: 15px 30px;">
+                       
+                          <% if (haveSuppliers) { %>
+                          <button id="submitSupplier" class="btn btn-success">Submit</button>
+                          <% } %>
+                         <% if (stageAward ) { %>
+                          <button id="awardSupplier" class="btn btn-primary" >Award Supplier</button>
+                         <% } %>
+                      </div>
+                      
+                     <% } %>
                     </div>
                     <% } %>
                   </div>

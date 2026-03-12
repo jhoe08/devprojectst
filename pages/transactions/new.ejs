@@ -45,7 +45,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-md-12 col-lg-12 col-xl-6">
+          <div class="col-md-12 col-lg-12 col-xl-5">
             <div class="card hidden">
               <div class="card-header">
                 <div class="card-head-row card-tools-still-right">
@@ -87,18 +87,23 @@
                       
                     </div>
                     <div class="col-md-6">
-                      <div class="form-group form-group-default">
-                        <label for="prClassification">Classification</label>  
-                        <% var classification = predata.classification %>
+                      <div class="form-group form-group-default form-group-select">
+                        <label for="prClassification">Classification</label>
+                        <%
+                          const classification = predata.classification || [];
+                          const selectedClass = transactions?.pr_classification || 'Others';
+                        %>
                         <select id="prClassification" name="prClassification" class="form-select">
-                          <% for(var i=0; i < classification.length; i++) { %>
-                          <option value="<%= classification[i] %>" <%- (transactions?.pr_classification == classification[i]) ?'selected':''  %>><%= classification[i] %></option>
-                          <% } %>
+                          <% classification.forEach(item => { %>
+                            <option value="<%= item %>" <%= item === selectedClass ? 'selected' : '' %>>
+                              <%= item %>
+                            </option>
+                          <% }) %>
                         </select>
                       </div>
                     </div>
                     <div class="col-md-6">
-                      <div class="form-group form-group-default">
+                      <div class="form-group form-group-default form-group-select">
                         <label for="procurementType">Procurement Type</label>  
                         <% var procurementType = modesOfProcurement %>
                         <select id="procurementType" name="procurementType" class="form-select">
@@ -123,7 +128,7 @@
                         <div class="input-group">
                         <span class="input-group-text">₱</span>
                         
-                        <input id="budget" name="budget" data-type="number" type="text" class="form-control mt-0" value="<%-budget%>" readonly>
+                        <input id="budget" name="budget" type="text" class="form-control mt-0" value="<%-budget%>">
                         </div>
                       </div>
                     </div>                   
@@ -137,7 +142,7 @@
                       </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="form-group form-group-default">
+                        <div class="form-group form-group-default form-group-select">
                             <label for="bacUnit">BAC Unit</label>  
                             <% var bacUnit = predata.bac_unit %>
                             <select id="bacUnit" name="bacUnit" class="form-select">
@@ -172,79 +177,82 @@
             </div>
             <% } %>
           </div>
-          <div class="col-md-12 col-lg-12 col-xl-6">
-              <div class="card">
-                  <div class="card-header">
-                      <div class="card-head-row card-tools-still-right">
-                          <h4 class="card-title">Charged To:</h4>
-                          <div class="card-tools transcations-code text-uppercase form-group-add">
-                              <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
-                                  <span class="fa fa-plus"></span>
-                                </button>
-                          </div>
-                      </div>
+          <div class="col-md-12 col-lg-12 col-xl-7">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Charged To:</h4>
+                  <div class="card-tools transcations-code text-uppercase form-group-add">
+                    <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
+                      <span class="fa fa-plus"></span>
+                    </button>
                   </div>
-                  <% 
-                    var totalCount = 0
-                    fund_source = JSON.parse(fund_source)
-                  %>
-               
-                  <div class="card-body" id="chargingTo" data-transactions="<%= JSON.stringify(transactions) %>">
-                 
-                  <% if(Array.isArray(fund_source)) {
-
-                    fund_source.forEach((funds, key) => { 
-                      var {division:e_division, section, amount} = funds 
-                      totalCount += parseFloat(amount);
-                      %>
-                    <div id="charging_<%= key %>" class="row" data-id="<%= key %>">
-                      <div class="col-md-9 d-flex">
-                        <div class="col-md-2 col-xs-1" style="padding-right: 0;">
-                          <div class="form-group form-group-default form-group-minus">
-                              <label for="minusButton_<%= key %>">Rmv</label>
-                              <button id="minusButton_<%= key %>" class="form-control fas fa-minus-circle"></button>
-                          </div>
-                        </div>
-                        <div class="col-md-10 ml-0">
-                            <%- include('../../views/partials/selectDivisions', { key, filtered: (transactions) ? section : '' }) %>
-                        </div>
-                      </div>
-                      
-                      <div class="col-md-3">
-                        <div class="form-group form-group-default">
-                          <label for="unitCount_<%= key %>">Amount</label>
-                          <div class="input-icon">
-                            <input id="unitCount_<%= key %>" name="unitCount" data-type="number" type="text" class="form-control" value="<%= amount %>">
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  <% }) } else { %>
-                    <div class="row" id="charging_0" data-id="0">
-                      <div class="col-md-8 d-flex">
-                        <div class="col-md-2">
-                          <div class="form-group form-group-default form-group-minus">
-                            <label for="minusButton_0">Rmv</label>
-                            <button id="minusButton_0" class="form-control fas fa-minus-circle"></button>
-                          </div>
-                        </div>
-                        <div class="col-md-10">
-                          <%- include('../../views/partials/selectDivisions', { key: 0, filtered: (transactions) ? section : ''}) %>
-                        </div>
-                      </div>
-                      <div class="col-md-4">
-                        <div class="form-group form-group-default">
-                          <label for="unitCount_0">Amount</label>
-                          <div class="input-icon">
-                            <input id="unitCount_0" name="unitCount" data-type="number" type="text" class="form-control" value="">
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  <% } %>
-                  
-                  </div>
+                </div>
               </div>
+              <% 
+                var totalCount = 0
+                fund_source = JSON.parse(fund_source)
+                const _hidden = true
+              %>
+            
+              <div class="card-body" id="chargingTo" data-transactions="<%= JSON.stringify(transactions) %>">
+              
+              <% if(Array.isArray(fund_source)) {
+
+                fund_source.forEach((funds, key) => { 
+                  var {division:e_division, section, amount} = funds 
+                  totalCount += parseFloat(amount);
+                  %>
+                <div id="charging_<%= key %>" class="row" data-id="<%= key %>">
+                  <div class="col-md-9 d-flex">
+                    <div class="col-md-1 col-xs-1" style="padding-right: 0;">
+                      <div class="form-group form-group-default form-group-minus">
+                          <label for="minusButton_<%= key %>">Rmv</label>
+                          <button id="minusButton_<%= key %>" class="form-control fas fa-minus-circle"></button>
+                      </div>
+                    </div>
+                    <div class="col-md-11 ml-0">
+                        <%- include('../../views/partials/selectDivisions', { key, filtered: (transactions) ? section : '' }) %>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-3">
+                    <div class="form-group form-group-default">
+                      <label for="unitCount_<%= key %>">Amount</label>
+                      <div class="input-icon">
+                        <input id="unitCount_<%= key %>" name="unitCount" data-type="number" type="text" class="form-control" value="<%= amount %>">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% }) } else { %>
+                <div class="row" id="charging_0" data-id="0">
+                  <div class="col-md-12 d-flex">
+                    <div class="col-md-1">
+                      <div class="form-group form-group-default form-group-minus">
+                        <label for="minusButton_0">Rmv</label>
+                        <button id="minusButton_0" class="form-control fas fa-minus-circle"></button>
+                      </div>
+                    </div>
+                    <div class="col-md-11">
+                      <%- include('../../views/partials/selectFunds') %>
+                    </div>
+                  </div>
+                  <% if (_hidden) { %>
+                  <div class="col-md-3 hidden">
+                    <div class="form-group form-group-default">
+                      <label for="unitCount_0">Amount</label>
+                      <div class="input-icon">
+                        <input id="unitCount_0" name="unitCount" data-type="number" type="text" class="form-control" value="">
+                      </div>
+                    </div>
+                  </div>
+                  <% } %>
+                </div>
+              <% } %>
+              
+              </div>
+            </div>
           </div>
           <!-- <div class="col-md-12 col-lg-12 col-xl-6">
             <div class="card">
@@ -269,5 +277,6 @@
       </div>
     </div>
 </div>
+<%- include('../../components/modals/transactions/funds') %>
 <!-- Footer Template -->
 <%- include('../../views/footer') -%>

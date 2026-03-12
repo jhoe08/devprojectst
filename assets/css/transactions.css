@@ -37,6 +37,19 @@
   color: #fff;
 }
 
+#chargingTo { 
+  span.selectgroup-button {
+    padding: 1vw;
+  }
+}
+
+.form-group-select:has(select:disabled) {
+    background-color: var(--bs-secondary-bg); /* example styling */
+    border: 1px solid #ccc;
+    opacity: 0.7;
+}
+
+
 /* Datatables in Mobile */
 /* @media (max-width: 768px) {
  .dataTable {

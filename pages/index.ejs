@@ -61,6 +61,8 @@
   const jsonMonths = JSON.stringify(months);
   const values = Object.entries(monthlyTotals).map(([_, value]) => value);
 
+  console.log({values})
+
   const latestStepsByProduct = {}
   const latestStepsByProduct2 = {}
   let arrayProductIds = []

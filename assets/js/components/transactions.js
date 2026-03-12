@@ -20,14 +20,14 @@
   const period = document.getElementById('period')
 
   const divisionsContainer = document.getElementById('chargingTo')
-  
+
   const divisionsSelect = document.querySelectorAll('#chargingTo .form-select')
 
   const created_by = document.getElementById('created_by')
 
   const approveBtn = document.getElementById('approveBtn')
   const disapproveBtn = document.getElementById('disapproveBtn')
-  
+
   const setQoutedAmount = document.getElementById('setQoutedAmount')
 
   const transactionID = document.querySelector('.wrapper').dataset.transactionId
@@ -45,7 +45,7 @@
     return null;  // No division found
   }
 
-  function trimFullName(){ 
+  function trimFullName() {
     // Select the element containing the attribute
     const el = document.querySelector('[data-responsible]');
 
@@ -135,121 +135,121 @@
     const created_by = document.querySelector('#created_by')
     const responsibleData = created_by.dataset.responsible ? JSON.parse(created_by.dataset.responsible) : null;
 
-    console.log({responsibleData})
+    // console.log({ responsibleData })
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
     requisitioner.value = trimFullName()
 
-    if(Object.keys(responsibleData).length === 0){ 
+    if (Object.keys(responsibleData).length === 0) {
       console.error('No responsible data found');
       requisitioner.closest('.form-group').classList.add('has-error');
       requisitioner.closest('.form-group').querySelector('.input-icon').classList.add('text-danger');
     }
 
-    createTransactions.addEventListener('click', async () => {
-      try {
-        // 🔄 Collect fund source data
-        const charge = Array.from(chargingTo.querySelectorAll('.row')).map(fund => {
-          const select = fund.querySelector('select[name*="division_"]');
-          const selectedOption = select.options[select.selectedIndex];
-          const divisionValue = selectedOption.dataset.division;
-          const sectionValue = select.value;
-          const amountValue = fund.querySelector('input[name="unitCount"]').value;
+    // createTransactions.addEventListener('click', async () => {
+    //   try {
+    //     // 🔄 Collect fund source data
+    //     const charge = Array.from(chargingTo.querySelectorAll('.row')).map(fund => {
+    //       const select = fund.querySelector('select[name*="division_"]');
+    //       const selectedOption = select.options[select.selectedIndex];
+    //       const divisionValue = selectedOption.dataset.division;
+    //       const sectionValue = select.value;
+    //       const amountValue = fund.querySelector('input[name="unitCount"]').value;
 
-          return {
-            division: divisionValue,
-            section: sectionValue,
-            amount: amountValue
-          };
-        });
+    //       return {
+    //         division: divisionValue,
+    //         section: sectionValue,
+    //         amount: amountValue
+    //       };
+    //     });
 
-        // 🧼 Extract and validate form values
-        const bidNoticeTitleValue = bidNoticeTitle.value.trim();
-        const prClassificationValue = prClassification.value;
-        const requisitionerValue = requisitioner.value.trim();
-        const budgetRawValue = budget.value.replace(/,/g, '');
-        const bacUnitValue = bacUnit.value;
+    //     // 🧼 Extract and validate form values
+    //     const bidNoticeTitleValue = bidNoticeTitle.value.trim();
+    //     const prClassificationValue = prClassification.value;
+    //     const requisitionerValue = requisitioner.value.trim();
+    //     const budgetRawValue = budget.value.replace(/,/g, '');
+    //     const bacUnitValue = bacUnit.value;
 
-        if (!bidNoticeTitleValue || !requisitionerValue || parseFloat(budgetRawValue) === 0) {
-          notifyCustom(
-            'exclamation',
-            'Fields are empty',
-            'Submission failed: Bid Notice Title, Budget, and Requisitioner are mandatory fields.',
-            'danger'
-          );
-          return;
-        }
+    //     if (!bidNoticeTitleValue || !requisitionerValue || parseFloat(budgetRawValue) === 0) {
+    //       notifyCustom(
+    //         'exclamation',
+    //         'Fields are empty',
+    //         'Submission failed: Bid Notice Title, Budget, and Requisitioner are mandatory fields.',
+    //         'danger'
+    //       );
+    //       return;
+    //     }
 
-        const approvedBudget = parseFloat(budgetRawValue);
+    //     const approvedBudget = parseFloat(budgetRawValue);
 
-        // 🧠 Parse next responsible data
-        let nextResponsible;
-        try {
-          nextResponsible = JSON.parse(created_by.dataset.responsible);
-        } catch (err) {
-          notifyCustom('bell', 'Invalid responsible data', 'Could not parse next responsible person.', 'danger');
-          return;
-        }
+    //     // 🧠 Parse next responsible data
+    //     let nextResponsible;
+    //     try {
+    //       nextResponsible = JSON.parse(created_by.dataset.responsible);
+    //     } catch (err) {
+    //       notifyCustom('bell', 'Invalid responsible data', 'Could not parse next responsible person.', 'danger');
+    //       return;
+    //     }
 
-        // Get the query string from the URL
-        const queryString = window.location.search; // "?market-scope=1"
+    //     // Get the query string from the URL
+    //     const queryString = window.location.search; // "?market-scope=1"
 
-        // Parse it using URLSearchParams
-        const urlParams = new URLSearchParams(queryString);
+    //     // Parse it using URLSearchParams
+    //     const urlParams = new URLSearchParams(queryString);
 
-        // Extract the value of "market-scope"
-        const marketScope = urlParams.get("market-scope");
+    //     // Extract the value of "market-scope"
+    //     const marketScope = urlParams.get("market-scope");
 
 
-        // 📦 Prepare payload
-        const payload = {
-          bid_notice_title: bidNoticeTitleValue,
-          pr_classification: prClassificationValue,
-          requisitioner: requisitionerValue,
-          approved_budget: approvedBudget,
-          fund_source: JSON.stringify(charge),
-          bac_unit: bacUnitValue,
-          remarks: JSON.stringify({
-            message: 'Created Transaction'
-          }),
-          prepared_by: created_by.value,
-          assigned_to: nextResponsible.division?.employeeid || null,
-          marketScopeID: marketScope
-        };
+    //     // 📦 Prepare payload
+    //     const payload = {
+    //       bid_notice_title: bidNoticeTitleValue,
+    //       pr_classification: prClassificationValue,
+    //       requisitioner: requisitionerValue,
+    //       approved_budget: approvedBudget,
+    //       fund_source: JSON.stringify(charge),
+    //       bac_unit: bacUnitValue,
+    //       remarks: JSON.stringify({
+    //         message: 'Created Transaction'
+    //       }),
+    //       prepared_by: created_by.value,
+    //       assigned_to: nextResponsible.division?.employeeid || null,
+    //       marketScopeID: marketScope
+    //     };
 
-        console.log('Payload:', payload);
+    //     console.log('Payload:', payload);
 
-        // 🚀 Send request
-        const response = await fetch('/transactions/new', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+    //     // 🚀 Send request
+    //     const response = await fetch('/transactions/new', {
+    //       method: 'POST',
+    //       headers: { 'Content-Type': 'application/json' },
+    //       body: JSON.stringify(payload)
+    //     });
 
-        if (!response.ok) {
-          notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger');
-          return;
-        }
+    //     if (!response.ok) {
+    //       notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger');
+    //       return;
+    //     }
 
-        const result = await response.json();
+    //     const result = await response.json();
 
-        if (!result || !result.response?.insertId) {
-          notifyCustom('bell', 'Error', 'Failed to create the Transaction!', 'danger');
-          return;
-        }
+    //     if (!result || !result.response?.insertId) {
+    //       notifyCustom('bell', 'Error', 'Failed to create the Transaction!', 'danger');
+    //       return;
+    //     }
 
-        const { message, response: { insertId } } = result;
-        notifyCustom('bell', message, `Transaction ID#${insertId}`, 'success');
+    //     const { message, response: { insertId } } = result;
+    //     notifyCustom('bell', message, `Transaction ID#${insertId}`, 'success');
 
-        // 🧹 Optional: Clear form fields here if needed
-        // [bidNoticeTitle, prClassification, requisitioner, budget, bacUnit].forEach(el => el.value = '');
+    //     // 🧹 Optional: Clear form fields here if needed
+    //     // [bidNoticeTitle, prClassification, requisitioner, budget, bacUnit].forEach(el => el.value = '');
 
-      } catch (error) {
-        notifyCustom('close', 'Unexpected error occurred', error.message || error, 'danger');
-      }
-    });
+    //   } catch (error) {
+    //     notifyCustom('close', 'Unexpected error occurred', error.message || error, 'danger');
+    //   }
+    // });
   }
   // Update
   if (updateTransactions) {
@@ -271,7 +271,7 @@
 
     // Retrieve only the remarks
     const remarks = transactions.remarks
-    console.log({remarks})
+    console.log({ remarks })
     let remarksObj = {}
     if (typeof remarks === "string") {
       try {
@@ -294,7 +294,7 @@
       let bacUnitValue = bacUnit.value
 
       let charge = []
-      let funds =  chargingTo.querySelectorAll('.row')
+      let funds = chargingTo.querySelectorAll('.row')
       funds.forEach(fund => {
         let element = fund.querySelector('select[name^="division_"]');
         let selectedOption = element.options[element.selectedIndex];
@@ -344,7 +344,7 @@
       // if (!bannerProgram.classList.contains('updated')) delete data.banner_program
       if (!bacUnit.classList.contains('updated')) delete data.bac_unit
 
-      const payload = {set: data, where: {product_id: transactionID}}
+      const payload = { set: data, where: { product_id: transactionID } }
 
       const requestOptions = {
         method: 'PUT',
@@ -513,64 +513,65 @@
   if (addButton) {
     let rowCount = 1;
     addButton.addEventListener('click', function () {
-      // Find the closest row element
-      // const row = this.closest('.row');
+      // Cache containers once
       const chargingRow = document.querySelector('#chargingTo .row');
       const supplierRow = document.querySelector('#supplierInfo .row');
-
       const row = chargingRow || supplierRow;
       if (!row) return; // Defensive: no row found
 
-      // Clone the row
-      const clonedForm = row.cloneNode(true); // true means deep clone (including child nodes)
-            clonedForm.dataset.id = rowCount
-      
-      if (chargingRow) {
-        clonedForm.setAttribute('id', `charging_${rowCount}`);
-      } else if (supplierRow) {
-        clonedForm.setAttribute('id', `supplier_${rowCount}`);
+      // Clone the row deeply
+      const clonedForm = row.cloneNode(true);
+      clonedForm.dataset.id = rowCount;
+      // Remove 'active' from all rows inside #chargingTo
+      document.querySelectorAll('#chargingTo .row').forEach(row => {
+        row.classList.remove('active');
+      });
+
+
+      // Assign a new ID prefix depending on source
+      const prefix = chargingRow ? 'charging' : 'supplier';
+      clonedForm.id = `${prefix}_${rowCount}`;
+
+      // Clear inputs and update IDs/names
+      clonedForm.querySelectorAll('input, select, button').forEach(input => {
+        const baseId = input.id ? input.id.split('_')[0] : prefix;
+        const newId = `${baseId}_${rowCount}`;
+
+        input.id = newId;
+
+        if (input.type === 'radio') {
+          // Keep radios grouped per cloned row
+          // input.id = `${input.value}_${newId}`;
+          input.name = `funds_source_${rowCount}`;
+        } else {
+          input.value = ''; // reset value
+        }
+      });
+
+      // Update labels' "for" attributes
+      clonedForm.querySelectorAll('label[for]').forEach(label => {
+        const baseId = label.getAttribute('for').split('_')[0];
+        label.setAttribute('for', `${baseId}_${rowCount}`);
+      });
+
+      // Attach remove handler
+      const removeButton = clonedForm.querySelector('.fa-minus-circle');
+      if (removeButton) {
+        removeButton.addEventListener('click', () => {
+          console.log('Remove button clicked for row:', clonedForm.dataset.id);
+          clonedForm.remove();
+        });
       }
 
-      // Remove the "Add" button from the cloned row to prevent duplication
-      // const addButtonInClonedRow = clonedForm.querySelector('.form-group-add');
-      // addButtonInClonedRow.remove();
-
-      // Clear input values inside the cloned row
-      const labels = clonedForm.querySelectorAll('label')
-      const inputs = clonedForm.querySelectorAll('input, select, button');
-
-      console.log(clonedForm)
-
-      inputs.forEach(input => {
-        // Generate new ID based on current row count
-        const newId = input.id.split('_')[0] + rowCount; // Assuming ID pattern is like "divisions-1"
-        input.id = newId; // Update the ID attribute
-        input.value = ''; // Clear the value
-      });
-
-      labels.forEach(label => {
-        const inputId = label.getAttribute('for');
-        const baseId = inputId.split('_')[0];
-        label.setAttribute('for', baseId + rowCount);
-      })
-
-      // Add a "Remove" button to the cloned row
-      const removeButton = clonedForm.querySelector('.fa-minus-circle');
-      console.log({removeButton});
-      removeButton.addEventListener('click', function () {
-        console.log('Remove button clicked for row:', clonedForm.dataset.id);
-        clonedForm.remove(); // Remove the clicked row
-      });
-
-      // Update the row count
+      // Increment row count
       rowCount++;
 
-      // Append the cloned row to the form container
-      const formContainer = document.getElementById('chargingTo') || document.getElementById('supplierInfo');
+      // Append cloned row to the correct container
+      const formContainer = chargingRow ? document.getElementById('chargingTo') : document.getElementById('supplierInfo');
       formContainer.appendChild(clonedForm);
     });
   }
- 
+
   document.querySelectorAll('.fa-minus-circle').forEach(removeIcon => {
     const button = removeIcon.closest('button');
     if (button) {
@@ -607,7 +608,7 @@
     $('.input-daterange input').each(function () {
       $(this).daterangepicker('clearDates');
     });
-  }``
+  } ``
   //
   if (divisionsSelect && divisionsContainer) {
     // divisionsSelect.addEventListener('change', function (event) {
@@ -665,8 +666,8 @@
       const currentSteps = Number(document.querySelector('.activity-feed').dataset.currentSteps);
       const product_id = Number(document.querySelector('.container').dataset.transactionId);
       const apiUrl = '/approve';
-      const data = { product_id:product_id, steps_number:currentSteps, updated_by: create_by}
-      
+      const data = { product_id: product_id, steps_number: currentSteps, updated_by: create_by }
+
       const requestOptions = {
         method: 'POST',
         headers: {
@@ -677,32 +678,32 @@
       console.log(requestOptions)
 
       fetch(apiUrl, requestOptions)
-      .then(response => {
-        if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
-        return response.json()
-      })
-      .then(data => {
-        if (!data) return notifyCustom('', 'Error', 'Failed to Approved the PR#', 'danger')
+        .then(response => {
+          if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
+          return response.json()
+        })
+        .then(data => {
+          if (!data) return notifyCustom('', 'Error', 'Failed to Approved the PR#', 'danger')
 
-        notifyCustom('', 'Success', 'Approved the PR# successfully', 'info')
-      })
-      .catch(error => {
-        notifyCustom('Error', error, 'danger')
-      })
+          notifyCustom('', 'Success', 'Approved the PR# successfully', 'info')
+        })
+        .catch(error => {
+          notifyCustom('Error', error, 'danger')
+        })
     })
   }
 
   if (disapproveBtn) {
-   disapproveBtn.addEventListener('click', function() {
-    const create_by = document.getElementById('created_by').value
-    const currentSteps = Number(document.querySelector('.activity-feed').dataset.currentSteps);
-  })                                                                                                                                                                                                           
+    disapproveBtn.addEventListener('click', function () {
+      const create_by = document.getElementById('created_by').value
+      const currentSteps = Number(document.querySelector('.activity-feed').dataset.currentSteps);
+    })
   }
 
   if (setQoutedAmount) {
-    setQoutedAmount.addEventListener('click', function(e){
+    setQoutedAmount.addEventListener('click', function (e) {
       var getAmount = document.getElementById('qoutedAmount')
-      
+
       if (!getAmount || getAmount.value.trim() === "") {
         return; // exits the function or block silently
       }
@@ -713,10 +714,10 @@
       console.log(getAmount.value)
       let cleaned = getAmount.value.replace(/,/g, "")
       let decimalValue = parseFloat(cleaned)
-     
+
       console.log(getAmount)
-      const data = { set:{amount: decimalValue}, where: {product_id: transid}}
-      
+      const data = { set: { amount: decimalValue }, where: { product_id: transid } }
+
 
       const requestOptions = {
         method: 'PUT',
@@ -728,29 +729,29 @@
 
       console.log(data)
       fetch(apiUrl, requestOptions)
-      .then(response => {
-        if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
-        return response.json()
-      })
-      .then(data => {
-        if (!data) return notifyCustom('', 'Error', 'Failed to get the details', 'danger')
+        .then(response => {
+          if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
+          return response.json()
+        })
+        .then(data => {
+          if (!data) return notifyCustom('', 'Error', 'Failed to get the details', 'danger')
           console.log(data)
-        notifyCustom('', 'Success', 'Successfully updated the Transaction', 'info')
-      })
-      .catch(error => {
-        notifyCustom('Error', error, 'danger')
-      })
+          notifyCustom('', 'Success', 'Successfully updated the Transaction', 'info')
+        })
+        .catch(error => {
+          notifyCustom('Error', error, 'danger')
+        })
     })
   }
 
   const assignedToBtn = document.getElementById('assignedToBtn');
   if (assignedToBtn) {
-    assignedToBtn.addEventListener('click', function (){
+    assignedToBtn.addEventListener('click', function () {
       const nextResponsible = document.getElementById('nextResponsible');
       const productId = document.querySelector('.wrapper').dataset.productId;
       let selectedPerson = nextResponsible.value;
       const currentSteps = Number(document.querySelector('.activity-feed').dataset.currentSteps);
-    
+
 
       if (!selectedPerson) {
         notifyCustom('exclamation', 'No Selection', 'Please select a person to assign.', 'warning');
@@ -770,91 +771,41 @@
         body: JSON.stringify(data)
       };
       fetch(apiUrl, requestOptions)
-      .then(response => {
-        if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
-        return response.json()
-      })
-      .then(data => {
-        if (!data) return notifyCustom('', 'Error', 'Failed to set responsible person for the PR#' + productId, 'danger')
+        .then(response => {
+          if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
+          return response.json()
+        })
+        .then(data => {
+          if (!data) return notifyCustom('', 'Error', 'Failed to set responsible person for the PR#' + productId, 'danger')
 
-        notifyCustom('', 'Success', 'Successfully set responsible person for the PR#' + productId, 'info')
-      })
-      .catch(error => {
-        notifyCustom('Error', error, 'danger')
-      })
+          notifyCustom('', 'Success', 'Successfully set responsible person for the PR#' + productId, 'info')
+        })
+        .catch(error => {
+          notifyCustom('Error', error, 'danger')
+        })
     })
   }
 
-  // Function to sum all unitCount fields and update totalCo
-  function updateTotal(selector) {
-    const inputs = document.querySelectorAll(selector);
-    let total = 0;
-    inputs.forEach(input => {
-      const val = parseInt(input.value.replace(/,/g, ''), 10);
-      // console.log('ASD', val)
-      if (!isNaN(val)) total += val;
-    });
-    // console.log('Total:', total);
-    const totalCountEl = document.getElementById('totalCount');
-    const budgetEl = document.getElementById('budget');
-    
-    if (totalCountEl) {
-      totalCountEl.value = total;
-    }
-    if (budgetEl) {
-      budgetEl.value = total.toLocaleString('en-US', { style: 'decimal', minimumFractionDigits: 0 });
-    }
-  }
-
-  function formatNumberWithCommas(event) {
-  const input = event.target;
-
-  // Allow digits and a single decimal point
-  let value = input.value.replace(/[^0-9.]/g, '');
-
-  // Prevent multiple decimals
-  const parts = value.split('.');
-  if (parts.length > 2) {
-    value = parts[0] + '.' + parts.slice(1).join('');
-  }
-
-  // If empty, clear input
-  if (value === '') {
-    input.value = '';
-    return;
-  }
-
-  // Format integer part with commas
-  let integerPart = parts[0];
-  let decimalPart = parts[1] ? '.' + parts[1] : '';
-
-  integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-  input.value = integerPart + decimalPart;
-}
-
-  if(document.getElementById('budget') || document.querySelector('input[data-type="number"]')){
+  if (document.getElementById('budget') || document.querySelector('input[data-type="number"]')) {
     setInterval(() => {
-      updateTotal('input[name="unitCount"]');
+      // updateTotal('input[name="unitCount"]');
     }, 1000);
     setInterval(() => {
       const numberInputs = document.querySelectorAll('input[data-type="number"]');
-      // if (!numberInputs) return;
-      // console.log(numberInputs);
       // Add event listener to each input
       numberInputs.forEach(input => {
         input.addEventListener('input', formatNumberWithCommas);
       });
     }, 1000);
   }
- 
-  
+
+
   // On document ready, find all readonly input fields and add a 'readonly' class to their parent '.form-group'.
   // This allows styling or behavior adjustments for groups containing readonly inputs.
-  $(function() {
+  $(function () {
     $('input[readonly]').closest('.form-group').addClass('readonly');
   });
-  
 
-  
+
+
 })()

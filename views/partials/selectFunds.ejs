@@ -1,84 +1,32 @@
-<%
-  // selectFunds partial
-  // Params: key (index) and filtered (optional preset value)
-  const idx = key || 0
-%>
-<div class="form-group form-group-default">
-  <label for="fund_source_<%= idx %>">Charge To (Fund)</label>
-  <select class="form-select fund-source-select" id="fund_source_<%= idx %>" name="fund_source_<%= idx %>" data-key="<%= idx %>">
-    <option value="">-- Select Fund (Current / Continuing) --</option>
-    <% if (typeof FUNDS !== 'undefined' && Array.isArray(FUNDS) && FUNDS.length) {
-        FUNDS.forEach(f => { %>
-          <option value="<%= f.id || f.code || f.pap || f.obj_code || f.name %>" data-meta='<%= JSON.stringify(f).replace(/'/g,'&#39;') %>' <%= (filtered && filtered == (f.id||f.code||f.pap||f.obj_code||f.name)) ? 'selected' : '' %>><%= (f.pap || '') %> | <%= (f.class || '') %> | <%= (f.obj_code || f.obj || '') %> — <%= (f.description || f.descriptions || f.name || '') %></option>
-    <%  })
-      } %>
-  </select>
-</div>
-
-<div class="form-group form-group-default">
-  <label for="fund_amount_<%= idx %>">Amount</label>
-  <div class="input-icon">
-    <span class="input-group-text">₱</span>
-    <input id="fund_amount_<%= idx %>" name="fund_amount_<%= idx %>" data-type="number" type="text" class="form-control fund-amount" value="" />
+<div class="form-group p-0">
+  <div class="selectgroup w-100">
+    <label for="current_0" class="selectgroup-item">
+      <input type="radio" name="funds_source_0" value="current" id="current_0" class="selectgroup-input"
+        data-bs-toggle="modal" data-bs-target="#fundsChargeToModal">
+      <span class="selectgroup-button">CURRENT</span>
+    </label>
+    <label for="continuing_0" class="selectgroup-item">
+      <input type="radio" name="funds_source_0" value="continuing" id="continuing_0" class="selectgroup-input"
+        data-bs-toggle="modal" data-bs-target="#fundsChargeToModal">
+      <span class="selectgroup-button">CONTINUING</span>
+    </label>
   </div>
 </div>
-
-<!-- hidden meta store for selected fund object -->
-<input type="hidden" id="fund_meta_<%= idx %>" name="fund_meta_<%= idx %>" value="" />
-
-<script>
-  (function(){
-    const key = '<%= idx %>'
-    const sel = document.getElementById('fund_source_' + key)
-    const amount = document.getElementById('fund_amount_' + key)
-    const meta = document.getElementById('fund_meta_' + key)
-
-    function applyMeta(obj) {
-      if (!obj) return
-      // common fields: amount, division, section
-      amount.value = obj.amount || obj.balance || obj.available || ''
-      meta.value = JSON.stringify(obj)
-    }
-
-    // If server provided initial selection via HTML option data-meta, set it
-    if (sel) {
-      sel.addEventListener('change', (e) => {
-        const o = sel.options[sel.selectedIndex]
-        const raw = o && o.dataset && o.dataset.meta ? o.dataset.meta : o && o.getAttribute('data-meta')
-        let parsed = null
-        if (raw) {
-          try { parsed = JSON.parse(raw) } catch (err) { try { parsed = JSON.parse(raw.replace(/&quot;/g,'"')) } catch(e){} }
-        }
-        applyMeta(parsed)
-        // dispatch event for parent to consume
-        const ev = new CustomEvent('fund:selected', { detail: { key, fund: parsed } })
-        sel.dispatchEvent(ev)
-      })
-
-      // attempt to fetch funds list from server API if none present
-      if (sel.options.length <= 1) {
-        fetch('/api/dialog/list', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'funds', show: '', params: {} })
-        }).then(r=>r.json()).then(data=>{
-          if (!Array.isArray(data) || data.length === 0) return
-          data.forEach(f => {
-            const opt = document.createElement('option')
-            const val = f.id || f.code || f.name
-            opt.value = val
-            opt.text = (f.pap || '') + ' | ' + (f.class || '') + ' | ' + (f.obj_code || f.obj || '') + ' — ' + (f.description || f.name || '')
-            opt.setAttribute('data-meta', JSON.stringify(f))
-            sel.appendChild(opt)
-          })
-          // if filtered preset exists, try to select
-          <% if (typeof filtered !== 'undefined' && filtered) { %>
-            try { sel.value = '<%= filtered %>'; sel.dispatchEvent(new Event('change')) } catch(e){}
-          <% } %>
-        }).catch(()=>{})
-      } else {
-        // if option selected initially, apply meta
-        try { sel.dispatchEvent(new Event('change')) } catch(e){}
-      }
-    }
-  })()
-</script>
+<div class="row hidden">
+  <div class="col-md-9">
+    <div class="form-group form-group-default">
+      <label for="chargedFunds_0">Allocations</label>
+      <div class="input-icon">
+        <input id="chargedFunds_0" name="chargedFunds_0" data-type="number" type="text" class="form-control" value="" readonly>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 ps-0">
+    <div class="form-group form-group-default">
+      <label for="chargedAmount_0">Amount</label>
+      <div class="input-icon">
+        <input id="chargedAmount_0" name="chargedAmount_0" data-type="number" type="text" class="form-control" value="">
+      </div>
+    </div>
+  </div>
+</div>

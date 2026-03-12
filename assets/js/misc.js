@@ -3,22 +3,22 @@
 
 let views = document.querySelectorAll('#basic-datatables .form-button-action .btn-primary');
 if (views) {
-  views.forEach(view=>{
-    view.addEventListener('click', ()=>{
-        let transactions = view
-        // transid = danger.target
-        let {transid} = transactions.dataset
-        let title = `Transaction Details ${transid}`
-        let description = 'Peskot na~'
+  views.forEach(view => {
+    view.addEventListener('click', () => {
+      let transactions = view
+      // transid = danger.target
+      let { transid } = transactions.dataset
+      let title = `Transaction Details ${transid}`
+      let description = 'Peskot na~'
     })
-})
+  })
 }
 // let dangers = document.querySelectorAll('#transactions-datatables .form-button-action .btn-danger');
 // if (dangers) {
 //   // const table = new DataTable('#basic-datatables')
 
 //   dangers.forEach(danger=>{
-    
+
 //     danger.addEventListener('click', (event)=>{
 //       let transactions = danger
 //       // transid = danger.target
@@ -40,7 +40,7 @@ if (views) {
 //         dangerMode: true, })
 //       .then((willDelete) => {
 //         if (willDelete) {
-        
+
 //           let url = `/transactions/${transid}`
 
 //           fetch(url, {
@@ -145,7 +145,7 @@ if (views) {
 
 //         let {message, response } = data
 //         let {insertId} = response
-        
+
 //         $.notify({
 //           icon: 'icon-bell',
 //           title: `${message}`,
@@ -199,7 +199,7 @@ if (views) {
 //       .filter(checkbox => checkbox.checked)
 //       .map(checkbox => parseFloat(checkbox.value))
 //       .reduce((sum, value) => sum + value, 0);
-  
+
 //       let data = { 
 //           comment: comment.value, 
 //           refid: transid, 
@@ -207,9 +207,9 @@ if (views) {
 //           user:'justjoe',
 //           dueDate: checkedCheckboxes
 //       }
-  
+
 //       const apiUrl = '/remarks/new'
-  
+
 //       const requestOptions = {
 //         method: 'POST',
 //         headers: {
@@ -217,7 +217,7 @@ if (views) {
 //         },
 //         body: JSON.stringify(data)
 //       };
-  
+
 //       fetch(apiUrl, requestOptions)
 //       .then(response => {
 //         if (!response.ok) {
@@ -243,10 +243,10 @@ if (views) {
 //                    { type: 'danger', placement: { from: "top", align: "right" },
 //                    time: 1000});
 //         }
-  
+
 //         let {message, response} = data
 //         // console.log(response)
-        
+
 //         refreshActivity.click()
 //         // clearing fields
 //         selectedStatus.checked = false
@@ -265,7 +265,7 @@ if (views) {
 //           time: 1000,
 //         });
 
-     
+
 //       })
 //       .catch(error => {
 //         $.notify({ icon: 'icon-exclamation', title: `There was an error on the system!`, message: `${error} adsdsa` },
@@ -273,17 +273,17 @@ if (views) {
 //           time: 1000});
 //       });
 
-      
+
 //     } catch (error) {
 //       $.notify({ icon: 'icon-exclamation', title: `Field is empty please check!`, message: `${error}` },
 //         { type: 'danger', placement: { from: "top", align: "right" },
 //         time: 1000});
 //     }
 //     /// AHAAHHAHAHAHAHHAHA
-  
+
 //   })
 
-  
+
 // }
 // let refreshActivity = document.getElementById('refreshActivity')
 // if (refreshActivity) {
@@ -305,30 +305,30 @@ if (views) {
 //   })
 // }
 
-function numberFormat ( data ) {
-	let s=(data+""), a=s.split(""), out="", iLen=s.length;
-	
-	for ( var i=0 ; i<iLen ; i++ ) {
-		if ( i%3 === 0 && i !== 0 ) {
-			out = ','+out;
-		}
-		out = a[iLen-i-1]+out;
-	}
-	return out;
+function numberFormat(data) {
+  let s = (data + ""), a = s.split(""), out = "", iLen = s.length;
+
+  for (var i = 0; i < iLen; i++) {
+    if (i % 3 === 0 && i !== 0) {
+      out = ',' + out;
+    }
+    out = a[iLen - i - 1] + out;
+  }
+  return out;
 }
 
-function dateFormat (date) {
+function dateFormat(date) {
   return new Date(date).toDateString()
 }
 
 function pr_date() {
   let dates = document.querySelectorAll('[data-pr_date]')
-  dates.forEach(date =>{
+  dates.forEach(date => {
     let pr = date.dataset.pr_date
     let child = date.children[0]
 
     child.innerHTML = dateFormat(pr)
-    
+
   })
 }
 
@@ -343,35 +343,35 @@ function peso(amount) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'PHP',
-  }).format(amount); 
+  }).format(amount);
 }
 
 function stringToArray(str, callback) {
-  const separated = str.slice(1,-1).split(',').map(item => item.trim().replace(/"/g, '')).filter(item => item !== 'null' && item !== '');
+  const separated = str.slice(1, -1).split(',').map(item => item.trim().replace(/"/g, '')).filter(item => item !== 'null' && item !== '');
   return separated.map(callback).join(' ')
 }
 
 function isValidJSON(jsonString) {
   try {
-      JSON.parse(jsonString);
-      return true; // If parse is successful, return true
+    JSON.parse(jsonString);
+    return true; // If parse is successful, return true
   } catch (e) {
-      return false; // If there's an error, return false
+    return false; // If there's an error, return false
   }
 }
 
 function notifyCustom(type, title, message, status) {
   return $.notify({
-      icon: `icon-${type ?? 'bell'}`,
-      title: `${title ?? 'Error'}`,
-      message: `${message ?? 'System found an issue!'}`,
-      },{
-      type: `${status ?? 'danger'}`,
-      placement: {
-          from: "top",
-          align: "right"
-      },
-      time: 2000,
+    icon: `icon-${type ?? 'bell'}`,
+    title: `${title ?? 'Error'}`,
+    message: `${message ?? 'System found an issue!'}`,
+  }, {
+    type: `${status ?? 'danger'}`,
+    placement: {
+      from: "top",
+      align: "right"
+    },
+    time: 2000,
   });
 }
 
@@ -386,21 +386,21 @@ function fieldsUpdated(container) {
   fields.forEach(field => {
     // For text inputs and textareas
     if (field.tagName === 'INPUT' || field.tagName === 'TEXTAREA') {
-      field.addEventListener('input', function() {
+      field.addEventListener('input', function () {
         this.classList.toggle('updated', !!this.value);
       });
     }
 
     // For select elements
     if (field.tagName === 'SELECT') {
-      field.addEventListener('change', function() {
+      field.addEventListener('change', function () {
         this.classList.toggle('updated', !!this.value);
       });
     }
 
     // For checkbox elements
     if (field.tagName === 'INPUT' && field.type === 'checkbox') {
-      field.addEventListener('input', function() {
+      field.addEventListener('input', function () {
         field.closest('.selectgroup').classList.toggle('updated', this.checked);
       });
     }
@@ -409,25 +409,25 @@ function fieldsUpdated(container) {
 
 function statusText(status) {
   let text = ''
-  switch(status) {
+  switch (status) {
     case 'dark':
       text = 'data-bs-title="Back to office"'
-    break;
+      break;
     case 'secondary':
       text = 'data-bs-title="Lack of Signature"'
-    break;
+      break;
     case 'info':
       text = 'data-bs-title="Lack of Attachments"'
-    break;
+      break;
     case 'success':
       text = 'data-bs-title="Read to move"'
-    break;
+      break;
     case 'warning':
       text = 'data-bs-title="Waiting"'
-    break;
+      break;
     case 'danger':
       text = 'data-bs-title="Issue occured"'
-    break;
+      break;
     default:
       text = 'data-bs-title="For Approval"'
   }
@@ -441,22 +441,22 @@ async function fetchNotificationCount() {
     const data = await response.json();
     const notifCount = document.getElementById('notifDropdown')
     // console.log(data)
-    if(notifCount){
+    if (notifCount) {
       notifCount.querySelector('span').textContent = data.counts;
       notifCount.querySelector('span').dataset.lastupdated = new Date()
     }
-    
+
   } catch (error) {
     console.error('Error fetching notification count:', error);
   }
 }
 function refreshDiv() {
   let realtimeDiv = document.querySelectorAll('.realtime')
-  if(realtimeDiv) {
-    realtimeDiv.forEach(container=>{
+  if (realtimeDiv) {
+    realtimeDiv.forEach(container => {
       // const currentTime = new Date().toLocaleTimeString();
       // const currentTime = new Date().toLocaleTimeString();
-   
+
       container.textContent = realtimeDiv.value
     })
   }
@@ -470,7 +470,7 @@ function addLeadingZeros(number) {
   // Convert the number to a string to count its digits
   const numStr = number.toString();
   const numDigits = numStr.length;
-  
+
   // Determine how many leading zeros to add
   if (numDigits === 1) {
     return "0000" + number; // Add 4 leading zeros for single-digit
@@ -494,32 +494,130 @@ function isActive(currentPath, pathToCheck) {
   return (currentPath === pathToCheck) ? 'active' : '';
 }
 
+// Function to sum all unitCount fields and update totalCo
+function updateTotal(selector) {
+  const inputs = document.querySelectorAll(selector);
+  let total = 0;
+  inputs.forEach(input => {
+    const val = parseInt(input.value.replace(/,/g, ''), 10);
+    // console.log('ASD', val)
+    if (!isNaN(val)) total += val;
+  });
+  // console.log('Total:', total);
+  const totalCountEl = document.getElementById('totalCount');
+  const budgetEl = document.getElementById('budget');
+
+  if (totalCountEl) {
+    totalCountEl.value = total;
+  }
+  if (budgetEl) {
+    budgetEl.value = total.toLocaleString('en-US', { style: 'decimal', minimumFractionDigits: 0 });
+  }
+}
+
+// Function to add commas on the field that set to data-type=number
+function formatNumberWithCommas(event) {
+  const input = event.target;
+  const rawValue = input.value;
+
+  // Save caret position relative to digits
+  const caretPos = input.selectionStart;
+  const digitsBeforeCaret = rawValue.slice(0, caretPos).replace(/[^0-9]/g, '').length;
+
+  // Clean value: keep digits and one decimal
+  let value = rawValue.replace(/[^0-9.]/g, '');
+  const firstDecimal = value.indexOf('.');
+  if (firstDecimal !== -1) {
+    value =
+      value.slice(0, firstDecimal + 1) +
+      value.slice(firstDecimal + 1).replace(/\./g, '');
+  }
+
+  if (value === '') {
+    input.value = '';
+    return;
+  }
+
+  // Split integer/decimal
+  const parts = value.split('.');
+  let integerPart = parts[0];
+  let decimalPart = parts[1] ?? '';
+
+  // Detect if user just typed a trailing dot
+  const hasTrailingDot = value.endsWith('.') && decimalPart === '';
+
+  // Limit decimals only if digits exist
+  if (decimalPart) {
+    decimalPart = decimalPart.slice(0, 2);
+  }
+
+  // Add commas
+  integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  // Rebuild value
+  input.value = hasTrailingDot
+    ? integerPart + '.'
+    : decimalPart
+      ? `${integerPart}.${decimalPart}`
+      : integerPart;
+
+  // Restore caret
+  let newCaretPos;
+  if (hasTrailingDot) {
+    // If user just typed ".", put caret right after it
+    newCaretPos = input.value.length;
+  } else {
+    // Otherwise restore based on digitsBeforeCaret
+    newCaretPos = 0;
+    let digitsSeen = 0;
+    while (newCaretPos < input.value.length && digitsSeen < digitsBeforeCaret) {
+      if (/\d/.test(input.value[newCaretPos])) {
+        digitsSeen++;
+      }
+      newCaretPos++;
+    }
+  }
+  input.setSelectionRange(newCaretPos, newCaretPos);
+}
+
+function getNumericValue(inputElement) {
+  if (!inputElement) return null;
+
+  // Strip commas but keep decimal point
+  let raw = inputElement.value.replace(/,/g, '');
+
+  // Convert to float so decimals are preserved
+  let num = parseFloat(raw);
+
+  return isNaN(num) ? null : num;
+}
+
+
+
 // SELECT MULTIPLE OPTION
-document.querySelectorAll('select[multiple] option').forEach(function(option) {
-  option.addEventListener('mousedown', function(e) {
-      e.preventDefault();
+document.querySelectorAll('select[multiple] option').forEach(function (option) {
+  option.addEventListener('mousedown', function (e) {
+    e.preventDefault();
 
-      var parent = this.parentElement;
-      var originalScrollTop = parent.scrollTop;
+    var parent = this.parentElement;
+    var originalScrollTop = parent.scrollTop;
 
-      // console.log(originalScrollTop);
+    // console.log(originalScrollTop);
 
-      // Toggle the 'selected' property
-      this.selected = !this.selected;
+    // Toggle the 'selected' property
+    this.selected = !this.selected;
 
-      // Focus on the parent (the <select> element)
-      parent.focus();
+    // Focus on the parent (the <select> element)
+    parent.focus();
 
-      // Reset the scroll position after the selection change
-      setTimeout(function() {
-          parent.scrollTop = originalScrollTop;
-      }, 0);
+    // Reset the scroll position after the selection change
+    setTimeout(function () {
+      parent.scrollTop = originalScrollTop;
+    }, 0);
 
-      return false;
+    return false;
   });
 });
-
-
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.form-select').forEach(selectElement => {
@@ -546,10 +644,6 @@ function handleSelectChange() {
 function submitGuestToken() {
   document.getElementById('guestForm').submit();
 }
-
-
-
-
 // DO NOT FUCKING DELETE THIS CODE
 // Initial call to set the time
 // refreshDiv();

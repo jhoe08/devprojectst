@@ -62,11 +62,18 @@
                     date = moment(pr_date).format('L')
                     
                     var budget = approved_budget
-                    var cleanBudget = budget.replace(/,/g, '');
+                    var cleanBudget = budget?.replace(/,/g, '');
 
                     budget = parseFloat(cleanBudget)
                     fund_source = JSON.parse(fund_source)
-                    fund_source = (Object.keys(fund_source).length === 0) ? '-' : fund_source.map(item => `${item.division}-${item.section}`).join(', ');
+
+                    var fundsAllocations = ''
+                    if (Array.isArray(fund_source)) {
+                      fund_source.forEach(item => {
+                        // Build a string with cls_obj_desc and charge
+                        fundsAllocations = `${item.funds_source} | ${item.paps} | ${item.cls_obj_desc}`;
+                      });
+                    }
 
                     const { lists, getCurrentStep, getDetails, getTitle } = STEPS
 
@@ -103,7 +110,7 @@
                     <td data-head="Division"><%= division %></td>
                     <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>" data-order="<%= moment(pr_date).unix(); %>"><%= date %></td>
                     <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>" class="align-right"><%= budget %></td>
-                    <td data-head="Fund Sources"><%- fund_source -%></td>
+                    <td data-head="Fund Sources"><%- fundsAllocations -%></td>
                     <td data-head="Codes"><%- trans_code -%></td>
                     <td data-head="Banner"><%= banner_program %></td>
                     <td data-head="Classification"><%= pr_classification %></th>

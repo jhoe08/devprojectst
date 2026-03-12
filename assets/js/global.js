@@ -78,7 +78,7 @@ const charts = {
             },
         });
     },
-    line: function(target="lineChart", labels=[], legendContainerId="lineChartLegend") {  
+    line: function(target="lineChart", labels=[], data=[], legendContainerId="lineChartLegend") {  
         var ctx = elem = document.getElementById(target)
 
         if (!ctx) return;

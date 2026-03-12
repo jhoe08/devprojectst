@@ -21,14 +21,18 @@
 
   // componentTransaction = JSON.parse(JSON.stringify(componentTransaction))
 
-  const parseAmount = (str) => parseFloat(str.replace(/,/g, '').trim()) || 0;
+  const parseAmount = (str) => {
+    if (typeof str !== 'string') return 0; // trap undefined/null/non-string
+    return parseFloat(str.replace(/,/g, '').trim()) || 0;
+    };
+
 
   const monthlyTotals = {};
 
   /* componentTransaction.forEach(({ pr_date, fund_source }) => {
     const month = new Date(pr_date).toLocaleString('default', { month: 'long', year: 'numeric' });
     fund_source = JSON.parse(fund_source);
-    const totalAmount = fund_source.reduce((sum, entry) => sum + parseAmount(entry.amount), 0);
+    const totalAmount = fund_source.reduce((sum, entry) => sum + parseAmount(entry?.amount), 0);
 
     console.log('Monthly', month);
 
@@ -50,7 +54,12 @@
   componentTransaction.forEach(({ pr_date, fund_source }) => {
     const month = new Date(pr_date).toLocaleString('default', { month: 'long', year: 'numeric' });
     fund_source = JSON.parse(fund_source);
-    const totalAmount = fund_source.reduce((sum, entry) => sum + parseAmount(entry.amount), 0);
+    const safeFundSource = fund_source || [];
+    const totalAmount = safeFundSource.reduce(
+        (sum, entry) => sum + parseAmount(entry?.amount),
+        0
+    );
+
 
     monthlyTotals[month] += totalAmount;
   });

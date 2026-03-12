@@ -249,13 +249,12 @@ export function configMarketScopesTransactions() {
     columnDefs: [
       {
         render: (data, type, row) => {
-          console.log(row[4].display)
           return `
           <div class="d-flex justify-content-between">
             <div>
               <span class="badge badge-info mr-2">${row[0]}</span>
               <span data-head="Classification" class="badge badge-secondary mr-2">${row[9]}</span>
-              <span data-head="Classification" class="badge badge-warning mr-2">${row[10]}</span>
+              <span data-head="BAC Unit" class="badge badge-warning mr-2">${row[10]}</span>
             </div>
             <div>${row[4].display}</div>
           </div>
@@ -267,10 +266,16 @@ export function configMarketScopesTransactions() {
       },
       {
         render: (data, type, row) => {
-          const values = (row[6] || '').split(', ');
-          const html = values.map(val => 
-            `<span class="badge badge-count">${val}</span>`
-          ).join(' ');
+          const raw = row[6] || '';
+          const values = raw.split(',').map(v => v.trim()).filter(Boolean);
+
+          const html = values.map(val => {
+            // Safely split on " | "
+            const [source, paps, cls, obj, desc] = val.split(' | ');
+            const badgeClass = source === 'current' ? 'info' : 'warning';
+
+            return `<span class="badge badge-${badgeClass}" data-bs-toggle="tooltip" data-bs-original-title="${paps}">${cls} | ${obj} | ${desc}</span>`;
+          }).join(' ');
 
           return `
           <div class="d-flex flex-column text-end">
