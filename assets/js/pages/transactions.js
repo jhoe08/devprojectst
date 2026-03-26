@@ -163,7 +163,7 @@ function populateFundsModal(sourceData) {
 
 function settingsFundsChargeToModal(target) {
 
-  
+
   const container = document.getElementById('fundsChargeToModal');
   const saveBtn = document.getElementById('saveFundsChargedTo');
 
@@ -181,16 +181,16 @@ function settingsFundsChargeToModal(target) {
       const objSelect = container.querySelector('select[name="class_obj_desc"]');
       const srcSelect = container.querySelector('select[name="source"]');
       const amntInput = container.querySelector('input[name="amountToCharge"]')
-      
-      const  amountValue  = getNumericValue(amntInput)
-      
+
+      const amountValue = getNumericValue(amntInput)
+
       const fundsArray = {
         funds_source: selectedValue,
         paps: papSelect ? papSelect.value : null,
         cls_obj_desc: objSelect ? objSelect.value : null,
         charge: amntInput ? amountValue : 0
       };
-      
+
       let fundsText = `${fundsArray.paps} | ${fundsArray.cls_obj_desc}`
 
       if (selectedValue === 'continuing' && srcSelect) {
@@ -205,16 +205,16 @@ function settingsFundsChargeToModal(target) {
       document.body.dataset.fundsAllocation = JSON.stringify(chargedArray);
       budgetInput.value = parseFloat(fundsArray.charge)
 
-      
+
       document.querySelector(`#chargedFunds_${target}`).closest('.row').classList.toggle('hidden')
       document.querySelector(`#chargedFunds_${target}`).value = fundsText
       document.querySelector(`#chargedAmount_${target}`).value = fundsArray.charge
 
-      console.log('Funds charged to: ', {target, chargedArray})
+      console.log('Funds charged to: ', { target, chargedArray })
 
       const modalInstance = bootstrap.Modal.getInstance(container);
       modalInstance.hide();
-      
+
       const group = selectedInput.closest('.form-group');
       if (group) {
         group.classList.add('hidden');
@@ -319,12 +319,17 @@ export default function configTransactions() {
             `<span class="badge badge-count">${val}</span>`
           ).join(' ');
 
+          const [classification, procurementType] = JSON.parse(row[9]) || [];
+          const classification_type = `
+            <span data-head="Classification" class="badge badge-secondary mr-2">${classification}</span>
+            <span data-head="Procurement Type" class="badge badge-primary mr-2">${procurementType}</span>
+          `;
 
           return `
           <div class="d-flex justify-content-between">
             <div>
               <span class="badge badge-info mr-2">${row[0]}</span>
-              <span data-head="Classification" class="badge badge-secondary mr-2">${row[9]}</span>
+              ${classification_type}
               <span data-head="BAC Unit" class="badge badge-warning mr-2">${row[10]}</span>
             </div>
             <div>${row[4].display}</div>

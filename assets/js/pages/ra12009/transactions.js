@@ -14,15 +14,8 @@ const transactions = {
         };
     },
 
-    clear(form) {
-        form.querySelectorAll('input, select, textarea').forEach(el => {
-            if (el.type === 'checkbox' || el.type === 'radio') {
-                el.checked = false;
-            } else {
-                el.value = '';
-            }
-        });
-
+    clear() {
+       return setInterval(() => { window.location.reload() }, 3000)
     },
 
     create(transaction) {
@@ -59,18 +52,15 @@ const transactions = {
         return newEntry;
     },
 
-
-
-    delete(transactionId) {
-        // implement deletion logic here
-        console.log("Deleted transaction with ID:", transactionId);
+    update(transactionId) {
+       
     },
 
 };
 
 // Event listener
 document.querySelector('#createTransactions')
-    .addEventListener('click', async () => {
+    ?.addEventListener('click', async () => {
         try {
             const targetForm = document.getElementById('lastestModificationsTransactions');
             const urlParams = new URLSearchParams(window.location.search);
@@ -89,7 +79,7 @@ document.querySelector('#createTransactions')
 
             if (result) {
                 notifyCustom('check', 'Success', 'Successfully created Purchase Request', 'success');
-                this.clear(targetForm)
+                transactions.clear()
             } else {
                 notifyCustom('exclamation', 'Error', 'Failed to create Purchase Request', 'danger');
             }
@@ -99,3 +89,11 @@ document.querySelector('#createTransactions')
         }
     });
 
+document.querySelector('#updateTransactions')
+    ?.addEventListener('click', async () => {
+        console.log( 'asdasdasdsadasdasdasdasdadasdasd' )
+        const formId = '#lastestModificationsTransactions'
+        fieldsUpdated(formId)
+
+        console.log( fieldsUpdated(formId) )
+    })

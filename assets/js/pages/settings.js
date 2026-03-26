@@ -2,11 +2,11 @@ class Settings {
   constructor() {
     console.log("Settings page initialized");
   }
-  
-  autocomplete(inputId, suggestionsId, dataType) {
-    const dataTypeAttr = document.getElementById(inputId).getAttribute('data-type');
 
-    if(dataTypeAttr !== 'autocomplete') return;
+  autocomplete(inputId, suggestionsId, dataType) {
+    const dataTypeAttr = document.getElementById(inputId)?.getAttribute('data-type');
+
+    if (dataTypeAttr !== 'autocomplete') return;
 
     const input = document.getElementById(inputId);
     const suggestions = document.getElementById(suggestionsId);
@@ -20,11 +20,11 @@ class Settings {
       fetch(`/api/employees?query=${query}`)
         .then(response => response.json())
         .then(data => {
-          
+
           const employees = data.response;
 
           const search = query.toLowerCase();
-          
+
           const filtered = employees.filter(emp =>
             `${emp.firstname} ${emp.lastname}`.toLowerCase().includes(query)
           );
@@ -34,7 +34,7 @@ class Settings {
           filtered.forEach(item => {
             const li = document.createElement('li');
             li.textContent = `${item.firstname} ${item.lastname}`;
-            
+
             li.addEventListener('click', () => {
               input.value = `${item.firstname} ${item.lastname}`;
               suggestions.innerHTML = '';
@@ -45,14 +45,14 @@ class Settings {
     });
   }
   autopopulate(target) {
-    
+
   }
   saveSettings() {
     const container = document.getElementById('v-pills-api-icons');
     const inputs = container.querySelectorAll('input, select, textarea');
     const settingsData = [];
     inputs.forEach(input => {
-      
+
       // settingsData[input.id] = input.value;
       settingsData.push({
         key_name: input.id,
@@ -68,20 +68,20 @@ class Settings {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(settingsData)
-    }) 
-    .then(response => response.json())
-    .then(data => {
-      console.log("Settings save response:", data);
-      if (data.success) {
-        notifyCustom('bell', 'Success', 'Settings saved successfully.', 'success'); 
-      } else {
-        notifyCustom('alert', 'Error', 'Failed to save settings.', 'danger'); 
-      }
     })
-    .catch(error => {
-      console.error('Error saving settings:', error);
-      notifyCustom('alert', 'Error', 'An error occurred while saving settings.', 'danger'); 
-    });
+      .then(response => response.json())
+      .then(data => {
+        console.log("Settings save response:", data);
+        if (data.success) {
+          notifyCustom('bell', 'Success', 'Settings saved successfully.', 'success');
+        } else {
+          notifyCustom('alert', 'Error', 'Failed to save settings.', 'danger');
+        }
+      })
+      .catch(error => {
+        console.error('Error saving settings:', error);
+        notifyCustom('alert', 'Error', 'An error occurred while saving settings.', 'danger');
+      });
   }
   dropdownFunds(data) {
     if (!data || !data.parsed || !Array.isArray(data.parsed.values)) {
@@ -163,6 +163,39 @@ class Settings {
     });
   }
 
+  configDataTables(tableId) {
+    var config = ''
+    switch (tableId) {
+      case 'organizationalTable':
+
+        config = {
+          responsive: true,
+          order: [[0, 'desc']],
+          column: [
+            { data: 'abbrv' },
+            { data: 'name' },
+            { data: 'person' },
+            { data: 'email' },
+          ],
+          columnDefs: [
+            {
+              render: (data, type, row) => {
+                return data;
+              },
+              targets: 5
+            },
+            // { visible: true, targets: [1, 5, -2] },
+            // { visible: false, targets: '_all' },
+          ]
+        }
+
+        break;
+      default:
+        break;
+    }
+
+    return config;
+  }
 }
 
 const settingsPage = new Settings();
@@ -172,3 +205,5 @@ fetch('/api/sheets?sheetId=1alv_rcdABMcTuS7q5OBez9_CDboToPvmjXNRn2GI9pM&range=AL
   .then(r => r.json())
   .then(data => settingsPage.dropdownFunds(data))
   .catch(err => console.error('sheet fetch error', err));
+
+$('#organizationalTable').DataTable(settingsPage.configDataTables('organizationalTable'));

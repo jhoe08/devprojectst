@@ -628,6 +628,7 @@ const fundsAvailability = [
 const approvalStepsSVP = CONST_SVP;
 
 const modesOfProcurement = CONST_MISC.modesOfProcurement;
+const purchaseRequestRoles = CONST_MISC.purchaseRequestRoles;
 // const modesOfProcurement = [
 //   "Competitive Bidding",
 //   "Limited Source Bidding",
@@ -915,6 +916,7 @@ app.use(async (req, res, next) => {
     moment,
     approval_steps: approvalStepsSVP,
     modesOfProcurement,
+    purchaseRequestRoles,
     PROCUREMENT: {
       currentLaw: 'RA120092025',
       previousLaw: 'RA91842002',
@@ -1349,7 +1351,7 @@ app.get('/', restrict, loadAllTransactions, loadAllActivities, loadAllMarketScop
   } else {
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: [],
+        scripts: ['/assets/js/global.js'],
         styles: [],
         innerContent: '../pages/ra12009/index',
         title: "Dashboard",
@@ -2012,7 +2014,7 @@ app.get('/transactions/new', restrict, loadAllFunds, async (req, res) => {
         transactions: null,
         predata: CONST_MISC,
         options: {
-          buttons: [{id:"updateTransactions", title: "Update", icon: "fa-save"}, {id:"createTransactions", title: "Create", icon: "fa-plus"}, ]
+          buttons: [{ id: "updateTransactions", title: "Update", icon: "fa-save" }, { id: "createTransactions", title: "Create", icon: "fa-plus" },]
         },
         ...res.locals,
       });
@@ -2085,6 +2087,9 @@ app.post('/transactions/new', restrict, async (req, res) => {
       } catch {
         refArray = [currentRef];
       }
+
+      // Remove null, undefined, and empty string values
+      refArray = refArray.filter(item => item != null && item !== "");
 
       // Step 3: append new insertId
       refArray.push(insertId);
@@ -2220,15 +2225,6 @@ app.put('/employees/update', restrict, async (req, res) => {
   }
 })
 
-app.put('/transactions/:id', restrict, async (req, res) => {
-  try {
-
-  } catch (error) {
-    console.error('Error deleting transaction:', error);
-    res.status(500).send('Internal Server Error');
-  }
-})
-
 app.get('/transactions/:id', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
@@ -2246,21 +2242,48 @@ app.get('/transactions/:id', restrict, async (req, res) => {
   }
 })
 
+// app.get('/transactions/:id/edit', restrict, async (req, res) => {
+//   try {
+//     const transid = req.params.id;
+
+//     const transactions = await connection.getTransactionById(transid);
+//     res.render('transactions/new', {
+//       predata: CONST_MISC,
+
+//       title: 'Transactions',
+//       transactions: transactions[0],
+//       moment: moment,
+//       path: res.url
+//     }); // Pass the data to the template
+//   } catch (error) {
+//     console.error('Error deleting transaction:', error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// })
+
 app.get('/transactions/:id/edit', restrict, async (req, res) => {
   try {
-    const transid = req.params.id;
-
-    const transactions = await connection.getTransactionById(transid);
-    res.render('transactions/new', {
-      predata: CONST_MISC,
-
-      title: 'Transactions',
-      transactions: transactions[0],
-      moment: moment,
-      path: res.url
-    }); // Pass the data to the template
+    const transactions = await connection.getTransactionById(req.params.id);
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/ra12009/transactions.js'],
+        innerContent: '../pages/ra12009/transactions/new',
+        title: "Update Transactions",
+        description: "",
+        transactions: transactions[0],
+        predata: CONST_MISC,
+        options: {
+          buttons: [
+            { id: "updateTransactions", title: "Update", icon: "fa-save" },
+            { id: "createTransactions", title: "Create", icon: "fa-plus" },
+          ]
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
   } catch (error) {
-    console.error('Error deleting transaction:', error);
+    console.error('Error fetching page template:', error);
     res.status(500).send('Internal Server Error');
   }
 })
@@ -2303,7 +2326,7 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
       steps: steps.sort((a, b) => b.id - a.id),
       _suppliers: JSON.stringify(suppliers || []),
       _awardedSupplier: JSON.stringify(awardedSupplier[0] || {}),
-      _marketScopeId: JSON.stringify(marketScoping[0] || {})
+      _marketScopeId: JSON.stringify(marketScoping[0] || {}),
     }); // Pass the data to the template
 
   } catch (error) {
@@ -2629,13 +2652,29 @@ app.post('/transcodes/new', restrict, async (req, res) => {
 app.get('/employees', restrict, async (req, res) => {
   const employees = await connection.retrieveEmployee()
   // const roles = await connection.retrieveEmployeeIdsWithRole()
-  // console.log(employees)
-  res.render('employees/index', {
-    title: 'Employees',
-    employees: JSON.stringify(employees),
-    // roles,
-  })
-})
+
+  if (res.locals.PROCUREMENT.currentLaw !== 'RA120092025') {
+
+    res.render('employees/index', {
+      title: 'Employees',
+      employees: JSON.stringify(employees),
+      // roles,
+    })
+  } else {
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: [],
+        styles: [],
+        innerContent: '../pages/ra12009/employees/index',
+        title: "Employees",
+        description: "List of all employees including inactive or retired....",
+        results: { employees },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  }
+});
 
 app.get('/employees/new', restrict, function (req, res) {
   res.render('employees/new', {
@@ -3131,43 +3170,42 @@ app.route('/api/qrcode/:id')
 
 // SETTINGS page
 // Status: Super Admin only, restrict to access
-app.get('/settings', restrict, async function (req, res) {
+app.get('/settings', restrict, async (req, res) => {
   try {
-    const results = await connection.getSettings() ?? {}
-    let employees = await connection.retrieveEmployee()
-    const { username } = res.locals.SESSION_USER
-    employees.sort((a, b) =>
-      a.lastname.toLowerCase() < b.lastname.toLowerCase() ? -1 :
-        (a.lastname.toLowerCase() > b.lastname.toLowerCase() ? 1 : 0)
-    );
-
-    if (res.locals.isSuperAdmin()) { // user is admin
-
-      const results = await connection.getSettings();
-      // Convert rows into { key_name: value } object for easy mapping to inputs
-      const mapped = {};
-      results.forEach(row => {
-        mapped[row.key_name] = row.value;
+    if (!res.locals.isSuperAdmin()) {
+      return res.status(404).render('unauthorized', {
+        title: 'Page Not Found',
+        component: 'Page'
       });
-
-      // res.status(200).json({ settings: mapped });
-
-      return res.render('settings', {
-        title: "Settings",
-        settings: JSON.parse(JSON.stringify(results)),
-        employees: JSON.parse(JSON.stringify(employees)),
-        settings: mapped,
-      })
     }
-    res.status(404).render('unauthorized', {
-      title: 'Page Not Found',
-      component: 'Page'
+
+    const [settings, executives, divisions] = await Promise.all([connection.getSettings(), connection.getOffice(1), connection.getOffice()])
+
+    const mappedSettings = {};
+    settings.forEach(row => {
+      mappedSettings[row.key_name] = row.value;
     });
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/settings.js'],
+        styles: ['/assets/css/pages/settings.css'],
+        innerContent: '../pages/ra12009/settings',
+        title: "Site Settings",
+        description: "List of Market Scope Analysis Submissions",
+        settings: [mappedSettings, executives, divisions],
+        employees: [],
+        options: {
+          hideTitle: false,
+          hideFooter: true,
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    return res.status(200).send(renderedHtml)
   } catch (error) {
-    res.status(404).render('404', {
-      title: 'Page Not Found',
-      component: 'Page'
-    });
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 

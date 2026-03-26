@@ -61,7 +61,7 @@ const marketScope = {
       }
       console.log(`${input.name}: ${payload[input.name]}`);
     });
-
+    
     fetch('/api/market-scope', {
       method: 'POST',
       headers: {
@@ -249,11 +249,18 @@ export function configMarketScopesTransactions() {
     columnDefs: [
       {
         render: (data, type, row) => {
+
+          const [classification, procurementType] = JSON.parse(row[9]) || [];
+          const classification_type = `
+            <span data-head="Classification" class="badge badge-secondary mr-2">${classification}</span>
+            <span data-head="Procurement Type" class="badge badge-primary mr-2">${procurementType}</span>
+          `;
+
           return `
           <div class="d-flex justify-content-between">
             <div>
               <span class="badge badge-info mr-2">${row[0]}</span>
-              <span data-head="Classification" class="badge badge-secondary mr-2">${row[9]}</span>
+              ${classification_type}
               <span data-head="BAC Unit" class="badge badge-warning mr-2">${row[10]}</span>
             </div>
             <div>${row[4].display}</div>
@@ -286,6 +293,7 @@ export function configMarketScopesTransactions() {
         },
         targets: 5
       },
+      
       { targets: -2, width: "200px" },
       { visible: true, targets: [1, 5, -2] }, //[4, 6, 10, 12, -1]
       { visible: false, targets: '_all' },

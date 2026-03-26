@@ -1,0 +1,9 @@
+.table {
+    .division {
+        td:first-child {
+            i {
+                margin-left: 15px;
+            }
+        }
+    }
+}

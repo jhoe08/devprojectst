@@ -13,297 +13,6 @@ if (views) {
     })
   })
 }
-// let dangers = document.querySelectorAll('#transactions-datatables .form-button-action .btn-danger');
-// if (dangers) {
-//   // const table = new DataTable('#basic-datatables')
-
-//   dangers.forEach(danger=>{
-
-//     danger.addEventListener('click', (event)=>{
-//       let transactions = danger
-//       // transid = danger.target
-//       let {transid} = transactions.dataset
-//       // Removed existing 'selected' class on the <row> tag
-//       document.querySelectorAll('#transactions-datatables tr').forEach(row => row.classList.remove('selected'));
-//       // Add 'selected' class on the <row> tag
-//       event.target.closest('tr').classList.add('selected')
-//       // console.dir(event.target.closest('tr'))
-
-//       title = `Are you sure to delete ${transid}?`
-//       message = "Once deleted, you will not be able to recover this imaginary file!"
-
-//       swal({
-//         title,
-//         text: "Once deleted, you will not be able to recover this transaction file!",
-//         icon: "warning",
-//         buttons: ["Cancel", "Delete it!"],
-//         dangerMode: true, })
-//       .then((willDelete) => {
-//         if (willDelete) {
-
-//           let url = `/transactions/${transid}`
-
-//           fetch(url, {
-//             method: 'DELETE' })
-//           .then(res => {
-//             return res.text()}) // or res.json()
-//           .then(data => {
-//             swal("Poof! Transaction file has been deleted!", {
-//               icon: "success", });
-//             // if Yes
-//             document.querySelector('tr.selected').remove().draw(false)
-//           }) // endof fetch()
-//         } else {
-//           document.querySelectorAll('#transactions-datatables tr').forEach(row => row.classList.remove('selected'));
-//         }
-//       });
-//     })
-//   })
-// }
-// let createTransactions = document.getElementById('createTransactions')
-// if (createTransactions) {
-//   let bidNoticeTitle = document.querySelector('#bidNoticeTitle')
-//   let prClassification = document.querySelector('#prClassification')
-//   let requisitioner = document.querySelector('#requisitioner')
-//   let division = document.querySelector('#divisions')
-//   let budget = document.querySelector('#budget')
-//   let fundSource = document.querySelector('#fundSource')
-//   let bannerProgram = document.querySelector('#bannerProgram')
-//   let bacUnit = document.querySelector('#bacUnit')
-//   let remarks = document.querySelector('#remarks')
-
-//   const myHeaders = new Headers();
-//   myHeaders.append("Content-Type", "application/json");
-
-//   createTransactions.addEventListener('click', async () => {
-//     console.log('asdfw')
-
-//     try {
-//       let bidNoticeTitleValue = bidNoticeTitle.value
-//       let prClassificationValue = prClassification.value
-//       let requisitionerValue = requisitioner.value
-//       let divisionValue = division.value
-//       let budgetValue = budget.value
-//       let fundSourceValue = fundSource.value
-//       let bannerProgramValue = bannerProgram.value
-//       let bacUnitValue = bacUnit.value
-//       // let remarksValue = remarks.value
-
-//       if(bidNoticeTitleValue === '' || budgetValue > 0 || requisitionerValue === '') return;
-
-//       const apiUrl = '/transactions/new';
-//       let data = { 
-//         bid_notice_title: bidNoticeTitleValue, 
-//         pr_classification: prClassificationValue, 
-//         requisitioner: requisitionerValue, 
-//         division: divisionValue,
-//         approved_budget: budgetValue,
-//         fund_source: fundSourceValue,
-//         banner_program: bannerProgramValue, 
-//         bac_unit: bacUnitValue,
-//         remarks: {
-//             createby: 'JustJoe',
-//             message: 'remarksValue'
-//         } 
-//       };
-
-//       const requestOptions = {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify(data)
-//       };
-
-//       console.log(requestOptions.body)
-
-//       fetch(apiUrl, requestOptions)
-//       .then(response => {
-//         if (!response.ok) {
-//           // throw new Error('Network response was not ok');
-//           $.notify({
-//             icon: 'icon-bell',
-//             title: `System Issue`,
-//             message: 'Network response was not ok!',
-//           },{
-//             type: 'danger',
-//             placement: {
-//               from: "top",
-//               align: "right"
-//             },
-//             time: 1000,
-//           });
-//         }
-//         return response.json();
-//       })
-//       .then(data => {
-//         if(!data) {
-//           $.notify({ icon: 'icon-bell', title: `Error`, message: `Failed to create the Transaction` },
-//                   { type: 'danger', placement: { from: "top", align: "right" },
-//                   time: 1000});
-//         }
-
-//         let {message, response } = data
-//         let {insertId} = response
-
-//         $.notify({
-//           icon: 'icon-bell',
-//           title: `${message}`,
-//           message: `Transaction ID#${insertId}`,
-//         },{
-//           type: 'success',
-//           placement: {
-//             from: "top",
-//             align: "right"
-//           },
-//           time: 1000,
-//         });
-//         // Clearing the fields
-//         bidNoticeTitle.value = ''
-//         prClassification.value = ''
-//         requisitioner.value = ''
-//         division.value = ''
-//         budget.value = ''
-//         fundSource.value = ''
-//         bannerProgram.value = ''
-//         bacUnit.value = ''
-
-//       })
-//       .catch(error => {
-//         $.notify({ icon: 'icon-bell', title: `There was an error on the system!`, message: error },
-//           { type: 'danger', placement: { from: "top", align: "right" },
-//           time: 1000});
-//       });
-//     } catch (error) {
-//       $.notify({ icon: 'icon-close', title: 'Field is empty please check!', message: error },
-//         { type: 'danger', placement: { from: "top", align: "right" },
-//         time: 1000});
-//     }
-//   });
-// }
-// let createRemarks = document.getElementById('createRemarks')
-// if (createRemarks) {
-
-//   let comment = document.querySelector('#comment')
-
-//   const myHeaders = new Headers();
-//   myHeaders.append("Content-Type", "application/json");
-
-//   createRemarks.addEventListener('click', async () => {
-//     try {
-//       let selectedStatus = document.querySelector('input[name="color"]:checked');
-//       let selectedPeriod = document.querySelectorAll('input[name="period"]');
-//       let {transid} = createRemarks.dataset
-//       let selectedStatusValue = selectedStatus.value
-//       const checkedCheckboxes = Array.from(selectedPeriod)
-//       .filter(checkbox => checkbox.checked)
-//       .map(checkbox => parseFloat(checkbox.value))
-//       .reduce((sum, value) => sum + value, 0);
-
-//       let data = { 
-//           comment: comment.value, 
-//           refid: transid, 
-//           status: selectedStatusValue,
-//           user:'justjoe',
-//           dueDate: checkedCheckboxes
-//       }
-
-//       const apiUrl = '/remarks/new'
-
-//       const requestOptions = {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify(data)
-//       };
-
-//       fetch(apiUrl, requestOptions)
-//       .then(response => {
-//         if (!response.ok) {
-//           // throw new Error('Network response was not ok');
-//           $.notify({
-//             icon: 'icon-bell',
-//             title: `Hello, ${greetings} Joe!`,
-//             message: 'Network response was not ok!',
-//           },{
-//             type: 'danger',
-//             placement: {
-//               from: "top",
-//               align: "right"
-//             },
-//             time: 1000,
-//           });
-//         }
-//         return response.json();
-//       })
-//       .then(data => {
-//         if(!data) {
-//           $.notify({ icon: 'icon-bell', title: `Error`, message: `Failed to create new remarks` },
-//                    { type: 'danger', placement: { from: "top", align: "right" },
-//                    time: 1000});
-//         }
-
-//         let {message, response} = data
-//         // console.log(response)
-
-//         refreshActivity.click()
-//         // clearing fields
-//         selectedStatus.checked = false
-//         comment.value = ''
-//         // return notifications
-//         $.notify({
-//           icon: 'icon-check',
-//           title: `${message}`,
-//           message: `Successfully added the remarks on the transactions!`,
-//         },{
-//           type: 'success',
-//           placement: {
-//             from: "top",
-//             align: "right"
-//           },
-//           time: 1000,
-//         });
-
-
-//       })
-//       .catch(error => {
-//         $.notify({ icon: 'icon-exclamation', title: `There was an error on the system!`, message: `${error} adsdsa` },
-//           { type: 'danger', placement: { from: "top", align: "right" },
-//           time: 1000});
-//       });
-
-
-//     } catch (error) {
-//       $.notify({ icon: 'icon-exclamation', title: `Field is empty please check!`, message: `${error}` },
-//         { type: 'danger', placement: { from: "top", align: "right" },
-//         time: 1000});
-//     }
-//     /// AHAAHHAHAHAHAHHAHA
-
-//   })
-
-
-// }
-// let refreshActivity = document.getElementById('refreshActivity')
-// if (refreshActivity) {
-//   refreshActivity.addEventListener('click', async () =>{
-
-//     let {transid} =  refreshActivity.dataset
-
-//     // const response = await fetch(`/remarks/${transid}`);
-//     // const remarks = await response.json();
-//     // return remarks
-
-//     fetch(`/remarks/${transid}`)
-//     .then(response => response.text())
-//     .then(html => {
-//       console.log(html)
-//       document.querySelector('.activity-feed').innerHTML = html;
-//     })
-//     .catch(error => console.error('Error fetching HTML:', error));
-//   })
-// }
 
 function numberFormat(data) {
   let s = (data + ""), a = s.split(""), out = "", iLen = s.length;
@@ -331,7 +40,6 @@ function pr_date() {
 
   })
 }
-
 function isEmpty(value) {
   if (value === undefined || value === null) return true;
   if (typeof value === 'string' && value.trim() === '') return true;
@@ -590,6 +298,30 @@ function getNumericValue(inputElement) {
   let num = parseFloat(raw);
 
   return isNaN(num) ? null : num;
+}
+
+function normalizeName(fullName) {
+  return fullName
+    .trim()
+    .replace(/\./g, '') // remove dots
+    .split(/\s+/);      // split by spaces
+}
+
+function compareNames(name1, name2) {
+  const parts1 = normalizeName(name1);
+  const parts2 = normalizeName(name2);
+
+  const last1 = parts1.at(-1).toLowerCase();
+  const last2 = parts2.at(-1).toLowerCase();
+
+  const firstInitial1 = parts1[0][0].toLowerCase();
+  const firstInitial2 = parts2[0][0].toLowerCase();
+
+  return {
+    lastMatch: last1 === last2,
+    initialMatch: firstInitial1 === firstInitial2,
+    likelySamePerson: last1 === last2 && firstInitial1 === firstInitial2
+  };
 }
 
 

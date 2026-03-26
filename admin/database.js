@@ -18,6 +18,8 @@ const tables = {
   settings: 'settings',
   market_scope: 'market_scoping',
   market_scope_results: 'market_scoping_results',
+  office_1: 'executive_offices',
+  office_0: 'departments'
 }
 const TEST_UNIT = process.env.TEST_UNIT
 
@@ -109,7 +111,7 @@ const databaseUtils = {
         SUM(approved_budget) AS total_sum
       FROM ${prefix}.${tables.transaction}`;
 
-    console.log({query})
+    console.log({ query })
     connection.query(query, (error, results) => {
       if (error) {
         return reject(error);
@@ -136,7 +138,7 @@ const databaseUtils = {
           c.pr_classification
       ORDER BY 
           c.pr_classification;`
-          
+
       // Execute the query
       return new Promise((resolve, reject) => {
         connection.query(query, (error, results) => {
@@ -176,14 +178,14 @@ const databaseUtils = {
       FROM ${prefix}.${tables.employee}`;
 
     return new Promise((resolve, reject) => {
-        connection.query(query, (error, results) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(results);
-          }
-        });
+      connection.query(query, (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
       });
+    });
   },
   getMarketScopesSummary: async () => {
     const query = `SELECT 
@@ -192,14 +194,14 @@ const databaseUtils = {
       FROM ${prefix}.${tables.market_scope}`;
 
     return new Promise((resolve, reject) => {
-        connection.query(query, (error, results) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(results);
-          }
-        });
+      connection.query(query, (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
       });
+    });
   },
   getTransactionSummary: async () => {
     const query = `SELECT 
@@ -209,14 +211,14 @@ const databaseUtils = {
       FROM ${prefix}.${tables.transaction}`;
 
     return new Promise((resolve, reject) => {
-        connection.query(query, (error, results) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(results);
-          }
-        });
+      connection.query(query, (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
       });
+    });
   },
   getEmployees: async (data) => {
     if (data) {
@@ -227,7 +229,7 @@ const databaseUtils = {
   },
   getTransactions: async (data) => {
     // console.log('getTransactions - data:', data);
-     if (data) {
+    if (data) {
       data = isValidJSON(data) ? JSON.parse(data) : data;
       return await databaseUtils.retrieveData(`${tables.transaction}`, '*', data)
     }
@@ -302,7 +304,7 @@ const databaseUtils = {
     enrichedData = JSON.stringify(enrichedData)
     return await databaseUtils.storeData(tables.transaction, enrichedData);
   },
-  
+
   postRemarks: async (data) => {
     const { dueDate } = JSON.parse(data)
     console.log('data - adding remarks', data, dueDate)
@@ -340,7 +342,7 @@ const databaseUtils = {
     })
   }),
   putTransactions: async (data) => {
-     // Trap if either is missing, not an object, or empty
+    // Trap if either is missing, not an object, or empty
     const { set, where } = JSON.parse(data);
     if (
       !set || typeof set !== 'object' || Object.keys(set).length === 0 ||
@@ -505,7 +507,7 @@ const databaseUtils = {
     })
   }),
   getDataById: (table, data) => new Promise((resolve, reject) => {
-    console.log({table, data})
+    console.log({ table, data })
     data = JSON.parse(data)
 
 
@@ -680,12 +682,12 @@ const databaseUtils = {
   // { id: 1234 } or { refid: 1234 }
   // filter = column_name
   retrieveData: (table, filter, where) => new Promise((resolve, reject) => {
-    if (!filter) { 
-      filter = '*'; 
+    if (!filter) {
+      filter = '*';
     }
 
     let query = `SELECT ${filter} FROM ${prefix}.${table}`;
-    
+
     if (where) {
       query += " WHERE";
       query += Object.entries(where)
@@ -863,7 +865,7 @@ const databaseUtils = {
       FROM ${prefix}.employees 
       WHERE JSON_EXTRACT(experience, '$.position') = '${position}'
         AND JSON_EXTRACT(experience, '$.division') = '${division}';`
-    
+
     return new Promise((resolve, reject) => {
       connection.query(query, (error, results) => {
         if (error) reject(error);
@@ -950,7 +952,7 @@ const databaseUtils = {
       });
     });
   },
-  
+
   getSuppliers: async (data) => {
     if (data) {
       data = JSON.parse(data)
@@ -988,7 +990,7 @@ const databaseUtils = {
       set: { is_winner: true },
       where: { transaction_id, supplier_id }
     }))
-  }, 
+  },
   getAwardedSupplier: async (transaction_id) => {
     return await databaseUtils.retrieveData('suppliers_activity', '*', { transaction_id, is_winner: 1 })
   },
@@ -1085,6 +1087,7 @@ const databaseUtils = {
       activity_price_sourcing: price_sourcing,
       activity_philgeps: use_philgeps_data,
       activity_other: other_activity,
+      other_docs: documentation,
       preparedBy,
       preparedDate: prepared_by_date,
       preparedSignature: prepared_by_signature,
@@ -1115,6 +1118,7 @@ const databaseUtils = {
         price_sourcing,
         use_philgeps_data,
         other_activity,
+        documentation,
         prepared_by_name,
         prepared_by_position,
         prepared_by_date,
@@ -1124,7 +1128,7 @@ const databaseUtils = {
         reviewed_by_date,
         reviewed_by_signature
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -1141,6 +1145,7 @@ const databaseUtils = {
       price_sourcing || null,
       use_philgeps_data || null,
       other_activity || null,
+      documentation || null,
       prepared_by_name,
       prepared_by_position,
       prepared_by_date || null,
@@ -1209,14 +1214,14 @@ const databaseUtils = {
     return await databaseUtils.retrieveData(tables.market_scope_results)
   },
 
-  getMarketScopingByTransactionId: async(transactionId) => {
+  getMarketScopingByTransactionId: async (transactionId) => {
     try {
       const query = `SELECT *
                     FROM ${tables.market_scope}
                     WHERE JSON_CONTAINS(reference_number, ?)`;
-                    
-       return new Promise((resolve, reject) => {
-        connection.query(query, transactionId , (error, results) => {
+
+      return new Promise((resolve, reject) => {
+        connection.query(query, transactionId, (error, results) => {
           if (error) {
             console.error("Error getting market scope:", error.sqlMessage);
             reject(error);
@@ -1234,7 +1239,7 @@ const databaseUtils = {
   getFunds: async (source) => {
     const normalized = (source || '').trim().toLowerCase();
 
-    if(normalized === 'current') {
+    if (normalized === 'current') {
       return await databaseUtils.getSettingByKey('fund_source_current')
     } else if (normalized === 'continuing') {
       return await databaseUtils.getSettingByKey('fund_source_continuing')
@@ -1242,6 +1247,15 @@ const databaseUtils = {
       console.warn(`Main Source was loaded as fallback for funds. Please check the key "funds_source" in settings.`)
       return await databaseUtils.getSettingByKey('funds_source')
     }
+  },
+
+  // OFFICES
+  // id is 0 for divisions and 1 for executive
+  getOffice: async (id, data) => {
+    if (id) {
+      return await databaseUtils.retrieveData(tables.office_1, '*', data)
+    }
+    return await databaseUtils.retrieveData(tables.office_0, '*', data)
   }
 }
 

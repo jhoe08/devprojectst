@@ -348,7 +348,7 @@
                     <tr>
                         <td><%= other_activity ? '☒' : '☐' %></td>
                         <td>Other analogous market scoping activity/ies undertaken</td>
-                        <td class="w-50"></td>
+                        <td class="w-50"><%= documentation ? documentation : 'NONE' %></td>
                     </tr>
                 </tbody>
             </table>
@@ -426,13 +426,13 @@
                 <strong>Prepared by:</strong><br>
                 <p><%= prepared_by_name %></p>
                 <p><%= prepared_by_position %></p>
-                <p>Date</p>
+                <p><%= moment(prepared_by_date).format('MMMM Do YYYY') %></p>
             </div>
             <div class="w-50">
                 <strong>Approved by:</strong><br>
-                <p>Signature over Printed Name</p>
-                <p>Position/Designation</p>
-                <p>Date</p>
+                <p><%= reviewed_by_name %></p>
+                <p><%= reviewed_by_position %></p>
+                <p><%= moment(reviewed_by_date).format('MMMM Do YYYY') %></p>
             </div>
         </section>
     </div>

@@ -8,6 +8,7 @@
     notifications: { row_count: notificationsRowCount, total_sum: notificationsTotalSum }
   } = cardsData; */
 
+  
   const employeesRowCount = cardsData?.employees?.row_count || 0;
   const employeesTotalSum = cardsData?.employees?.total_sum || 0;
   const transactionsRowCount = cardsData?.transid?.row_count || 0;
@@ -45,28 +46,42 @@
     return date.toLocaleString('default', { month: 'long', year: 'numeric' });
   });
 
-  allMonths.forEach(month => {
-    monthlyTotals[month] = 0;
-  });
+  // allMonths.forEach(month => {
+  //  monthlyTotals[month] = 0;
+  // });
 
 
   // Step 2: Process transactions
   componentTransaction.forEach(({ pr_date, fund_source }) => {
-    const month = new Date(pr_date).toLocaleString('default', { month: 'long', year: 'numeric' });
-    fund_source = JSON.parse(fund_source);
-    const safeFundSource = fund_source || [];
-    const totalAmount = safeFundSource.reduce(
-        (sum, entry) => sum + parseAmount(entry?.amount),
-        0
-    );
+  // Format month-year from pr_date
+  const month = new Date(pr_date).toLocaleString('default', { month: 'long', year: 'numeric' });
 
+  // Ensure fund_source is an array
+  const safeFundSource = Array.isArray(fund_source) ? fund_source : JSON.parse(fund_source || '[]');
 
-    monthlyTotals[month] += totalAmount;
-  });
+  // Sum up charges
+  const totalAmount = safeFundSource.reduce(
+    (sum, entry) => sum + (Number(entry?.charge) || 0),
+    0
+  );
+
+  // Initialize monthlyTotals if not yet defined
+  if (!monthlyTotals[month]) {
+    monthlyTotals[month] = 0;
+  }
+
+  // Instead of  totalAmount
+
+  monthlyTotals[month] += 1;
+
+  console.log({ month, totalAmount, monthlyTotals });
+});
 
   const months = Object.entries(monthlyTotals).map(([key, _]) => key.split(" ")[0]);
   const jsonMonths = JSON.stringify(months);
-  const values = Object.entries(monthlyTotals).map(([_, value]) => value);
+  const _abcs_values = Object.entries(monthlyTotals).map(([_, value]) => value);
+
+  console.log('Logs Values', monthlyTotals)
 
   const latestStepsByProduct = {}
   const latestStepsByProduct2 = {}
@@ -99,42 +114,63 @@
 %>
 
 <div class="row <%= hasAllowedRole(['Admin', 'SuperAdmin']) ? '' : 'hidden' %>">
-    <div class="col-sm-6 col-md-3 hidden">
+    <div class="col-sm-6 col-md-3">
+        <div class="card card-stats card-round">
+            <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-icon">
+                <div
+                    class="icon-big text-center icon-info bubble-shadow-small"
+                >
+                    <i class="fas fa-shopping-basket"></i>
+                </div>
+                </div>
+                <div class="col col-stats ms-3 ms-sm-0">
+                <div class="numbers">
+                    <p class="card-category">Total ABC Allocation</p>
+                    <h4 class="card-title" data-totalBudget="<%= transactionsTotalSum %>"><%= UTILS.peso(transactionsTotalSum) %></h4>
+                </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
+        <div class="card card-stats card-round">
+            <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-icon">
+                <div
+                    class="icon-big text-center icon-primary bubble-shadow-small"
+                >
+                    <i class="fas fa-inbox"></i>
+                </div>
+                </div>
+                <div class="col col-stats ms-3 ms-sm-0">
+                <div class="numbers">
+                    <p class="card-category">Total Utilized</p>
+                    <h4 class="card-title">ex. 111,234,233</h4>
+                </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
     <div class="card card-stats card-round">
         <div class="card-body">
         <div class="row align-items-center">
             <div class="col-icon">
             <div
-                class="icon-big text-center icon-primary bubble-shadow-small"
+                class="icon-big text-center icon-success bubble-shadow-small"
             >
-                <i class="fas fa-inbox"></i>
+                <i class="fas fa-balance-scale"></i>
             </div>
             </div>
             <div class="col col-stats ms-3 ms-sm-0">
             <div class="numbers">
-                <p class="card-category">Transactions</p>
-                <h4 class="card-title"><%=transactionsRowCount%></h4>
-            </div>
-            </div>
-        </div>
-        </div>
-    </div>
-    </div>
-    <div class="col-sm-6 col-md-3 hidden">
-    <div class="card card-stats card-round">
-        <div class="card-body">
-        <div class="row align-items-center">
-            <div class="col-icon">
-            <div
-                class="icon-big text-center icon-info bubble-shadow-small"
-            >
-                <i class="fas fa-users"></i>
-            </div>
-            </div>
-            <div class="col col-stats ms-3 ms-sm-0">
-            <div class="numbers">
-                <p class="card-category">Employees</p>
-                <h4 class="card-title"><%=employeesRowCount%></h4>
+                <p class="card-category">Remaining Balance</p>
+                <h4 class="card-title">ex. 10,234,233</h4>
             </div>
             </div>
         </div>
@@ -147,36 +183,15 @@
         <div class="row align-items-center">
             <div class="col-icon">
             <div
-                class="icon-big text-center icon-success bubble-shadow-small"
-            >
-                <i class="fas fa-piggy-bank"></i>
-            </div>
-            </div>
-            <div class="col col-stats ms-3 ms-sm-0">
-            <div class="numbers">
-                <p class="card-category">Total ABC Transactions</p>
-                <h4 class="card-title" data-totalBudget="<%= transactionsTotalSum %>"><%= UTILS.peso(transactionsTotalSum) %></h4>
-            </div>
-            </div>
-        </div>
-        </div>
-    </div>
-    </div>
-    <div class="col-sm-6 col-md-3 hidden">
-    <div class="card card-stats card-round">
-        <div class="card-body">
-        <div class="row align-items-center">
-            <div class="col-icon">
-            <div
                 class="icon-big text-center icon-secondary bubble-shadow-small"
             >
-                <i class="fas fa-dolly-flatbed"></i>
+                <i class="fas fa-percentage"></i>
             </div>
             </div>
             <div class="col col-stats ms-3 ms-sm-0">
             <div class="numbers">
-                <p class="card-category">Total Disbursement</p>
-                <h4 class="card-title">2</h4>
+                <p class="card-category">Current Utilization</p>
+                <h4 class="card-title">ex. 85%</h4>
             </div>
             </div>
         </div>
@@ -184,7 +199,7 @@
     </div>
     </div>
 </div>
-<div class="row <%= hasAllowedRole(['User']) ? '' : 'hidden' %>">
+<div class="row <%= hasAllowedRole(['Nothing']) ? '' : 'hidden' %>">
     <div class="col-sm-2 col-md-2">
     <div class="card card-stats card-round">
         <div class="card-body">
@@ -313,13 +328,16 @@
     </div>
 </div>
 <div class="row">
-    <div class="col-sm-12 col-md-12 col-lg-6">
-    <%- include('../../components/charts/multipleLine', { title: "Purchase Request", description: "", datasets: {months:jsonMonths, amounts:[], abcs: values, disbursements: []} }) -%>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+    <%- include('../../components/charts/multipleLine', { title: "Purchase Request", description: "", datasets: {months:jsonMonths, amounts:[], abcs: _abcs_values, disbursements: []} }) -%>
     </div>
-    <div class="col-sm-12 col-md-6 col-lg-3" >
-    <%- include('../../components/charts/pie', { id:"chartClassification", title: "PR Classification", datasets: perClassification }) -%>
+    <div class="col-sm-12 col-md-6 col-lg-4" >
+    <%- include('../../components/charts/pie', { id:"chartClassification", title: "Classification", datasets: perClassification }) -%>
     </div>
-    <div class="col-sm-12 col-md-6 col-lg-3">
+    <div class="col-sm-12 col-md-6 col-lg-4" >
+    <%- include('../../components/charts/pie', { id:"chartProcurementType", title: "Procurement Type", datasets: perClassification }) -%>
+    </div>
+    <div class="col-sm-12 col-md-6 col-lg-4">
     <%- include('../../components/charts/doughnut', { id:"chartDistribution", title: "Distribution Analytics", datasets: {points: stepsValues, labels: stepsIndex} }) -%>
     </div>
     <div class="col-sm-12 col-md-12 col-lg-12">

@@ -1,0 +1,143 @@
+<!-- Header Template -->
+<% 
+
+  let { directors, divisions } = JSON.parse(DEPARTMENT)
+  const { firstname, experience } = SESSION_USER
+  const { lists } = JSON.parse(experience)
+  const { office, salary, startdate, enddate, position, division, banner } = lists[0] 
+
+%>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <!-- <h4 class="card-title">List of Employees</h4> -->
+                <div class="card-head-row card-tools-still-right">
+                    <div class="card-title">List of <%=title%>
+                    </div>
+                    <div class="card-tools">
+                        <button id="refreshEmployees" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card"
+                            data-component="employees">
+                            <span class="fa fa-sync-alt"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="employees" class="display table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Position</th>
+                                <th>Office</th>
+                                <th>Division</th>
+                                <th>Age</th>
+                                <th>Start date</th>
+                                <th>Salary</th>
+                                <th>Username</th>
+                                <th>Password</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr class="text-uppercase">
+                                <th>Name</th>
+                                <th>Position</th>
+                                <th>Office</th>
+                                <th>Division</th>
+                                <th>Age</th>
+                                <th>Start date</th>
+                                <th>Salary</th>
+                                <th>Username</th>
+                                <th>Password</th>
+                                <th>Action</th>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                            <% 
+                                const { employees } = results;
+
+                                if (typeof employees !== undefined) { 
+                                    employees.forEach(function(user, key){
+                                        var {firstname, lastname, middlename, extname, birthdate, experience, username, password, employeeid}=user 
+                                        var { lists }=experience ? JSON.parse(experience) : {} 
+                                        if (lists) { 
+                                            var { office, division, section, salary, status, enddate, position, startdate, employment, arrangements }=lists[0]; 
+                                        } 
+                                        var today=moment() 
+                                        var age=today.diff(birthdate, 'years' ) 
+                            %>
+                                <tr data-rowid="<%=key%>" data-employeeid="<%=employeeid%>">
+                                    <td data-head="Name" class="text-capitalize">
+                                        <%= [firstname, lastname].filter(Boolean).join(' ') %></td>
+                                      <td data-head="Position" class="text-capitalize" ><%= position || ' -' %>
+                                    </td>
+                                    <td data-head="Office">
+                                        <%= office || '-' %>
+                                    </td>
+                                    <td data-head="Division" class="text-uppercase" data-order="<%= division %>">
+                                        <%= division %>
+                                            <span class="badge badge-info">
+                                                <%= section %>
+                                            </span>
+                                    </td>
+                                    <td data-head="Age">
+                                        <%= age %>
+                                    </td>
+                                    <td data-head="Start Date">
+                                        <%= moment(startdate).format('LL') || '-' %>
+                                    </td>
+                                    <td data-head="Salary">
+                                        <%= UTILS.peso(salary) || '-' %>
+                                    </td>
+                                    <td data-head="Username">
+                                        <%= username %>
+                                    </td>
+                                    <td data-head="Password">
+                                        <%= password ? '•••••••' : '' %>
+                                    </td>
+                                    <td data-head="Action">
+                                        <div class="form-button-action" data-employeeid="<%= employeeid %>">
+                                            <a href="/employees/<%= employeeid %>/profile"
+                                                data-transid="<%= employeeid %>" type="button"
+                                                class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                data-bs-title="View Employee">
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+                                            <% if (hasAllowedRole(["SuperAdmin"])) { %>
+                                                <a href="/employees/<%= employeeid %>/update"
+                                                    data-transid="<%= employeeid %>" type="button"
+                                                    class="btn btn-link btn-primary btn-lg"
+                                                    data-original-title="Edit Task" data-bs-toggle="tooltip"
+                                                    data-bs-placement="top" data-bs-title="Edit Employee">
+                                                    <i class="fa fa-edit"></i>
+                                                </a>
+
+                                                <button data-bs-toggle="modal" data-bs-target="#rolesModal"
+                                                    data-bs-toggle="tooltip" title="Add Role"
+                                                    class="btn btn-link btn-warning">
+                                                    <i class="fa fa-user"></i>
+                                                </button>
+
+                                                <button data-id="<%= employeeid %>"
+                                                    data-name="<%= [firstname, middlename ? middlename.charAt(0) + '.' : '', lastname, extname].filter(Boolean).join(' ') %>"
+                                                    type="button" data-bs-toggle="tooltip" title="Delete?"
+                                                    class="btn btn-link btn-danger" data-original-title="Remove"
+                                                    id="alert_<%= employeeid %>">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                                <% } %>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <% }) } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

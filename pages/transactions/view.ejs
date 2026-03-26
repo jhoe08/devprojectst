@@ -123,17 +123,24 @@
               </div>
             </div>
             <div class="row">
-                <div class="col-lg-12 col-xl-6">
-                    <div class="card">
+                <div class="col-lg-12 col-xl-8">
+                    <div class="card" data-current-transactions="<%= JSON.stringify(transactions) %>">
                       <div class="card-header">
                         <div class="card-head-row">
                           <div class="card-title">Details</div>
                           <div class="card-tools">
+                            <% const [PRClassfication, procurementType] = JSON.parse(transactions.pr_classification) %>
                             <button disabled="disabled" href="market-scope" class="btn btn-label-info btn-round btn-sm">
                               <span class="btn-label">
-                                <i class="fa fa-list"></i>
+                                <i class="fas fa-sitemap"></i>
                               </span>
-                              <%- transactions.pr_classification -%>
+                              <%- PRClassfication -%>
+                            </button>
+                            <button disabled="disabled" href="market-scope" class="btn btn-label-primary btn-round btn-sm">
+                              <span class="btn-label">
+                                <i class="fas fa-tags"></i>
+                              </span>
+                              <%- procurementType -%>
                             </button>
                             <% if(transactions?.bac_unit) { %>
                             <button disabled="disabled" href="market-scope" class="btn btn-label-info btn-round btn-sm">
@@ -450,7 +457,7 @@
                     </div>
                     <% } %>
                   </div>
-                <div class="col-lg-12 col-xl-6">
+                <div class="col-lg-12 col-xl-4">
                   <div class="card">
                     <div class="card-header">
                       <div class="card-head-row card-tools-still-right">
@@ -519,4 +526,4 @@
 </script> -->
 <% } %>
 <!-- Footer Template -->
-<%- include('../../views/footer', { scripts: { 'suppliers': '/assets/js/pages/suppliers.js' } }) -%>
+<%- include('../../views/footer', { scripts: { 'suppliers': '/assets/js/pages/suppliers.js', 'approvalRouting' : '/assets/js/approvalRouting.js' } }) -%>

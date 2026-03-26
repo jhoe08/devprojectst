@@ -267,7 +267,17 @@
     const el = document.getElementById("chargingTo");
 
     // Parse the JSON from the data attribute
-    const transactions = JSON.parse(el.dataset.transactions);
+    let transactions = [];
+
+    try {
+      const raw = el.dataset?.transactions;
+      if (raw) {
+        transactions = JSON.parse(raw);
+      }
+    } catch (e) {
+      console.warn("Invalid JSON in dataset.transactions:", e);
+    }
+
 
     // Retrieve only the remarks
     const remarks = transactions.remarks
@@ -285,109 +295,109 @@
     const container = '#lastestModificationsTransactions'
     fieldsUpdated(container)
 
-    updateTransactions.addEventListener('click', function () {
+    // updateTransactions.addEventListener('click', function () {
 
-      let bidNoticeTitleValue = bidNoticeTitle.value
-      let prClassificationValue = prClassification.value
-      let requisitionerValue = requisitioner.value
-      let budgetValue = budget.value
-      let bacUnitValue = bacUnit.value
+    //   let bidNoticeTitleValue = bidNoticeTitle.value
+    //   let prClassificationValue = prClassification.value
+    //   let requisitionerValue = requisitioner.value
+    //   let budgetValue = budget.value
+    //   let bacUnitValue = bacUnit.value
 
-      let charge = []
-      let funds = chargingTo.querySelectorAll('.row')
-      funds.forEach(fund => {
-        let element = fund.querySelector('select[name^="division_"]');
-        let selectedOption = element.options[element.selectedIndex];
-        let divisionValue = selectedOption.dataset.division;
+    //   let charge = []
+    //   let funds = chargingTo.querySelectorAll('.row')
+    //   funds.forEach(fund => {
+    //     let element = fund.querySelector('select[name^="division_"]');
+    //     let selectedOption = element.options[element.selectedIndex];
+    //     let divisionValue = selectedOption.dataset.division;
 
-        let amount = fund.querySelector('input[name="unitCount"]').value;
+    //     let amount = fund.querySelector('input[name="unitCount"]').value;
 
-        charge.push({
-          division: divisionValue,
-          section: element.value,
-          amount
-        });
-      });
-
-
-      if (bidNoticeTitleValue === '' || budgetValue <= 0 || requisitionerValue === '') {
-        notifyCustom('bell', 'Empty Fieldsssssssssss', 'Please fill up those fields and try again.')
-        return
-      };
-      const myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
-
-      const apiUrl = '/transactions/update';
-      const data = {
-        bid_notice_title: bidNoticeTitleValue,
-        pr_classification: prClassificationValue,
-        requisitioner: requisitionerValue,
-        // division: divisionValue,
-        approved_budget: budgetValue,
-        fund_source: charge,
-        // banner_program: bannerProgramValue,
-        bac_unit: bacUnitValue,
-        remarks: JSON.stringify({
-          ...remarksObj,
-          updatedBy: JSON.parse(created_by.value),
-          updatedAt: new Date()
-        })
-      };
-
-      // console.log(bidNoticeTitle.classList.contains('updated'))
-      if (!bidNoticeTitle.classList.contains('updated')) delete data.bid_notice_title
-      if (!prClassification.classList.contains('updated')) delete data.pr_classification
-      if (!requisitioner.classList.contains('updated')) delete data.requisitioner
-      // if (!division.classList.contains('updated')) delete data.division
-      if (!budget.classList.contains('updated')) delete data.approved_budget
-      if (!fundSource.classList.contains('updated')) delete data.fund_source
-      // if (!bannerProgram.classList.contains('updated')) delete data.banner_program
-      if (!bacUnit.classList.contains('updated')) delete data.bac_unit
-
-      const payload = { set: data, where: { product_id: transactionID } }
-
-      const requestOptions = {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      };
-
-      fetch(apiUrl, requestOptions)
-        .then(response => {
-          if (!response.ok) {
-            // throw new Error('Network response was not ok');
-            notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (!data) {
-            notifyCustom('bell', 'Error', 'Failed to update the Transaction', 'danger')
-          }
-          // console.log(data)
-          // let {message, response } = data
-          // let {insertId} = response
+    //     charge.push({
+    //       division: divisionValue,
+    //       section: element.value,
+    //       amount
+    //     });
+    //   });
 
 
-          notifyCustom('bell', `${data.message}`, `Done.`, 'success')
+    //   if (bidNoticeTitleValue === '' || budgetValue <= 0 || requisitionerValue === '') {
+    //     notifyCustom('bell', 'Empty Fieldsssssssssss', 'Please fill up those fields and try again.')
+    //     return
+    //   };
+    //   const myHeaders = new Headers();
+    //   myHeaders.append("Content-Type", "application/json");
 
-          // Clearing the fields
-          // bidNoticeTitle.value = ''
-          // prClassification.value = ''
-          // requisitioner.value = ''
-          // division.value = ''
-          // budget.value = ''
-          // fundSource.value = ''
-          // bannerProgram.value = ''
-          // bacUnit.value = ''
+    //   const apiUrl = '/transactions/update';
+    //   const data = {
+    //     bid_notice_title: bidNoticeTitleValue,
+    //     pr_classification: prClassificationValue,
+    //     requisitioner: requisitionerValue,
+    //     // division: divisionValue,
+    //     approved_budget: budgetValue,
+    //     fund_source: charge,
+    //     // banner_program: bannerProgramValue,
+    //     bac_unit: bacUnitValue,
+    //     remarks: JSON.stringify({
+    //       ...remarksObj,
+    //       updatedBy: JSON.parse(created_by.value),
+    //       updatedAt: new Date()
+    //     })
+    //   };
 
-        })
-        .catch(error => {
-          notifyCustom('bell', `System Error`, `${error}`, 'danger')
-        });
-    })
+    //   // console.log(bidNoticeTitle.classList.contains('updated'))
+    //   if (!bidNoticeTitle.classList.contains('updated')) delete data.bid_notice_title
+    //   if (!prClassification.classList.contains('updated')) delete data.pr_classification
+    //   if (!requisitioner.classList.contains('updated')) delete data.requisitioner
+    //   // if (!division.classList.contains('updated')) delete data.division
+    //   if (!budget.classList.contains('updated')) delete data.approved_budget
+    //   if (!fundSource.classList.contains('updated')) delete data.fund_source
+    //   // if (!bannerProgram.classList.contains('updated')) delete data.banner_program
+    //   if (!bacUnit.classList.contains('updated')) delete data.bac_unit
+
+    //   const payload = { set: data, where: { product_id: transactionID } }
+
+    //   const requestOptions = {
+    //     method: 'PUT',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify(payload)
+    //   };
+
+    //   fetch(apiUrl, requestOptions)
+    //     .then(response => {
+    //       if (!response.ok) {
+    //         // throw new Error('Network response was not ok');
+    //         notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger')
+    //       }
+    //       return response.json();
+    //     })
+    //     .then(data => {
+    //       if (!data) {
+    //         notifyCustom('bell', 'Error', 'Failed to update the Transaction', 'danger')
+    //       }
+    //       // console.log(data)
+    //       // let {message, response } = data
+    //       // let {insertId} = response
+
+
+    //       notifyCustom('bell', `${data.message}`, `Done.`, 'success')
+
+    //       // Clearing the fields
+    //       // bidNoticeTitle.value = ''
+    //       // prClassification.value = ''
+    //       // requisitioner.value = ''
+    //       // division.value = ''
+    //       // budget.value = ''
+    //       // fundSource.value = ''
+    //       // bannerProgram.value = ''
+    //       // bacUnit.value = ''
+
+    //     })
+    //     .catch(error => {
+    //       notifyCustom('bell', `System Error`, `${error}`, 'danger')
+    //     });
+    // })
   }
   // if (createRemarks) {
 
