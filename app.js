@@ -1862,7 +1862,6 @@ app.post('/register', async (req, res, next) => {
     } else {
       res.status(200).json({ message: 'Failed to register the account', response: register });
     }
-    next()
   } catch (error) {
     console.error('There\'s issue on the REGISTRATION right now:', error);
     res.status(500).send('Internal Server Error');
