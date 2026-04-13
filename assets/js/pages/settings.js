@@ -2,7 +2,38 @@ class Settings {
   constructor() {
     console.log("Settings page initialized");
   }
+  init() {
+    this.autocomplete('responsible', 'suggestions', 'employees');
 
+    const saveBtn = document.getElementById('saveIntegration');
+
+    if (saveBtn) {
+      fieldsUpdated('#v-pills-api-icons');
+      saveBtn.addEventListener('click', () => this.saveSettings())
+    }
+
+    // Use querySelectorAll for convenience
+    const actionsEdit = document.querySelectorAll('.actionsEdit');
+
+    actionsEdit.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Get attributes from the clicked button
+        const modalTitle = btn.getAttribute('data-modaltitle');
+        const modalBody = JSON.parse(btn.getAttribute('data-modalbody'));
+
+        const settingsModal = document.getElementById('settingsModal')
+
+        // // Populate modal elements
+        settingsModal.querySelector('.modal-title').textContent = modalTitle;
+
+        // Example: autopopulate fields inside modal
+        settingsModal.querySelector('#key').value = modalBody.key;
+        settingsModal.querySelector('#meaning').value = modalBody.stands;
+        settingsModal.querySelector('#email').value = modalBody.email;
+        settingsModal.querySelector('#responsible').value = modalBody.responsible.name;
+      });
+    });
+  }
   autocomplete(inputId, suggestionsId, dataType) {
     const dataTypeAttr = document.getElementById(inputId)?.getAttribute('data-type');
 
@@ -130,64 +161,49 @@ class Settings {
       datalist.appendChild(option);
     });
   }
-  init() {
-    this.autocomplete('responsible', 'suggestions', 'employees');
-
-    const saveBtn = document.getElementById('saveIntegration');
-
-    if (saveBtn) {
-      fieldsUpdated('#v-pills-api-icons');
-      saveBtn.addEventListener('click', () => this.saveSettings())
-    }
-
-    // Use querySelectorAll for convenience
-    const actionsEdit = document.querySelectorAll('.actionsEdit');
-
-    actionsEdit.forEach(btn => {
-      btn.addEventListener('click', () => {
-        // Get attributes from the clicked button
-        const modalTitle = btn.getAttribute('data-modaltitle');
-        const modalBody = JSON.parse(btn.getAttribute('data-modalbody'));
-
-        const settingsModal = document.getElementById('settingsModal')
-
-        // // Populate modal elements
-        settingsModal.querySelector('.modal-title').textContent = modalTitle;
-
-        // Example: autopopulate fields inside modal
-        settingsModal.querySelector('#key').value = modalBody.key;
-        settingsModal.querySelector('#meaning').value = modalBody.stands;
-        settingsModal.querySelector('#email').value = modalBody.email;
-        settingsModal.querySelector('#responsible').value = modalBody.responsible.name;
-      });
-    });
-  }
-
   configDataTables(tableId) {
     var config = ''
+
+    function getColumnIndexByName(name) {
+      return columns.findIndex(col => col.name === name);
+    }
+
+    const columns = [
+      { data: 'abbrv', name: 'abbrv' },
+      { data: 'name', name: 'name' },
+      { data: 'person', name: 'person' },
+      { data: 'email', name: 'email' },
+      { data: 'actions', name: 'actions' }
+    ]
+
     switch (tableId) {
       case 'organizationalTable':
 
         config = {
           responsive: true,
-          order: [[0, 'desc']],
-          column: [
-            { data: 'abbrv' },
-            { data: 'name' },
-            { data: 'person' },
-            { data: 'email' },
-          ],
+          ordering: false,
+          columns,
           columnDefs: [
+            {
+              render: (data, type, row) => {
+                return `${data}`;
+              },
+              targets: 0
+            },
             {
               render: (data, type, row) => {
                 return data;
               },
-              targets: 5
+              targets: getColumnIndexByName('abbrv')   // targets by column name
             },
-            // { visible: true, targets: [1, 5, -2] },
-            // { visible: false, targets: '_all' },
+            {
+              render: (data, type, row) => {
+                return `${data}`;
+              },
+              targets: getColumnIndexByName('person') // targets by column name
+            }
           ]
-        }
+        };
 
         break;
       default:

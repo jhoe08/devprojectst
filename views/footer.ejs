@@ -11,13 +11,11 @@
     <% }); } %>
 
     <% if (path2.startsWith('/transactions')) { %> 
-    <script src="/assets/js/components/transactions.js"></script>
+    <!-- <script src="/assets/js/components/transactions.js"></script> -->
     <% } else if (path2.startsWith('/employees')) { %>
     <script src="/assets/js/components/employees.js"></script>
     <% } else if (path2.startsWith('/documents')) { %>
     <script src="/assets/js/components/documents.js"></script>
-    <% } else if (path2.startsWith('/settings')) { %>
-    <script src="/assets/js/components/settings.js"></script>
     <% } else if (path2.startsWith('/qrscanner')) { %>
     <script src="/assets/js/scanner.js"></script>
     <% } else { %>

@@ -1,23 +1,43 @@
-<div class="form-group p-0">
-  <div class="selectgroup w-100">
-    <label for="current_0" class="selectgroup-item">
-      <input type="radio" name="funds_source_0" value="current" id="current_0" class="selectgroup-input"
-        data-bs-toggle="modal" data-bs-target="#fundsChargeToModal">
-      <span class="selectgroup-button">CURRENT</span>
-    </label>
-    <label for="continuing_0" class="selectgroup-item">
-      <input type="radio" name="funds_source_0" value="continuing" id="continuing_0" class="selectgroup-input"
-        data-bs-toggle="modal" data-bs-target="#fundsChargeToModal">
-      <span class="selectgroup-button">CONTINUING</span>
-    </label>
+<% 
+  const fundSource = (typeof funds !=="undefined" && funds) || {};
+  const isVisible = Object.keys(fundSource).length > 0 ? '' : 'hidden';
+  console.log( 'fundSource: ', fundSource);
+%>
+
+<% if(isVisible) { %>
+  <div class="form-group p-0">
+    <div class="selectgroup w-100">
+      <label for="current_0" class="selectgroup-item">
+        <input type="radio" name="funds_source_0" value="current" id="current_0" class="selectgroup-input"
+          data-bs-toggle="modal" data-bs-target="#fundsChargeToModal">
+        <span class="selectgroup-button">CURRENT</span>
+      </label>
+      <label for="continuing_0" class="selectgroup-item">
+        <input type="radio" name="funds_source_0" value="continuing" id="continuing_0" class="selectgroup-input"
+          data-bs-toggle="modal" data-bs-target="#fundsChargeToModal">
+        <span class="selectgroup-button">CONTINUING</span>
+      </label>
+    </div>
   </div>
-</div>
-<div class="row hidden">
+<% } %>
+
+<% 
+  const { charge } = fundSource;
+  const excludeKeys = ["charge", "funds_source"];
+
+  const allocations = Object.entries(fundSource)
+    .filter(([key]) => !excludeKeys.includes(key))
+    .map(([_, value]) => value)
+    .join(' | ');     
+  %>
+  
+<div class="row <%= isVisible %>">
   <div class="col-md-9">
     <div class="form-group form-group-default">
       <label for="chargedFunds_0">Allocations</label>
       <div class="input-icon">
-        <input id="chargedFunds_0" name="chargedFunds_0" data-type="number" type="text" class="form-control" value="" readonly>
+        <input id="chargedFunds_0" name="chargedFunds_0" type="text" class="form-control"
+          value="<%= allocations %>" readonly>
       </div>
     </div>
   </div>
@@ -25,7 +45,8 @@
     <div class="form-group form-group-default">
       <label for="chargedAmount_0">Amount</label>
       <div class="input-icon">
-        <input id="chargedAmount_0" name="chargedAmount_0" data-type="number" type="text" class="form-control" value="">
+        <input id="chargedAmount_0" name="chargedAmount_0" data-type="number" type="text" class="form-control"
+          value="<%= charge %>" readonly>
       </div>
     </div>
   </div>

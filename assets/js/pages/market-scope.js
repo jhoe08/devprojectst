@@ -1,5 +1,7 @@
 const marketScope = {
   init() {
+    console.log('Market Scope page initialized');
+
     const form = document.getElementById('marketScopeForm');
     const formResults = document.getElementById('marketScopeResults')
     const dateInput = document.querySelectorAll('input[type="date"]');
@@ -45,23 +47,34 @@ const marketScope = {
 
     this.autoFill()
 
-    console.log('Market Scope page initialized');
+
   },
   handleSubmit(e) {
     let payload = {};
-    e.target.querySelectorAll('input, select, textarea, checkbox').forEach(input => {
-      if (input.type === 'file') {
-        return; // skip file inputs
+
+    e.target.querySelectorAll('input, select, textarea').forEach(input => {
+      if (input.type === 'file') return; // skip file inputs
+
+      let value;
+      if (input.type === 'checkbox') {
+        value = input.checked; // true/false
+      } else {
+        value = input.value;
       }
 
-      if (input.type === 'checkbox') {
-        payload[input.name] = input.checked; // true/false
+      // If the name already exists, convert to array and push
+      if (payload[input.name]) {
+        if (!Array.isArray(payload[input.name])) {
+          payload[input.name] = [payload[input.name]];
+        }
+        payload[input.name].push(value);
       } else {
-        payload[input.name] = input.value;
+        payload[input.name] = value;
       }
+
       console.log(`${input.name}: ${payload[input.name]}`);
     });
-    
+
     fetch('/api/market-scope', {
       method: 'POST',
       headers: {
@@ -92,7 +105,7 @@ const marketScope = {
     form.querySelectorAll('select, textarea').forEach(input => {
       const name = input.name; // e.g., "project_cost.considered" or "project_cost.recommendation"
       const value = input.value;
-      
+
       // Split into parameter + field (e.g., "project_cost" + "considered")
       const [param, field] = name.split('.');
       if (!payload[param]) payload[param] = {};
@@ -115,17 +128,17 @@ const marketScope = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestData)
     })
-    .then(res => res.json())
-    .then(data => {
-      console.log('Success:', data);
-      alert('Market Scoping Results submitted successfully!');
-      form.reset();
-      location.reload()
-    })
-    .catch(err => {
-      console.error('Error:', err);
-      alert('An error occurred while submitting the results.');
-    });
+      .then(res => res.json())
+      .then(data => {
+        console.log('Success:', data);
+        alert('Market Scoping Results submitted successfully!');
+        form.reset();
+        location.reload()
+      })
+      .catch(err => {
+        console.error('Error:', err);
+        alert('An error occurred while submitting the results.');
+      });
   },
   checkDateConducted(date) {
     // Determine icon class
@@ -147,18 +160,18 @@ const marketScope = {
     const reviewedBy = document.getElementById('reviewedBy')
 
     if (preparedBy && reviewedBy) {
-        const localUser = document.getElementById('created_by')
+      const localUser = document.getElementById('created_by')
 
-        // Parse the JSON string from the hidden input value
-        const userData = JSON.parse(localUser.value)
+      // Parse the JSON string from the hidden input value
+      const userData = JSON.parse(localUser.value)
 
-        // Parse the JSON string from the data-responsible attribute
-        const userResponsible = JSON.parse(localUser.dataset.responsible)
+      // Parse the JSON string from the data-responsible attribute
+      const userResponsible = JSON.parse(localUser.dataset.responsible)
 
-        preparedBy.value = `${userData.name}, ${userData.position}`
-        reviewedBy.value =  userResponsible?.section ? `${userResponsible.section.name}, ${userResponsible.section.position || 'Section Head'}` : userResponsible?.division ? `${userResponsible.division.name}, ${userResponsible.division.position || 'Division Head'}` : 'Dir. Angel C. Enriquez, DA-RFO7' 
+      preparedBy.value = `${userData.name}, ${userData.position}`
+      reviewedBy.value = userResponsible?.section ? `${userResponsible.section.name}, ${userResponsible.section.position || 'Section Head'}` : userResponsible?.division ? `${userResponsible.division.name}, ${userResponsible.division.position || 'Division Head'}` : 'Dir. Angel C. Enriquez, DA-RFO7'
     }
-  }
+  },
 };
 
 export function configMarketScopes() {
@@ -202,19 +215,19 @@ export function configMarketScopes() {
             <div class="reviewedBy">
               <strong>${!row[3] == null ? 'Reviewed by:' : 'Reviewing...'}</strong> <br>
               <i class="${!row[3] == null
-                ? (row[21] ? 'fas fa-user-check text-success' : 'fas fa-user-times text-danger')
-                : 'fas fa-user-clock text-warning'
-              }"></i>
+            ? (row[21] ? 'fas fa-user-check text-success' : 'fas fa-user-times text-danger')
+            : 'fas fa-user-clock text-warning'
+          }"></i>
               ${row[19] ? row[19] + ', ' + row[20] : ''}
             </div>
           </div>
         </div>
       `, targets: 1
-      }, 
+      },
       {
-      render: function (data, type, row) {
-        const actions = JSON.parse(data);
-        return  `
+        render: function (data, type, row) {
+          const actions = JSON.parse(data);
+          return `
           <div class="d-flex justify-content-center">
             <span data-bs-toggle="tooltip" aria-label="View Market Scope" data-bs-original-title="View Market Scope">
               <a href="${actions.view}" data-id="${row.id}" class="btn btn-link btn-primary">
@@ -234,9 +247,9 @@ export function configMarketScopes() {
           </div>
         `;
         }, targets: 25
-      } ,
-      { targets: [1, 3, 4, -1], visible: true } ,
-      { targets: '_all', visible: false } ,
+      },
+      { targets: [1, 3, 4, -1], visible: true },
+      { targets: '_all', visible: false },
       { targets: 'nosort', orderable: false }
     ]
   };
@@ -293,7 +306,7 @@ export function configMarketScopesTransactions() {
         },
         targets: 5
       },
-      
+
       { targets: -2, width: "200px" },
       { visible: true, targets: [1, 5, -2] }, //[4, 6, 10, 12, -1]
       { visible: false, targets: '_all' },
@@ -303,8 +316,6 @@ export function configMarketScopesTransactions() {
 
 document.addEventListener('DOMContentLoaded', () => {
   marketScope.init();
-
-  
 });
 
 

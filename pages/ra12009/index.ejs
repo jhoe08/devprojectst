@@ -60,7 +60,7 @@
   const safeFundSource = Array.isArray(fund_source) ? fund_source : JSON.parse(fund_source || '[]');
 
   // Sum up charges
-  const totalAmount = safeFundSource.reduce(
+  const totalAmount = (safeFundSource ?? [])?.reduce(
     (sum, entry) => sum + (Number(entry?.charge) || 0),
     0
   );

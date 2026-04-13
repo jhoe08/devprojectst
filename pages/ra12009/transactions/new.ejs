@@ -18,7 +18,7 @@
   const { modesOfProcurement, bac_unit: bacUnit, classification } = predata?.miscellaneous
 %>
 
-<div class="row">
+<div class="row" data-transaction-id="<%= product_id %>">
   <div class="col-md-12 col-lg-12 col-xl-5">
     <div class="card hidden">
       <div class="card-header">
@@ -95,7 +95,7 @@
                   <div class="input-group">
                     <span class="input-group-text">₱</span>
 
-                    <input id="budget" name="budget" type="text" class="form-control mt-0" value="<%-budget%>" readonly>
+                    <input id="budget" name="budget" data-type="number" type="text" class="form-control mt-0" value="<%-budget%>" readonly>
                   </div>
                 </div>
             </div>
@@ -163,36 +163,32 @@
           </div>
         </div>
       </div>
-      <% var totalCount=0; fund_source=JSON.parse(fund_source); const _hidden=true; %>
+      <% 
+        var totalCount=0; 
+        fund_source=JSON.parse(fund_source); 
+        const _hidden=true; %>
 
         <div class="card-body" id="chargingTo" data-transactions="<%= JSON.stringify(transactions) %>">
 
-          <% if(Array.isArray(fund_source)) { fund_source.forEach((funds, key)=> {
-            var {division:e_division, section, amount} = funds
-            totalCount += parseFloat(amount);
+          <% if(Array.isArray(fund_source)) { 
+              fund_source.forEach((funds, key)=> {
+              var {division:e_division, section, amount} = funds
+              totalCount += parseFloat(amount);
             %>
             <div id="charging_<%= key %>" class="row" data-id="<%= key %>">
-              <div class="col-md-9 d-flex">
-                <div class="col-md-1 col-xs-1" style="padding-right: 0;">
+              <div class="col-md-12 d-flex">
+                <div class="col-md-1 pe-3">
                   <div class="form-group form-group-default form-group-minus">
                     <label for="minusButton_<%= key %>">Rmv</label>
                     <button id="minusButton_<%= key %>" class="form-control fas fa-minus-circle"></button>
                   </div>
                 </div>
                 <div class="col-md-11 ml-0">
-                  <%- include('../../../views/partials/selectFunds', funds) %>
+                  <%- include('../../../views/partials/selectFunds', { funds }) %>
                 </div>
               </div>
 
-              <div class="col-md-3">
-                <div class="form-group form-group-default">
-                  <label for="unitCount_<%= key %>">Amount</label>
-                  <div class="input-icon">
-                    <input id="unitCount_<%= key %>" name="unitCount" data-type="number" type="text"
-                      class="form-control" value="<%= amount %>">
-                  </div>
-                </div>
-              </div>
+              
             </div>
             <% }) } else { %>
               <div class="row" id="charging_0" data-id="0">

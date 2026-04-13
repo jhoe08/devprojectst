@@ -1,16 +1,23 @@
 require('dotenv').config();
 
-const http = require('http');
 const express = require('express');
-// const socketio = require('socket.io');
-const { createServer, get } = require("node:http")
+const { createServer } = require("node:http")
 const { Server } = require('socket.io');
 const path = require("path");
-const fetch = require('node-fetch');
+const { pathToFileURL } = require('url');
 const connection = require("./admin/database");
+const DatabaseConnection = require("./admin/database/DatabaseConnection");
 const misc = require("./admin/misc")
-const utils = require("./admin/utils")
-const { connect } = require('http2');
+const utils = require("./admin/utils");
+
+const sharedJsonHelperPath = pathToFileURL(path.join(__dirname, 'assets/js/helpers/jsonHelper.js')).href;
+let sharedJsonHelper;
+async function getSharedJsonHelper() {
+  if (!sharedJsonHelper) {
+    sharedJsonHelper = await import(sharedJsonHelperPath);
+  }
+  return sharedJsonHelper;
+}
 const moment = require('moment');
 const bodyParser = require('body-parser');
 const ejs = require('ejs')
@@ -33,31 +40,22 @@ const sessionStore = new MySQLStore({
 
 
 const bcrypt = require('bcrypt')
-const saltRounds = 10
 const cron = require('node-cron');
 const multer = require('multer');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 
-
-
 const _express = require('./admin/express');
 const _cronjobs = require('./admin/cron')
 
+const { errorHandler, asyncHandler } = require('./admin/errorHandler');
+const { sanitizeInputMiddleware } = require('./admin/inputValidation');
+const { hashPassword, verifyPassword } = require('./admin/passwordService');
 
-const sampleEmployee = require('./admin/employees.json')
-
-const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { exit } = require('process');
-const { count, table } = require('console');
-const { permission, title } = require('node:process');
-const { trace } = require('node:console');
-const { stringify } = require('node:querystring');
-const { hash } = require('node:crypto');
 
 
-const { hashPassword, registerUser, loginUser, hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto, comparePasswordCrypto } = misc
+// Using bcrypt for password operations - see createPasswordHash() for hashing new passwords
 const { hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros, findDivisionBySection, toCapitalize, isActive } = utils
 
 const _preDefaultData = {
@@ -666,6 +664,23 @@ function createSessionForGuest(guest) {
   );
 }
 
+// Helper to enrich a transaction with actions
+function addColumnActions(page, scope) {
+  if (!page) {
+    return false
+  }
+
+  return {
+    ...scope,
+    actions: JSON.stringify({
+      view: `/${page}/${scope.product_id}/view`,
+      update: `/${page}/${scope.product_id}/update`,
+      delete: `/${page}/${scope.product_id}/delete`
+    })
+  };
+}
+
+
 
 let transid = []
 
@@ -686,14 +701,11 @@ const SERVER_PORT = 4000;
 //   res.end()
 // })
 
-const serverIO = require('socket.io')(http)
-
 app.set("view engine", "ejs")
 app.set("views", [
   path.join(__dirname, "pages"),
   path.join(__dirname, "views")
 ]);
-app.set('io', serverIO)
 
 
 app.use('/', require('./routes/root'))
@@ -708,6 +720,7 @@ const { styleText } = require('node:util');
 app.use('/api', sheetsRouter);
 app.use('/api', employeeRouter);
 app.use('/api', trasactionRouter);
+
 app.use(express.json());
 
 //pages
@@ -725,6 +738,7 @@ app.use('/uploads', express.static('uploads'));
 // login
 // ============================================
 app.use(express.urlencoded({ extended: true }))
+app.use(sanitizeInputMiddleware);
 app.use(session({
   key: 'session_cookie_name',
   secret: 'your_secret_key',
@@ -734,10 +748,14 @@ app.use(session({
   cookie: { secure: false }  // Set to `true` in production with HTTPS
 }));
 
+
+
+
 /////// SERVER
 const server = createServer(app);
 // const io = socketio(server);
 const io = new Server(server)
+app.set('io', io)
 let connectedUserMap = new Map();
 /////// endof SERVER
 
@@ -772,6 +790,8 @@ let transporter = nodemailer.createTransport({
 
 app.use(async (req, res, next) => {
 
+  console.log('====================', connection);
+
   var components = ['Transactions', 'Employees', 'Documents']
   // console.log({ huh: res.locals.SESSION_USER })
   const { firstname, middlename, lastname } = req.session?.user || { firstname: '', middlename: '', lastname: '' };
@@ -784,20 +804,20 @@ app.use(async (req, res, next) => {
   // console.log(fullname);
 
   const [notifications, transactions, summaryTransaction, summaryEmployee, activities, summaryMarketScopes, filteredTransactions] = await Promise.all([
-    connection.retrieveNotifications(),
-    connection.getTransactions(),
-    connection.getTransactionSummary(),
-    connection.getEmployeeSummary(),
-    connection.getTransactionActivity(),
-    connection.getMarketScopesSummary(),
-    connection.getTransactions({ "JSON_UNQUOTE(JSON_EXTRACT(prepared_by, '$.name'))": fullname })
+    // connection.retrieveNotifications(),
+    // connection.getTransactions(),
+    // connection.getPurchaseRequestsSummary(),
+    // connection.getEmployeeSummary(),
+    // // connection.getPurchaseRequestsActivity(),
+    // // connection.getMarketScopesSummary(),
+    // connection.getPurchaseRequestsByPreparedBy(fullname)
   ]);
 
   // Sort using Descending
-  notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  notifications?.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   const filteredNotifications = notifications
-    .filter(n =>
+    ?.filter(n =>
       filteredTransactions.some(txn => txn.product_id === Number(n.link))
     )
     .map(n => {
@@ -810,7 +830,7 @@ app.use(async (req, res, next) => {
       };
     });
 
-  console.log('Filtered Notifications:', filteredNotifications.length);
+  console.log('Filtered Notifications:', filteredNotifications?.length);
 
   let role = '';
   let userDivision = '';
@@ -958,10 +978,10 @@ app.use(async (req, res, next) => {
 
     },
     SUMMARY: {
-      transactions: JSON.stringify(summaryTransaction[0]),
+      transactions: JSON.stringify(summaryTransaction?.[0]),
       totalTransactions,
-      employees: JSON.stringify(summaryEmployee[0]),
-      market_scopes: JSON.stringify(summaryMarketScopes[0])
+      employees: JSON.stringify(summaryEmployee?.[0]),
+      market_scopes: JSON.stringify(summaryMarketScopes?.[0])
     },
     STEPS: {
       lists: approvalStepsSVP,
@@ -1023,7 +1043,7 @@ app.use(async (req, res, next) => {
       return SESSION_USER?.roles.includes('Guest');
     },
     isSuperAdmin: () => {
-      return SESSION_USER?.roles.includes('SuperAdmin')
+      return SESSION_USER?.roles.includes('SuperAdmin') || SESSION_USER?.roles.includes('Executive');
     },
     trimName(fullName) {
       const parts = fullName.trim().split(' ');
@@ -1387,7 +1407,7 @@ app.get('/market-scope', restrict, loadAllMarketScopes, async (req, res) => {
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
         scripts: ['/assets/js/pages/market-scope.js'],
-        styles: ['/assets/css/market-scope.css'],
+        styles: ['/assets/css/pages/market-scope.css'],
         innerContent: '../pages/market-scope/index',
         title: "Market Scope List",
         description: "List of Market Scope Analysis Submissions",
@@ -1402,11 +1422,12 @@ app.get('/market-scope', restrict, loadAllMarketScopes, async (req, res) => {
   }
 })
 
-app.get('/market-scope/new', restrict, async (req, res) => {
+app.get('/market-scope/new', restrict, loadAllSuppliers, async (req, res) => {
   try {
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
         scripts: ['/assets/js/pages/market-scope.js'],
+        styles: ['/assets/css/pages/market-scope.css'],
         innerContent: '../pages/market-scope/new',
         title: "Add New Market Scope",
         description: "Republic Act No. 12009 — Section 10, IRR, and Project Procurement Management Plan (Principle of Proportionality)",
@@ -1679,7 +1700,7 @@ app.post('/login', async (req, res) => {
       req.session.isSuperAdmin = true;
     }
 
-    const userDetails = await connection.retrieveEmployeeByUsername(username);
+    const userDetails = await connection.getEmployeeByUsername(username);
     if (userDetails.length === 0) {
       req.session.error = 404;
       return res.redirect('/login');
@@ -1702,7 +1723,7 @@ app.post('/login', async (req, res) => {
     return res.redirect('/');
   } catch (error) {
     console.error('Login error:', error);
-    return res.status(500).json({ error: 'An error occurred while processing your request.' });
+    return res.status(500).json({ error: 'Failed to login!' });
   }
 });
 
@@ -1923,20 +1944,12 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
 
     const enrichedTransactions = transactions.map(scope => ({
       ...scope, // keep existing fields
-      actions: JSON.stringify({
-        view: `/transactions/${scope.product_id}/view`,
-        update: `/transactions/${scope.product_id}/update`,
-        delete: `/transactions/${scope.product_id}/delete`
-      })
+      actions: addColumnActions('transactions', scope)
     }));
 
     const enrichedfilteredTransactions = filteredTransactions.map(scope => ({
       ...scope, // keep existing fields
-      actions: JSON.stringify({
-        view: `/transactions/${scope.product_id}/view`,
-        update: `/transactions/${scope.product_id}/update`,
-        delete: `/transactions/${scope.product_id}/delete`
-      })
+      actions: addColumnActions('transactions', scope)
     }));
 
     if (res.locals.PROCUREMENT.currentLaw !== 'RA120092025') {
@@ -2002,16 +2015,21 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
 //   }
 // })
 
-app.get('/transactions/new', restrict, loadAllFunds, async (req, res) => {
+app.get('/transactions/new', restrict, loadAllFunds, async (req, res, next) => {
   try {
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: ['/assets/js/pages/ra12009/transactions.js'],
+        scripts: [
+          '/assets/js/pages/ra12009/transactions.js',
+          // '/assets/js/pages/transactions.js',
+          // '/assets/js/components/transactions.js'
+        ],
         innerContent: '../pages/ra12009/transactions/new',
         title: "Create a new Transactions",
         description: "",
         transactions: null,
         predata: CONST_MISC,
+        mode: 'create',
         options: {
           buttons: [{ id: "updateTransactions", title: "Update", icon: "fa-save" }, { id: "createTransactions", title: "Create", icon: "fa-plus" },]
         },
@@ -2020,8 +2038,7 @@ app.get('/transactions/new', restrict, loadAllFunds, async (req, res) => {
     // Rendered HTML
     res.status(200).send(renderedHtml)
   } catch (error) {
-    console.error('Error fetching page template:', error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 })
 
@@ -2036,14 +2053,27 @@ app.get('/transactions/scan', restrict, async (req, res) => {
       transactions: null,
     }); // Pass the data to the template
   } catch (error) {
-    console.error('Error fetching products:', error);
-    res.status(500).send('Internal Server Error');
+    console.error('Error fetching page template:', error);
+    res.status(500).render('500', { title: "Internal Server Error", error });
   }
 })
 
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
     const { assigned_to, marketScopeID, ...transactionData } = req.body;
+    console.log('Received transaction data:', transactionData.prepared_by);
+    if (transactionData.fund_source) {
+      try {
+        const { normalizeLooseJSON, isValidJSON } = await getSharedJsonHelper();
+        const parsed = normalizeLooseJSON(transactionData.fund_source);
+        transactionData.fund_source = JSON.stringify(parsed);
+        transactionData.prepared_by = isValidJSON(transactionData.prepared_by);
+      } catch (err) {
+        console.error('Invalid fund_source JSON received:', transactionData.fund_source, err);
+        return res.status(400).json({ error: 'Invalid fund_source JSON' });
+      }
+    }
+
     const transactions = await connection.postTransactions(transactionData);
 
     if (transactions?.affectedRows) {
@@ -2060,14 +2090,6 @@ app.post('/transactions/new', restrict, async (req, res) => {
         assigned_to,
       }))
       await connection.postNotifications(JSON.stringify(data))
-      // const getReferenceNumber = await connection.retrieveData('market_scoping', 'reference_number', { id: marketScopeID })
-      // console.log({getReferenceNumber})
-      // await connection.amendData('market_scoping', JSON.stringify({
-      //   set: {
-      //     reference_number: insertId,
-      //   },
-      //   where: { id: marketScopeID, }
-      // }))
 
       // Step 1: retrieve current value
       const rows = await connection.retrieveData(
@@ -2106,8 +2128,68 @@ app.post('/transactions/new', restrict, async (req, res) => {
     // console.log('transactions', transactions)
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
   } catch (error) {
-    console.error('Error adding transaction:', error);
-    res.status(500).send('Internal Server Error');
+    console.error('Error fetching page template:', error);
+    res.status(500).render('500', { title: "Internal Server Error", error });
+  }
+})
+
+app.post('/transactions/add', restrict, async (req, res, next) => {
+  try {
+    const { assigned_to, marketScopeID, ...transactionData } = req.body;
+    const transactions = await connection.postPurchaseRequest(transactionData);
+    if (transactions?.affectedRows) {
+      const { insertId } = transactions
+      const data = {
+        "message": "New transaction was created",
+        "link": insertId,
+        "component": "transactions",
+      }
+      await connection.postTransactionActivity(JSON.stringify({
+        steps_number: 2,
+        product_id: insertId,
+        status: "pending",
+        assigned_to,
+      }))
+      await connection.postNotifications(JSON.stringify(data))
+
+      // Step 1: retrieve current value
+      const rows = await connection.retrieveData(
+        'market_scoping',
+        'reference_number',
+        { id: marketScopeID }
+      );
+
+      const currentRef = rows[0]?.reference_number;
+
+      // Step 2: normalize to array
+      let refArray;
+      try {
+        refArray = JSON.parse(currentRef);
+        if (!Array.isArray(refArray)) refArray = [currentRef];
+      } catch {
+        refArray = [currentRef];
+      }
+
+      // Remove null, undefined, and empty string values
+      refArray = refArray.filter(item => item != null && item !== "");
+
+      // Step 3: append new insertId
+      refArray.push(insertId);
+
+      // Step 4: update back to DB
+      await connection.amendData(
+        'market_scoping',
+        JSON.stringify({
+          set: { reference_number: JSON.stringify(refArray) },
+          where: { id: marketScopeID }
+        })
+      );
+
+    }
+
+    res.status(201).json({ message: 'Purchase Request created successfully!', response: transactions });
+  } catch (error) {
+    next(error);
   }
 })
 
@@ -2271,6 +2353,7 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
         description: "",
         transactions: transactions[0],
         predata: CONST_MISC,
+        mode: 'update',
         options: {
           buttons: [
             { id: "updateTransactions", title: "Update", icon: "fa-save" },
@@ -2720,14 +2803,38 @@ async function getFormData(employeeId = null) {
 }
 
 // Register Employee Route
+// app.get('/employees/register', restrict, async (req, res) => {
+//   try {
+//     const { roles, employees } = await getFormData();
+//     res.render('employees/register', {
+//       title: 'Register Employee',
+//       employees,
+//       mode: 'register',
+//     });
+//   } catch (error) {
+//     console.error('Error loading register form:', error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// });
 app.get('/employees/register', restrict, async (req, res) => {
   try {
     const { roles, employees } = await getFormData();
-    res.render('employees/register', {
-      title: 'Register Employee',
-      employees,
-      mode: 'register',
-    });
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: [],
+        styles: [],
+        innerContent: '../pages/ra12009/employees/register',
+        title: "Employees",
+        description: "List of all employees including inactive or retired....",
+        results: { employees },
+        mode: 'register',
+        options: {
+          buttons: [{ id: "updateEmployee", title: "Update", icon: "fa-save" }, { id: "registerEmployee", title: "Create", icon: "fa-plus" },]
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
   } catch (error) {
     console.error('Error loading register form:', error);
     res.status(500).send('Internal Server Error');
@@ -2735,18 +2842,44 @@ app.get('/employees/register', restrict, async (req, res) => {
 });
 
 // Update Employee Route
+// app.get('/employees/:id/update', restrict, async (req, res) => {
+//   try {
+//     const employeeId = req.params.id;
+//     const { roles, employees } = await getFormData(employeeId);
+
+//     res.render('employees/register', {
+//       title: 'Update Employee',
+//       employees,
+//       mode: 'update',
+//     });
+//   } catch (error) {
+//     console.error('Error loading update form:', error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// });
+
 app.get('/employees/:id/update', restrict, async (req, res) => {
   try {
-    const employeeId = req.params.id;
-    const { roles, employees } = await getFormData(employeeId);
-
-    res.render('employees/register', {
-      title: 'Update Employee',
-      employees,
-      mode: 'update',
-    });
+    console.log('Fetching data for employee ID:', req.params.id);
+    const { roles, employees } = await getFormData(req.params.id);
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: [],
+        styles: [],
+        innerContent: '../pages/ra12009/employees/register',
+        title: "Employees",
+        description: "List of all employees including inactive or retired....",
+        results: { employees },
+        mode: 'update',
+        options: {
+          buttons: [{ id: "updateEmployee", title: "Update", icon: "fa-save" }, { id: "registerEmployee", title: "Create", icon: "fa-plus" },]
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
   } catch (error) {
-    console.error('Error loading update form:', error);
+    console.error('Error loading register form:', error);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -2779,9 +2912,23 @@ app.get('/qrscanner', restrict, async function (req, res) {
   })
 })
 app.get('/suppliers', restrict, loadAllSuppliers, async function (req, res) {
-  res.render('suppliers/index', {
-    title: "Suppliers"
-  })
+  try {
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: [],
+        styles: [],
+        innerContent: '../pages/ra12009/suppliers/index',
+        title: "List of Suppliers",
+        description: "External entities or individuals that provide goods, services, or resources to an organization",
+        results: {},
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
 })
 app.get('/suppliers/:id/view', restrict, loadAllSuppliers, async function (req, res) {
   try {
@@ -3093,7 +3240,7 @@ app.route('/api/transactions')
     if (transactions) return res.status(200).json({ response: transactions })
     return res.status(400).json({ response: 'No Record is Found!' })
   })
-app.route('/api/transactions/:id')
+app.route('/api/transactionsss/:id')
   .all(restrict)
   .get(async (req, res) => {
     const { id } = req.params;
@@ -3294,13 +3441,28 @@ app.get('/charts/distributions', (req, res) => {
   });
 });
 
-app.use(async function (req, res, next) {
-  res.status(404).render('404', {
-    title: 'Page not Found',
-    component: 'Page'
+// app.use(async function (req, res, next) {
+//   res.status(404).render('404', {
+//     title: 'Page not Found',
+//     component: 'Page'
+//   });
+//   next()
+// })
+
+// 404 Not Found
+app.use((req, res) => {
+  res.status(404).render('404', { title: 'Page Not Found' });
+});
+
+// 500 Internal Server Error
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+
+  res.status(500).render('500', {
+    title: "Internal Server Error",
+    error: err
   });
-  next()
-})
+});
 
 // STARTING ON ExpressJS
 // const server = http.createServer(app, (req, res) => {
@@ -3329,6 +3491,22 @@ app.use(async function (req, res, next) {
 // io.on('connection', (socket)=>{
 //   console.log('a user connected', socket.id)
 // })
+
+// Initialize database connection
+// const dbConfig = {
+//   host: process.env.DB_HOST,
+//   user: process.env.DB_USER,
+//   password: process.env.DB_PASSWORD,
+//   database: process.env.DB_DATABASE || 'procurementtracker',
+//   charset: "utf8mb4"
+// };
+
+// DatabaseConnection.connect(dbConfig).then(() => {
+//   console.log('Database connection established successfully');
+// }).catch((err) => {
+//   console.error('Failed to connect to database:', err);
+//   process.exit(1);
+// });
 
 // ENDOF ExpressJS
 server.on('error', (err) => {

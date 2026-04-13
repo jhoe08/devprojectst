@@ -1,14 +1,5 @@
 <%
   let { directors, divisions } = JSON.parse(DEPARTMENT)
-  // Check if divisions is a string and needs parsing
-  // if (typeof divisions === 'string') {
-  //   divisions = JSON.parse(divisions);  // Parse if it's a string
-  // }
-
-  // keys = Object.keys(divisions);  // Get the keys of the divisions object
-  // divisions = Object.entries(divisions)
-  // directors = Object.entries(directors)
-  // value = Object.values(divisions)
 
   const steps = approval_steps
 
@@ -259,7 +250,7 @@
                         <div class="card-header">
                             <div class="card-head-row card-tools-still-right">
                                 <h4 class="card-title">Organization</h4>
-                                <button class="btn btn-primary btn-round ms-auto" id="addMoreFieldButton">
+                                <button class="btn btn-primary btn-round ms-auto" id="addMoreFieldButton" data-bs-toggle="modal" data-bs-target="#settingsModal" data-bs-method="create">
                                     <i class="fa fa-plus"></i>
                                     Add Row
                                 </button>

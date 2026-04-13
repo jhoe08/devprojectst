@@ -129,12 +129,14 @@
                         <div class="card-head-row">
                           <div class="card-title">Details</div>
                           <div class="card-tools">
-                            <% const [PRClassfication, procurementType] = JSON.parse(transactions.pr_classification) %>
+
+                            <% const PRClassification = transactions?.pr_classification; 
+                               const procurementType = transactions?.procurement_type;%>
                             <button disabled="disabled" href="market-scope" class="btn btn-label-info btn-round btn-sm">
                               <span class="btn-label">
                                 <i class="fas fa-sitemap"></i>
                               </span>
-                              <%- PRClassfication -%>
+                              <%- PRClassification -%>
                             </button>
                             <button disabled="disabled" href="market-scope" class="btn btn-label-primary btn-round btn-sm">
                               <span class="btn-label">

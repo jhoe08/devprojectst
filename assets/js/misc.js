@@ -224,7 +224,7 @@ function updateTotal(selector) {
 }
 
 // Function to add commas on the field that set to data-type=number
-function formatNumberWithCommas(event) {
+function formatNumberWithCommas_working_but_not_when_automatically_populated(event) {
   const input = event.target;
   const rawValue = input.value;
 
@@ -287,6 +287,44 @@ function formatNumberWithCommas(event) {
   }
   input.setSelectionRange(newCaretPos, newCaretPos);
 }
+
+function formatNumberWithCommas(event) {
+  const input = event.target;
+  const rawValue = input.value;
+
+  // Save caret position relative to digits
+  const caretPos = input.selectionStart;
+  const digitsBeforeCaret = rawValue.slice(0, caretPos).replace(/\D/g, '').length;
+
+  // Clean value: keep digits and one decimal
+  let value = rawValue.replace(/[^0-9.]/g, '');
+  const firstDecimal = value.indexOf('.');
+  if (firstDecimal !== -1) {
+    value = value.slice(0, firstDecimal + 1) + value.slice(firstDecimal + 1).replace(/\./g, '');
+  }
+
+  if (!value) {
+    input.value = '';
+    return;
+  }
+
+  // Split integer/decimal
+  const [integerPartRaw, decimalPartRaw = ''] = value.split('.');
+  let integerPart = integerPartRaw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  let decimalPart = decimalPartRaw.slice(0, 2);
+
+  // Rebuild value
+  input.value = decimalPart ? `${integerPart}.${decimalPart}` : integerPart;
+
+  // Restore caret
+  let newCaretPos = 0, digitsSeen = 0;
+  while (newCaretPos < input.value.length && digitsSeen < digitsBeforeCaret) {
+    if (/\d/.test(input.value[newCaretPos])) digitsSeen++;
+    newCaretPos++;
+  }
+  input.setSelectionRange(newCaretPos, newCaretPos);
+}
+
 
 function getNumericValue(inputElement) {
   if (!inputElement) return null;

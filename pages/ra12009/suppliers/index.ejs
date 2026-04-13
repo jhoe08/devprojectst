@@ -1,0 +1,16 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                    <div class="card-title"><%=title%>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <%- include('../../../components/datatables/supplier', { headers: ["Code", "Name" , "Phone" , "Email"
+                    , "Address" , "Actions" ], lists: SUPPLIERS }) -%>
+            </div>
+        </div>
+    </div>
+</div>

@@ -77,7 +77,7 @@ function populateFundsModal(sourceData) {
 
   }
 
-  console.log("Grouped Data Before Sorting:", grouped);
+  // console.log("Grouped Data Before Sorting:", grouped);
   // Step 2: Sort PAPs alphabetically (ignoring numeric prefix)
   const sortedGrouped = {};
 

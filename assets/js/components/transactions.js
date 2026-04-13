@@ -148,108 +148,108 @@
       requisitioner.closest('.form-group').querySelector('.input-icon').classList.add('text-danger');
     }
 
-    // createTransactions.addEventListener('click', async () => {
-    //   try {
-    //     // 🔄 Collect fund source data
-    //     const charge = Array.from(chargingTo.querySelectorAll('.row')).map(fund => {
-    //       const select = fund.querySelector('select[name*="division_"]');
-    //       const selectedOption = select.options[select.selectedIndex];
-    //       const divisionValue = selectedOption.dataset.division;
-    //       const sectionValue = select.value;
-    //       const amountValue = fund.querySelector('input[name="unitCount"]').value;
+    createTransactions.addEventListener('click', async () => {
+      try {
+        // 🔄 Collect fund source data
+        const charge = Array.from(chargingTo.querySelectorAll('.row')).map(fund => {
+          const select = fund.querySelector('select[name*="division_"]');
+          const selectedOption = select?.options[select.selectedIndex];
+          const divisionValue = selectedOption?.dataset.division;
+          const sectionValue = select?.value || 'asddd';
+          const amountValue = fund.querySelector('input[name="unitCount"]').value;
 
-    //       return {
-    //         division: divisionValue,
-    //         section: sectionValue,
-    //         amount: amountValue
-    //       };
-    //     });
+          return {
+            division: divisionValue,
+            section: sectionValue,
+            amount: amountValue
+          };
+        });
 
-    //     // 🧼 Extract and validate form values
-    //     const bidNoticeTitleValue = bidNoticeTitle.value.trim();
-    //     const prClassificationValue = prClassification.value;
-    //     const requisitionerValue = requisitioner.value.trim();
-    //     const budgetRawValue = budget.value.replace(/,/g, '');
-    //     const bacUnitValue = bacUnit.value;
+        // 🧼 Extract and validate form values
+        const bidNoticeTitleValue = bidNoticeTitle.value.trim();
+        const prClassificationValue = prClassification.value;
+        const requisitionerValue = requisitioner.value.trim();
+        const budgetRawValue = budget.value.replace(/,/g, '');
+        const bacUnitValue = bacUnit.value;
 
-    //     if (!bidNoticeTitleValue || !requisitionerValue || parseFloat(budgetRawValue) === 0) {
-    //       notifyCustom(
-    //         'exclamation',
-    //         'Fields are empty',
-    //         'Submission failed: Bid Notice Title, Budget, and Requisitioner are mandatory fields.',
-    //         'danger'
-    //       );
-    //       return;
-    //     }
+        if (!bidNoticeTitleValue || !requisitionerValue || parseFloat(budgetRawValue) === 0) {
+          notifyCustom(
+            'exclamation',
+            'Fields are empty',
+            'Submission failed: Bid Notice Title, Budget, and Requisitioner are mandatory fields.',
+            'danger'
+          );
+          return;
+        }
 
-    //     const approvedBudget = parseFloat(budgetRawValue);
+        const approvedBudget = parseFloat(budgetRawValue);
 
-    //     // 🧠 Parse next responsible data
-    //     let nextResponsible;
-    //     try {
-    //       nextResponsible = JSON.parse(created_by.dataset.responsible);
-    //     } catch (err) {
-    //       notifyCustom('bell', 'Invalid responsible data', 'Could not parse next responsible person.', 'danger');
-    //       return;
-    //     }
+        // 🧠 Parse next responsible data
+        let nextResponsible;
+        try {
+          nextResponsible = JSON.parse(created_by.dataset.responsible);
+        } catch (err) {
+          notifyCustom('bell', 'Invalid responsible data', 'Could not parse next responsible person.', 'danger');
+          return;
+        }
 
-    //     // Get the query string from the URL
-    //     const queryString = window.location.search; // "?market-scope=1"
+        // Get the query string from the URL
+        const queryString = window.location.search; // "?market-scope=1"
 
-    //     // Parse it using URLSearchParams
-    //     const urlParams = new URLSearchParams(queryString);
+        // Parse it using URLSearchParams
+        const urlParams = new URLSearchParams(queryString);
 
-    //     // Extract the value of "market-scope"
-    //     const marketScope = urlParams.get("market-scope");
+        // Extract the value of "market-scope"
+        const marketScope = urlParams.get("market-scope");
 
 
-    //     // 📦 Prepare payload
-    //     const payload = {
-    //       bid_notice_title: bidNoticeTitleValue,
-    //       pr_classification: prClassificationValue,
-    //       requisitioner: requisitionerValue,
-    //       approved_budget: approvedBudget,
-    //       fund_source: JSON.stringify(charge),
-    //       bac_unit: bacUnitValue,
-    //       remarks: JSON.stringify({
-    //         message: 'Created Transaction'
-    //       }),
-    //       prepared_by: created_by.value,
-    //       assigned_to: nextResponsible.division?.employeeid || null,
-    //       marketScopeID: marketScope
-    //     };
+        // 📦 Prepare payload
+        const payload = {
+          bid_notice_title: bidNoticeTitleValue,
+          pr_classification: prClassificationValue,
+          requisitioner: requisitionerValue,
+          approved_budget: approvedBudget,
+          fund_source: JSON.stringify(charge),
+          bac_unit: bacUnitValue,
+          remarks: JSON.stringify({
+            message: 'Created Transaction'
+          }),
+          prepared_by: created_by.value,
+          assigned_to: nextResponsible.division?.employeeid || null,
+          marketScopeID: marketScope
+        };
 
-    //     console.log('Payload:', payload);
+        console.log('Payload:', payload);
 
-    //     // 🚀 Send request
-    //     const response = await fetch('/transactions/new', {
-    //       method: 'POST',
-    //       headers: { 'Content-Type': 'application/json' },
-    //       body: JSON.stringify(payload)
-    //     });
+        // 🚀 Send request
+        const response = await fetch('/transactions/new', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-    //     if (!response.ok) {
-    //       notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger');
-    //       return;
-    //     }
+        if (!response.ok) {
+          notifyCustom('bell', 'System Issue', 'Network response was not ok!', 'danger');
+          return;
+        }
 
-    //     const result = await response.json();
+        const result = await response.json();
 
-    //     if (!result || !result.response?.insertId) {
-    //       notifyCustom('bell', 'Error', 'Failed to create the Transaction!', 'danger');
-    //       return;
-    //     }
+        if (!result || !result.response?.insertId) {
+          notifyCustom('bell', 'Error', 'Failed to create the Transaction!', 'danger');
+          return;
+        }
 
-    //     const { message, response: { insertId } } = result;
-    //     notifyCustom('bell', message, `Transaction ID#${insertId}`, 'success');
+        const { message, response: { insertId } } = result;
+        notifyCustom('bell', message, `Transaction ID#${insertId}`, 'success');
 
-    //     // 🧹 Optional: Clear form fields here if needed
-    //     // [bidNoticeTitle, prClassification, requisitioner, budget, bacUnit].forEach(el => el.value = '');
+        // 🧹 Optional: Clear form fields here if needed
+        // [bidNoticeTitle, prClassification, requisitioner, budget, bacUnit].forEach(el => el.value = '');
 
-    //   } catch (error) {
-    //     notifyCustom('close', 'Unexpected error occurred', error.message || error, 'danger');
-    //   }
-    // });
+      } catch (error) {
+        notifyCustom('close', 'Unexpected error occurred', error.message || error, 'danger');
+      }
+    });
   }
   // Update
   if (updateTransactions) {

@@ -1,6 +1,13 @@
 <% 
   const hideTitle=(typeof options !=="undefined" && options.hideTitle) ? options.hideTitle : false; 
   const hideFooter=(typeof options !=="undefined" && options.hideFooter) ? !options.hideFooter : true;
+  const _mode = (typeof mode !=="undefined" && mode) ? mode : null;
+
+
+  let isNewRecord = false;
+  if (_mode === 'create' || _mode === 'register') {
+    isNewRecord = true;
+  }
 %>
 
 <%- include('header') -%>
@@ -17,8 +24,11 @@
                       <h3 class="fw-bold mb-3"><%- title -%></h3>
                       <%- description ? '<h6 class="op-7 mb-2">' + description + '</h6>' : '' %>
                     </div>
-                  <% const button=(typeof options !=="undefined" && options.buttons) ? ((transactions) ?
-                    options.buttons[0] : options.buttons[1]) : false ; %>
+                  <% const button=(typeof options !=="undefined" && options.buttons) 
+                      ? ((!isNewRecord) 
+                        ? options.buttons[0] 
+                        : options.buttons[1]) 
+                      : false ; %>
                     <% if(button) { %>
                       <div class="ms-md-auto py-2 py-md-0">
                         <a id="<%= button.id %>" href="#" class="btn btn-primary btn-round">
