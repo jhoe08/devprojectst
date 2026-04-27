@@ -5,19 +5,19 @@ const { createServer } = require("node:http")
 const { Server } = require('socket.io');
 const path = require("path");
 const { pathToFileURL } = require('url');
-const connection = require("./admin/database");
-const DatabaseConnection = require("./admin/database/DatabaseConnection");
+const connection = require("./admin/database_backup");
+// const DatabaseConnection = require("./admin/database/DatabaseConnection");
 const misc = require("./admin/misc")
 const utils = require("./admin/utils");
 
-const sharedJsonHelperPath = pathToFileURL(path.join(__dirname, 'assets/js/helpers/jsonHelper.js')).href;
-let sharedJsonHelper;
-async function getSharedJsonHelper() {
-  if (!sharedJsonHelper) {
-    sharedJsonHelper = await import(sharedJsonHelperPath);
-  }
-  return sharedJsonHelper;
-}
+// const sharedJsonHelperPath = pathToFileURL(path.join(__dirname, 'assets/js/helpers/jsonHelper.js')).href;
+// let sharedJsonHelper;
+// async function getSharedJsonHelper() {
+//   if (!sharedJsonHelper) {
+//     sharedJsonHelper = await import(sharedJsonHelperPath);
+//   }
+//   return sharedJsonHelper;
+// }
 const moment = require('moment');
 const bodyParser = require('body-parser');
 const ejs = require('ejs')
@@ -790,7 +790,7 @@ let transporter = nodemailer.createTransport({
 
 app.use(async (req, res, next) => {
 
-  console.log('====================', connection);
+  // console.log('====================', connection);
 
   var components = ['Transactions', 'Employees', 'Documents']
   // console.log({ huh: res.locals.SESSION_USER })
@@ -816,22 +816,7 @@ app.use(async (req, res, next) => {
   // Sort using Descending
   notifications?.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-  const filteredNotifications = notifications
-    ?.filter(n =>
-      filteredTransactions.some(txn => txn.product_id === Number(n.link))
-    )
-    .map(n => {
-      const match = filteredTransactions.find(
-        txn => txn.product_id === Number(n.link)
-      );
-      return {
-        ...n,
-        transaction: match
-      };
-    });
-
-  console.log('Filtered Notifications:', filteredNotifications?.length);
-
+  const filteredNotifications = {}
   let role = '';
   let userDivision = '';
   let userSection = '';
@@ -851,14 +836,14 @@ app.use(async (req, res, next) => {
 
     availComponents = components;
 
-    const filteredActivity = activities.filter(activity =>
+    const filteredActivity = activities?.filter(activity =>
       activity.assigned_to === employeeid
     );
 
-    const productIds = filteredActivity.map(activity => activity.product_id);
+    const productIds = filteredActivity?.map(activity => activity.product_id);
     const numericUserId = parseInt(employeeid, 10);
     // Filter transactions: created by or assigned to current user
-    const parsedTransactions = transactions.map(txn => ({
+    const parsedTransactions = transactions?.map(txn => ({
       ...txn,
       prepared_by: typeof txn.prepared_by === 'string'
         ? JSON.parse(txn.prepared_by)
@@ -867,8 +852,8 @@ app.use(async (req, res, next) => {
 
     let filteredTransactions;
 
-    filteredTransactions = parsedTransactions.filter(txn =>
-      txn.prepared_by?.employeeid === numericUserId || productIds.includes(txn.product_id)
+    filteredTransactions = parsedTransactions?.filter(txn =>
+      txn.prepared_by?.employeeid === numericUserId || productIds?.includes(txn.product_id)
     );
 
     if (sessionUser && sessionUser?.roles) {
@@ -877,7 +862,7 @@ app.use(async (req, res, next) => {
         : filteredTransactions = filteredTransactions;
     }
 
-    totalTransactions = filteredTransactions.length;
+    totalTransactions = filteredTransactions?.length;
 
     try {
       const { lists: userSession } = JSON.parse(userExperience);
@@ -1161,8 +1146,8 @@ app.use(async (req, res, next) => {
     },
     getCurrentHolderOfTransaction(transaction_id) {
       const activity = activities
-        .filter(act => act.product_id === transaction_id && act.status === 'pending' && act.assigned_to);
-      return (activity.length > 0) ? activity[0].assigned_to : false;
+        ?.filter(act => act.product_id === transaction_id && act.status === 'pending' && act.assigned_to);
+      return (activity?.length > 0) ? activity[0].assigned_to : false;
     },
     getTransactionMarketScope(id) {
 

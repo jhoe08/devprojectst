@@ -1,8 +1,8 @@
 <%
-  const {transactions, totalTransactions, employees, market_scopes} = SUMMARY
-  const { row_count:total_transactions } = JSON.parse(transactions)
-  const { row_count:total_employees } = JSON.parse(employees)
-  const { row_count:total_market_scopes } = JSON.parse(market_scopes)
+  const {transactions, totalTransactions, employees, market_scopes} = SUMMARY || {}
+  const { row_count:total_transactions } = JSON.parse(transactions || '{}')
+  const { row_count:total_employees } = JSON.parse(employees || '{}')
+  const { row_count:total_market_scopes } = JSON.parse(market_scopes || '{}')
 %>
   <!-- Sidebar -->
 <%

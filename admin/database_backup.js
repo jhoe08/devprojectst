@@ -7,7 +7,7 @@ const { isValidJSON } = require("./utils");
 let prefix = 'procurementtracker'
 const tables = {
   employee: 'employees',
-  transaction: 'purchase_request',
+  transaction: 'transid',
   // transaction: 'transid',
   transaction_activity: 'transid_activity',
   transaction_status: 'transid_status_history',
