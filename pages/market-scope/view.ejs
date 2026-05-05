@@ -1,8 +1,9 @@
 <%
-  const { id:parentId, project_title, reference_number, date_conducted, end_user_unit, consultations_with_suppliers, participation_in_summits, review_reports, review_brochures, price_sourcing, use_philgeps_data, other_activity, documentation, prepared_by_name, prepared_by_position, prepared_by_date, prepared_by_signature, reviewed_by_name, reviewed_by_position, reviewed_by_date, reviewed_by_signature } = results 
+
+const { id:parentId, project_title, reference_number, date_conducted, end_user_unit, consultations_with_suppliers, participation_in_summits, review_reports, review_brochures, price_sourcing, use_philgeps_data, other_activity, documentation, prepared_by_name, prepared_by_position, prepared_by_date, prepared_by_signature, reviewed_by_name, reviewed_by_position, reviewed_by_date, reviewed_by_signature } = results 
 
   const { totalTransactions, market_scopes } = SUMMARY
-  const { row_count:total_market_scopes } = JSON.parse(market_scopes)
+  const { row_count:total_market_scopes } = JSON.parse(market_scopes || 0)
 
   // parse the stored JSON list of reference numbers and compute percentage
   const arrReferenceNumber = JSON.parse(reference_number || '[]')
@@ -10,12 +11,11 @@
   const totalTx = Number(totalTransactions) || 0
   const percentage = totalTx ? (totalRef / totalTx) * 100: 0
 
-  const filteredTransactions = transactions.filter(tx => {
-    const prepared = JSON.parse(tx.prepared_by); // parse JSON string
-    return prepared?.name === prepared_by_name;
-  });
+const filteredTransactions = transactions.filter(tx => {
 
-  const percentagePreparedBy = filteredTransactions ? (totalRef / filteredTransactions.length) * 100 : 0
+});
+
+const percentagePreparedBy = filteredTransactions ? (totalRef / filteredTransactions.length) * 100 : 0
 
   const formatMonthYear = (str) => {
     const [month, year] = str.split('/');

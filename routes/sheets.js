@@ -44,7 +44,7 @@ router.get('/sheets', async (req, res) => {
   const { sheetId, range } = req.query;
   // const apiKey = process.env.GOOGLE_SHEETS_API_KEY;
 
-  const result = await connection.getSettingByKey('integration_api_key');
+  const result = await connection?.getSettingByKey('integration_api_key');
   const row = Array.isArray(result) ? result[0] : result;
   const apiKey = row.value;
 

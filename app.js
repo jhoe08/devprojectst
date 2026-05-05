@@ -843,11 +843,22 @@ app.use(async (req, res, next) => {
     const productIds = filteredActivity?.map(activity => activity.product_id);
     const numericUserId = parseInt(employeeid, 10);
     // Filter transactions: created by or assigned to current user
+    const safeParsePreparedBy = (value) => {
+      if (value == null) return null;
+      if (typeof value !== 'string') return value;
+      const trimmed = value.trim();
+      if (!trimmed || trimmed === 'undefined') return null;
+      try {
+        return JSON.parse(trimmed);
+      } catch (err) {
+        console.warn('Invalid JSON in prepared_by:', trimmed);
+        return null;
+      }
+    };
+    
     const parsedTransactions = transactions?.map(txn => ({
       ...txn,
-      prepared_by: typeof txn.prepared_by === 'string'
-        ? JSON.parse(txn.prepared_by)
-        : txn.prepared_by
+      prepared_by: safeParsePreparedBy(txn.prepared_by)
     }));
 
     let filteredTransactions;
@@ -1162,7 +1173,14 @@ app.use(async (req, res, next) => {
 
 const loadAllTransactions = async (req, res, next) => {
   try {
-    res.locals.transactions = await connection.getTransactions();
+    const transactions = await connection.getTransactions();
+    // Sanitize prepared_by field - convert literal "undefined" strings to null
+    res.locals.transactions = transactions?.map(tx => ({
+      ...tx,
+      prepared_by: (tx.prepared_by === 'undefined' || tx.prepared_by === null || tx.prepared_by === undefined) 
+        ? null 
+        : tx.prepared_by
+    })) || [];
     next();
   } catch (error) {
     console.error("Error loading transactions:", error);
@@ -1387,7 +1405,7 @@ app.get('/market-scope', restrict, loadAllMarketScopes, async (req, res) => {
       })
     }));
 
-    console.log('Enriched Market Scopes:', enrichedMarketScopes);
+    // console.log('Enriched Market Scopes:', enrichedMarketScopes);
 
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
@@ -1441,6 +1459,14 @@ app.get('/market-scope/:id/view', restrict, loadAllTransactions, async (req, res
     const { project_title, reference_number } = innerHTML[0];
     const tables = await connection.getTransactionById(reference_number)
 
+    // Sanitize prepared_by in fetched tables as well
+    const cleanedTables = tables?.map(tx => ({
+      ...tx,
+      prepared_by: (tx.prepared_by === 'undefined' || tx.prepared_by === null || tx.prepared_by === undefined) 
+        ? null 
+        : tx.prepared_by
+    })) || [];
+
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
         styles: ['/assets/css/pages/market-scope.css'],
@@ -1449,7 +1475,7 @@ app.get('/market-scope/:id/view', restrict, loadAllTransactions, async (req, res
         title: project_title,
         description: "",
         results: innerHTML[0],
-        _datatables: tables,
+        _datatables: cleanedTables,
         _steps: activities.sort((a, b) => b.id - a.id),
         options: {
           hideTitle: true,
@@ -1916,11 +1942,22 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
 
     const numericUserId = Number(userId);
 
+    const safeParsePreparedBy = (value) => {
+      if (value == null) return null;
+      if (typeof value !== 'string') return value;
+      const trimmed = value.trim();
+      if (!trimmed || trimmed === 'undefined') return null;
+      try {
+        return JSON.parse(trimmed);
+      } catch (err) {
+        console.warn('Invalid JSON in prepared_by:', trimmed);
+        return null;
+      }
+    };
+    
     const parsedTransactions = transactions.map(txn => ({
       ...txn,
-      prepared_by: typeof txn.prepared_by === 'string'
-        ? JSON.parse(txn.prepared_by)
-        : txn.prepared_by
+      prepared_by: safeParsePreparedBy(txn.prepared_by)
     }));
 
     const filteredTransactions = parsedTransactions.filter(txn =>

@@ -6,15 +6,12 @@
     </div>
   </div>
   <div class="card-body">
-  <% if (datatables && datatables.length > 0) { %>
+
     <%- include('../../components/datatables/tables', { 
           tableId: "marketScope", 
           thead: Object.keys(datatables[0] || {}), 
           tbody: datatables, 
           hideColumns: [] 
         }) %>
-  <% } else { %>
-    <p class="text-danger">Server error detected. For resolution, please contact your system developer.</p>
-  <% } %>
   </div>
 </div>

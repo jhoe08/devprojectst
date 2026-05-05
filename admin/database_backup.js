@@ -70,6 +70,39 @@ function addEmployeeToRole(role_name, employeeid, rolesData) {
   return null;
 }
 
+// ============================================
+// Sanitization Helper for Transaction Data
+// ============================================
+// Converts literal "undefined" strings to null in prepared_by field
+const sanitizeTransactionData = (data) => {
+  if (!data) return data;
+  
+  if (Array.isArray(data)) {
+    return data.map(item => {
+      if (item && typeof item === 'object' && item.prepared_by) {
+        return {
+          ...item,
+          prepared_by: (item.prepared_by === 'undefined' || item.prepared_by === null || item.prepared_by === undefined) 
+            ? null 
+            : item.prepared_by
+        };
+      }
+      return item;
+    });
+  }
+  
+  if (data && typeof data === 'object' && data.prepared_by) {
+    return {
+      ...data,
+      prepared_by: (data.prepared_by === 'undefined' || data.prepared_by === null || data.prepared_by === undefined) 
+        ? null 
+        : data.prepared_by
+    };
+  }
+  
+  return data;
+};
+
 const databaseUtils = {
   getDistinct: (column, table) => new Promise((resolve, reject) => {
     connection.query(`SELECT DISTINCT(${column}) FROM ${prefix}.${table}`, (error, results) => {
@@ -228,11 +261,14 @@ const databaseUtils = {
   },
   getTransactions: async (data) => {
     // console.log('getTransactions - data:', data);
+    let result;
     if (data) {
       data = isValidJSON(data) ? JSON.parse(data) : data;
-      return await databaseUtils.retrieveData(`${tables.transaction}`, '*', data)
+      result = await databaseUtils.retrieveData(`${tables.transaction}`, '*', data)
+    } else {
+      result = await databaseUtils.retrieveData(`${tables.transaction}`)
     }
-    return await databaseUtils.retrieveData(`${tables.transaction}`)
+    return sanitizeTransactionData(result);
   },
   getActivities: async (data) => {
     if (data) {
@@ -254,10 +290,12 @@ const databaseUtils = {
     let id = Number(data[1])
     let date = moment(data[0], 'MM/DD/YYYY').format('YYYYMMDD')
 
-    return await databaseUtils.retrieveData(tables.transaction, '*', { product_id: id })
+    const result = await databaseUtils.retrieveData(tables.transaction, '*', { product_id: id });
+    return sanitizeTransactionData(result);
   },
   getTransactionById: async (id) => {
-    return await databaseUtils.retrieveData(tables.transaction, '*', { product_id: id })
+    const result = await databaseUtils.retrieveData(tables.transaction, '*', { product_id: id });
+    return sanitizeTransactionData(result);
   },
   getEmployeeById: async (id) => {
     return await databaseUtils.retrieveData(tables.employee, '*', { employeeid: id })

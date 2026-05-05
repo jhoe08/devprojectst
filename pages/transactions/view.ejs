@@ -35,7 +35,20 @@
       }
     }
 
-    preparedby = prepared_by ? JSON.parse(prepared_by) : {}
+    const safeParsePreparedBy = (value) => {
+      if (value == null) return null;
+      if (typeof value !== 'string') return value;
+      const trimmed = value.trim();
+      if (!trimmed || trimmed === 'undefined') return null;
+      try {
+        return JSON.parse(trimmed);
+      } catch (err) {
+        console.warn('Invalid JSON in prepared_by:', trimmed);
+        return null;
+      }
+    };
+    
+    preparedby = safeParsePreparedBy(prepared_by) || {}
     preparedbyname = preparedby?.name || ''
     preparedbyid = preparedby?.employeeid || ''
 
