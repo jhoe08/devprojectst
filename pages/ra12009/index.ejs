@@ -332,10 +332,10 @@
     <%- include('../../components/charts/multipleLine', { title: "Purchase Request", description: "", datasets: {months:jsonMonths, amounts:[], abcs: _abcs_values, disbursements: []} }) -%>
     </div>
     <div class="col-sm-12 col-md-6 col-lg-4" >
-    <%- include('../../components/charts/pie', { id:"chartClassification", title: "Classification", datasets: perClassification }) -%>
+    <%- include('../../components/charts/pie', { id:"chartClassification", title: "Classification", datasets: perProcurementType }) -%>
     </div>
     <div class="col-sm-12 col-md-6 col-lg-4" >
-    <%- include('../../components/charts/pie', { id:"chartProcurementType", title: "Procurement Type", datasets: perClassification }) -%>
+    <%- include('../../components/charts/pie', { id:"chartProcurementType", title: "Procurement Type", datasets: perProcurementType }) -%>
     </div>
     <div class="col-sm-12 col-md-6 col-lg-4">
     <%- include('../../components/charts/doughnut', { id:"chartDistribution", title: "Distribution Analytics", datasets: {points: stepsValues, labels: stepsIndex} }) -%>

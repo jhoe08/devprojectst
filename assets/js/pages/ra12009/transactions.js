@@ -81,12 +81,12 @@ document.querySelector('#createTransactions')
             const preparedBy =JSON.parse(document.getElementById('created_by').value);
 
             const newTransaction = {
-                remarks: {
+                remarks: JSON.stringify({
                     messages: "New transaction",
                     createdAt: Date.now()
-                },
+                }),
                 marketScopeID: Number(urlParams.get("market-scope")),
-                prepared_by: preparedBy,
+                prepared_by: JSON.stringify(preparedBy),
             };
 
             console.log('Creating transaction with data:', newTransaction.prepared_by);

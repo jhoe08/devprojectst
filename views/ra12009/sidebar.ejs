@@ -35,13 +35,34 @@
       show: true
     },
     {
-      section: "Transactions",
+      label: "Purchase Request",
+      icon: "fas fa-file",
+      path: "/transactions",
+      show: true
+    },
+    {
+      label: "Purchase Order",
+      icon: "fas fa-shopping-cart",
+      path: "/purchaseOrder",
+      show: true
+    },
+    {
+      label: "Disbursement Voucher",
+      icon: "fas fa-file-signature",
+      path: "/disbursementVouchers",
+      show: true
+    },
+    {
+      label: "Check Payments",
+      icon: "fas fa-hashtag",
+      path: "/checkPayments",
+      show: true
+    },
+    {
+      section: "Suppliers",
       show: userAvailComponents("Transactions"),
       children: [
-        { label: "Transactions", path: "/transactions", icon: "fas fa-file", badge: totalTransactions },
-        { section: "Suppliers" },
         { label: "Lists", path: "/suppliers", icon: "fas fa-truck" },
-        { label: "Scan QRCode", path: "/transactions/scan", icon: "fas fa-qrcode", hidden: true }
       ]
     },
     {
@@ -53,21 +74,7 @@
         { label: "Register", path: "/employees/register", icon: "fas fa-upload", show: !hasAllowedRole(["Contributor","Viewer"]) }
       ]
     },
-    {
-      section: "Inventory",
-      hidden: true,
-      children: [
-        { label: "Dashboard", path: "/inventory", icon: "fas fa-warehouse", hidden: true }
-      ]
-    },
-    {
-      section: "Documents",
-      show: !isGuest() && userAvailComponents("Documents"),
-      children: [
-        { label: "Media", path: "/media", icon: "fas fa-file-image" },
-        { label: "Lists", path: "/documents", icon: "fas fa-copy" }
-      ]
-    }
+    
   ];
 %>
 

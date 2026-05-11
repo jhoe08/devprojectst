@@ -84,8 +84,10 @@
 
   if(SESSION_USER){
     const { employeeid, username, firstname, lastname, middlename, experience, roles } = SESSION_USER;
-    const { lists } = JSON.parse(experience)
-    let { office, salary, startdate, enddate, position, division, section, banner } = lists[0] 
+    const { lists } = JSON.parse(experience || '{"lists": [{"office": "Pending", "salary": "", "status": true, "enddate": "present", "section": "Pending", "division": "Pending", "position": "Pending", "startdate": "2025-10-28", "employment": "Contract of Service (COS)", "arrangements": "On-site"}]}');
+
+    let { office, salary, startdate, enddate, position, division, section, banner } = lists[0];
+    
    // section = section.toUpperCase()
 
   const safeMiddle = middlename?.trim();

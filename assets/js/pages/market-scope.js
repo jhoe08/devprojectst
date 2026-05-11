@@ -248,7 +248,7 @@ export function configMarketScopes() {
         `;
         }, targets: 25
       },
-      { targets: [1, 3, 4, -1], visible: true },
+      { targets: [1, 4, -1], visible: true },
       { targets: '_all', visible: false },
       { targets: 'nosort', orderable: false }
     ]
@@ -262,8 +262,14 @@ export function configMarketScopesTransactions() {
     columnDefs: [
       {
         render: (data, type, row) => {
+          const values = JSON.parse(row[7] || '[]');
+          const html = values.map(val =>
+            `<span class="badge badge-count">${val}</span>`
+          ).join(' ');
 
-          const [classification, procurementType] = JSON.parse(row[9]) || [];
+          // const [classification, procurementType] = JSON.parse(row[9]) || [];
+          const classification = row[9];
+          const procurementType = row[13]
           const classification_type = `
             <span data-head="Classification" class="badge badge-secondary mr-2">${classification}</span>
             <span data-head="Procurement Type" class="badge badge-primary mr-2">${procurementType}</span>
@@ -279,36 +285,40 @@ export function configMarketScopesTransactions() {
             <div>${row[4].display}</div>
           </div>
           ${data}
-          <div class="requisitioner text-muted">Requisitioner: ${row[2]}</div>
+          <div class="d-flex justify-content-between">
+            <div class="requisitioner text-muted">Requisitioner: ${row[2]}</div>
+            <div class="codes">${html}</div>
+          </div>
           `
         },
         targets: 1
       },
-      {
-        render: (data, type, row) => {
-          const raw = row[6] || '';
-          const values = raw.split(',').map(v => v.trim()).filter(Boolean);
+      // {
+      //   render: (data, type, row) => {
+      //     console.log(JSON.parse(row[6]))
 
-          const html = values.map(val => {
-            // Safely split on " | "
-            const [source, paps, cls, obj, desc] = val.split(' | ');
-            const badgeClass = source === 'current' ? 'info' : 'warning';
+      //     const raw = row[6] || '';
+      //     const values = raw.split(',').map(v => v.trim()).filter(Boolean);
 
-            return `<span class="badge badge-${badgeClass}" data-bs-toggle="tooltip" data-bs-original-title="${paps}">${cls} | ${obj} | ${desc}</span>`;
-          }).join(' ');
+      //     const html = values.map(val => {
+      //       // Safely split on " | "
+      //       const [fund, meta] = val.split('::')
+      //       const [paps, cls, obj, desc, source] = meta.split(' | ').filter(Boolean);
+      //       const badgeClass = source === undefined ? 'info' : 'warning';
 
-          return `
-          <div class="d-flex flex-column text-end">
-            <h6>${peso(data)}</h6>
-            ${html}
-          </div>
-          `
-        },
-        targets: 5
-      },
+      //       return `<span class="badge badge-${badgeClass}" data-bs-toggle="tooltip" data-bs-original-title="${paps}">${cls} | ${obj} | ${desc}</span>`;
+      //     }).join(' ');
 
-      { targets: -2, width: "200px" },
-      { visible: true, targets: [1, 5, -2] }, //[4, 6, 10, 12, -1]
+      //     return `
+      //     <div class="d-flex flex-column text-end">
+      //       <h6>${peso(data)}</h6>
+      //       ${html}
+      //     </div>
+      //     `
+      //   },
+      //   targets: 5                                
+      // },
+      { visible: true, targets: [1, 5, -3] }, //[4, 6, 10, 12, -1]
       { visible: false, targets: '_all' },
     ]
   };
@@ -317,5 +327,3 @@ export function configMarketScopesTransactions() {
 document.addEventListener('DOMContentLoaded', () => {
   marketScope.init();
 });
-
-

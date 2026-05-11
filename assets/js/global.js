@@ -38,16 +38,13 @@ const charts = {
 
         var ctx = canvas.getContext("2d");
 
-        const keysOnly = Object.keys(data);
-        const keysAsArrays = keysOnly.map(k => JSON.parse(k));
+        const keysAsArrays = Object.fromEntries(
+            data.map(item => [item.procurement_type, item.item_count])
+        );
 
-        const classificationCounts = {};
-        keysAsArrays.forEach(([category]) => {
-            classificationCounts[category] = (classificationCounts[category] || 0) + 1;
-        });
+        labels = Object.keys(keysAsArrays)
+        data = Object.values(keysAsArrays)
 
-        labels = Object.keys(classificationCounts)
-        data = Object.values(classificationCounts)
 
         return new Chart(ctx, {
             type: 'doughnut',
@@ -302,17 +299,14 @@ const charts = {
 
         var ctx = canvas.getContext("2d");
 
-        const keysOnly = Object.keys(data);
-        const keysAsArrays = keysOnly.map(k => JSON.parse(k));
+        const keysAsArrays = Object.fromEntries(
+            data.map(item => [item.procurement_type, item.item_count])
+        );
 
-        const procurementTypeCounts = {};
-        keysAsArrays.forEach(([, method]) => {
-            procurementTypeCounts[String(method)] = (procurementTypeCounts[method] || 0) + 1;
-        });
-        // console.log("Counts per Procurement Type:", procurementTypeCounts);
+        labels = Object.keys(keysAsArrays)
+        data = Object.values(keysAsArrays)
 
-        labels = Object.keys(procurementTypeCounts)
-        data = Object.values(procurementTypeCounts)
+        console.log({ keysAsArrays, labels, data })
 
         data = {
             labels: labels,
@@ -375,6 +369,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!doughnut && !pie) return;
 
     const doughnutDatasets = doughnut.dataset.values ? JSON.parse(doughnut.dataset.values) : {};
+
     const doughnutLabels = Object.keys(doughnutDatasets);
     const doughnutData = Object.values(doughnutDatasets);
 
@@ -387,7 +382,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const piePoints = pie.dataset.points ? JSON.parse(pie.dataset.points) : {};
 
     // charts.doughnut('chartClassification', doughnutLabels, doughnutData);
-    charts.doughnut('chartClassification', '', doughnutDatasets);
+    charts.doughnut('chartClassification', '', doughnutData);
 
     charts.bar('chartProcurementType', '', barDatasets)
 
@@ -412,3 +407,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
     charts.line('lineChart', shortMonths, { abcs, quotedAmount, disburseAmount }, 'myChartLegend');
 });
+
+

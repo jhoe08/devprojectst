@@ -43,7 +43,7 @@
                             <thead>
                               <tr class="text-uppercase">
                                 <th>ID</th>
-                                <th>Notice Title</th>
+                                <th>Noticess Title</th>
                                 <th>Requistioner</th>
                                 <th>Division</th>
                                 <th>Date</th>
@@ -55,6 +55,7 @@
                                 <th>Unit</th>
                                 <th><%= hasAllowedRole(['Admin']) ? 'Funds Availability' : 'Action' %></th>
                                 <th>Steps</th>
+                                <th>Procurement Type</th>
                               </tr>
                             </thead>
                             <tfoot>
@@ -72,18 +73,21 @@
                                 <th>Unit</th>
                                 <th><%= hasAllowedRole(['Admin']) ? 'Funds Availability' : 'Action' %></th>
                                 <th>Steps</th>
+                                <th>Procurement Type</th>
                               </tr>
                             </tfoot>
                             <tbody>
 
                               <% 
+                                const TRANSACTIONS = transactions;
+
                                 let { division:userDivision, section: userSection, position: userPosition } = (!isGuest()) ? SESSION_USER_LOG.designation : { division:'', section:'', position:'' };
                                 userDivision = userDivision.toLowerCase();
                                 userSection = userSection.toLowerCase();
                                 userPosition = userPosition.toLowerCase();
 
-                                for(var i=0; i < transactions.length; i++) { 
-                                  var {pr_date, approved_budget, product_id, pr_classification, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code, prepared_by } = transactions[i]
+                                for(var i=0; i < TRANSACTIONS.length; i++) { 
+                                  var {pr_date, approved_budget, product_id, pr_classification, procurement_type, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code, prepared_by } = TRANSACTIONS[i]
 
                                   date = moment(pr_date).format('L')
                                  
@@ -92,7 +96,12 @@
 
                                   budget = parseFloat(cleanBudget)
                                   fund_source = JSON.parse(fund_source)
-                                  fund_source = (Object.keys(fund_source).length === 0) ? '-' : fund_source.map(item => `${item.division}-${item.section}`).join(', ');
+                                 
+                                  // fund_source = (Object.keys(fund_source).length === 0) ? '-' : fund_source.map(item => `${item.division}-${item.section}`).join(', ');
+
+                                  // fund_source = (Object.keys(fund_source).length === 0) ? '-' : fund_source.map(item => `${item.source}`)
+
+                                   console.log({ fund_source })
 
                                   const { lists, getCurrentStep, getDetails, getTitle } = STEPS
 
@@ -129,13 +138,13 @@
                                   <td data-head="Division"><%= division %></td>
                                   <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>" data-order="<%= moment(pr_date).unix(); %>"><%= date %></td>
                                   <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>" class="align-right"><%= budget %></td>
-                                  <td data-head="Fund Sources"><%- fund_source -%></td>
+                                  <td data-head="Fund Sources"><%= fund_source %></td>
                                   <td data-head="Codes"><%- trans_code -%></td>
                                   <td data-head="Banner"><%= banner_program %></td>
                                   <td data-head="Classification"><%= pr_classification %></th>
                                   <td data-head="BAC"><%= bac_unit %></td>
                                   <td data-head="Actions">
-                                    <div class="form-button-action" data-transid="<%= product_id %>" data-transaction="<%= JSON.stringify(transactions[i]) %>">
+                                    <div class="form-button-action" data-transid="<%= product_id %>" data-transaction="<%= JSON.stringify(TRANSACTIONS[i]) %>">
                                       <span data-bs-toggle="tooltip" title="View Transactions">
                                         <a href="/transactions/<%= product_id %>/view" data-transid="<%= product_id %>" type="button" class="btn btn-link btn-primary">
                                           <i class="fa fa-eye"></i>
@@ -168,7 +177,7 @@
                                       </button>
                                         <% } %>
                                       <% } %>
-                                      <% if(isCreatorOfTransaction(transactions[i]) && !isComplete) { %>
+                                      <% if(isCreatorOfTransaction(TRANSACTIONS[i]) && !isComplete) { %>
                                       <span data-bs-toggle="tooltip" title="Edit Transaction">
                                       <a href="/transactions/<%= product_id %>/edit" data-transid="<%= product_id %>" type="button"  class="btn btn-link btn-primary" data-original-title="Edit Transaction" data-bs-toggle="tooltip" data-bs-placement="top" data-title="Edit Transaction">
                                         <i class="fa fa-edit"></i>
@@ -199,6 +208,9 @@
                                   </td>
                                   <td data-head="Steps">
                                     <%= current_step %>
+                                  </td>
+                                  <td data-head="Procurement Type">
+                                    <%= procurement_type %>
                                   </td>
                                 </tr>
                               <% } %>

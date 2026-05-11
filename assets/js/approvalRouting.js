@@ -648,7 +648,7 @@ export const publicBiddingMessages = {
     },
     4: {
         initial: {
-            title: "Verify Annual Procurement Plan (APP) asd",
+            title: "Verify Annual Procurement Plan (APP)",
             text: "Click 'Confirm' to proceed with verification of the APP.",
         },
         confirmed: {

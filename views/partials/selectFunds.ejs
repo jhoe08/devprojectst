@@ -22,7 +22,7 @@
 <% } %>
 
 <% 
-  const { charge } = fundSource;
+  const { charge, source, amount } = fundSource;
   const excludeKeys = ["charge", "funds_source"];
 
   const allocations = Object.entries(fundSource)
@@ -37,7 +37,7 @@
       <label for="chargedFunds_0">Allocations</label>
       <div class="input-icon">
         <input id="chargedFunds_0" name="chargedFunds_0" type="text" class="form-control"
-          value="<%= allocations %>" readonly>
+          value="<%= source %>" readonly>
       </div>
     </div>
   </div>
@@ -46,7 +46,7 @@
       <label for="chargedAmount_0">Amount</label>
       <div class="input-icon">
         <input id="chargedAmount_0" name="chargedAmount_0" data-type="number" type="text" class="form-control"
-          value="<%= charge %>" readonly>
+          value="<%= amount %>" readonly>
       </div>
     </div>
   </div>

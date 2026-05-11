@@ -855,7 +855,7 @@ app.use(async (req, res, next) => {
         return null;
       }
     };
-    
+
     const parsedTransactions = transactions?.map(txn => ({
       ...txn,
       prepared_by: safeParsePreparedBy(txn.prepared_by)
@@ -876,12 +876,15 @@ app.use(async (req, res, next) => {
     totalTransactions = filteredTransactions?.length;
 
     try {
-      const { lists: userSession } = JSON.parse(userExperience);
-      const { division, section, position } = userSession?.[0] || {};
+      const { lists: userSession } = JSON.parse(userExperience || '{"lists": [{"office": "Pending", "salary": "", "status": true, "enddate": "present", "section": "Pending", "division": "Pending", "position": "Pending", "startdate": "2025-10-28", "employment": "Contract of Service (COS)", "arrangements": "On-site"}]}');
+      if (userSession?.length) {
+        const { division, section, position } = userSession?.[0] || {};
 
-      userDivision = division?.toUpperCase() || '';
-      userSection = section?.toUpperCase() || '';
-      userPosition = position?.toUpperCase() || '';
+        userDivision = division?.toUpperCase() || '';
+        userSection = section?.toUpperCase() || '';
+        userPosition = position?.toUpperCase() || '';
+      }
+
 
       // Optional: Restore role from DB if needed
       // const roleData = await connection.getCurrentUserRole(employeeid);
@@ -906,7 +909,7 @@ app.use(async (req, res, next) => {
     SESSION_USER: req.session?.user,
     SESSION_USER_LOG: {
       designation: {
-        division: sessionUser ? findDivisionBySection(divisions, userDivision) : null,
+        division: sessionUser ? findDivisionBySection(divisions, userDivision) : 'PENDING',
         section: sessionUser ? userSection : null,
         position: sessionUser ? userPosition : null,
       },
@@ -980,7 +983,23 @@ app.use(async (req, res, next) => {
       market_scopes: JSON.stringify(summaryMarketScopes?.[0])
     },
     STEPS: {
-      lists: approvalStepsSVP,
+      //lists: approvalStepsSVP,
+      lists: (transaction) => {
+        const { STEPS } = res.locals;
+        return STEPS?.getApprovalSteps(transaction);
+      },
+      getApprovalSteps: (transaction) => {
+        if (Number(transaction?.approved_budget || 0) >= 200_000) {
+          return CONST_PB;
+        }
+        return CONST_SVP;
+      },
+      getTotalSteps: (transaction) => {
+        if (Number(transaction.approved_budget) >= 200_000) {
+          return CONST_PB.length;
+        }
+        return CONST_SVP.length;
+      },
       getCurrentProgress: (steps, product_id) => {
         let current_step = getCurrentStep(steps, product_id)
         const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
@@ -993,11 +1012,16 @@ app.use(async (req, res, next) => {
       },
       getDetails: (id) => {
         const { STEPS } = res.locals
-        return STEPS?.lists.find(step => step.id === id);
+        return STEPS?.lists().find(step => step.id === id);
       },
       getTitle: (step_id) => {
         const { STEPS } = res.locals
-        const step = STEPS?.lists.find(step => step.id === step_id);
+        const step = STEPS?.lists().find(step => step.id === step_id);
+        return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
+      },
+      getTitle: (transaction, step_id) => {
+        const { STEPS } = res.locals
+        const step = STEPS?.getApprovalSteps(transaction).find(step => step.id === step_id);
         return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
       },
     },
@@ -1020,12 +1044,48 @@ app.use(async (req, res, next) => {
       generatePRCode: (row) => {
         const requestID = addLeadingZeros(row.product_id)
         return `PR${moment(row.pr_date).format('YYYYMMDD')}-${requestID}`
+      },
+      progressBar: (row) => {
+        const { STEPS, activities } = res.locals;
+        const { getApprovalSteps, getTotalSteps, getCurrentStep, getDetails, getTitle } = STEPS
+
+        const product_id = row.product_id
+        const mapActivities = activities.sort((a, b) => b.id - a.id).filter(activity => activity.product_id === product_id)
+
+        let current_step = getCurrentStep(mapActivities, product_id)
+
+        const current_step_number = current_step?.steps_number
+        const current_step_title = getTitle(row, current_step_number)
+
+        if (current_step_number > 0) {
+          const progress = Number((current_step_number / getTotalSteps(row)) * 100).toFixed(2);
+          
+          var html = `<div class="progress progress-sm sasdsads" style="height: 5px;"><div class="progress-bar" style="width: ${progress}%" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="${current_step_title}"></div></div>`
+
+          return (progress > 0) ? `${row.bid_notice_title} ${html}` : '';
+        }
+
+        return `Unknown for Classic`;
+      },
+      addColumnActions(page, scope) {
+        if (!page) {
+          return false
+        }
+
+        return {
+          ...scope,
+          actions: JSON.stringify({
+            view: `/${page}/${scope.product_id}/view`,
+            update: `/${page}/${scope.product_id}/update`,
+            delete: `/${page}/${scope.product_id}/delete`
+          })
+        };
       }
     },
     userAvailComponents: (component) => {
       // Single component
       if (typeof component === 'string') {
-        return availComponents.includes(component);
+        return availComponents?.includes(component);
       }
 
       // Multiple components
@@ -1173,14 +1233,16 @@ app.use(async (req, res, next) => {
 
 const loadAllTransactions = async (req, res, next) => {
   try {
-    const transactions = await connection.getTransactions();
+    // const transactions = await connection.getTransactions();
+    const transactions = await connection.retrieveTransactions();
     // Sanitize prepared_by field - convert literal "undefined" strings to null
     res.locals.transactions = transactions?.map(tx => ({
       ...tx,
-      prepared_by: (tx.prepared_by === 'undefined' || tx.prepared_by === null || tx.prepared_by === undefined) 
-        ? null 
+      prepared_by: (tx.prepared_by === 'undefined' || tx.prepared_by === null || tx.prepared_by === undefined)
+        ? null
         : tx.prepared_by
     })) || [];
+
     next();
   } catch (error) {
     console.error("Error loading transactions:", error);
@@ -1337,11 +1399,13 @@ app.get('/', restrict, loadAllTransactions, loadAllActivities, loadAllMarketScop
   const [
     totalApprovedBudget,
     countPerPRClassification,
+    countPerProcurementType,
     cardsData,
     dataFromLast7Days
   ] = await Promise.all([
     connection.getTotalApprovedBudget(),
     connection.countPerPRClassification(),
+    connection.countPerProcurementType(),
     connection.cardsData(),
     connection.getDataFromLast7Days('remarks', 'date')
   ]);
@@ -1355,10 +1419,10 @@ app.get('/', restrict, loadAllTransactions, loadAllActivities, loadAllMarketScop
 
   console.log({ safeCardsData })
 
-  const perPRClassification = countPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
-    acc[pr_classification] = item_count;
-    return acc;
-  }, {});
+  // const perPRClassification = countPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
+  //   acc[pr_classification] = item_count;
+  //   return acc;
+  // }, {});
 
 
   if (res.locals.PROCUREMENT.currentLaw !== 'RA120092025') {
@@ -1381,7 +1445,8 @@ app.get('/', restrict, loadAllTransactions, loadAllActivities, loadAllMarketScop
         description: "Department of Agriculture - Regional Field Office 7",
         ...res.locals,
         totalApprovedBudget: JSON.stringify(totalApprovedBudget[0]),
-        perClassification: JSON.stringify(perPRClassification),
+        perClassification: JSON.stringify(countPerPRClassification),
+        perProcurementType: JSON.stringify(countPerProcurementType),
         tableDashboard: JSON.stringify(dataFromLast7Days),
         cardsData: safeCardsData,
       });
@@ -1460,12 +1525,14 @@ app.get('/market-scope/:id/view', restrict, loadAllTransactions, async (req, res
     const tables = await connection.getTransactionById(reference_number)
 
     // Sanitize prepared_by in fetched tables as well
-    const cleanedTables = tables?.map(tx => ({
-      ...tx,
-      prepared_by: (tx.prepared_by === 'undefined' || tx.prepared_by === null || tx.prepared_by === undefined) 
-        ? null 
-        : tx.prepared_by
-    })) || [];
+    const cleanedTables = tables//?.map(tx => ({
+    //   ...tx,
+    //   prepared_by: (tx.prepared_by === 'undefined' || tx.prepared_by === null || tx.prepared_by === undefined)
+    //     ? null
+    //     : tx.prepared_by
+    // })) || [];
+
+    console.log(cleanedTables)
 
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
@@ -1921,6 +1988,44 @@ app.post('/register/new', async (req, res) => {
   }
 })
 
+app.get('/signup', function (req, res) {
+  res.render('register/signup', {
+    title: 'Sign Up',
+    path: res.url
+    // logonUser: user
+  })
+})
+
+app.post('/signup', async function (req, res) {
+  try {
+    const { confirmPassword, referenceid, password, ...data } = req.body
+
+    delete confirmPassword;
+    delete referenceid;
+
+    const passwordHash = bcrypt.hashSync(password, 8);
+
+    const register = await connection.postEmployees(JSON.stringify({ ...data, password: passwordHash, roles: ['Pending'] }))
+
+    if (register?.affectedRows) {
+      const { employeeid } = JSON.parse(data)
+      const notif = {
+        "message": "New user was awaiting for approval",
+        "link": employeeid,
+        "component": "employees",
+        // "created_at": convertDate(new Date())
+      }
+      await connection.postNotifications(JSON.stringify(notif))
+
+      res.redirect('/');
+    }
+    res.status(200).json({ message: 'Account is successfully register', response: register })
+  } catch (error) {
+    console.error('There\'s issue on the system right now:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
 app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
   try {
     const userId = req.session?.user?.employeeid;
@@ -1954,7 +2059,7 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
         return null;
       }
     };
-    
+
     const parsedTransactions = transactions.map(txn => ({
       ...txn,
       prepared_by: safeParsePreparedBy(txn.prepared_by)
@@ -2042,8 +2147,8 @@ app.get('/transactions/new', restrict, loadAllFunds, async (req, res, next) => {
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
         scripts: [
-          '/assets/js/pages/ra12009/transactions.js',
-          // '/assets/js/pages/transactions.js',
+          // '/assets/js/pages/ra12009/transactions.js',
+          '/assets/js/pages/transactions.js',
           // '/assets/js/components/transactions.js'
         ],
         innerContent: '../pages/ra12009/transactions/new',
@@ -2082,19 +2187,10 @@ app.get('/transactions/scan', restrict, async (req, res) => {
 
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
+    // this is now a raw data
     const { assigned_to, marketScopeID, ...transactionData } = req.body;
-    console.log('Received transaction data:', transactionData.prepared_by);
-    if (transactionData.fund_source) {
-      try {
-        const { normalizeLooseJSON, isValidJSON } = await getSharedJsonHelper();
-        const parsed = normalizeLooseJSON(transactionData.fund_source);
-        transactionData.fund_source = JSON.stringify(parsed);
-        transactionData.prepared_by = isValidJSON(transactionData.prepared_by);
-      } catch (err) {
-        console.error('Invalid fund_source JSON received:', transactionData.fund_source, err);
-        return res.status(400).json({ error: 'Invalid fund_source JSON' });
-      }
-    }
+
+    // console.log(fund_source)
 
     const transactions = await connection.postTransactions(transactionData);
 
@@ -2155,72 +2251,80 @@ app.post('/transactions/new', restrict, async (req, res) => {
   }
 })
 
-app.post('/transactions/add', restrict, async (req, res, next) => {
+// app.post('/transactions/add', restrict, async (req, res, next) => {
+//   try {
+//     const { assigned_to, marketScopeID, ...transactionData } = req.body;
+
+//     console.log('before it goes to database', {data: req.body})
+
+//     const transactions = await connection.postPurchaseRequest(transactionData);
+//     if (transactions?.affectedRows) {
+//       const { insertId } = transactions
+//       const data = {
+//         "message": "New transaction was created",
+//         "link": insertId,
+//         "component": "transactions",
+//       }
+//       await connection.postTransactionActivity(JSON.stringify({
+//         steps_number: 2,
+//         product_id: insertId,
+//         status: "pending",
+//         assigned_to,
+//       }))
+//       await connection.postNotifications(JSON.stringify(data))
+
+//       // Step 1: retrieve current value
+//       const rows = await connection.retrieveData(
+//         'market_scoping',
+//         'reference_number',
+//         { id: marketScopeID }
+//       );
+
+//       const currentRef = rows[0]?.reference_number;
+
+//       // Step 2: normalize to array
+//       let refArray;
+//       try {
+//         refArray = JSON.parse(currentRef);
+//         if (!Array.isArray(refArray)) refArray = [currentRef];
+//       } catch {
+//         refArray = [currentRef];
+//       }
+
+//       // Remove null, undefined, and empty string values
+//       refArray = refArray.filter(item => item != null && item !== "");
+
+//       // Step 3: append new insertId
+//       refArray.push(insertId);
+
+//       // Step 4: update back to DB
+//       await connection.amendData(
+//         'market_scoping',
+//         JSON.stringify({
+//           set: { reference_number: JSON.stringify(refArray) },
+//           where: { id: marketScopeID }
+//         })
+//       );
+
+//     }
+
+//     res.status(201).json({ message: 'Purchase Request created successfully!', response: transactions });
+//   } catch (error) {
+//     next(error);
+//   }
+// })
+
+app.patch('/transactions/update', restrict, async (req, res) => {
   try {
-    const { assigned_to, marketScopeID, ...transactionData } = req.body;
-    const transactions = await connection.postPurchaseRequest(transactionData);
-    if (transactions?.affectedRows) {
-      const { insertId } = transactions
-      const data = {
-        "message": "New transaction was created",
-        "link": insertId,
-        "component": "transactions",
-      }
-      await connection.postTransactionActivity(JSON.stringify({
-        steps_number: 2,
-        product_id: insertId,
-        status: "pending",
-        assigned_to,
-      }))
-      await connection.postNotifications(JSON.stringify(data))
-
-      // Step 1: retrieve current value
-      const rows = await connection.retrieveData(
-        'market_scoping',
-        'reference_number',
-        { id: marketScopeID }
-      );
-
-      const currentRef = rows[0]?.reference_number;
-
-      // Step 2: normalize to array
-      let refArray;
-      try {
-        refArray = JSON.parse(currentRef);
-        if (!Array.isArray(refArray)) refArray = [currentRef];
-      } catch {
-        refArray = [currentRef];
-      }
-
-      // Remove null, undefined, and empty string values
-      refArray = refArray.filter(item => item != null && item !== "");
-
-      // Step 3: append new insertId
-      refArray.push(insertId);
-
-      // Step 4: update back to DB
-      await connection.amendData(
-        'market_scoping',
-        JSON.stringify({
-          set: { reference_number: JSON.stringify(refArray) },
-          where: { id: marketScopeID }
-        })
-      );
-
-    }
-
-    res.status(201).json({ message: 'Purchase Request created successfully!', response: transactions });
-  } catch (error) {
-    next(error);
-  }
-})
-
-app.put('/transactions/update', restrict, async (req, res) => {
-  try {
-    const { set } = req.body
+    let data;
+    const { set, where } = req.body
     const { username } = res.locals.SESSION_USER
 
-    const transactions = await connection.putTransactions(JSON.stringify(req.body));
+    set.remarks = JSON.stringify({ remarks: set.remarks })
+
+    data = { set, where }
+
+    const transactions = await connection.putTransactions(JSON.stringify(data));
     if (Object.keys(set).includes("amount")) {
       await connection.putRemarks(JSON.stringify({
         comment: `Add quoted amount of ${set?.amount}`,
@@ -2369,7 +2473,7 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
     const transactions = await connection.getTransactionById(req.params.id);
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: ['/assets/js/pages/ra12009/transactions.js'],
+        scripts: ['/assets/js/pages/transactions.js'],
         innerContent: '../pages/ra12009/transactions/new',
         title: "Update Transactions",
         description: "",
@@ -2838,7 +2942,7 @@ async function getFormData(employeeId = null) {
 //     res.status(500).send('Internal Server Error');
 //   }
 // });
-app.get('/employees/register', restrict, async (req, res) => {
+app.get('/employees/register', async (req, res) => {
   try {
     const { roles, employees } = await getFormData();
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
@@ -3462,6 +3566,94 @@ app.get('/charts/distributions', (req, res) => {
     title: 'Charts - Distributions'
   });
 });
+
+app.get('/purchaseOrder', loadAllActivities, async (req, res) => {
+  try {
+
+    const [transactions, activities] = await Promise.all([
+      connection.getTransactions(),
+      connection.getActivities()
+    ]);
+
+    // const filterActivities = activities?.filter(activity => activity.status == 'pending');
+    const filterTransactionActivitiesSVP = activities?.filter(activity => activity.steps_number >= 13);
+    const filterTransactionActivitiesPublicBidding = activities?.filter(activity => activity.steps_number >= 10)
+
+    const mapActivitiesSVP = filterTransactionActivitiesSVP?.map(activity => {
+      return activity.product_id
+    })
+
+    const mapActivitiesPublicBidding = filterTransactionActivitiesPublicBidding?.map(activity => {
+      return activity.product_id
+    })
+
+    const activitiesSVP_PublicBidding = [...mapActivitiesSVP, ...mapActivitiesPublicBidding];
+    console.log(activitiesSVP_PublicBidding)
+
+    const filterTransactions = transactions?.filter(transaction => activitiesSVP_PublicBidding.includes(transaction.product_id))
+
+    // console.log({ mapActivities, filterTransactions })
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js'], // look for assets/js/misc.js
+        styles: [],
+        innerContent: '../pages/purchaseOrders/index',
+        title: "Purchase Orders",
+        description: "Description here...",
+        _datatables: filterTransactions,
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/disbursementVouchers', loadAllActivities, async (req, res) => {
+  try {
+
+    const [transactions, activities] = await Promise.all([
+      connection.getTransactions(),
+      connection.getActivities()
+    ]);
+
+    // const filterActivities = activities?.filter(activity => activity.status == 'pending');
+    const filterTransactionActivitiesSVP = activities?.filter(activity => activity.steps_number >= 26);
+    const filterTransactionActivitiesPublicBidding = activities?.filter(activity => activity.steps_number >= 22)
+
+    const mapActivitiesSVP = filterTransactionActivitiesSVP?.map(activity => {
+      return activity.product_id
+    })
+
+    const mapActivitiesPublicBidding = filterTransactionActivitiesPublicBidding?.map(activity => {
+      return activity.product_id
+    })
+
+    const activitiesSVP_PublicBidding = [...mapActivitiesSVP, ...mapActivitiesPublicBidding];
+    console.log(activitiesSVP_PublicBidding)
+
+    const filterTransactions = transactions?.filter(transaction => activitiesSVP_PublicBidding.includes(transaction.product_id))
+
+    // console.log({ mapActivities, filterTransactions })
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js'], // look for assets/js/misc.js
+        styles: [],
+        innerContent: '../pages/purchaseOrders/index',
+        title: "Disburement Vouchers",
+        description: "Description here...",
+        _datatables: filterTransactions,
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
 
 // app.use(async function (req, res, next) {
 //   res.status(404).render('404', {

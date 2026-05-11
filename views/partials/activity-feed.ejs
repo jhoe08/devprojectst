@@ -30,7 +30,7 @@
   }
 
   // Prepare reversedSteps feed items
-  STEPS.lists.forEach(function(step) {
+  STEPS.lists().forEach(function(step) {
     if (step.id != 1 && steps.length > 0) {
       const step_id = step.id;
       const current = steps[0]?.steps_number;

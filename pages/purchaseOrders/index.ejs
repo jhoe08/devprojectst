@@ -1,0 +1,29 @@
+<div class="card">
+    <div class="card-header">
+        <div class="card-head-row card-tools-still-right">
+            <div class="card-title">List of <%=title%>
+            </div>
+            <div class="card-tools">
+                <button id="refreshTransactions" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card"
+                    data-component="transactions">
+                    <span class="fa fa-sync-alt"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <%- include('../../components/datatables/tables', { 
+          tableId: "purchaseOrders", 
+          classes: "transactionsTables",
+          thead: Object.keys(_datatables[0] || {}), 
+          tbody: _datatables?.map(txn => ({
+                ...txn,
+                product_id: UTILS.generatePRCode(txn),
+                approved_budget: UTILS.peso(txn.approved_budget),
+                pr_date: moment(txn.pr_date).format('LL'),
+                bid_notice_title: UTILS.progressBar(txn),
+            })), 
+          hideColumns: [] 
+        }) %>
+    </div>
+</div>

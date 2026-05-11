@@ -172,7 +172,7 @@
 
           <% if(Array.isArray(fund_source)) { 
               fund_source.forEach((funds, key)=> {
-              var {division:e_division, section, amount} = funds
+              var {source, amount} = funds
               totalCount += parseFloat(amount);
             %>
             <div id="charging_<%= key %>" class="row" data-id="<%= key %>">

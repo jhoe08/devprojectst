@@ -26,6 +26,7 @@
                 <th>Unit</th>
                 <th><%= hasAllowedRole(['Admin']) ? 'Funds Availability' : 'Action' %></th>
                 <th>Steps</th>
+                <th>Procurement Type</th>
                 </tr>
             </thead>
             <tfoot>
@@ -43,6 +44,7 @@
                 <th>Unit</th>
                 <th><%= hasAllowedRole(['Admin']) ? 'Funds Availability' : 'Action' %></th>
                 <th>Steps</th>
+                <th>Procurement Type</th>
                 </tr>
             </tfoot>
             <tbody>
@@ -57,7 +59,7 @@
                 userPosition = userPosition?.toLowerCase();
 
                 for(var i=0; i < transactions.length; i++) { 
-                    var {pr_date, approved_budget, product_id, pr_classification, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code, prepared_by } = transactions[i]
+                    var {pr_date, approved_budget, product_id, pr_classification, procurement_type, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code, prepared_by } = transactions[i]
 
                     date = moment(pr_date).format('L')
                     
@@ -67,20 +69,23 @@
                     budget = parseFloat(cleanBudget)
                     fund_source = JSON.parse(fund_source)
 
+                    
+
                     var fundsAllocations = ''
                     if (Array.isArray(fund_source)) {
                       fund_source.forEach(item => {
-                        // Build a string with cls_obj_desc and charge
-                        fundsAllocations = `${item.funds_source} | ${item.paps} | ${item.cls_obj_desc}`;
-                      });
+                        fundAllocations = `${item.source}`
+                      })
                     }
+
+                    // console.log({fundAllocations})
 
                     const { lists, getCurrentStep, getDetails, getTitle } = STEPS
 
 
                     let current_step = getCurrentStep(steps, product_id)
                     const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
-                    current_step_title = getTitle(current_step_number)
+                    current_step_title = getTitle(transactions[i], current_step_number)
 
                     const requestID = UTILS.addLeadingZeros(product_id)
                     const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
@@ -110,7 +115,7 @@
                     <td data-head="Division"><%= division %></td>
                     <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>" data-order="<%= moment(pr_date).unix(); %>"><%= date %></td>
                     <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>" class="align-right"><%= budget %></td>
-                    <td data-head="Fund Sources"><%- fundsAllocations -%></td>
+                    <td data-head="Fund Sources"><%= fundAllocations %></td>
                     <td data-head="Codes"><%- trans_code -%></td>
                     <td data-head="Banner"><%= banner_program %></td>
                     <td data-head="Classification"><%= pr_classification %></th>
@@ -180,6 +185,9 @@
                     </td>
                     <td data-head="Steps">
                     <%= current_step %>
+                    </td>
+                    <td data-head="Procurement Type">
+                    <%= procurement_type %>
                     </td>
                 </tr>
                 <% } %>

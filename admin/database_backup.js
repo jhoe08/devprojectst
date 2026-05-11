@@ -76,30 +76,30 @@ function addEmployeeToRole(role_name, employeeid, rolesData) {
 // Converts literal "undefined" strings to null in prepared_by field
 const sanitizeTransactionData = (data) => {
   if (!data) return data;
-  
+
   if (Array.isArray(data)) {
     return data.map(item => {
       if (item && typeof item === 'object' && item.prepared_by) {
         return {
           ...item,
-          prepared_by: (item.prepared_by === 'undefined' || item.prepared_by === null || item.prepared_by === undefined) 
-            ? null 
+          prepared_by: (item.prepared_by === 'undefined' || item.prepared_by === null || item.prepared_by === undefined)
+            ? null
             : item.prepared_by
         };
       }
       return item;
     });
   }
-  
+
   if (data && typeof data === 'object' && data.prepared_by) {
     return {
       ...data,
-      prepared_by: (data.prepared_by === 'undefined' || data.prepared_by === null || data.prepared_by === undefined) 
-        ? null 
+      prepared_by: (data.prepared_by === 'undefined' || data.prepared_by === null || data.prepared_by === undefined)
+        ? null
         : data.prepared_by
     };
   }
-  
+
   return data;
 };
 
@@ -170,6 +170,39 @@ const databaseUtils = {
           c.pr_classification
       ORDER BY 
           c.pr_classification;`
+
+      // Execute the query
+      return new Promise((resolve, reject) => {
+        connection.query(query, (error, results) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+  countPerProcurementType: async () => {
+    try {
+      const query = `
+      WITH procurementTypeList AS (
+          SELECT DISTINCT procurement_type
+          FROM ${tables.transaction}
+      )
+      SELECT 
+          c.procurement_type,
+          COUNT(t.procurement_type) AS item_count
+      FROM 
+          procurementTypeList c
+      JOIN 
+          transid t ON c.procurement_type = t.procurement_type
+      GROUP BY 
+          c.procurement_type
+      ORDER BY 
+          c.procurement_type;`
 
       // Execute the query
       return new Promise((resolve, reject) => {
@@ -334,8 +367,17 @@ const databaseUtils = {
     });
   }),
   postTransactions: async (data) => {
+    let { fund_source, remarks, prepared_by, ...rawData } = data;
+
+    fund_source = JSON.stringify(fund_source)
+    remarks = JSON.stringify(remarks)
+    prepared_by = JSON.stringify(prepared_by)
+
     let enrichedData = {
-      ...data,
+      fund_source,
+      remarks,
+      prepared_by,
+      ...rawData,
       pr_date: convertDate(new Date()) // or use Date.now() for a timestamp
     };
     enrichedData = JSON.stringify(enrichedData)
@@ -344,7 +386,7 @@ const databaseUtils = {
 
   postPurchaseRequest: async (data) => {
     console.log('Posting Purchase Request with data:', data)
-    data = JSON.stringify(data)
+    // data = JSON.stringify(data)
     console.log('Posting Purchase Request with data:', data)
     return await databaseUtils.storeData(tables.transaction, data)
   },
@@ -388,6 +430,7 @@ const databaseUtils = {
   putTransactions: async (data) => {
     // Trap if either is missing, not an object, or empty
     const { set, where } = JSON.parse(data);
+
     if (
       !set || typeof set !== 'object' || Object.keys(set).length === 0 ||
       !where || typeof where !== 'object' || Object.keys(where).length === 0
@@ -571,7 +614,10 @@ const databaseUtils = {
   ////////////////////////////////////////////////////////////////
   // CREATE DATA
   storeData: (table, data) => new Promise((resolve, reject) => {
+
+    console.log('before', { data })
     data = JSON.parse(data)
+    console.log('after', { data })
 
     let keys = Object.keys(data)
     let values = Object.values(data);
@@ -1139,7 +1185,7 @@ const databaseUtils = {
       reviewedDate: reviewed_by_date,
       reviewedSignature: reviewed_by_signature,
     } = data;
-    
+
     console.log('postMarketScope', data);
     // Safely split names and positions
     const [prepared_by_name = null, prepared_by_position = null] =
@@ -1301,7 +1347,9 @@ const databaseUtils = {
       return await databaseUtils.retrieveData(tables.executives, '*', data)
     }
     return await databaseUtils.retrieveData(tables.divisions, '*', data)
-  }
+  },
+
+
 }
 
 module.exports = databaseUtils

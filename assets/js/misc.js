@@ -14,6 +14,17 @@ if (views) {
   })
 }
 
+function progressBar(length, progress, title="Not Yet Set!") {
+  if (progress > 0) {
+    progress = parseInt(progress)
+
+    progress = Number((progress / length) * 100).toFixed(2);
+    var html = `<div class="progress progress-sm" style="height: 5px;"><div class="progress-bar" style="width: ${progress}%" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="${title}"></div></div>`
+  }
+
+  return (progress > 0) ? html : '';
+}
+
 function numberFormat(data) {
   let s = (data + ""), a = s.split(""), out = "", iLen = s.length;
 
@@ -414,6 +425,7 @@ function handleSelectChange() {
 function submitGuestToken() {
   document.getElementById('guestForm').submit();
 }
+
 // DO NOT FUCKING DELETE THIS CODE
 // Initial call to set the time
 // refreshDiv();

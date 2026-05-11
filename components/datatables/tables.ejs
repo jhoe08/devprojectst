@@ -1,6 +1,6 @@
 <table 
   id="<%= tableId %>" 
-  class="table table-striped table-hover table-bordered align-middle"
+  class="<%= typeof classes === 'undefined' ? '' : classes %> table table-striped table-hover table-bordered align-middle"
   <%= (hideColumns && hideColumns.length > 0) 
         ? 'data-hide-columns="' + hideColumns.join(',') + '"' 
         : '' %>>
@@ -25,11 +25,4 @@
   <% }); %>
   </tbody>
 
-  <tfoot class="table-light text-uppercase">
-    <tr>
-      <% thead.forEach(header => { %>
-        <td><%= header %></td>
-      <% }); %>
-    </tr>
-  </tfoot>
 </table>
