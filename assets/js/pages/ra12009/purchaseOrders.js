@@ -21,9 +21,10 @@ $('.transactionsTables').DataTable({
         {
             render: (data, type, row) => {
                 const values = JSON.parse(row[2] || '[]');
-                const html = values.map(val =>
-                    `<span class="badge badge-count">${val}</span>`
-                ).join(' ');
+                const html = values
+                    .filter(val => val && val.trim() !== "") // remove empty or whitespace-only
+                    .map(val => `<span class="badge badge-count">${val}</span>`)
+                    .join(' ');
 
                 // const [classification, procurementType] = JSON.parse(row[9]) || [];
                 const classification = row[5];
@@ -55,7 +56,7 @@ $('.transactionsTables').DataTable({
         {
             render: (data, type, row) => {
                 const fund_source = row[11] || '';
-                
+
                 const source = JSON.parse(fund_source)
 
                 const sources = source.map(item => item.source);
@@ -65,12 +66,12 @@ $('.transactionsTables').DataTable({
                 const values = sources[0].split(',').map(v => v.trim()).filter(Boolean);
 
                 const html = values.map(val => {
-                  // Safely split on " | "
-                  const [fund, meta] = val.split('::')
-                  const [paps, cls, obj, desc, source] = meta.split(' | ').filter(Boolean);
-                  const badgeClass = source === undefined ? 'info' : 'warning';
+                    // Safely split on " | "
+                    const [fund, meta] = val.split('::')
+                    const [paps, cls, obj, desc, source] = meta.split(' | ').filter(Boolean);
+                    const badgeClass = source === undefined ? 'info' : 'warning';
 
-                  return `<span class="badge badge-${badgeClass}" data-bs-toggle="tooltip" data-bs-original-title="${paps}">${cls} | ${obj} | ${desc}</span>`;
+                    return `<span class="badge badge-${badgeClass}" data-bs-toggle="tooltip" data-bs-original-title="${paps}">${cls} | ${obj} | ${desc}</span>`;
                 }).join(' ');
 
                 // const html = sources

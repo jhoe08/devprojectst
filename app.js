@@ -1060,7 +1060,7 @@ app.use(async (req, res, next) => {
 
         if (current_step_number > 0) {
           const progress = Number((current_step_number / getTotalSteps(row)) * 100).toFixed(2);
-          
+
           var html = `<div class="progress progress-sm sasdsads" style="height: 5px;"><div class="progress-bar" style="width: ${progress}%" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="${current_step_title}"></div></div>`
 
           return (progress > 0) ? `${row.bid_notice_title} ${html}` : '';
@@ -3599,8 +3599,8 @@ app.get('/purchaseOrder', loadAllActivities, async (req, res) => {
         scripts: ['/assets/js/pages/ra12009/purchaseOrders.js'], // look for assets/js/misc.js
         styles: [],
         innerContent: '../pages/purchaseOrders/index',
-        title: "Purchase Orders",
-        description: "Description here...",
+        title: "Create a Purchase Orders",
+        description: "Description here.. as.",
         _datatables: filterTransactions,
         ...res.locals,
       });
@@ -3612,29 +3612,39 @@ app.get('/purchaseOrder', loadAllActivities, async (req, res) => {
   }
 });
 
-app.get('/purchaseOrder/:id/create', async (req, res) => {
+app.get('/purchaseOrder/:id/create', loadAllSuppliers, async (req, res) => {
   try {
 
-     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+    const product_id = req.params.id
+    const getSupplierWinner = await connection.getTransactionSuppliers({ transaction_id: product_id, is_winner: 1 })
+
+    const { SUPPLIERS } = res.locals
+    const filterSupplier = SUPPLIERS.filter(txn => txn.id === getSupplierWinner[0].supplier_id)
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
         scripts: [], // look for assets/js/misc.js
         styles: [],
         innerContent: '../pages/purchaseOrders/create',
         title: "Purchase Orders",
+        results: [getSupplierWinner, filterSupplier],
         description: "Description here...",
         ...res.locals,
       });
     // Rendered HTML
     res.status(200).send(renderedHtml)
 
-  } catch (err) {
-
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 
 app.post('/purchaseOrder/:id/create', async (req, res) => {
   try {
-    const product_id = req.params.id
+
+
+
     res.redirect('/purchaseOrder')
   } catch (err) {
     console.error('Error fetching page template:', error);

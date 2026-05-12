@@ -1,52 +1,114 @@
-<form action="/purchase-orders/create" method="POST" class="row g-3">
-    <!-- Order Number -->
-    <div class="col-md-6">
-        <label for="order_number" class="form-label">Order Number</label>
-        <input type="text" id="order_number" name="order_number" class="form-control" required>
-    </div>
+<%
+    const [isWinner, supplierDetails] = results;
 
-    <!-- Product ID (foreign key) -->
-    <div class="col-md-6">
-        <label for="product_id" class="form-label">Product</label>
-        <select id="product_id" name="product_id" class="form-select" required>
-            <!-- These options should be populated dynamically from your products table -->
-            <option value="">Select a product...</option>
-            <option value="1">Product A</option>
-            <option value="2">Product B</option>
-            <option value="3">Product C</option>
-        </select>
-    </div>
+    if (!results) return;
 
-    <!-- Quantity -->
+    const { quoted_price } = isWinner[0];
+    const { supplier_name, contact_person, address } = supplierDetails[0]
+%>
+<div class="row">
     <div class="col-md-4">
-        <label for="quantity" class="form-label">Quantity</label>
-        <input type="number" id="quantity" name="quantity" class="form-control" min="1" required>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                    <div class="card-title">Supplier Details
+                    </div>
+                    <div class="card-tools">
+                        <button id="refreshTransactions"
+                            class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card"
+                            data-component="transactions">
+                            <span class="fa fa-sync-alt"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5><b><%= supplier_name %></b></h5>
+                                <p class="text-muted"><%= address %></p>
+                            </div>
+                            <h3 class="text-info fw-bold"><%= UTILS.peso(quoted_price) %></h3>
+                        </div>
+                        <div class="progress progress-sm">
+                            <div class="progress-bar bg-info w-25" role="progressbar" aria-valuenow="75"
+                                aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <p class="text-muted mb-0">Status</p>
+                            <p class="text-muted mb-0">25%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                    <div class="card-title">Details of <%=title%>
+                    </div>
+                    <div class="card-tools">
+                        <button id="refreshTransactions"
+                            class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card"
+                            data-component="transactions">
+                            <span class="fa fa-sync-alt"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="/purchase-orders/create" method="POST" class="row g-3">
+                    <!-- Order Number -->
+                    <div class="col-md-6">
+                        <label for="order_number" class="form-label">Order Number</label>
+                        <input type="text" id="order_number" name="order_number" class="form-control" required>
+                    </div>
 
-    <!-- Unit Price -->
-    <div class="col-md-4">
-        <label for="unit_price" class="form-label">Unit Price</label>
-        <input type="number" step="0.01" id="unit_price" name="unit_price" class="form-control" required>
-    </div>
+                    <!-- Product ID (foreign key) -->
+                    <div class="col-md-6">
+                        <label for="product_id" class="form-label">Product</label>
+                        <select id="product_id" name="product_id" class="form-select" required>
+                            <!-- These options should be populated dynamically from your products table -->
+                            <option value="">Select a product...</option>
+                            <option value="1">Product A</option>
+                            <option value="2">Product B</option>
+                            <option value="3">Product C</option>
+                        </select>
+                    </div>
 
-    <!-- Order Date -->
-    <div class="col-md-4">
-        <label for="order_date" class="form-label">Order Date</label>
-        <input type="date" id="order_date" name="order_date" class="form-control" required>
-    </div>
+                    <!-- Quantity -->
+                    <div class="col-md-4">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input type="number" id="quantity" name="quantity" class="form-control" min="1" required>
+                    </div>
 
-    <!-- Status -->
-    <div class="col-md-6">
-        <label for="status" class="form-label">Status</label>
-        <select id="status" name="status" class="form-select">
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Completed">Completed</option>
-        </select>
-    </div>
+                    <!-- Unit Price -->
+                    <div class="col-md-4">
+                        <label for="unit_price" class="form-label">Unit Price</label>
+                        <input type="number" step="0.01" id="unit_price" name="unit_price" class="form-control"
+                            required>
+                    </div>
 
-    <!-- Submit -->
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary">Create Purchase Order</button>
+                    <!-- Status -->
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">Status</label>
+                        <select id="status" name="status" class="form-select">
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Create Purchase Order</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-</form>
+</div>
