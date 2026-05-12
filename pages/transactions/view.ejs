@@ -24,7 +24,9 @@
 
     const currentHolder = getCurrentHolderOfTransaction(transactions.product_id)
     let userDetailsExp, employeesInSameDivision = {}
+
     if(currentHolder){
+
       userDetailsExp = getEmployeedDetailsById(currentHolder)
       let raw = getEmployeesInSameDivision(currentHolder);
 

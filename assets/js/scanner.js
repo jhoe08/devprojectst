@@ -14,7 +14,7 @@ if(video && output) {
     // const table = new DataTable('#basic-datatables');
     
     // Access the webcam
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices?.getUserMedia({ video: true })
     .then(stream => {
         video.srcObject = stream;
         video.setAttribute("playsinline", true); // Required for iOS Safari
@@ -63,12 +63,12 @@ if(video && output) {
 
                 let tempTitle, tempCreatedBy = '';
                 if (component === "transactions") {
-                    ({ bid_notice_title: tempTitle, requisitioner: tempCreatedBy } = response);
+                    ({ bid_notice_title: tempTitle, requisitioner: tempCreatedBy, id } = response);
                 } else if (component === "documents") {
                     ({ title: tempTitle, created_by: tempCreatedBy } = response);
                 }
 
-                const tempData = { component, tempTitle, tempCreatedBy };
+                const tempData = { component, tempTitle, tempCreatedBy, id };
                 // console.log('tempData', tempData)
                 // console.log(data && data.length > 0)
                 if (data) {

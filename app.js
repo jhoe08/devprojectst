@@ -1217,8 +1217,12 @@ app.use(async (req, res, next) => {
       return JSON.stringify(employee) || {};
     },
     getCurrentHolderOfTransaction(transaction_id) {
+      const { activities } = res.locals
       const activity = activities
         ?.filter(act => act.product_id === transaction_id && act.status === 'pending' && act.assigned_to);
+
+      console.log( {aaaa: activity} )
+
       return (activity?.length > 0) ? activity[0].assigned_to : false;
     },
     getTransactionMarketScope(id) {
@@ -2347,13 +2351,16 @@ app.post('/transactions/assign', async (req, res) => {
   const assigned_to = res?.locals?.SESSION_USER?.employeeid;
 
   try {
-    const transactions = JSON.parse(rawTransactions); // Ensure it's an array
+
+    const transactions = rawTransactions.replace(/^\[|\]$/g, '')
+      .split(',')                // split into array
+      .map(txn => txn.trim());   // trim spaces
 
     const results = await Promise.all(
       transactions.map(txn => connection.getTransactionByQRCode(txn))
     );
 
-    console.log('Assigning transactions:ASSDA ', { transactions, results });
+    console.log('sssssssssss', { results })
 
     if (results.includes(null)) {
       return res.status(400).json({ status: 400, message: 'One or more transactions not found.' });
