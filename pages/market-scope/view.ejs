@@ -1,8 +1,28 @@
 <%
 
-const TRANSACTIONS = transactions;
+  const TRANSACTIONS = transactions;
 
-const { id:parentId, project_title, reference_number, date_conducted, end_user_unit, consultations_with_suppliers, participation_in_summits, review_reports, review_brochures, price_sourcing, use_philgeps_data, other_activity, documentation, prepared_by_name, prepared_by_position, prepared_by_date, prepared_by_signature, reviewed_by_name, reviewed_by_position, reviewed_by_date, reviewed_by_signature } = results 
+
+  const { id:parentId, project_title, reference_number, date_conducted, end_user_unit, consultations_with_suppliers, participation_in_summits, review_reports, review_brochures, price_sourcing, use_philgeps_data, other_activity, documentation, prepared_by_name, prepared_by_position, prepared_by_date, prepared_by_signature, reviewed_by_name, reviewed_by_position, reviewed_by_date, reviewed_by_signature } = results;
+
+  // Normalize reference_number to array
+  let refArray;
+  try {
+    refArray = JSON.parse(reference_number); // if stored as JSON string
+    if (!Array.isArray(refArray)) refArray = [refArray];
+  } catch {
+    // fallback: split by comma if it's a plain string
+    refArray = typeof reference_number === 'string'
+      ? reference_number.split(',').map(s => s.trim())
+      : [reference_number];
+  }
+
+  // Filter transactions by product_id
+  const filteredTransactions = TRANSACTIONS.filter(txn =>
+    refArray.includes(txn.product_id)
+  );
+
+  // console.log({ reference_number: refArray, filteredTransactions });
 
   const { totalTransactions, market_scopes } = SUMMARY
   const { row_count:total_market_scopes } = JSON.parse(market_scopes || 0)
@@ -202,8 +222,8 @@ const percentagePreparedBy = TRANSACTIONS ? (totalRef / TRANSACTIONS.length) * 1
             userSection = userSection.toLowerCase();
             userPosition = userPosition.toLowerCase();
 
-            for(var i=0; i < transactions.length; i++) { 
-              var {pr_date, approved_budget, product_id, pr_classification, procurement_type, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code, prepared_by } = transactions[i]
+            for(var i=0; i < filteredTransactions.length; i++) { 
+              var {pr_date, approved_budget, product_id, pr_classification, procurement_type, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code, prepared_by } = filteredTransactions[i]
 
               date = moment(pr_date).format('L')
               
@@ -254,7 +274,7 @@ const percentagePreparedBy = TRANSACTIONS ? (totalRef / TRANSACTIONS.length) * 1
               <td data-head="Classification"><%= pr_classification %></th>
               <td data-head="BAC"><%= bac_unit %></td>
               <td data-head="Actions">
-                <div class="form-button-action" data-transid="<%= product_id %>" data-transaction="<%= JSON.stringify(transactions[i]) %>">
+                <div class="form-button-action" data-transid="<%= product_id %>" data-transaction="<%= JSON.stringify(filteredTransactions) %>">
                   <span data-bs-toggle="tooltip" title="View Transactions">
                     <a href="/transactions/<%= product_id %>/view" data-transid="<%= product_id %>" type="button" class="btn btn-link btn-primary">
                       <i class="fa fa-eye"></i>
@@ -287,7 +307,7 @@ const percentagePreparedBy = TRANSACTIONS ? (totalRef / TRANSACTIONS.length) * 1
                   </button>
                     <% } %>
                   <% } %>
-                  <% if(isCreatorOfTransaction(transactions[i]) && !isComplete) { %>
+                  <% if(isCreatorOfTransaction(filteredTransactions) && !isComplete) { %>
                   <span data-bs-toggle="tooltip" title="Edit Transaction">
                   <a href="/transactions/<%= product_id %>/edit" data-transid="<%= product_id %>" type="button"  class="btn btn-link btn-primary" data-original-title="Edit Transaction" data-bs-toggle="tooltip" data-bs-placement="top" data-title="Edit Transaction">
                     <i class="fa fa-edit"></i>

@@ -518,7 +518,7 @@ const department = {
         CORN: {
           stands: "Corn Program",
           email: "",
-          responsible: { employeeid: "180", name: "Luvinia A. Corpus" },
+          responsible: { employeeid: "180", name: "Roy Manzano" },
           admin: "",
         },
         HVCDP: {
@@ -1528,6 +1528,8 @@ app.get('/market-scope/:id/view', restrict, loadAllTransactions, async (req, res
 
     const { project_title, reference_number } = innerHTML[0];
     const tables = await connection.getTransactionById(reference_number)
+
+    console.log({ tables })
 
     // Sanitize prepared_by in fetched tables as well
     const cleanedTables = tables//?.map(tx => ({
