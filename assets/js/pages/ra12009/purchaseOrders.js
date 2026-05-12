@@ -33,7 +33,6 @@ $('.transactionsTables').DataTable({
                     <span data-head="Procurement Type" class="badge badge-primary mr-2">${procurementType}</span>
                 `;
 
-                console.log(row)
                 return `
                     <div class="d-flex justify-content-between">
                         <div>
@@ -55,19 +54,26 @@ $('.transactionsTables').DataTable({
         },
         {
             render: (data, type, row) => {
-                const raw = row[11] || '';
-                // const values = raw.split(',').map(v => v.trim()).filter(Boolean);
+                const fund_source = row[11] || '';
+                
+                const source = JSON.parse(fund_source)
 
-                // const html = values.map(val => {
-                //   // Safely split on " | "
-                //   const [fund, meta] = val.split('::')
-                //   const [paps, cls, obj, desc, source] = meta.split(' | ').filter(Boolean);
-                //   const badgeClass = source === undefined ? 'info' : 'warning';
+                const sources = source.map(item => item.source);
 
-                //   return `<span class="badge badge-${badgeClass}" data-bs-toggle="tooltip" data-bs-original-title="${paps}">${cls} | ${obj} | ${desc}</span>`;
-                // }).join(' ');
+                // console.log(sources)
 
-                const html = raw
+                const values = sources[0].split(',').map(v => v.trim()).filter(Boolean);
+
+                const html = values.map(val => {
+                  // Safely split on " | "
+                  const [fund, meta] = val.split('::')
+                  const [paps, cls, obj, desc, source] = meta.split(' | ').filter(Boolean);
+                  const badgeClass = source === undefined ? 'info' : 'warning';
+
+                  return `<span class="badge badge-${badgeClass}" data-bs-toggle="tooltip" data-bs-original-title="${paps}">${cls} | ${obj} | ${desc}</span>`;
+                }).join(' ');
+
+                // const html = sources
 
                 return `
                     <div class="d-flex flex-column text-end">
@@ -80,17 +86,32 @@ $('.transactionsTables').DataTable({
             title: 'ABC'
         },
         {
+            render: (data, type, row) => {
+                return `
+                    <div class="form-button-action" data-transid="2">
+                        <span data-bs-toggle="tooltip" aria-label="View Transactions" data-bs-original-title="View Transactions">
+                            <a href="/transactions/${row[15]}/view" data-transid="${row[15]}" type="button" class="btn btn-link btn-primary">
+                                <i class="fa fa-eye"></i>
+                            </a>
+                        </span>
+                        <span data-bs-toggle="tooltip" aria-label="Create Purchase Order" data-bs-original-title="Create Purchase Order">
+                            <a href="/purchaseOrder/${row[15]}/create" data-product-id="${row[15]}" type="button" class="btn btn-link btn-success">
+                                <i class="fas fa-cart-plus"></i>
+                            </a>
+                        </span>
+                    </div>
+                `
+            },
             targets: 3,
             title: 'Actions'
         },
-        {
-            render: (data, type, row) => {
-                const parser = new DOMParser();
-                return parser.parseFromString(data, 'text/html').body.innerHTML; // if row[13] contains your progressBar HTML
-            },
-            targets: 13,
-        },
-        // { visible: true, targets: [1, 2, 3] }, //[4, 6, 10, 12, -1]
-        // { visible: false, targets: '_all' },
+        // {
+        //     render: (data, type, row) => {
+        //         return data
+        //     },
+        //     targets: 13,
+        // },
+        { visible: true, targets: [1, 2, 3] }, //[4, 6, 10, 12, -1]
+        { visible: false, targets: '_all' },
     ]
 })

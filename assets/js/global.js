@@ -306,8 +306,6 @@ const charts = {
         labels = Object.keys(keysAsArrays)
         data = Object.values(keysAsArrays)
 
-        console.log({ keysAsArrays, labels, data })
-
         data = {
             labels: labels,
             datasets: [{
@@ -385,6 +383,8 @@ document.addEventListener("DOMContentLoaded", function () {
     charts.doughnut('chartClassification', '', doughnutData);
 
     charts.bar('chartProcurementType', '', barDatasets)
+
+    console.log({ pieLabels, piePoints })
 
     charts.pie('chartDistribution', pieLabels, piePoints);
 

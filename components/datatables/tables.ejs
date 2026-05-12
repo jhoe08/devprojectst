@@ -19,7 +19,7 @@
   <% tbody.forEach(list => { %>
     <tr>
     <% Object.entries(list).forEach(([key, value], index) => { %>
-      <td data-index="<%= index %>"><%= value %></td>
+      <td data-index="<%= index %>"><%- value %></td>
     <% }); %>
     </tr>
   <% }); %>

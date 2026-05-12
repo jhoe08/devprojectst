@@ -15,13 +15,14 @@
         <%- include('../../components/datatables/tables', { 
           tableId: "purchaseOrders", 
           classes: "transactionsTables",
-          thead: Object.keys(_datatables[0] || {}), 
+          thead: [...Object.keys(_datatables[0] || {}), "refno"], 
           tbody: _datatables?.map(txn => ({
                 ...txn,
                 product_id: UTILS.generatePRCode(txn),
                 approved_budget: UTILS.peso(txn.approved_budget),
                 pr_date: moment(txn.pr_date).format('LL'),
                 bid_notice_title: UTILS.progressBar(txn),
+                refNo: txn.product_id,
             })), 
           hideColumns: [] 
         }) %>

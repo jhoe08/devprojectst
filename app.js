@@ -3609,6 +3609,36 @@ app.get('/purchaseOrder', loadAllActivities, async (req, res) => {
     console.error('Error fetching page template:', error);
     res.status(500).send('Internal Server Error');
   }
+});
+
+app.get('/purchaseOrder/:id/create', async (req, res) => {
+  try {
+
+     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: [], // look for assets/js/misc.js
+        styles: [],
+        innerContent: '../pages/purchaseOrders/create',
+        title: "Purchase Orders",
+        description: "Description here...",
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+
+  } catch (err) {
+
+  }
+})
+
+app.post('/purchaseOrder/:id/create', async (req, res) => {
+  try {
+    const product_id = req.params.id
+    res.redirect('/purchaseOrder')
+  } catch (err) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
 })
 
 app.get('/disbursementVouchers', loadAllActivities, async (req, res) => {

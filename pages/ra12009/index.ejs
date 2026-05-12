@@ -1,13 +1,4 @@
 <% 
-  // const { transactions } = cardsData
-  
-  // Destructuring the object
-  /* const {
-    employees: { row_count: employeesRowCount, total_sum: employeesTotalSum },
-    transactions: { row_count: transactionsRowCount, total_sum: transactionsTotalSum },
-    notifications: { row_count: notificationsRowCount, total_sum: notificationsTotalSum }
-  } = cardsData; */
-
   
   const employeesRowCount = cardsData?.employees?.row_count || 0;
   const employeesTotalSum = cardsData?.employees?.total_sum || 0;
@@ -19,9 +10,6 @@
   let componentTransaction = transactions
   let componentActivity = activities
 
-
-  // componentTransaction = JSON.parse(JSON.stringify(componentTransaction))
-
   const parseAmount = (str) => {
     if (typeof str !== 'string') return 0; // trap undefined/null/non-string
     return parseFloat(str.replace(/,/g, '').trim()) || 0;
@@ -30,26 +18,11 @@
 
   const monthlyTotals = {};
 
-  /* componentTransaction.forEach(({ pr_date, fund_source }) => {
-    const month = new Date(pr_date).toLocaleString('default', { month: 'long', year: 'numeric' });
-    fund_source = JSON.parse(fund_source);
-    const totalAmount = fund_source.reduce((sum, entry) => sum + parseAmount(entry?.amount), 0);
-
-    console.log('Monthly', month);
-
-    monthlyTotals[month] = (monthlyTotals[month] || 0) + totalAmount;
-  }); */
-
   // Step 1: Initialize all months with zero
   const allMonths = Array.from({ length: 12 }, (_, i) => {
     const date = new Date(2025, i); // Use any year
     return date.toLocaleString('default', { month: 'long', year: 'numeric' });
   });
-
-  // allMonths.forEach(month => {
-  //  monthlyTotals[month] = 0;
-  // });
-
 
   // Step 2: Process transactions
   componentTransaction.forEach(({ pr_date, fund_source }) => {
@@ -73,15 +46,11 @@
   // Instead of  totalAmount
 
   monthlyTotals[month] += 1;
-
-  console.log({ month, totalAmount, monthlyTotals });
 });
 
   const months = Object.entries(monthlyTotals).map(([key, _]) => key.split(" ")[0]);
   const jsonMonths = JSON.stringify(months);
   const _abcs_values = Object.entries(monthlyTotals).map(([_, value]) => value);
-
-  console.log('Logs Values', monthlyTotals)
 
   const latestStepsByProduct = {}
   const latestStepsByProduct2 = {}
@@ -96,21 +65,25 @@
         latestStepsByProduct2[steps_number] = [];
       }
       if(status === 'pending') {
-        latestStepsByProduct2[steps_number].push(product_id);
+        const transactions = componentTransaction.filter(
+            txn => txn.product_id === product_id
+        );
+        // latestStepsByProduct2[steps_number].push(product_id);
+        latestStepsByProduct2[steps_number].push({ transactions, product_id});
       }
     } 
   })
 
-  // const stepsIndex = Object.values(latestStepsByProduct).map(key => STEPS.getTitle(Number(key)));
-  // const stepsValues = Object.keys(latestStepsByProduct)
+  console.log({ latestStepsByProduct2 })
 
   const stepsIndex = Object.keys(latestStepsByProduct2).map(key => STEPS.getTitle(Number(key)));
   const stepsValues = Object.values(latestStepsByProduct2).map(productIds => {
     const length = productIds.length
-    // console.log('Distribution', length)
-    // const title = STEPS.getTitle(Number(length))
+    console.log('Distribution', length)
+    const title = STEPS.getTitle(Number(length))
     return length
   });
+
 %>
 
 <div class="row <%= hasAllowedRole(['Admin', 'SuperAdmin']) ? '' : 'hidden' %>">
