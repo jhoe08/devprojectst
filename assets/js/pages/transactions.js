@@ -357,7 +357,6 @@ export default function configTransactions() {
             .map(val => `<span class="badge badge-count">${val}</span>`)
             .join(' ');
 
-
           // const [classification, procurementType] = JSON.parse(row[9]) || [];
           const classification = row[9];
           const procurementType = row[13]
