@@ -74,7 +74,7 @@ const utils = {
     for (let division in arr) {
       if (arr[division].sections[searchItem]) return division
     }
-    return null
+    return 'PENDING'
   },
   toCapitalize(str) {
     if (str && typeof str === 'string') {

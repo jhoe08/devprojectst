@@ -1,8 +1,8 @@
 <%
   const { employeeid, username, firstname, lastname, contacts, others } = SESSION_USER
   let { experience } = SESSION_USER
-  const { email } = JSON.parse(contacts)
-  const { gender } = JSON.parse(others)
+  const { email } = JSON.parse(contacts || '{"email": "", "mobile": ""}')
+  const { gender } = JSON.parse(others || '{"gender": "n/a", "civilstatus": "single"}')
 
   const profilePic = (gender=='Male') ? 'profile-1' : (gender=='Female') ? 'profile-2' : 'profile-unknown'
 %>

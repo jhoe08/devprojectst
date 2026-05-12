@@ -13,19 +13,19 @@ const login = {
 
             // Check each field to see if it's empty
             for (let field of fields) {
-            if (!field.value.trim()) {
-                allFilled = false;
-                break; // Exit loop if any field is empty
-            }
+                if (!field.value.trim()) {
+                    allFilled = false;
+                    break; // Exit loop if any field is empty
+                }
             }
 
             // If any field is empty, prevent form submission
             if (!allFilled) {
-            event.preventDefault(); // Prevent form submission
-            // alert('Please fill out all fields before submitting.');
-            $.notify({ icon: 'icon-bell', title: 'Empty fields', message: 'Please fill out all fields before submitting.' },
-                { type: 'danger', placement: { from: "top", align: "right" },
-                time: 1000});
+                event.preventDefault(); // Prevent form submission
+                // alert('Please fill out all fields before submitting.');
+                $.notify({ icon: 'icon-bell', title: 'Empty fields', message: 'Please fill out all fields before submitting.' },
+                    { type: 'danger', placement: { from: "top", align: "right" },
+                    time: 1000});
             }
         });
         if(message == 404) {

@@ -1,7 +1,8 @@
 
 <%
-  const notifications = JSON.parse(NOTIFICATIONS)
+  const notifications = JSON.parse(NOTIFICATIONS  || {});
   const notifs_length = notifications.length;
+
 %>
 
   <li class="nav-item topbar-icon dropdown hidden-caret">
@@ -22,7 +23,7 @@
       aria-labelledby="notifDropdown"
     >
     <!-- NOTIFICATIONS -->
-      <% if (notifs_length === 0) { %>
+      <% if (notifs_length !== 0) { %>
       <li class="">
         <div class="dropdown-title">
           You have <span class="countNotif"><%= notifs_length %></span> new notification
@@ -62,7 +63,7 @@
                 <i class="fa fa-<%=icon%>"></i>
               </div>
               <div class="notif-content">
-                <span class="block"> <%=message%> </span>
+                <span class="block"><%=message%> </span>
                 <span class="time" data-created="<%-created_at%>"><%=date%></span>
               </div>
             </a>

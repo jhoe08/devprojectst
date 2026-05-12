@@ -14,10 +14,10 @@
   var requested_by = fullname
   var fund_source = '{}'
   if(transactions) {
-    var {requisitioner:requested_by, division: e_division, fund_source } = transactions
+    var {product_id, requisitioner:requested_by, division: e_division, fund_source } = transactions
   }
 %>
-<div class="wrapper" data-null-user="<%=fullname%>">
+<div class="wrapper" data-null-user="<%=fullname%>" data-transaction-id="<%= transactions ? product_id : '' %>">
   <%- include('../../views/sidebar') -%>
 
   <div class="main-panel">
@@ -45,7 +45,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-md-12 col-lg-12 col-xl-6">
+          <div class="col-md-12 col-lg-12 col-xl-5">
             <div class="card hidden">
               <div class="card-header">
                 <div class="card-head-row card-tools-still-right">
@@ -87,18 +87,23 @@
                       
                     </div>
                     <div class="col-md-6">
-                      <div class="form-group form-group-default">
-                        <label for="prClassification">Classification</label>  
-                        <% var classification = predata.classification %>
+                      <div class="form-group form-group-default form-group-select">
+                        <label for="prClassification">Classification</label>
+                        <%
+                          const classification = predata.classification || [];
+                          const selectedClass = transactions?.pr_classification || 'Others';
+                        %>
                         <select id="prClassification" name="prClassification" class="form-select">
-                          <% for(var i=0; i < classification.length; i++) { %>
-                          <option value="<%= classification[i] %>" <%- (transactions?.pr_classification == classification[i]) ?'selected':''  %>><%= classification[i] %></option>
-                          <% } %>
+                          <% classification.forEach(item => { %>
+                            <option value="<%= item %>" <%= item === selectedClass ? 'selected' : '' %>>
+                              <%= item %>
+                            </option>
+                          <% }) %>
                         </select>
                       </div>
                     </div>
                     <div class="col-md-6">
-                      <div class="form-group form-group-default">
+                      <div class="form-group form-group-default form-group-select">
                         <label for="procurementType">Procurement Type</label>  
                         <% var procurementType = modesOfProcurement %>
                         <select id="procurementType" name="procurementType" class="form-select">
@@ -123,7 +128,7 @@
                         <div class="input-group">
                         <span class="input-group-text">₱</span>
                         
-                        <input id="budget" name="budget" data-type="number" type="text" class="form-control mt-0" value="<%-budget%>" readonly>
+                        <input id="budget" name="budget" type="text" class="form-control mt-0" value="<%-budget%>">
                         </div>
                       </div>
                     </div>                   
@@ -137,7 +142,7 @@
                       </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="form-group form-group-default">
+                        <div class="form-group form-group-default form-group-select">
                             <label for="bacUnit">BAC Unit</label>  
                             <% var bacUnit = predata.bac_unit %>
                             <select id="bacUnit" name="bacUnit" class="form-select">
@@ -151,84 +156,127 @@
                 </div>
               </div>
             </div>
-          </div>
-          <div class="col-md-12 col-lg-12 col-xl-6">
-              <div class="card">
-                  <div class="card-header">
-                      <div class="card-head-row card-tools-still-right">
-                          <h4 class="card-title">Fund Source [Charging To:]</h4>
-                          <div class="card-tools transcations-code text-uppercase form-group-add">
-                              <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
-                                  <span class="fa fa-plus"></span>
-                                </button>
-                          </div>
-                      </div>
+             <% if (transactions) { %>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Market Scoping Activity</h4>
+                  <div class="card-tools">
+                    <a href="market-scope" class="btn btn-label-info btn-round btn-sm">
+                      <span class="btn-label">
+                        <i class="fa fa-bookmark"></i>
+                      </span>
+                      View Document
+                    </a>
                   </div>
-                  <% 
-                    var totalCount = 0
-                    fund_source = JSON.parse(fund_source)
-                  %>
-               
-                  <div class="card-body" id="chargingTo" data-transactions="<%= JSON.stringify(transactions) %>">
-                 
-                  <% if(Array.isArray(fund_source)) {
-
-                    fund_source.forEach((funds, key) => { 
-                      var {division:e_division, section, amount} = funds 
-                      totalCount += parseFloat(amount);
-                      %>
-                    <div id="charging_<%= key %>" class="row" data-id="<%= key %>">
-                      <div class="col-md-9">
-                        <div class="col-md-1 col-xs-1" style="padding-right: 0;">
-                          <div class="form-group form-group-default form-group-minus">
-                              <label for="minusButton_<%= key %>">Rmv</label>
-                              <button id="minusButton_<%= key %>" class="form-control fas fa-minus-circle"></button>
-                          </div>
-                        </div>
-                        <div class="col-md-8 ml-0">
-                            <%- include('../../views/partials/selectDivisions', { key, filtered: (transactions) ? section : '' }) %>
-                        </div>
-                      </div>
-                      
-                      <div class="col-md-3">
-                        <div class="form-group form-group-default">
-                          <label for="unitCount_<%= key %>">Amount</label>
-                          <div class="input-icon">
-                            <input id="unitCount_<%= key %>" name="unitCount" data-type="number" type="text" class="form-control" value="<%= amount %>">
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  <% }) } else { %>
-                    <div class="row" id="charging_0" data-id="0">
-                      <div class="col-md-8 d-flex">
-                        <div class="col-md-2">
-                          <div class="form-group form-group-default form-group-minus">
-                            <label for="minusButton_0">Rmv</label>
-                            <button id="minusButton_0" class="form-control fas fa-minus-circle"></button>
-                          </div>
-                        </div>
-                        <div class="col-md-10">
-                          <%- include('../../views/partials/selectDivisions', { key: 0, filtered: (transactions) ? section : ''}) %>
-                        </div>
-                      </div>
-                      <div class="col-md-4">
-                        <div class="form-group form-group-default">
-                          <label for="unitCount_0">Amount</label>
-                          <div class="input-icon">
-                            <input id="unitCount_0" name="unitCount" data-type="number" type="text" class="form-control" value="">
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  <% } %>
-                  
-                  </div>
+                </div>
               </div>
+              <div class="card-body">
+                <p data-template="Market scoping activities for the Procurement of ICT Equipment FY2026 (PR-2026-00123) were conducted from January 5–10, 2026 by the ICT Unit, RFO VII in compliance with Section 10 of RA 12009 and its IRR. The team participated in summits and conferences, reviewed technical and financial reports, and examined product brochures and industry publications. These activities provided sufficient market insights to guide procurement planning, ensuring proportionality and alignment with the Project Procurement Management Plan.">Market scoping activities for the {Particulars} (PR #) were conducted from {Date Conducted} by the {End-User},{Implementing Unit} in compliance with Section 10 of RA 12009 and its IRR. {Activities Conducted}. These activities provided sufficient market insights to guide procurement planning, ensuring proportionality and alignment with the Project Procurement Management Plan.</p>
+              </div>
+            </div>
+            <% } %>
           </div>
+          <div class="col-md-12 col-lg-12 col-xl-7">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Charged To:</h4>
+                  <div class="card-tools transcations-code text-uppercase form-group-add">
+                    <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
+                      <span class="fa fa-plus"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <% 
+                var totalCount = 0
+                fund_source = JSON.parse(fund_source)
+                const _hidden = true
+              %>
+            
+              <div class="card-body" id="chargingTo" data-transactions="<%= JSON.stringify(transactions) %>">
+              
+              <% if(Array.isArray(fund_source)) {
+
+                fund_source.forEach((funds, key) => { 
+                  var {division:e_division, section, amount} = funds 
+                  totalCount += parseFloat(amount);
+                  %>
+                <div id="charging_<%= key %>" class="row" data-id="<%= key %>">
+                  <div class="col-md-9 d-flex">
+                    <div class="col-md-1 col-xs-1" style="padding-right: 0;">
+                      <div class="form-group form-group-default form-group-minus">
+                          <label for="minusButton_<%= key %>">Rmv</label>
+                          <button id="minusButton_<%= key %>" class="form-control fas fa-minus-circle"></button>
+                      </div>
+                    </div>
+                    <div class="col-md-11 ml-0">
+                        <%- include('../../views/partials/selectDivisions', { key, filtered: (transactions) ? section : '' }) %>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-3">
+                    <div class="form-group form-group-default">
+                      <label for="unitCount_<%= key %>">Amount</label>
+                      <div class="input-icon">
+                        <input id="unitCount_<%= key %>" name="unitCount" data-type="number" type="text" class="form-control" value="<%= amount %>">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% }) } else { %>
+                <div class="row" id="charging_0" data-id="0">
+                  <div class="col-md-12 d-flex">
+                    <div class="col-md-1">
+                      <div class="form-group form-group-default form-group-minus">
+                        <label for="minusButton_0">Rmv</label>
+                        <button id="minusButton_0" class="form-control fas fa-minus-circle"></button>
+                      </div>
+                    </div>
+                    <div class="col-md-11">
+                      <%- include('../../views/partials/selectFunds') %>
+                    </div>
+                  </div>
+                  <% if (_hidden) { %>
+                  <div class="col-md-3 hidden">
+                    <div class="form-group form-group-default">
+                      <label for="unitCount_0">Amount</label>
+                      <div class="input-icon">
+                        <input id="unitCount_0" name="unitCount" data-type="number" type="text" class="form-control" value="">
+                      </div>
+                    </div>
+                  </div>
+                  <% } %>
+                </div>
+              <% } %>
+              
+              </div>
+            </div>
+          </div>
+          <!-- <div class="col-md-12 col-lg-12 col-xl-6">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-head-row card-tools-still-right">
+                  <h4 class="card-title">Other Details:</h4>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group form-group-default">
+                  <label for="deliveryTo">Deliver To:</label>
+                  <textarea id="deliveryTo" name="deliveryTo" class="form-control" rows="3" spellcheck="false"></textarea>
+                </div>
+                <div class="form-group form-group-default">
+                  <label for="deliveryPeriod">Deliver Period:</label>
+                  <textarea id="deliveryPeriod" name="deliveryPeriod" class="form-control" rows="3" spellcheck="false"></textarea>
+                </div>
+              </div>
+            </div>
+          </div> -->
         </div>
       </div>
     </div>
 </div>
+<%- include('../../components/modals/transactions/funds') %>
 <!-- Footer Template -->
 <%- include('../../views/footer') -%>

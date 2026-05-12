@@ -4,8 +4,22 @@
 <% if(experience) { 
     var { lists } = JSON.parse(experience)
     var { office, salary, startdate, enddate, position, division, section } = lists[0] 
-    
  } 
+
+  const dateOfBirth = new Date(birthdate); // example
+  const today = new Date();
+  let age = today.getFullYear() - dateOfBirth.getFullYear();
+
+  // adjust if birthday hasn't happened yet this year
+  const hasBirthdayPassed =
+    today.getMonth() > birthdate.getMonth() ||
+    (today.getMonth() === birthdate.getMonth() && today.getDate() >= birthdate.getDate());
+
+  if (!hasBirthdayPassed) {
+    age--;
+  }
+
+
  if(contacts) {
     var {email, mobile} = JSON.parse(contacts)
  }
@@ -21,40 +35,53 @@
         <link rel="stylesheet" href="/assets/css/employees/profile.css" />
         <div class="row">
             <div class="col-lg-4 col-xl-4">
-                <div class="card-box text-center">
-                    <img src="https://bootdey.com/img/Content/avatar/avatar7.png" class="rounded-circle avatar-xl img-thumbnail" alt="profile-image">
-        
-                    <h4 class="mb-0"><%= firstname +" "+ lastname %></h4>
-                    <p class="text-muted"><%= (username) ? `@${username}` : '' %></p>
-        
-                    <button type="button" class="btn btn-success btn-xs waves-effect mb-2 waves-light">Follow</button>
-                    <button type="button" class="btn btn-danger btn-xs waves-effect mb-2 waves-light">Message</button>
-        
-                    <div class="text-left mt-3">
-                        <h4 class="font-13 text-uppercase">About Me :</h4>
-                        <p class="text-muted mb-2 font-13"><strong>Full Name :</strong> <span class="ml-2"><%= firstname +" "+ middlename +" "+ lastname %></span></p>
-        
-                        <p class="text-muted mb-2 font-13"><strong>Position :</strong><span class="ml-2"> <%= position %></span></p>
-                        <p class="text-muted mb-2 font-13 <%= mobile ?'': 'hidden' %>"><strong>Mobile :</strong><span class="ml-2"> <%= mobile??'N/A' %></span></p>
-                        <p class="text-muted mb-2 font-13 <%= email ?'': 'hidden' %>"><strong>Email :</strong> <span class="ml-2 "> <%= email??'N/A' %></span></p>
-                        <!-- <p class="text-muted mb-1 font-13"><strong>Location :</strong> <span class="ml-2">USA</span></p> -->
+                <div class="card card-profile">
+                  <div class="card-header" style="background-color: cornsilk;">
+                    <div class="profile-picture">
+                      <div class="avatar avatar-xl">
+                        <span class="avatar-title rounded-circle">J</span>
+                      </div>
                     </div>
-
-                    <ul class="social-list list-inline mt-3 mb-0">
-                        <li class="list-inline-item">
-                            <a href="javascript: void(0);" class="social-list-item border-purple text-purple"><i class="fab fa-facebook"></i></a>
-                        </li>
-                        <li class="list-inline-item">
-                            <a href="javascript: void(0);" class="social-list-item border-danger text-danger"><i class="fab fa-google"></i></a>
-                        </li>
-                        <li class="list-inline-item">
-                            <a href="javascript: void(0);" class="social-list-item border-info text-info"><i class="fab fa-twitter"></i></a>
-                        </li>
-                        <li class="list-inline-item">
-                            <a href="javascript: void(0);" class="social-list-item border-secondary text-secondary"><i class="fab fa-github"></i></a>
-                        </li>
-                    </ul>
-                </div> <!-- end card-box -->
+                  </div>
+                  <div class="card-body">
+                    <div class="user-profile text-center">
+                      <div class="name"><%= [firstname, middlename, lastname].filter(Boolean).join(' ') %>, <%= age || 0 %></div>
+                      <div class="job"><%= position %></div>
+                      <div class="desc">A man who hates loneliness</div>
+                      <div class="social-media">
+                        <a class="btn btn-info btn-twitter btn-sm btn-link" href="#">
+                          <span class="btn-label just-icon"><i class="icon-social-twitter"></i>
+                          </span>
+                        </a>
+                        <a class="btn btn-primary btn-sm btn-link" rel="publisher" href="#">
+                          <span class="btn-label just-icon"><i class="icon-social-facebook"></i>
+                          </span>
+                        </a>
+                        <a class="btn btn-danger btn-sm btn-link" rel="publisher" href="#">
+                          <span class="btn-label just-icon"><i class="icon-social-instagram"></i>
+                          </span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-footer">
+                    <div class="row user-stats text-center">
+                      <div class="col">
+                        <div class="number">125</div>
+                        <div class="title">to be award</div>
+                      </div>
+                      <div class="col">
+                        <div class="number">25K</div>
+                        <div class="title">to be review</div>
+                      </div>
+                      <div class="col">
+                        <div class="number">134</div>
+                        <div class="title">created pr's</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- end card-box -->
         
                 <div class="card-box">
                     <h4 class="header-title">Office Location</h4>

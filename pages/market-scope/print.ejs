@@ -1,0 +1,462 @@
+<%
+    const { id:parentId, project_title, reference_number, date_conducted, end_user_unit, consultations_with_suppliers, participation_in_summits, review_reports, review_brochures, price_sourcing, use_philgeps_data, other_activity, documentation, prepared_by_name, prepared_by_position, prepared_by_date, prepared_by_signature, reviewed_by_name, reviewed_by_position, reviewed_by_date, reviewed_by_signature } = results[0] || {}
+    
+    const { scoping_id:refId, results:scopingResults, document_reference, created_at, updated_at } = results[1] || {}
+    
+    const { project_cost, project_design, technical_criteria, delivery_leadtime, storage, risks } = (scopingResults && scopingResults !== "undefined") ? JSON.parse(scopingResults) : {}
+%>
+
+<style>
+    @page {
+        margin: 0mm 0mm 25mm;
+        @bottom-left {
+            content: "Page " counter(page) " of " counter(pages) " | Market Scoping Checklist";
+            margin-left: 10mm;
+        }
+        /* @bottom-center {
+            content: "Page " counter(page) " of " counter(pages) " | Market Scoping Checklist";
+        }
+        @bottom-right {
+            content: "Page " counter(page) " of " counter(pages) " | Market Scoping Checklist";
+        } */
+    }
+
+    /* First-page background/header for print only.
+    Replace 'header-bg.png' with your image path or remove background-image to use color only. */
+    @page :first {
+        background: url('/client/assets/img/da-background.png') no-repeat left top;
+        background-size: contain;
+        background-position: 10px 10px;
+    }
+
+    :root {
+        --pagedjs-margin-top: 0.5in !important;
+        --pagedjs-margin-bottom: 1in !important;
+    }
+
+    .page-break {
+        page-break-before: always;
+    }
+
+    /* avoid leaving large blank space at bottom of printed page
+    - remove the large bottom margin previously set for body (180px)
+    - rely on @page bottom margin for footer space */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0px 0px 10px;
+        counter-reset: page;
+        background-color: unset !important;
+    }
+
+    /* encourage tables not to be split awkwardly */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        page-break-inside: auto;
+    }
+
+    header {
+        text-align: center;
+        font-size: 85%;
+        margin-bottom: 10px;
+        position: relative;
+        top: -20px;
+    }
+
+    header *,
+    header p {
+        line-height: 1;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    th,
+    td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        vertical-align: top;
+    }
+
+    th {
+        background: #f2f2f2;
+    }
+
+    section {
+        margin-bottom: 20px;
+    }
+
+    section h1 {
+        margin-bottom: 0;
+    }
+
+    section hr {
+        margin-top: 0;
+    }
+
+    /* :not(.container) .form-section { margin: 0 40px 0;} */
+    .form-section strong {
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .w-50 {
+        width: 50%;
+    }
+
+    .w-41 {
+        width: 41.66666667%;
+    }
+
+    .w-16 {
+        width: 16.66666667%;
+    }
+
+    .d-flex {
+        display: flex;
+    }
+
+    .text-uppercase {
+        text-transform: uppercase;
+    }
+
+    .text-lowercase {
+        text-transform: lowercase;
+    }
+
+    .text-normal {
+        text-transform: none;
+    }
+
+    .text-italic {
+        font-style: italic;
+    }
+
+    .mt-0 {
+        margin-top: 0
+    }
+
+    .mb-0 {
+        margin-bottom: 0
+    }
+
+    .fw-normal {
+        font-weight: normal;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .top-logo {
+        position: absolute;
+        top: 15px;
+        left: -85px;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .top-logo img {
+        width: 80px;
+    }
+
+    .top-logo img.daLogo {
+        width: 120px;
+        position: relative;
+        left: -10px;
+        top: -13px;
+    }
+
+    .page-inner {
+        padding: 0 !important;
+    }
+
+    .main-header {
+        min-height: 10px;
+    }
+
+    @media print {
+        #print-area,
+        #print-area *{
+            visibility: visible !important;
+            overflow: visible !important;
+        }
+
+        
+    }
+</style>
+
+<!-- <style>
+    /* Page setup */
+    @page {
+      size: letter portrait;   /* Letter size, portrait orientation */
+      margin: 0.5in;           /* Half-inch margins */
+
+        & :first {
+            background: url('/client/assets/img/da-background.png') no-repeat left top;
+            background-size: contain;
+            background-position: 10px 10px;
+        }
+
+        @bottom-left {
+            content: "Page " counter(page) " of " counter(pages) " | Market Scoping Checklist";
+        }
+    }
+
+
+    /* Print-specific styles */
+    @media print {
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 12pt;
+        line-height: 1.5;
+      }
+
+      h1, h2 {
+        page-break-after: avoid; /* Keep headings with content */
+      }
+
+      .page-break {
+        page-break-before: always; /* Force new page */
+      }
+    }
+
+    /* Screen styles (optional) */
+    body {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+
+</style> -->
+
+<div id="print-area">
+    <div class="top-logo">
+        <img class="bagoPilipinas" src="/client/assets/img/bagong-pilipinas.png" alt="Bagong Pilipinas">
+        <img class="daLogo" src="/client/assets/img/da-logo-masaganang-ekonomiya.png"
+            alt="Department of Agriculture - Masaganang Agrikultura, Maunlad na Ekonomiya">
+    </div>
+
+    <header>
+        <h5 class="mb-0 fs-6">Republic of the Philippines</h5>
+        <h3 class="mt-0 mb-0 text-uppercase fs-5">Department of Agriculture</h3>
+        <h3 class="mt-0 mb-0 fw-normal fs-5">Regional Field Office No. VII</h4>
+            <h3 class="mt-0 mb-0 fs-6">Office of the Regional Executive Director</h3>
+            <p class="mt-0 mb-0 fs-6">DA-RFO 7 Complex, Highway Maguikay, Mandaue City 6014, Cebu<br>
+                Telephone: (032) 268-5187; Email: redsoffice7@gmail.com</p>
+    </header>
+
+    <div id="body-area">
+        
+        <section class="title">
+            <h1 class="text-center text-uppercase" style="font-size: 22px;;">Market Scoping Checklist</h1>
+            <hr>
+        </section>
+        <!-- 1. Agency Information -->
+        <section class="form-section">
+            <strong class="text-uppercase">1. Agency Information</strong>
+            <table>
+                <tr>
+                    <td class="w-50">Name of Procuring Entity</td>
+                    <td class="w-50"><%= 0 || 'Department of Agriculture RFO-7' %></td>
+                </tr>
+                <tr>
+                    <td class="w-50">End-User/Implementing Unit</td>
+                    <td class="w-50"><%= end_user_unit %></td>
+                </tr>
+                <tr>
+                    <td class="w-50">Name & Designation of Representative</td>
+                    <td class="w-50"><%= [prepared_by_name, prepared_by_position].join(', ') %></td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- 2. Project Overview -->
+        <section class="form-section">
+            <strong class="text-uppercase">2. Project Overview</strong>
+            <table>
+                <tr>
+                    <td class="w-50">Project Name</td>
+                    <td class="w-50"><%= project_title %></td>
+                </tr>
+                <tr>
+                    <td class="w-50">Estimated Budget</td>
+                    <td class="w-50"></td>
+                </tr>
+                <tr>
+                    <td class="w-50">Period of Market Scoping [From (mm/yyyy) To (mm/yyyy)]</td>
+                    <td class="w-50"></td>
+                </tr>
+                <tr>
+                    <td class="w-50">Expected Date of Delivery (mm/yyyy)</td>
+                    <td class="w-50"></td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- 3. Market Scoping Activities Conducted -->
+        <section class="form-section">
+            <strong class="text-uppercase">3. Market Scoping Activity/ies Conducted <em class="text-normal">(Check all that
+                    apply)</em></strong>
+            <p>This confirms that market scoping activities were conducted in accordance with Section 10 of Republic Act No.
+                12009 and its Implementing Rules and Regulations (IRR), and considered in the Project Procurement Management
+                Plan, consistent with the Principle of Proportionality.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th width="72">Check ☒</th>
+                        <th>Activity/ies Conducted</th>
+                        <th class="w-50">Documentation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><%= consultations_with_suppliers ? '☒' : '☐' %></td>
+                        <td>Consultations with suppliers / contractors / consultants / industry groups</td>
+                        <td><%= consultations_with_suppliers ? 'Proof of attendance, reports, summaries, brochures, price quotations' : 'NONE' %></td>
+                    </tr>
+                    <tr>
+                        <td><%= participation_in_summits ? '☒' : '☐' %></td>
+                        <td>Participation in summits, fora, or conferences</td>
+                        <td class="w-50"><%= participation_in_summits ? 'Proof of attendance, reports, summaries, brochures' : 'NONE' %></td>
+                    </tr>
+                    <tr>
+                        <td><%= review_reports ? '☒' : '☐' %></td>
+                        <td>Review of technical, financial, or market/scientific reports</td>
+                        <td class="w-50"><%= review_reports ? 'Reports, summaries, brochures, publications' : 'NONE' %></td>
+                    </tr>
+                    <tr class="page-break">
+                        <td width="72"><%= review_brochures ? '☒' : '☐' %></td>
+                        <td>Review of product or service brochures, marketing materials, industry journals</td>
+                        <td class="w-50"><%= review_brochures ? 'Reports, summaries, brochures, publications' : 'NONE' %></td>
+                    </tr>
+                    <tr>
+                        <td><%= price_sourcing ? '☒' : '☐' %></td>
+                        <td>Price sourcing for quotations or cost estimates</td>
+                        <td class="w-50"><%= price_sourcing ? 'Price quotations, canvass sheets, online product reviews' : 'NONE' %></td>
+                    </tr>
+                    <tr>
+                        <td><%= use_philgeps_data ? '☒' : '☐' %></td>
+                        <td>Use of data from PhilGEPS or agency websites</td>
+                        <td class="w-50"><%= use_philgeps_data ? 'Reports, screenshots, postings' : 'NONE' %></td>
+                    </tr>
+                    <tr>
+                        <td><%= other_activity ? '☒' : '☐' %></td>
+                        <td>Other analogous market scoping activity/ies undertaken</td>
+                        <td class="w-50"><%= documentation ? documentation : 'NONE' %></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="notes text-italic">
+            <strong>Notes:</strong>
+            <ol style="list-style: lower-roman;">
+                <li>The market scoping activities shall be identified and undertaken at the option of
+                    the End-User or Implementing Unit based on its needs and objectives.</li>
+                <li>The list of supporting documents in the Documentation column is not exclusive
+                    and may include other documents that may be gathered by the End-User or
+                    Implementing Unit pertinent to the activity/ies conducted</li>
+            </ol>
+        </section>
+
+        <!-- 4. Market Scoping Results -->
+        <section class="form-section">
+            <strong class="text-uppercase">4. Market Scoping Results</strong>
+            <p>Indicate recommendations in the column provided based on the results of the market scoping activities
+                undertaken. These recommendations shall be considered in the development of a comprehensive and realistic
+                PPMP, taking into account the parameters outlined under Section 10.4 of the IRR of RA 12009, as may be
+                applicable.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameters</th>
+                        <th>Considered? (Yes/No/Not Applicable)</th>
+                        <th>Recommendations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="w-41">a. Project Cost Estimate [Does the cost estimate align with current market prices?]
+                        </td>
+                        <td class="w-16"><%- project_cost?.considered || '' %></td>
+                        <td class="w-41"><%= project_cost?.recommendation || '' %></td>
+                    </tr>
+                    <tr class="page-break">
+                        <td class="w-41">b. Project Design and Specification [Do available supplier/s meet technical and
+                            financial requirements?]</td>
+                        <td class="w-16"><%- project_design?.considered || '' %></td>
+                        <td class="w-41"><%= project_design?.recommendation || '' %></td>
+                    </tr>
+                    <tr>
+                        <td class="w-41">c. Technical Criteria [Does the market support the proposed technical
+                            requirements?]</td>
+                        <td class="w-16"><%- technical_criteria?.considered || '' %></td>
+                        <td class="w-41"><%= technical_criteria?.recommendation || '' %></td>
+                    </tr>
+                    <tr>
+                        <td class="w-41">d. Delivery Lead Time [Are the timelines for delivery feasible?]</td>
+                        <td class="w-16"><%- delivery_leadtime?.considered || '' %></td>
+                        <td class="w-41"><%= delivery_leadtime?.recommendation || '' %></td>
+                    </tr>
+                    <tr>
+                        <td class="w-41">e. Storage and Warehousing Requirements [Can the storage/warehousing needs be met
+                            (e.g., temperature, humidity, handling)?]</td>
+                        <td class="w-16"><%- storage?.considered || '' %></td>
+                        <td class="w-41"><%= storage?.recommendation || '' %></td>
+                    </tr>
+                    <tr>
+                        <td class="w-41">f. Identified Risks [Were there any market risks identified? (e.g., limited
+                            suppliers, price volatility)]</td>
+                        <td class="w-16"><%- risks?.considered || '' %></td>
+                        <td class="w-41"><%= risks?.recommendation || '' %></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Signatories -->
+        <section class="d-flex form-section">
+            <div class="w-50">
+                <strong>Prepared by:</strong><br>
+                <p><%= prepared_by_name %></p>
+                <p><%= prepared_by_position %></p>
+                <p><%= moment(prepared_by_date).format('MMMM Do YYYY') %></p>
+            </div>
+            <div class="w-50">
+                <strong>Approved by:</strong><br>
+                <p><%= reviewed_by_name %></p>
+                <p><%= reviewed_by_position %></p>
+                <p><%= moment(reviewed_by_date).format('MMMM Do YYYY') %></p>
+            </div>
+        </section>
+    </div>
+
+    <footer></footer>
+</div>
+
+<script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.PagedPolyfill) {
+        try {
+            if (typeof PagedPolyfill.preview === 'function') {
+                PagedPolyfill.preview(document.querySelector('#print-area'));
+            } else {
+                const p = new PagedPolyfill();
+                if (typeof p.preview === 'function') p.preview(document.querySelector('#print-area'));
+            }
+        } catch (err) {
+            // graceful fallback: log and continue — native print may not support margin boxes
+            console.warn('PagedPolyfill preview failed:', err);
+        }
+    } else {
+        console.warn('PagedPolyfill not loaded');
+    }
+});
+</script>

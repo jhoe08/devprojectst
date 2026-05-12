@@ -1,0 +1,17 @@
+<div class="card">
+  <div class="card-header">
+    <div class="card-head-row card-tools-still-right">
+      <div class="card-title">List of <%=title%>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+
+    <%- include('../../components/datatables/tables', { 
+          tableId: "marketScope", 
+          thead: Object.keys(datatables[0] || {}), 
+          tbody: datatables, 
+          hideColumns: [] 
+        }) %>
+  </div>
+</div>

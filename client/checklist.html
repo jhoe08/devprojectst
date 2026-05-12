@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Market Scoping Checklist</title>
+  <style>
+    @page {
+      margin: 10mm 15mm 25mm;
+      @bottom-left {
+        content: "Page " counter(page) " of " counter(pages) " | Market Scoping Checklist";
+      }
+    }
+
+    /* First-page background/header for print only.
+       Replace 'header-bg.png' with your image path or remove background-image to use color only. */
+    @page :first {
+      background: url('assets/img/da-background.png') no-repeat left top;
+      background-size: contain;
+      background-position: 0 0;
+    }
+
+    .page-break {
+      page-break-before: always;
+      /* break-before: page; */
+      /* display: block;
+      height: 0;
+      margin: 0;
+      padding: 0;
+      visibility: hidden; */
+    }
+
+    /* avoid leaving large blank space at bottom of printed page
+       - remove the large bottom margin previously set for body (180px)
+       - rely on @page bottom margin for footer space */
+    body { font-family: Arial, sans-serif; margin: 0px 0px 0; counter-reset: page; }
+
+    /* encourage tables not to be split awkwardly */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; page-break-inside: auto; }
+    header { text-align: center; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; vertical-align: top; }
+    th { background: #f2f2f2; }
+    section { margin-bottom: 20px; }
+    .form-section { margin: 0 40px 0;}
+    .form-section strong { display: block; margin-bottom: 8px; }
+    .w-50 { width: 50%;}
+    .w-41 { width: 41.66666667%;}
+    .w-16 { width: 16.66666667%;}
+    .d-flex { display: flex;}
+    .text-uppercase { text-transform: uppercase;}
+    .text-lowercase { text-transform: lowercase;}
+    .text-normal { text-transform: none;}
+    .text-italic { font-style: italic;}
+    .mt-0 {margin-top: 0}
+    .mb-0 {margin-bottom: 0}
+    .fw-normal { font-weight: normal;}
+    .text-center { text-align: center;}
+
+    header { font-size: 85%;}
+    .top-logo {
+      position: absolute;
+      top: 30px;
+      left: -35px;
+      display: flex;
+      align-items: flex-start;
+    }
+    .top-logo img { width: 80px;}
+    .top-logo img.daLogo { 
+      width: 120px;
+      position: relative;
+      left: -10px;
+      top: -13px;
+    }
+
+
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="top-logo">
+      <img class="bagoPilipinas" src="assets/img/bagong-pilipinas.png" alt="Bagong Pilipinas">
+      <img class="daLogo" src="assets/img/da-logo-masaganang-ekonomiya.png" alt="Department of Agriculture - Masaganang Agrikultura, Maunlad na Ekonomiya">
+    </div>
+    <h5 class="mb-0">Republic of the Philippines</h5>
+    <h3 class="mt-0 mb-0 text-uppercase">Department of Agriculture</h3>
+    <h3 class="mt-0 mb-0 fw-normal">Regional Field Office No. VII</h4>
+    <h3 class="mt-0 mb-0 ">Office of the Regional Executive Director</h3>
+    <p class="mt-0 mb-0 ">DA-RFO 7 Complex, Highway Maguikay, Mandaue City 6014, Cebu<br>
+       Telephone: (032) 268-5187; Email: redsoffice7@gmail.com</p>
+  </header>
+  <section class="title">
+    <h1 class="text-center text-uppercase" style="font-size: 22px;;">Market Scoping Checklist</h1>
+    <hr>
+  </section>
+  <!-- 1. Agency Information -->
+  <section class="form-section">
+    <strong class="text-uppercase">1. Agency Information</strong>
+    <table>
+      <tr><td class="w-50">Name of Procuring Entity</td><td class="w-50"></td></tr>
+      <tr><td class="w-50">End-User/Implementing Unit</td><td class="w-50"></td></tr>
+      <tr><td class="w-50">Name & Designation of Representative</td><td class="w-50"></td></tr>
+    </table>
+  </section>
+
+  <!-- 2. Project Overview -->
+  <section class="form-section">
+    <strong class="text-uppercase">2. Project Overview</strong>
+    <table>
+      <tr><td class="w-50">Project Name</td><td class="w-50"></td></tr>
+      <tr><td class="w-50">Estimated Budget</td><td class="w-50"></td></tr>
+      <tr><td class="w-50">Period of Market Scoping [From (mm/yyyy) To (mm/yyyy)]</td><td class="w-50"></td></tr>
+      <tr><td class="w-50">Expected Date of Delivery (mm/yyyy)</td><td class="w-50"></td></tr>
+    </table>
+  </section>
+
+  <!-- 3. Market Scoping Activities Conducted -->
+  <section class="form-section">
+    <strong class="text-uppercase">3. Market Scoping Activity/ies Conducted <em class="text-normal">(Check all that apply)</em></strong>
+    <p>This confirms that market scoping activities were conducted in accordance with Section 10 of Republic Act No. 12009 and its Implementing Rules and Regulations (IRR), and considered in the Project Procurement Management Plan, consistent with the Principle of Proportionality.</p>
+    <table>
+      <thead>
+        <tr><th width="72">Check ☒</th><th>Activity/ies Conducted</th><th class="w-50">Documentation</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>☐</td><td>Consultations with suppliers / contractors / consultants / industry groups</td><td>Proof of attendance, reports, summaries, brochures, price quotations</td></tr>
+        <tr><td>☐</td><td>Participation in summits, fora, or conferences</td><td class="w-50">Proof of attendance, reports</td></tr>
+        <tr><td>☐</td><td>Review of technical, financial, or market/scientific reports</td><td class="w-50">Reports, summaries, publications, online product reviews</td></tr>
+        <tr  class="page-break"><td  width="72">☐</td><td>Review of product or service brochures, marketing materials, industry journals</td><td class="w-50">Reports, summaries, brochures, publications</td></tr>
+        <tr><td>☐</td><td>Price sourcing for quotations or cost estimates</td><td class="w-50">Price quotations, canvass sheets, online product reviews</td></tr>
+        <tr><td>☐</td><td>Use of data from PhilGEPS or agency websites</td><td class="w-50">Reports, screenshots, postings</td></tr>
+        <tr><td>☐</td><td>Other analogous market scoping activity/ies undertaken</td><td class="w-50"></td></tr>
+      </tbody>
+    </table>
+  </section>
+  
+  <section class="notes text-italic">
+    <strong>Notes:</strong>
+    <ol style="list-style: lower-roman;">
+    <li>The market scoping activities shall be identified and undertaken at the option of
+    the End-User or Implementing Unit based on its needs and objectives.</li>
+    <li>The list of supporting documents in the Documentation column is not exclusive
+    and may include other documents that may be gathered by the End-User or
+    Implementing Unit pertinent to the activity/ies conducted</li>
+    </ol>
+  </section>
+  
+  <!-- 4. Market Scoping Results -->
+  <section class="form-section">
+    <strong class="text-uppercase">4. Market Scoping Results</strong>
+    <p>Indicate recommendations in the column provided based on the results of the market scoping activities undertaken. These recommendations shall be considered in the development of a comprehensive and realistic PPMP, taking into account the parameters outlined under Section 10.4 of the IRR of RA 12009, as may be applicable.</p>
+    <table>
+      <thead>
+        <tr><th>Parameters</th><th>Considered? (Yes/No/Not Applicable)</th><th>Recommendations</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="w-41">a. Project Cost Estimate [Does the cost estimate align with current market prices?]</td><td class="w-16"></td><td class="w-41"></td></tr>
+        <tr class="page-break"><td class="w-41">b. Project Design and Specification [Do available supplier/s meet technical and financial requirements?]</td><td  class="w-16"></td><td class="w-41"></td></tr>
+        <tr><td class="w-41">c. Technical Criteria [Does the market support the proposed technical requirements?]</td><td class="w-16"></td><td class="w-41"></td></tr>
+        <tr><td class="w-41">d. Delivery Lead Time [Are the timelines for delivery feasible?]</td><td class="w-16"></td><td class="w-41"></td></tr>
+        <tr><td class="w-41">e. Storage and Warehousing Requirements [Can the storage/warehousing needs be met (e.g., temperature, humidity, handling)?]</td><td class="w-16"></td><td class="w-41"></td></tr>
+        <tr><td class="w-41">f. Identified Risks [Were there any market risks identified? (e.g., limited suppliers, price volatility)]</td><td class="w-16"></td><td class="w-41"></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Signatories -->
+  <section class="d-flex form-section">
+    <div class="w-50">
+        <strong>Prepared by:</strong><br>
+        <p>Signature over Printed Name</p>
+        <p>Position/Designation</p>
+        <p>Date</p>
+    </div>
+    <div class="w-50">
+        <strong>Approved by:</strong><br>
+        <p>Signature over Printed Name</p>
+        <p>Position/Designation</p>
+        <p>Date</p>
+    </div>
+  </section>
+  
+  <footer></footer>
+
+<script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"></script>
+
+</body>
+</html>

@@ -46,7 +46,7 @@ CREATE TABLE `employees` (
 
 LOCK TABLES `employees` WRITE;
 /*!40000 ALTER TABLE `employees` DISABLE KEYS */;
-INSERT INTO `employees` VALUES (1,984,'Joegie','Wagwag','Paquibot',NULL,'1993-10-08','{\"lists\": [{\"banner\": \"SAAD\", \"office\": \"DA RFO7\", \"salary\": \"25232.61\", \"status\": true, \"enddate\": \"present\", \"division\": \"FOD\", \"position\": \"Data Controller IV\", \"startdate\": \"2024-05-01\", \"employment\": \"Contract of Service (COS)\", \"arrangements\": \"On-site\"}]}','{}','{\"gender\": \"Male\", \"civilstatus\": \"Married\"}','justtest','$2b$08$n.5Nb4Nyq92fwZAOH6iOge5naX.jbi9XEzZDkWkn8x3NCa6ojzV8q'),(2,777,'Just','Joe','The',NULL,'1993-10-08',NULL,NULL,NULL,NULL,NULL);
+INSERT INTO `employees` VALUES (1,984,'Joegie','Wagwag','Paquibot',NULL,'1993-10-08','{\"lists\": [{\"banner\": \"SAAD\", \"office\": \"DA RFO7\", \"salary\": \"25232.61\", \"status\": true, \"enddate\": \"present\", \"division\": \"FOD\", \"position\": \"Data Controller IV\", \"startdate\": \"2024-05-01\", \"employment\": \"Contract of Service (COS)\", \"arrangements\": \"On-site\"}]}','{}','{\"gender\": \"Male\", \"civilstatus\": \"Married\"}','justtest','$2b$08$n.5Nb4Nyq92fwZAOH6iOge5naX.jbi9XEzZDkWkn8x3NCa6ojzV8q');
 /*!40000 ALTER TABLE `employees` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

@@ -15,11 +15,12 @@
     const requestID = UTILS.addLeadingZeros(product_id)
     const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
 
-    const { lists, getCurrentStep, getDetails, getTitle } = STEPS
+    const { getApprovalSteps, getCurrentStep, getDetails, getTitle } = STEPS
+
 
     let current_step = getCurrentStep(steps, product_id)
     current_step_number = current_step?.steps_number
-    current_step_title = getTitle(current_step_number)
+    current_step_title = getTitle(transactions, current_step_number)
 
     const currentHolder = getCurrentHolderOfTransaction(transactions.product_id)
     let userDetailsExp, employeesInSameDivision = {}
@@ -35,18 +36,38 @@
       }
     }
 
-    preparedby = prepared_by ? JSON.parse(prepared_by) : {}
+    const safeParsePreparedBy = (value) => {
+      if (value == null) return null;
+      if (typeof value !== 'string') return value;
+      const trimmed = value.trim();
+      if (!trimmed || trimmed === 'undefined') return null;
+      try {
+        return JSON.parse(trimmed);
+      } catch (err) {
+        console.warn('Invalid JSON in prepared_by:', trimmed);
+        return null;
+      }
+    };
+    
+    preparedby = safeParsePreparedBy(prepared_by) || {}
     preparedbyname = preparedby?.name || ''
     preparedbyid = preparedby?.employeeid || ''
+
+    const { quoted_price:awardedQuotedPrice, supplier_id:awardedSupplierID } = JSON.parse(_awardedSupplier || '{}') || {}
+    const { id:scopeId } = JSON.parse(_marketScopeId || '{}')
+
+    console.log({ _marketScopeId })
+
+    const marketScopeLink = `/market-scope/${scopeId}/view`
+
 %>
     
   %>
-<div class="wrapper" data-product-id="<%= transactions.product_id %>">
-    <%- include('../../views/sidebar') -%>
+<div id="innerContent" class="wrapper" data-product-id="<%= transactions.product_id %>">
+    <%- include('../../views/ra12009/sidebar') -%>
 
     <div class="main-panel">
       <%- include('../../views/main-header') -%>
-      
       <div class="container" data-transaction-id="<%- transactions.product_id -%>">
           <div class="page-inner">
             <div class="page-header d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
@@ -57,45 +78,102 @@
                   <h3 class="fw-bold mb-3"><%- transactions.bid_notice_title -%></h3>
                   <h6 class="text-muted hidden">System Generated Code: <small id="trackingCode"><%= trackerid %></small></h6>
                   <h6 class="text-muted">Prepared by: <a href="/employees/<%= preparedbyid %>/profile"><%= preparedbyname %></a></h6>
-                  <%- include('../../views/partials/progress', {length: 30, progress: steps[0]?.steps_number || 1, title: steps[0]?.steps_title }) -%>
+                  <%- include('../../views/partials/progress', {length: STEPS.getTotalSteps(transactions), progress: current_step_number, title: current_step_title }) -%>
               </div>
               <div class="ms-md-auto py-2 py-md-0" data-current-step="<%= JSON.stringify(current_step) %>">
                   <a href="/transactions/<%- transactions.product_id -%>/print" class="btn btn-label-info btn-round me-2" id="btnPrint"><i class="fas fa-print"></i> Print</a>
                   <% if (canUpdateTransaction(SESSION_USER, current_step) || isSuperAdmin()) { %>
-                  <a href="#" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#remarksModal"><i class="fas fa-plus"></i> Add Remarks</a>
-                  <% if(steps[0]?.steps_number == 31) { %> 
-                  <button data-product-id="<%= transactions.product_id %>" href="#" class="alert_confirm btn btn-success btn-round" data-step="<%= current_step_number %>"><i class="fas fa-check"></i> Approve</button>
-                  <a data-product-id="<%= transactions.product_id %>" id="disapproveBtn" href="#" class="alert_deny btn btn-danger btn-round" data-step="<%= current_step_number %>"><i class="fas fa-times"></i> Disapprove</a>
-                  <% } else { %> 
-                      <a data-product-id="<%= transactions.product_id %>" id="approveBtn" href="#" class="alert_confirm btn btn-success btn-round" data-step="completed"><i class="fas fa-check"></i> Complete </a>
+                  
+
+                  <% if (steps[0]?.steps_number <= 31) { %>
+                    <!-- Add Remarks -->
+                    <a href="#" 
+                      class="btn btn-primary btn-round" 
+                      data-bs-toggle="modal" 
+                      data-bs-target="#remarksModal">
+                      <i class="fas fa-plus"></i> Add Remarks
+                    </a>
+
+                    <!-- Approve / Disapprove -->
+                    <button 
+                      type="button"
+                      class="alert_confirm btn btn-success btn-round" 
+                      data-product-id="<%= transactions.product_id %>" 
+                      data-step="<%= current_step_number %>">
+                      <i class="fas fa-check"></i> Approve
+                    </button>
+
+                    <button 
+                      type="button"
+                      id="disapproveBtn"
+                      class="alert_deny btn btn-danger btn-round" 
+                      data-product-id="<%= transactions.product_id %>" 
+                      data-step="<%= current_step_number %>">
+                      <i class="fas fa-times"></i> Disapprove
+                    </button>
+                  <% } else { %>
+                    <!-- Complete -->
+                    <button 
+                      type="button"
+                      id="completeBtn"
+                      class="btn btn-success btn-round" 
+                      data-product-id="<%= transactions.product_id %>" 
+                      data-step="completed"
+                      disabled>
+                      <i class="fas fa-check"></i> Complete
+                    </button>
                   <% } %>
-                  <% } else if (current_step == null && isCreatorOfTransaction(transactions)) { %>
-                  <a href="#" class="alert_confirm btn btn-success btn-round" data-product-id="<%= transactions.product_id %>" data-step="1">Publish</a>
-                  <% } %>
+
+                <% } else if (!current_step && isCreatorOfTransaction(transactions)) { %>
+                  <!-- Publish -->
+                  <button 
+                    type="button"
+                    class="alert_confirm btn btn-success btn-round" 
+                    data-product-id="<%= transactions.product_id %>" 
+                    data-step="1">
+                    Publish
+                  </button>
+                <% } %>
               </div>
             </div>
             <div class="row">
-                <div class="col-lg-12 col-xl-6">
-                    <div class="card">
+                <div class="col-lg-12 col-xl-8">
+                    <div class="card" data-current-transactions="<%= JSON.stringify(transactions) %>">
                       <div class="card-header">
                         <div class="card-head-row">
                           <div class="card-title">Details</div>
                           <div class="card-tools">
-                            <ul class="nav nav-pills nav-secondary nav-pills-no-bd nav-sm" id="pills-tab" role="tablist">
-                              <li class="nav-item submenu" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="PR Classification">
-                                <span class="nav-link active" id="pills-today" data-bs-toggle="pill" href="#pills-today" role="tab" aria-selected="false" tabindex="-1" aria-labelledby="pills-today"><%- transactions.pr_classification -%></span>
-                              </li>
-                              <% if(transactions?.banner_program) { %>
-                              <li class="nav-item" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Banner Program">
-                                <span class="nav-link" id="pills-week" data-bs-toggle="pill" href="#pills-week" role="tab" aria-selected="false" aria-labelledby="pills-week" tabindex="-1"><%- transactions.banner_program -%></span>
-                              </li>
-                              <% } %>
-                              <% if(transactions?.bac_unit) { %>
-                              <li class="nav-item submenu" role="presentation" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="BAC Unit">
-                                <span class="nav-link" id="pills-month" data-bs-toggle="pill" href="#pills-month" role="tab" aria-selected="false" tabindex="-1" aria-labelledby="pills-month"><%- transactions.bac_unit -%></span>
-                              </li>
-                              <% } %>
-                            </ul>
+
+                            <% const PRClassification = transactions?.pr_classification; 
+                               const procurementType = transactions?.procurement_type;%>
+                            <button disabled="disabled" href="market-scope" class="btn btn-label-info btn-round btn-sm">
+                              <span class="btn-label">
+                                <i class="fas fa-sitemap"></i>
+                              </span>
+                              <%- PRClassification -%>
+                            </button>
+                            <button disabled="disabled" href="market-scope" class="btn btn-label-primary btn-round btn-sm">
+                              <span class="btn-label">
+                                <i class="fas fa-tags"></i>
+                              </span>
+                              <%- procurementType -%>
+                            </button>
+                            <% if(transactions?.bac_unit) { %>
+                            <button disabled="disabled" href="market-scope" class="btn btn-label-info btn-round btn-sm">
+                              <span class="btn-label">
+                                <i class="fas fa-layer-group"></i>
+                              </span>
+                              <%- transactions.bac_unit -%>
+                            </button>
+                            <% } %>
+                            <% if (scopeId) { %>
+                            <a href="<%= marketScopeLink %>" class="btn btn-warning text-white btn-round btn-sm">
+                              <span class="btn-label">
+                                <i class="fa fa-bookmark"></i>
+                              </span>
+                              Market Scope
+                            </a>
+                            <% } %>
                           </div>
                         </div>
                       </div>
@@ -150,19 +228,25 @@
                                 <%
                                   var {approved_budget : budget, fund_source} = transactions 
                                   var cleanBudget = budget.replace(/,/g, '');
-  
+                                  var textFundSource = ''
+                                  var badgeClass = 'info';
                                   budget = parseFloat(cleanBudget)
                                   fund_source = JSON.parse(fund_source)
                                   
-                                  var result = 'N/A'
-                                  if(Array.isArray(fund_source)) {
-                                    result = fund_source.map(item => `${item.division}-${item.section}`).join(', ');
+                                  if (Array.isArray(fund_source)) {
+                                    fund_source.forEach(item => {
+                                      const [fund, meta] = item.source.split('::')
+                                      const [paps, cls, obj, desc, source] = meta.split(' | ').filter(Boolean);
+                                      badgeClass = source === undefined ? 'info' : 'warning';
+                                      fund_source = `${paps} | ${cls} | ${obj} | ${desc}`
+                                      textFundSource = `${cls} | ${obj} | ${desc}`;
+                                    });
                                   }
                                 %>
 
                                 <%- peso(budget) -%>
-                                <span  class="text-warning ps-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Fund Source">
-                                  <%- result -%>
+                                <span  class="text-<%=badgeClass%> ps-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Fund Source <%= fund_source %>">
+                                  <%- textFundSource -%>
                                 </span>
                               </h6>
                               <span class="text-muted">Approved Budget of the Contract</span>
@@ -170,6 +254,21 @@
                             <div class="float-end pt-1">
                               <small class="text-muted"></small>
                             </div>
+                          </div>
+                          <div class="col-md-6 d-flex <%= current_step_number >= 14 ? '' : 'hidden' %>">
+                            <div class="avatar">
+                              <span class="avatar-title rounded-circle border border-white bg-info"><i class="fas fa-piggy-bank"></i></span>
+                            </div>
+                            <div class="flex-1 ms-3 pt-1 "">
+                              <%
+
+                                const savings = budget - awardedQuotedPrice
+                                const savingsPercent  = (savings / budget) * 100
+                              %>
+                              <h6 class="text-uppercase mb-1"><%= peso(awardedQuotedPrice) %><span class="ms-3 text-success" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%= peso(savings.toFixed(2)) %>">(<%= savingsPercent.toFixed(2) %>% saved)</span></h6>
+                              <span class="text-muted">Price Quoted</span>
+                            </div>
+                            <div class="float-end pt-1"></div>
                           </div>
                         </div>
                         <div class="separator-dashed"></div>
@@ -179,7 +278,7 @@
                           </div>
                           <div class="flex-1 ms-3 pt-1">
                             <h6 class="text-uppercase fw-bold mb-1">
-                            <% if(transactions?.trans_code && isValidJSON(transactions.trans_code)) { 
+                            <% if(transactions?.trans_code && UTILS.isValidJSON(transactions.trans_code)) { 
                               trans_code = JSON.parse(transactions.trans_code)
                               trans_code.forEach(function(code){ if(code) { %>
                               <span class="badge badge-count"><%= code || 'ABC' %></span>
@@ -190,6 +289,7 @@
                             </h6>
                             <span class="text-muted">Transaction Codes</span>
                           </div>
+                          
                           <div class="float-end pt-1">
                             <button  data-bs-toggle="modal" data-bs-target="#codeModal" id="addTransactionCodes" class="btn btn-icon btn-link op-8 me-1">
                               <i class="fas fa-plus-circle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add PR Number"></i>
@@ -224,33 +324,47 @@
                     </div>
                     <!-- SHOW ONLY WHEN THE CURRENT STAGE IS [quotation_form_preparation, canvassing, supplier_engagement, bac_evaluation, procurement_finalization] -->
                     <% 
-                      const stageCanvassing = steps[0]?.steps_number >= 6 && steps[0]?.steps_number <= 10
+                      const stepNum = steps[0]?.steps_number || 0;
+
+                      const stageCanvassing = [6, 7, 8, 9, 10].includes(steps[0]?.steps_number);
+                      const stageAward = [10, 11, 12].includes(steps[0]?.steps_number);
+                      const stagePO = [13, 14].includes(steps[0]?.steps_number);
+                      
             
-                      if (stageCanvassing) { 
+                      if ( stepNum >= 6) { 
                         let haveSuppliers = false;
 
                         if (_suppliers && _suppliers.length > 0) {
                           haveSuppliers = true;
                         }
                       %>
-                      
                     <div class="card">
                       <div class="card-header">
                         <div class="card-head-row card-tools-still-right">
-                            <h4 class="card-title">Suppliers</h4>
-                            <div class="card-tools transcations-code text-uppercase form-group-add">
-                                <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
-                                  <span class="fa fa-plus"></span>
-                                </button>
-                            </div>
+                          <%
+                            const getStageTitle = () => {
+                              if (stageCanvassing) return "Canvassing Suppliers";
+                              if (stageAward && !awardedSupplierID) return "Awarding Suppliers";
+                              return "Awarded Suppliers";
+                            };
+                          %>
+                          <h4 class="card-title"><%= getStageTitle() %></h4>
+
+                          <% if (stepNum < 15 && stageCanvassing) { %>
+                          <div class="card-tools transcations-code text-uppercase form-group-add">
+                              <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
+                                <span class="fa fa-plus"></span>
+                              </button>
+                          </div>
+                          <% } %>
                         </div>
                       </div>
-                      <div class="card-body">
+                      <div class="card-body" data-check=" <%= { stageAward, stagePO } %>">
+                        <% if (stageCanvassing) { %>
                         <div id="supplierInfo" data-suppliers="<%= JSON.parse(_suppliers) %>">
-                          <% 
-                          const lists = JSON.parse(_suppliers) 
-
-                            if (lists && lists.length > 0) { %>
+                          <%  const lists = JSON.parse(_suppliers)  %>
+                          
+                          <% if (lists && lists.length > 0) { %>
                             <% lists.forEach( (supplier, index) => { 
                               const { supplier_id, quoted_price } = supplier
                               const formattedPrice = n => new Intl.NumberFormat('en-US').format(n);
@@ -298,24 +412,74 @@
                             </div>
                           <% } %>
                         </div>
-                      </div>
-                      <div class="card-action align-right" style="padding: 15px 30px;">
-                        <% if (haveSuppliers) { %>
-                        <button id="submitSupplier" class="btn btn-success">Submit</button>
-                        <% } else { %>
-                        <button id="updateSupplier" class="btn btn-warning">Update</button>
+                        <% } if (stageAward) { %>
+                        <div id="supplierWinner " class="selectgroup w-100">
+                          <% 
+                            const suppliersArray = SUPPLIERS || [];  
+                            const getSupplierName = id => {
+                              const supplier = suppliersArray.find(s => s.id === id);
+                              return supplier ? supplier.supplier_name : '';
+                            };
+
+                            const listsArray = JSON.parse(_suppliers || '[]');
+
+                            // Sort by quoted_price ascending (lowest first)
+                            listsArray.sort((a, b) => a.quoted_price - b.quoted_price);
+                          %>
+
+                          <% if (listsArray.length > 0) { %>
+                            <% listsArray.forEach((supplier, index) => {  
+                                const { supplier_id, quoted_price } = supplier;
+                                const formattedPrice = n => new Intl.NumberFormat('en-US').format(n);
+                            %>
+                              <label class="selectgroup-item">
+                                <input 
+                                  type="radio" 
+                                  name="awarded_supplier" 
+                                  value="<%= supplier_id %>" 
+                                  class="selectgroup-input"
+                                  <%= supplier_id === awardedSupplierID ? 'checked' : '' %>
+                                  <%= (stepNum >= 15 || awardedSupplierID) ? 'disabled' : '' %>
+                                >
+                                <div class="card selectgroup-button p-3 mb-0">
+                                  <div class="d-flex align-items-center">
+                                    <span class="stamp stamp-md <% if(index === 0) { %>bg-success<% } else if(index === 1) { %>bg-primary<% } else { %>bg-info<% } %> me-3 text-white"><%= index + 1 %></span>
+                                    <div>
+                                      <h5 class="mb-1">
+                                        <b><%= peso(quoted_price) %></b>
+                                      </h5>
+                                      <small class="text-muted"><%= getSupplierName(supplier_id) %></small>
+                                    </div>
+                                  </div>
+                                </div>
+                              </label>
+                            <% }) %>
+                          <% } %>
+                        </div>
                         <% } %>
                       </div>
+                      <% if (stepNum >= 6 && stepNum < 13) { %>
+                      <div class="card-action align-right" style="padding: 15px 30px;">
+                       
+                          <% if (haveSuppliers && stageCanvassing) { %>
+                          <button id="submitSupplier" class="btn btn-success">Submit</button>
+                          <% } %>
+                         <% if (stageAward && !awardedSupplierID) { %>
+                          <button id="awardSupplier" class="btn btn-primary" >Award Supplier</button>
+                         <% } %>
+                      </div>
+                      
+                     <% } %>
                     </div>
                     <% } %>
                   </div>
-                <div class="col-lg-12 col-xl-6">
+                <div class="col-lg-12 col-xl-4">
                   <div class="card">
                     <div class="card-header">
                       <div class="card-head-row card-tools-still-right">
                         <div class="card-title">Next Responsible Person</div>
                         <% if(employeesInSameDivision && Array.isArray(employeesInSameDivision)) { %>
-                        <button class="btn btn-warning btn-round ms-auto" id="assignedToBtn">
+                        <button class="btn btn-warning btn-round ms-auto btn-sm" id="assignedToBtn">
                           <i class="fa fa-forward"></i>
                           Assigned To
                         </button>
@@ -378,4 +542,4 @@
 </script> -->
 <% } %>
 <!-- Footer Template -->
-<%- include('../../views/footer', { scripts: { 'suppliers': '/assets/js/pages/suppliers.js' } }) -%>
+<%- include('../../views/footer', { scripts: { 'suppliers': '/assets/js/pages/suppliers.js', 'approvalRouting' : '/assets/js/approvalRouting.js' } }) -%>

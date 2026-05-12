@@ -1,0 +1,222 @@
+<%
+    const { id:parentId } = results[0] || {}
+    const { scoping_id:refId, results:scopingResults, document_reference, created_at, updated_at } = results[1] || {}
+%>
+
+<style>
+:root {
+    --ink: #2c3e50;
+    --paper: #ffffff;
+    --line: #d9dee3;
+    --mute: #6b7c93;
+    --accent: #0b6bcb;
+    --bg: #f6f8fb;
+}
+/* * { box-sizing: border-box; }
+body {
+    font-family: Segoe UI, Arial, sans-serif;
+    margin: 32px;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+} */
+header { margin-bottom: 16px; }
+h1 { font-size: 1.5rem; margin: 0 0 8px; }
+.subtitle { color: var(--mute); font-size: 0.95rem; }
+.card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+p { margin: 0 0 12px; }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    background: #fff;
+}
+th, td {
+    border: 1px solid var(--line);
+    padding: 12px;
+    vertical-align: top;
+    text-align: left;
+    font-size: 0.95rem;
+}
+thead th {
+    background: #f1f4f8;
+    font-weight: 700;
+}
+select, textarea, input[type="text"] {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    background: #fff;
+}
+textarea { min-height: 84px; resize: vertical; }
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+.btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: 1px solid var(--accent);
+}
+.muted { color: var(--mute); font-size: 0.9rem; }
+[readonly]::placeholder { color: #ffffff; }
+@media print {
+    body { background: #fff; margin: 0; }
+    .btn, .actions { display: none !important; }
+    .card { box-shadow: none; border: none; }
+}
+</style>
+
+<form id="marketScopeResults" class="card" data-scoping-id="<%= parentId %>">
+    <p>
+        Indicate recommendations in the column provided based on the results of the market scoping activities undertaken. These recommendations shall be considered in the development of a comprehensive and realistic PPMP, taking into account the parameters outlined under Section 10.4 of the IRR of RA 12009, as may be applicable.
+    </p>
+
+    <table aria-label="Market scoping results">
+        <thead>
+        <tr>
+            <th style="width: 34%;">Parameters</th>
+            <th style="width: 180px;">Considered? (Yes/No/Not Applicable)</th>
+            <th>Recommendations based on the Market Scoping (Attach additional documents if necessary)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td><strong>a. Project Cost Estimate:</strong> Does the cost estimate align with current market prices?</td>
+            <td>
+            <select name="project_cost.considered" aria-label="Project cost estimate considered" <%= (refId) ? 'disabled':'' %>>
+                <option value="">Select…</option>
+                <option>Yes</option>
+                <option>No</option>
+                <option <%= (refId) ? 'selected':'' %>>Not Applicable</option>
+            </select>
+            </td>
+            <td>
+            <textarea name="project_cost.recommendation" placeholder="Summarize price canvass, variance vs. historical costs, and any adjustment rationale." <%= (refId) ? 'readonly':'' %>></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>b. Project Design and Specification:</strong> Do available supplier/s meet technical and financial requirements?</td>
+            <td>
+            <select name="project_design.considered" aria-label="Project design and specification considered" <%= (refId) ? 'disabled':'' %>>
+                <option value="">Select…</option>
+                <option>Yes</option>
+                <option>No</option>
+                <option  <%= (refId) ? 'selected':'' %>>Not Applicable</option>
+            </select>
+            </td>
+            <td>
+            <textarea name="project_design.recommendation" placeholder="Note compliant models/vendors, alternative specs, and budgetary implications." <%= (refId) ? 'readonly':'' %>></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>c. Technical Criteria:</strong> Does the market support the proposed technical requirements?</td>
+            <td>
+            <select name="technical_criteria.considered" aria-label="Technical criteria considered" <%= (refId) ? 'disabled':'' %>>
+                <option value="">Select…</option>
+                <option>Yes</option>
+                <option>No</option>
+                <option <%= (refId) ? 'selected':'' %>>Not Applicable</option>
+            </select>
+            </td>
+            <td>
+            <textarea name="technical_criteria.recommendation" placeholder="Identify minimum viable specs, interoperability needs, certifications, and recommended adjustments." <%= (refId) ? 'readonly':'' %>></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>d. Delivery Lead Time:</strong> Are the timelines for delivery feasible?</td>
+            <td>
+            <select name="delivery_leadtime.considered" aria-label="Delivery lead time considered" <%= (refId) ? 'disabled':'' %>>
+                <option value="">Select…</option>
+                <option>Yes</option>
+                <option>No</option>
+                <option <%= (refId) ? 'selected':'' %>>Not Applicable</option>
+            </select>
+            </td>
+            <td>
+            <textarea name="delivery_leadtime.recommendation" placeholder="State typical lead times, phased delivery options, and schedule constraints." <%= (refId) ? 'readonly':'' %>></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>e. Storage and Warehousing Requirements:</strong> Can the storage/warehousing needs be met (e.g., temperature, humidity, handling)?</td>
+            <td>
+            <select name="storage.considered" aria-label="Storage and warehousing considered" <%= (refId) ? 'disabled':'' %>>
+                <option value="">Select…</option>
+                <option>Yes</option>
+                <option>No</option>
+                <option  <%= (refId) ? 'selected':'' %>>Not Applicable</option>
+            </select>
+            </td>
+            <td>
+            <textarea name="storage.recommendation" placeholder="Specify storage conditions, capacity, handling protocols, and any mitigation needs." <%= (refId) ? 'readonly':'' %>></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>f. Identified Risk/s:</strong> Were there any market risks identified? (e.g., limited suppliers, price volatility)</td>
+            <td>
+            <select name="risks.considered" aria-label="Identified risks considered" <%= (refId) ? 'disabled':'' %>>
+                <option value="">Select…</option>
+                <option>Yes</option>
+                <option>No</option>
+                <option <%= (refId) ? 'selected':'' %>>Not Applicable</option>
+            </select>
+            </td>
+            <td>
+            <textarea name="risks.recommendation" placeholder="List key risks and propose mitigations (e.g., alternative sources, buffer timelines, price ceilings)."  <%= (refId) ? 'readonly':'' %>></textarea>
+            </td>
+        </tr>
+        <tr class="hidden">
+            <td  colspan="3"><input type="text" name="document_reference" /></td>
+        </tr>
+        </tbody>
+    </table>
+    <% if (!refId) { %>
+    <div class="actions">
+        <button type="submit" class="btn btn-primary">Save results</button>
+        <button type="reset" class="btn">Clear</button>
+        <span class="muted">Attach supporting files (price canvass, reports, screenshots) when submitting.</span>
+    </div>
+    <% } %>
+</form>
+
+<script>
+    function populateForm(results) {
+        for (const [param, details] of Object.entries(results)) {
+            // Select element
+            const select = document.querySelector(`select[name="${param}.considered"]`);
+            if (select && details.considered) {
+                select.value = details.considered;
+            }
+
+            // Textarea element
+            const textarea = document.querySelector(`textarea[name="${param}.recommendation"]`);
+            if (textarea && details.recommendation) {
+                textarea.value = details.recommendation;
+            }
+        }
+    }
+
+    // Call this after the DOM is loaded
+    document.addEventListener("DOMContentLoaded", () => {
+        populateForm(<%- scopingResults -%>);
+    });
+
+</script>

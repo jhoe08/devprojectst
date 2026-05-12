@@ -1,0 +1,10 @@
+.table {
+    .division, .section {
+        td:first-child {
+            i {
+                margin-left: 15px;
+            }
+        }
+    }
+    
+}

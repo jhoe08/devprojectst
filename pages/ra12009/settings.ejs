@@ -1,0 +1,524 @@
+<%
+  let { directors, divisions } = JSON.parse(DEPARTMENT)
+
+  const steps = approval_steps
+
+  const { integration_email, integration_api_key, integration_client_id, integration_client_secret, executive } = settings[0] || {};
+
+
+    const mappedDirectors = settings[1].reduce((acc, row) => {
+        acc[row.abbr] = {
+            id: row.office_id,
+            stands: row.name,
+            email: "",
+            admin: "",
+            responsible: row.head_employee_id,
+            acting: "",
+        };
+        return acc;
+    }, {});
+
+    const mappedOffices = settings[2].reduce((acc, row) => {
+        acc[row.abbr] = {
+            id: row.department_id,
+            stands: row.name,
+            email: "",
+            admin: "",
+            parent_executive_office: row.parent_office_id,
+            parent_division: row.parent_department_id,
+            responsible: row.head_employee_id,
+            acting: "",
+        };
+        return acc;
+    }, {});
+
+    directors = mappedDirectors
+    offices = mappedOffices
+
+    console.log( {mappedDirectors, mappedOffices} )
+
+%>
+
+<div class="row">
+    <div class="col-3 col-md-2">
+        <div class="nav flex-column nav-pills nav-secondary nav-pills-no-bd nav-pills-icons" id="v-pills-tab-with-icon"
+            role="tablist" aria-orientation="vertical">
+            <a class="nav-link active" id="v-pills-site-tab-icons" data-bs-toggle="pill" href="#v-pills-site-icons"
+                role="tab" aria-controls="v-pills-home-icons" aria-selected="true">
+                <i class="icon-home"></i>
+                Site
+            </a>
+            <a class="nav-link" id="v-pills-division-tab-icons" data-bs-toggle="pill" href="#v-pills-division-icons"
+                role="tab" aria-controls="v-pills-profile-icons" aria-selected="false" tabindex="-1">
+                <i class="fas fa-sitemap"></i>
+                Organization
+            </a>
+            <a class="nav-link" id="v-pills-roles-tab-icons" data-bs-toggle="pill" href="#v-pills-roles-icons"
+                role="tab" aria-controls="v-pills-roles-icons" aria-selected="false" tabindex="-1">
+                <i class="fas fa-users"></i>
+                User Roles
+            </a>
+            <a class="nav-link" id="v-pills-access-tab-icons" data-bs-toggle="pill" href="#v-pills-access-icons"
+                role="tab" aria-controls="v-pills-access-icons" aria-selected="false" tabindex="-1">
+                <i class="fas fa-universal-access"></i>
+                Access
+            </a>
+            <a class="nav-link" id="v-pills-access-tab-icons" data-bs-toggle="pill" href="#v-tracking-sheet-icons"
+                role="tab">
+                <i class="fas fa-map-signs"></i>
+                Tracking Sheets
+            </a>
+            <a class="nav-link" id="v-pills-api-tab-icons" data-bs-toggle="pill" href="#v-pills-api-icons" role="tab"
+                aria-controls="v-pills-profile-icons" aria-selected="false" tabindex="-1">
+                <i class="fas fa-globe"></i>
+                API
+            </a>
+        </div>
+    </div>
+    <div class="col-9 col-md-10">
+        <div class="tab-content" id="v-pills-with-icon-tabContent">
+            <div class="tab-pane fade show active" id="v-pills-site-icons" role="tabpanel"
+                aria-labelledby="v-pills-home-tab-icons">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-head-row card-tools-still-right">
+                                    <h4 class="card-title">Site Settings</h4>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="custom-file-upload">
+                                    <input id="file-upload" type="file" name="fileUpload" multiple class="hidden" />
+                                    <label for="file-upload" id="file-drag">
+                                        <span id="file-upload-btn" class="button">Browse a Logo</span>
+                                    </label>
+                                    <div id="attachments"></div>
+                                </div>
+                                <div class="form-group form-group-default">
+                                    <label>Name</label>
+                                    <input id="site_name" type="text" class="form-control">
+                                </div>
+                                <div class="form-group form-group-default">
+                                    <label>Tagline</label>
+                                    <input id="site_tagline" type="text" class="form-control">
+                                </div>
+                                <div class="form-group form-group-default">
+                                    <label>Address</label>
+                                    <input id="site_address" type="text" class="form-control">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 ">
+                                        <div class="col-md-6 form-group form-group-default">
+                                            <label>Email</label>
+                                            <input id="site_email" type="text" class="form-control">
+                                        </div>
+
+                                    </div>
+                                    <div class="col-md-6 ">
+                                        <div class="col-md-6 form-group form-group-default">
+                                            <label>Phone</label>
+                                            <input id="site_phone" type="text" class="form-control">
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="v-pills-api-icons" role="tabpanel"
+                aria-labelledby="v-pills-division-tab-icons">
+                <div class="card-body">
+                    <ul class="nav nav-pills nav-secondary nav-pills-no-bd" id="pills-tab-without-border"
+                        role="tablist">
+                        <li class="nav-item submenu" role="presentation">
+                            <a class="nav-link active" id="pills-home-tab-nobd" data-bs-toggle="pill"
+                                href="#pills-home-nobd" role="tab" aria-controls="pills-home-nobd"
+                                aria-selected="true">Google</a>
+                        </li>
+                        <li class="nav-item submenu" role="presentation">
+                            <a class="nav-link" id="pills-profile-tab-nobd" data-bs-toggle="pill"
+                                href="#pills-profile-nobd" role="tab" aria-controls="pills-profile-nobd"
+                                aria-selected="false" tabindex="-1">Profile</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="pills-contact-tab-nobd" data-bs-toggle="pill"
+                                href="#pills-contact-nobd" role="tab" aria-controls="pills-contact-nobd"
+                                aria-selected="false" tabindex="-1">Contact</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content mt-2 mb-3" id="pills-without-border-tabContent">
+                        <div class="tab-pane fade active show" id="pills-home-nobd" role="tabpanel"
+                            aria-labelledby="pills-home-tab-nobd">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="card-head-row card-tools-still-right">
+                                            <h4 class="card-title">Google API Integration</h4>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group form-group-default">
+                                            <label for="integration_email">Email Address</label>
+                                            <input name="integration_email" id="integration_email" type="email"
+                                                class="form-control" value="<%= integration_email || '' %>">
+                                        </div>
+
+                                        <div class="form-group form-group-default">
+                                            <label for="integration_api_key">API Key</label>
+                                            <input name="integration_api_key" id="integration_api_key" type="text"
+                                                class="form-control" value="<%= integration_api_key || '' %>">
+                                        </div>
+
+                                        <div class="form-group form-group-default">
+                                            <label for="integration_client_id">Client ID</label>
+                                            <input name="integration_client_id" id="integration_client_id" type="text"
+                                                class="form-control" value="<%= integration_client_id || '' %>">
+                                        </div>
+
+                                        <div class="form-group form-group-default">
+                                            <label for="integration_client_secret">Client Secret (Optional)</label>
+                                            <input name="integration_client_secret" id="integration_client_secret"
+                                                type="text" class="form-control"
+                                                value="<%= integration_client_secret || '' %>">
+                                        </div>
+                                    </div>
+                                    <div class="card-action d-flex justify-content-between">
+                                        <button id="saveIntegration" class="btn btn-success">Save Integration</button>
+                                        <% if (integration_api_key) { %>
+                                            <div>
+                                                <label>View Sheets: </label>
+                                                <a href="/api/sheets?sheetId=1alv_rcdABMcTuS7q5OBez9_CDboToPvmjXNRn2GI9pM&range=ALL%20CURRENT"
+                                                    id="viewSheets" target="_blank" class="btn btn-primary">Current</a>
+                                                <a href="/api/sheets?sheetId=1alv_rcdABMcTuS7q5OBez9_CDboToPvmjXNRn2GI9pM&range=ALL%20CONTINUING"
+                                                    id="viewSheets" target="_blank" class="btn btn-info">Continuing</a>
+                                            </div>
+                                            <% } %>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="tab-pane fade" id="pills-profile-nobd" role="tabpanel"
+                            aria-labelledby="pills-profile-tab-nobd">
+                            <p>
+                                Even the all-powerful Pointing has no control about
+                                the blind texts it is an almost unorthographic life
+                                One day however a small line of blind text by the name
+                                of Lorem Ipsum decided to leave for the far World of
+                                Grammar.
+                            </p>
+                            <p>
+                                The Big Oxmox advised her not to do so, because there
+                                were thousands of bad Commas, wild Question Marks and
+                                devious Semikoli, but the Little Blind Text didn’t
+                                listen. She packed her seven versalia, put her initial
+                                into the belt and made herself on the way.
+                            </p>
+                        </div>
+                        <div class="tab-pane fade" id="pills-contact-nobd" role="tabpanel"
+                            aria-labelledby="pills-contact-tab-nobd">
+                            <p>
+                                Pityful a rethoric question ran over her cheek, then
+                                she continued her way. On her way she met a copy. The
+                                copy warned the Little Blind Text, that where it came
+                                from it would have been rewritten a thousand times and
+                                everything that was left from its origin would be the
+                                word "and" and the Little Blind Text should turn
+                                around and return to its own, safe country.
+                            </p>
+
+                            <p>
+                                But nothing the copy said could convince her and so it
+                                didn’t take long until a few insidious Copy Writers
+                                ambushed her, made her drunk with Longe and Parole and
+                                dragged her into their agency, where they abused her
+                                for their
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="v-pills-division-icons" role="tabpanel">
+                <div class="card-body">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-head-row card-tools-still-right">
+                                <h4 class="card-title">Organization</h4>
+                                <button class="btn btn-primary btn-round ms-auto" id="addMoreFieldButton" data-bs-toggle="modal" data-bs-target="#settingsModal" data-bs-method="create">
+                                    <i class="fa fa-plus"></i>
+                                    Add Row
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="card-body table-responsive" id="divisionFields">
+                            <table id="organizationalTable" class="table table-striped table-hover">
+                                <thead>
+                                    <tr class="text-uppercase">
+                                        <th>Abbreviation</th>
+                                        <th>Name</th>
+                                        <th title="Responsible Person">Person</th>
+                                        <th>Email</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr class="text-uppercase">
+                                        <th>Abbreviation</th>
+                                        <th>Name</th>
+                                        <th title="Responsible Person">Person</th>
+                                        <th>Email</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                    <% const renderRow=(key, stands, email, type, responsible)=> {
+                                        const data = {key, stands, email, type, responsible}
+                                        %>
+                                        <tr class="<%= type %>">
+                                            <td><%- type==='section' ? '<i class="icon-sm unicode">∟</i> ' :
+                                                    type==='division' ? '<i class="icon-sm far fa-folder-open"></i> ' :
+                                                    type==='unit' ? '<i class="icon-sm fas fa-flag"></i>'
+                                                    : '<i class="icon-sm far fa-building"></i>' -%>
+                                                    <%= key %>
+                                            </td>
+                                            <td>
+                                                <%= stands %>
+                                            </td>
+                                            <td>
+                                                <%= responsible?.name || '' %>
+                                            </td>
+                                            <td>
+                                                <%= email %>
+                                            </td>
+                                            <td>
+                                                <div class="form-button-action" data-transid="1">
+                                                    <span data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Edit <%= type.charAt(0).toUpperCase() + type.slice(1) %>">
+                                                        <a class="actionsEdit" data-type="organization"
+                                                            href="#settingsModal"
+                                                            class="btn btn-link btn-primary btn-lg"
+                                                            data-bs-toggle="modal" data-bs-target="#settingsModal"
+                                                            data-modalTitle="Edit <%= type.charAt(0).toUpperCase() + type.slice(1) %>"
+                                                            data-modalBody="<%=JSON.stringify(data)%>">
+                                                            <i class="fa fa-edit"></i>
+                                                        </a>
+                                                    </span>
+                                                    <% if (false) { %>
+                                                        <a href="#delete" class="btn btn-link btn-danger btn-lg"
+                                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                                            title="Delete <%= type.charAt(0).toUpperCase() + type.slice(1) %>">
+                                                            <i class="fa fa-trash"></i>
+                                                        </a>
+                                                        <% } %>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <% } %>
+
+                                        <% if (directors && offices) { %>
+                                            <% Object.entries(directors).forEach(([key, director]) => { 
+                                                const { id: directorOffice, stands, email, responsible, } = director;
+                                            %>
+                                                <%- renderRow(key, stands, email, 'director', responsible) %>
+
+                                                <% Object.entries(offices).forEach(([divKey, division]) => { 
+                                                    const { id: divisionOffice, stands, email, responsible, parent_executive_office, parent_division } = division;
+                                                    if (directorOffice === parent_executive_office && parent_division === 1) { %>
+                                                        
+                                                        <%- renderRow(divKey, stands, email, 'division', responsible) %>
+
+                                                        <% Object.entries(offices).forEach(([unitKey, unitDivision]) => { 
+                                                            const {id: unitId, stands, email, responsible, parent_division, parent_executive_office } = unitDivision;
+                                                            if (divisionOffice === parent_division) { %>
+                                                                
+                                                                <%- renderRow(unitKey, stands, email, 'section', responsible) %>
+                                                            
+                                                            <% } %>
+                                                        <% }) %>
+                                                    <% } %>
+                                                <% }) %>
+                                            <% }) %>
+                                        <% } %>
+
+                                </tbody>
+
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="v-pills-access-icons" role="tabpanel">
+                <div class="card-body">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-head-row card-tools-still-right">
+                                <h4 class="card-title">Access</h4>
+                                <button class="btn btn-primary btn-round ms-auto" id="addMoreFieldButton">
+                                    <i class="fa fa-plus"></i>
+                                    Add Row
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="card-body" id="accessFields">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-6 ml-0">
+                                    <div class="form-group form-group-default">
+                                        <label for="division_abbrv">Components</label>
+                                        <select class="form-select" id="components">
+                                            <option title="Dashboard" value="Dashboard">Dashboard</option>
+                                            <option title="Transactions" value="Transactions">Transactions</option>
+                                            <option title="Employees" value="Employees">Employees</option>
+                                            <option title="Communications" value="Communications">Communications
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-7 col-md-7">
+                                    <div class="form-group form-group-default">
+                                        <label for="division_email">Employees</label>
+                                        <div class="avatar-group" style="margin-top: 4px;">
+
+                                            <div class="avatar avatar-xs" data-bs-toggle="tooltip"
+                                                data-bs-placement="top" title="Siya Ako">
+                                                <img src="../assets/img/mlane.jpg" alt="..."
+                                                    class="avatar-img rounded-circle border border-white">
+                                            </div>
+                                            <div class="avatar avatar-xs" data-bs-toggle="tooltip"
+                                                data-bs-placement="top" title="Ako Siya">
+                                                <span class="avatar-title rounded-circle border border-white">CF</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-2 col-md-2">
+                                    <div class="form-group form-group-default form-group-minus">
+                                        <label for="addModalEmployeeBtn">Options</label>
+                                        <div class="d-flex justify-content-evenly">
+                                            <span data-bs-toggle="tooltip" data-bs-placement="top" title="Remove">
+                                                <button id="removeModalEmployeeBtn"
+                                                    class="form-control fas fa-minus"></button>
+                                            </span>
+                                            <span data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                                                <button id="addModalEmployeeBtn" class="form-control fas fa-edit"
+                                                    data-bs-target="#addModalEmployee" data-bs-toggle="modal"></button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="v-tracking-sheet-icons" class="tab-pane fade">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-head-row card-tools-still-right">
+                            <h4 class="card-title">Sheets</h4>
+                            <button class="btn btn-primary btn-round ms-auto" id="addMoreFieldButton">
+                                <i class="fa fa-plus"></i>
+                                Add Row
+                            </button>
+                        </div>
+
+                    </div>
+                    <div class="card-body" id="sheetsFields">
+                        <div class="row">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Title</th>
+                                        <th scope="col">Template</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Small Value</td>
+                                        <td><span class="badge badge-info">Default</span></td>
+                                        <td>
+                                            <span class="badge badge-count"><i class="fas fa-eye"></i> View</span>
+                                            <span class="badge badge-danger"><i class="fas fa-edit"></i> Edit</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <ul class="list-group">
+                                                <% steps.forEach(function(step) { %>
+                                                    <li class="">{ id: <strong>
+                                                            <%= step.id %>
+                                                        </strong>, steps_title: <%= step.steps_title %> }</li>
+                                                    <% }); %>
+                                            </ul>
+                                        </td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Public Bidding</td>
+                                        <td><span class="badge badge-info">Default</span></td>
+                                        <td>
+                                            <span class="badge badge-count"><i class="fas fa-eye"></i> View</span>
+                                            <span class="badge badge-danger"><i class="fas fa-edit"></i> Edit</span>
+                                        </td>
+
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="v-pills-roles-icons" class="tab-pane fade" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-head-row card-tools-still-right">
+                            <h4 class="card-title">User Roles</h4>
+                            <a href="#" class="btn btn-primary btn-round ms-auto" data-bs-toggle="modal"
+                                data-bs-target="#rolesModal">
+                                <i class="fa fa-plus"></i>
+                                Add Row
+                            </a>
+                            <a href="#" class="btn btn-primary btn-round ms-auto" data-bs-toggle="modal"
+                                data-bs-target="#primaryModal">
+                                <i class="fa fa-plus"></i>
+                                Add Row
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body" id="sheetsFields">
+                        <table class="basicDatatables table table-striped table-hover">
+                            <thead>
+                                <tr class="text-uppercase">
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr class="text-uppercase">
+                                    <td>ID</td>
+                                    <td>Name</td>
+                                    <td>Actions</td>
+                                </tr>
+                            </tfoot>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../../components/modals/settings/settings') -%>

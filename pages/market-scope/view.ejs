@@ -1,0 +1,376 @@
+<%
+
+const TRANSACTIONS = transactions;
+
+const { id:parentId, project_title, reference_number, date_conducted, end_user_unit, consultations_with_suppliers, participation_in_summits, review_reports, review_brochures, price_sourcing, use_philgeps_data, other_activity, documentation, prepared_by_name, prepared_by_position, prepared_by_date, prepared_by_signature, reviewed_by_name, reviewed_by_position, reviewed_by_date, reviewed_by_signature } = results 
+
+  const { totalTransactions, market_scopes } = SUMMARY
+  const { row_count:total_market_scopes } = JSON.parse(market_scopes || 0)
+
+  // parse the stored JSON list of reference numbers and compute percentage
+  const arrReferenceNumber = JSON.parse(reference_number || '[]')
+  const totalRef = Array.isArray(arrReferenceNumber) ? arrReferenceNumber.length : 0
+  const totalTx = Number(TRANSACTIONS.length) || 0
+  const percentage = totalTx ? (totalRef / totalTx) * 100: 0
+
+const percentagePreparedBy = TRANSACTIONS ? (totalRef / TRANSACTIONS.length) * 100 : 0
+
+  const formatMonthYear = (str) => {
+    const [month, year] = str.split('/');
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${months[parseInt(month, 10) - 1]} ${year}`;
+  };
+  const formattedDateConducted = (() => {
+    if (!date_conducted) return 'Not yet conducted';
+    const [start, end] = date_conducted.split(' - ');
+    const startDate = formatMonthYear(start);
+    const endDate = formatMonthYear(end);
+    return (startDate && endDate) ? `${startDate} - ${endDate}` : 'Not yet conducted';
+  })();
+
+%>
+  
+<div class="row mt--2">
+  <div class="col-12 col-sm-6 col-md-6 col-xl-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h5 data-reference-number="<%= arrReferenceNumber %>"><b><%= project_title %></b></h5>
+            <p class="text-muted"><%= formattedDateConducted || 'Not yet conducted' %></p>
+          </div>
+          <h3 class="text-info fw-bold"><%= arrReferenceNumber?.length || 0 %></h3>
+        </div>
+        <div class="progress progress-sm">
+         <div 
+            class="progress-bar bg-info" 
+            role="progressbar"
+            style="width: <%= percentage.toFixed(2) %>%;" 
+          >
+          </div>
+        </div>
+        <div class="d-flex justify-content-between mt-2">
+          <div>
+            <p class="text-muted mb-0">Total PR under Market Scope (<%= arrReferenceNumber?.length || 0 %>) overall PR</p>
+            <a id="results-link" class="badge badge-warning hidden" href="./results">Generate Results</a>
+          </div>
+          <p class="text-muted mb-0"><%= parseFloat(percentage.toFixed(2)) %>%</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h5><b><%= prepared_by_name %></b></h5>
+            <p class="text-muted"><%= prepared_by_position %></p>
+          </div>
+          <h3 class="text-danger fw-bold"><%= TRANSACTIONS.length %></h3>
+        </div>
+        <div class="progress progress-sm">
+          <div class="progress-bar bg-danger" role="progressbar" style="width: <%= parseFloat(percentagePreparedBy.toFixed(2)) %>%;"  aria-valuemin="0" 
+            aria-valuemax="<%= TRANSACTIONS.length %>"></div>
+        </div>
+        <div class="d-flex justify-content-between mt-2">
+          <p class="text-muted mb-0">Prepared by</p>
+          <p class="text-muted mb-0"><%= parseFloat(percentagePreparedBy.toFixed(2)) %>%</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h5><b><%= reviewed_by_name %></b></h5>
+            <p class="text-muted"><%= reviewed_by_position %></p>
+          </div>
+          <h3 class="text-secondary fw-bold">--</h3>
+        </div>
+        <div class="progress progress-sm">
+          <div class="progress-bar bg-secondary w-25" role="progressbar" style="width: 0" aria-valuemin="0" 
+            aria-valuemax="<%= TRANSACTIONS.length %>"></div>
+        </div>
+        <div class="d-flex justify-content-between mt-2">
+          <p class="text-muted mb-0">Reviewed by</p>
+          <p class="text-muted mb-0">--</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-6 col-xl-2">
+    <div class="card card-stats card-round">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-5">
+            <div class="icon-big text-center">
+              <a href="print" target="_blank">
+                <i class="icon-printer text-warning"></i>
+              </a>
+            </div>
+          </div>
+          <div class="col-7 col-stats">
+            <div class="numbers">
+              <!-- <p class="card-category">Actions</p> -->
+              <h4 class="card-title">Print</h4>
+            </div>
+          </div>
+        </div>
+        <div class="row results-link">
+          <div class="col-5">
+            <div class="icon-big text-center">
+              <a class="" href="./results" target="_blank">
+                <i class="icon-docs text-success"></i>
+              </a>
+            </div>
+          </div>
+          <div class="col-7 col-stats">
+            <div class="numbers">
+              <!-- <p class="card-category">Actions</p> -->
+              <h4 class="card-title">View Results</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-head-row card-tools-still-right">
+          <h4 class="card-title">List of Purchase Request</h4>
+          <div class="card-tools">
+            <a class="btn btn-primary btn-round ms-auto" href="/transactions/new?market-scope=<%= parentId %>">
+              <i class="fa fa-plus"></i>
+              Add New PR
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <table
+            id="ra12009MarketScopeTransactions"
+            class="display table table-striped table-hover"
+            >
+            <thead>
+                <tr class="text-uppercase">
+                <th>ID</th>
+                <th>Notice Title</th>
+                <th>Requistioner</th>
+                <th>Division</th>
+                <th>Date</th>
+                <th>ABC</th>
+                <th>Fund Sources</th>
+                <th>Codes</th>
+                <th>Banner</th>
+                <th>Classification</th>
+                <th>Unit</th>
+                <th><%= hasAllowedRole(['Admin']) ? 'Funds Availability' : 'Action' %></th>
+                <th>Steps</th>
+                <th>Procurement Type</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr class="text-uppercase">
+                <th>ID</th>
+                <th>Notice Title</th>
+                <th>Requistioner</th>
+                <th>Division</th>
+                <th>Date</th>
+                <th>ABC</th>
+                <th>Fund Sources</th>
+                <th>Codes</th>
+                <th>Banner</th>
+                <th>Classification</th>
+                <th>Unit</th>
+                <th><%= hasAllowedRole(['Admin']) ? 'Funds Availability' : 'Action' %></th>
+                <th>Steps</th>
+                <th>Procurement Type</th>
+                </tr>
+            </tfoot>
+            <tbody>
+
+          <% 
+            let { division:userDivision, section: userSection, position: userPosition } = (!isGuest()) ? SESSION_USER_LOG.designation : { division:'', section:'', position:'' };
+            userDivision = userDivision.toLowerCase();
+            userSection = userSection.toLowerCase();
+            userPosition = userPosition.toLowerCase();
+
+            for(var i=0; i < transactions.length; i++) { 
+              var {pr_date, approved_budget, product_id, pr_classification, procurement_type, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code, prepared_by } = transactions[i]
+
+              date = moment(pr_date).format('L')
+              
+              var budget = approved_budget
+              var cleanBudget = budget.replace(/,/g, '');
+
+              budget = parseFloat(cleanBudget)
+              fund_source = JSON.parse(fund_source)
+              
+              const { lists, getCurrentStep, getDetails, getTitle } = STEPS
+
+
+              let current_step = getCurrentStep(_steps, product_id)
+              const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
+              current_step_title = getTitle(current_step_number)
+
+              const requestID = UTILS.addLeadingZeros(product_id)
+              const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
+
+              const COMPLETION_STEP = 31;
+              const isComplete = current_step_number >= COMPLETION_STEP;
+
+
+          %>
+            
+            <tr 
+              data-steps="<%= JSON.stringify(current_step) %>" 
+              data-current-steps="<%= current_step_number %>" 
+              data-step-title="<%= current_step_title %>"
+              data-index="<%= i %>"
+              data-user-chief="<%= '' %>"
+              data-user-division="<%= userDivision %>"
+              data-user-section="<%= userSection %>"
+              >
+              
+              <td data-head="Product ID"><%= trackerid %></td>
+              <td data-head="Notice Title">
+                <%= bid_notice_title %>
+                <%- include('../../views/partials/progress', {length: 30, progress: current_step_number, title: current_step_title }) %>
+              </td>
+              <td data-head="Requistioner"><%= requisitioner %></td>
+              <td data-head="Division"><%= division %></td>
+              <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>" data-order="<%= moment(pr_date).unix(); %>"><%= date %></td>
+              <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>" class="align-right"><%- UTILS.peso(budget) %></td>
+              <td data-head="Fund Sources"><%= fund_source %></td>
+              <td data-head="Codes"><%- trans_code -%></td>
+              <td data-head="Banner"><%= banner_program %></td>
+              <td data-head="Classification"><%= pr_classification %></th>
+              <td data-head="BAC"><%= bac_unit %></td>
+              <td data-head="Actions">
+                <div class="form-button-action" data-transid="<%= product_id %>" data-transaction="<%= JSON.stringify(transactions[i]) %>">
+                  <span data-bs-toggle="tooltip" title="View Transactions">
+                    <a href="/transactions/<%= product_id %>/view" data-transid="<%= product_id %>" type="button" class="btn btn-link btn-primary">
+                      <i class="fa fa-eye"></i>
+                    </a>
+                  </span>
+                  
+                  <% if (userDivision=='admin' && userSection=='budget' && current_step_number===3) { %>
+                  <span data-bs-toggle="tooltip" title="Approve Fund Availability">
+                    <button data-product-id="<%= product_id %>" type="button" class="btn alert_confirm btn-link btn-success" data-original-title="Remove" id="alert_confirm" data-step="<%= current_step_number %>">
+                      <i class="fa fa-check"></i>
+                    </button>
+                  </span>
+                  <span data-bs-toggle="tooltip" title="Disapprove Fund Availability">
+                    <button data-product-id="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_deny btn-link btn-danger" data-original-title="Remove"  id="alert_deny" data-step="<%= current_step_number %>">
+                      <i class="fa fa-times"></i>
+                    </button>
+                  </span>
+                  <% } %>
+                  <% if (userDivision=='admin' && userSection=='gs' && current_step_number===4) { %>
+                  <button data-product-id="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_confirm confirm_app btn-link btn-success" data-original-title="Remove"  id="alert_confirm" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Verify APP">
+                    <i class="fa fa-check-circle"></i>
+                  </button>
+                    <% if (cleanBudget < 50000) { %>
+                  <button data-product-id="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_deny btn-link btn-info" data-original-title="Remove"  id="alert_deny" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Generate Canvass Form">
+                    <i class="fa fa-folder-open"></i>
+                  </button>
+                    <% } else { %>
+                  <button data-product-id="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_deny btn-link btn-info" data-original-title="Remove"  id="alert_deny" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Philgesh Posting">
+                    <i class="fa fa-globe"></i>
+                  </button>
+                    <% } %>
+                  <% } %>
+                  <% if(isCreatorOfTransaction(transactions[i]) && !isComplete) { %>
+                  <span data-bs-toggle="tooltip" title="Edit Transaction">
+                  <a href="/transactions/<%= product_id %>/edit" data-transid="<%= product_id %>" type="button"  class="btn btn-link btn-primary" data-original-title="Edit Transaction" data-bs-toggle="tooltip" data-bs-placement="top" data-title="Edit Transaction">
+                    <i class="fa fa-edit"></i>
+                  </a>
+                  </span>
+                  <% } %>
+                  <% if (hasAllowedRole(['user'])) { %>
+                  <button data-href="/transactions/<%= product_id %>/print" type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-warning" data-original-title="Print"  id="print_<%= product_id %>">
+                    <i class="fas fa-print"></i>
+                  </button>
+                  <% } %>
+                  
+                  <% if (isComplete) { %>
+                  <span data-bs-toggle="tooltip" title="Completed Transactions">
+                    <a href="#" data-transid="<%= product_id %>" type="button" class="btn btn-link btn-success">
+                      <i class="fas fa-check-circle"></i>
+                    </a>
+                  </span>
+                  <% } %>
+                  
+                  <% if (hasAllowedRole(['SuperAdmin']) && !isComplete) { %>
+                  <button data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-delete btn-link btn-danger" data-original-title="Remove"  id="alert_demo_<%= product_id %>">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                  <% } %>
+                  
+                </div>
+              </td>
+              <td data-head="Steps">
+                <%= current_step %>
+              </td>
+              <td data-head="Procurement Type">
+                <%= procurement_type %>
+              </td>
+            </tr>
+          <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function updateResultsLink(scopingId) {
+    try {
+      const res = await fetch(`/api/check-scoping/${scopingId}`);
+      const data = await res.json();
+
+      const link = document.getElementById('results-link');
+      if (data.exists) {
+        link.textContent = "View Results";
+        link.classList.add('badge-success')
+        link.classList.remove('badge-warning')
+      } else {
+        link.textContent = "Generate Results";
+      }
+    } catch (err) {
+      console.error("Error checking scoping:", err);
+    }
+  }
+  
+  async function updateResultsCardTitle(scopingId) {
+    try {
+      const res = await fetch(`/api/check-scoping/${scopingId}`);
+      const data = await res.json();
+
+      const cardTitle = document.querySelector('.results-link .card-title');
+      if (cardTitle) {
+        if (data.exists) {
+          cardTitle.textContent = "View Results";
+          // cardTitle.classList.add('badge-success');
+          // cardTitle.classList.remove('badge-warning');
+        } else {
+          cardTitle.textContent = "Generate Results";
+        }
+      }
+    } catch (err) {
+      console.error("Error checking scoping:", err);
+    }
+  }
+
+
+  // Example usage: check for scoping_id = 1
+  updateResultsCardTitle(<%= parentId %>);
+</script>

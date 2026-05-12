@@ -61,7 +61,7 @@
     }
 }
 
-table {
+table#trackingSheetTable {
     font-size: .8em;
     width: 100%;
 
@@ -132,7 +132,15 @@ table {
     }
 }
 @media print {
-    * { 
+    input::placeholder,
+    textarea::placeholder {
+        color: transparent; /* makes it invisible */
+    }
+
+
+    body:not(.superclass) *,
+    .superclass .sidebar,
+    .superclass .main-header { 
         overflow: hidden;
         visibility: hidden;
     } 

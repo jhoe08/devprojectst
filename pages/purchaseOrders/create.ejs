@@ -1,0 +1,52 @@
+<form action="/purchase-orders/create" method="POST" class="row g-3">
+    <!-- Order Number -->
+    <div class="col-md-6">
+        <label for="order_number" class="form-label">Order Number</label>
+        <input type="text" id="order_number" name="order_number" class="form-control" required>
+    </div>
+
+    <!-- Product ID (foreign key) -->
+    <div class="col-md-6">
+        <label for="product_id" class="form-label">Product</label>
+        <select id="product_id" name="product_id" class="form-select" required>
+            <!-- These options should be populated dynamically from your products table -->
+            <option value="">Select a product...</option>
+            <option value="1">Product A</option>
+            <option value="2">Product B</option>
+            <option value="3">Product C</option>
+        </select>
+    </div>
+
+    <!-- Quantity -->
+    <div class="col-md-4">
+        <label for="quantity" class="form-label">Quantity</label>
+        <input type="number" id="quantity" name="quantity" class="form-control" min="1" required>
+    </div>
+
+    <!-- Unit Price -->
+    <div class="col-md-4">
+        <label for="unit_price" class="form-label">Unit Price</label>
+        <input type="number" step="0.01" id="unit_price" name="unit_price" class="form-control" required>
+    </div>
+
+    <!-- Order Date -->
+    <div class="col-md-4">
+        <label for="order_date" class="form-label">Order Date</label>
+        <input type="date" id="order_date" name="order_date" class="form-control" required>
+    </div>
+
+    <!-- Status -->
+    <div class="col-md-6">
+        <label for="status" class="form-label">Status</label>
+        <select id="status" name="status" class="form-select">
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Completed">Completed</option>
+        </select>
+    </div>
+
+    <!-- Submit -->
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Create Purchase Order</button>
+    </div>
+</form>

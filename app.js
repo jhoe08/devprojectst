@@ -1,16 +1,23 @@
 require('dotenv').config();
 
-const http = require('http');
 const express = require('express');
-// const socketio = require('socket.io');
-const { createServer, get } = require("node:http")
+const { createServer } = require("node:http")
 const { Server } = require('socket.io');
 const path = require("path");
-const fetch = require('node-fetch');
-const connection = require("./admin/database");
+const { pathToFileURL } = require('url');
+const connection = require("./admin/database_backup");
+// const DatabaseConnection = require("./admin/database/DatabaseConnection");
 const misc = require("./admin/misc")
-const utils = require("./admin/utils")
-const { connect } = require('http2');
+const utils = require("./admin/utils");
+
+// const sharedJsonHelperPath = pathToFileURL(path.join(__dirname, 'assets/js/helpers/jsonHelper.js')).href;
+// let sharedJsonHelper;
+// async function getSharedJsonHelper() {
+//   if (!sharedJsonHelper) {
+//     sharedJsonHelper = await import(sharedJsonHelperPath);
+//   }
+//   return sharedJsonHelper;
+// }
 const moment = require('moment');
 const bodyParser = require('body-parser');
 const ejs = require('ejs')
@@ -18,9 +25,10 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const { v4: uuidv4 } = require('uuid');
 
-const logger = require('./utils/logger');
+const { svp: CONST_SVP, publicBidding: CONST_PB, responsiblePersonAtStages, MISC: CONST_MISC } = require('./admin/const')
 
 
+// const logger = require('./utils/logger');
 
 const sessionStore = new MySQLStore({
   host: process.env.DB_HOST,
@@ -32,103 +40,94 @@ const sessionStore = new MySQLStore({
 
 
 const bcrypt = require('bcrypt')
-const saltRounds = 10
 const cron = require('node-cron');
 const multer = require('multer');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 
-
-
 const _express = require('./admin/express');
 const _cronjobs = require('./admin/cron')
 
+const { errorHandler, asyncHandler } = require('./admin/errorHandler');
+const { sanitizeInputMiddleware } = require('./admin/inputValidation');
+const { hashPassword, verifyPassword } = require('./admin/passwordService');
 
-const sampleEmployee = require('./admin/employees.json')
-
-const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { exit } = require('process');
-const { count, table } = require('console');
-const { permission, title } = require('node:process');
-const { trace } = require('node:console');
-const { stringify } = require('node:querystring');
-const { hash } = require('node:crypto');
- 
 
-const { hashPassword, registerUser,loginUser,hashing, authenticateUser, registerUserCrypto, verifyPasswordCrypto,comparePasswordCrypto } = misc
-const {hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros, findDivisionBySection, toCapitalize, isActive} = utils
+
+// Using bcrypt for password operations - see createPasswordHash() for hashing new passwords
+const { hashPasswordUtils, authenticateUserUtils, peso, isValidJSON, statusText, addLeadingZeros, findDivisionBySection, toCapitalize, isActive } = utils
 
 const _preDefaultData = {
-    blood_type: ['N/A','O+','O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
-    civil_status: ['Single', 'Married', 'Widowed', 'Separated', 'Other\'s'],
-    citizenship: ['Filipino', 'Other\'s'],
-    gender: ['N/A', 'Male', 'Female', 'Other\'s'],
-    appointments: [
-        {
-            type: "Permanent",
-            description: "A permanent appointment provides job security and stability, typically granted after a competitive selection process. Requires civil service eligibility.",
-            benefits: "Includes tenure security, eligibility for promotion, and various benefits and allowances.",
-            requirements: "Must have passed civil service examinations or have other required qualifications."
-        },
-        {
-            type: "Temporary",
-            description: "Issued for a limited period to address immediate needs or fill in for regular employees who are absent. Does not offer the same level of job security as permanent appointments.",
-            benefits: "Limited benefits compared to permanent positions.",
-            requirements: "Less stringent than permanent appointments, but must meet basic qualifications and competencies."
-        },
-        {
-            type: "Casual",
-            description: "Used for short-term employment to address specific needs or projects. Typically for positions that do not require regular, long-term staffing.",
-            benefits: "Minimal benefits and less job security.",
-            requirements: "Often does not require civil service eligibility; qualifications may be less stringent."
-        },
-        {
-            type: "Contractual",
-            description: "Used for specific projects or time-bound tasks based on a contract that outlines the terms of employment, including duration, duties, and compensation.",
-            benefits: "Benefits and security are determined by contract terms, often with limited benefits compared to permanent positions.",
-            requirements: "Must fulfill contract terms and may vary depending on the project or task."
-        },
-        {
-            type: "Exempt",
-            description: "Positions exempt from certain civil service regulations or examinations due to the specialized nature of the work or the level of the position.",
-            benefits: "Varies depending on the position; can include higher compensation but potentially less job security.",
-            requirements: "Specific to the position, involving specialized skills or qualifications not covered by standard civil service rules."
-        },
-        {
-            type: "Job Order (JO)",
-            description: "Employs individuals on a 'per-job' or 'per-task' basis, often for routine or support functions. Employment is typically short-term or based on specific needs.",
-            benefits: "Usually minimal benefits and compensation based on completed jobs or tasks.",
-            requirements: "Qualifications are outlined in the job order itself; often does not require civil service eligibility."
-        },
-        {
-            type: "Contract of Service (COS)",
-            description: "Engages individuals to perform specific tasks or projects under a defined contract. Often used for specialized, temporary, or project-based roles.",
-            benefits: "Compensation and benefits are specified in the contract, typically with fewer benefits compared to permanent positions.",
-            requirements: "Specific to the tasks or projects and may not require civil service eligibility."
-        }    
-    ]
-}
-
-const _preTransactionsData = {
-  classification: ['', 'Catering Services','Consumables','Food & Accommodation','Freight & Handling','Goods','Infrastructure','Machineries & Equipment','Motor Vehicle','Repair & Maintenance','Services(JO/COS)','Training','Training & Representation', 'Others'],
-  banner_program: ['', 'Corn','GASS','HVCDP','Livestock','NUPAP','Organic','Rice','SAAD','STO', 'Others'],
-  bac_unit : ['', 'BAC 1', 'BAC 2', 'Others'],
-  divisions: ['', "ADMIN", "AMAD", "FOD", "ILD", "ICT", "PMED", "RAED", "REGULATORY", "RESEARCH","Others"],
-  abbrev: [
+  blood_type: ['N/A', 'O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
+  civil_status: ['Single', 'Married', 'Widowed', 'Separated', 'Other\'s'],
+  citizenship: ['Filipino', 'Other\'s'],
+  gender: ['N/A', 'Male', 'Female', 'Other\'s'],
+  appointments: [
     {
-      "ADMIN": "Administrative and Finance Division",
-      "AMAD": "Agribusiness and Marketing Assistance Division",
-      "FOD": "Field Operations Division",
-      "ILD": "Integrated Laboratory Division",
-      "ICT": "Information and Communications Technology",
-      "PMED": "Planning, Monitoring and Evaluation Division",
-      "RAED": "Regional Agricultural Engineering Division",
-      "REG": "Regulartory Division",
-      "RES": "Research Division"
+      type: "Permanent",
+      description: "A permanent appointment provides job security and stability, typically granted after a competitive selection process. Requires civil service eligibility.",
+      benefits: "Includes tenure security, eligibility for promotion, and various benefits and allowances.",
+      requirements: "Must have passed civil service examinations or have other required qualifications."
+    },
+    {
+      type: "Temporary",
+      description: "Issued for a limited period to address immediate needs or fill in for regular employees who are absent. Does not offer the same level of job security as permanent appointments.",
+      benefits: "Limited benefits compared to permanent positions.",
+      requirements: "Less stringent than permanent appointments, but must meet basic qualifications and competencies."
+    },
+    {
+      type: "Casual",
+      description: "Used for short-term employment to address specific needs or projects. Typically for positions that do not require regular, long-term staffing.",
+      benefits: "Minimal benefits and less job security.",
+      requirements: "Often does not require civil service eligibility; qualifications may be less stringent."
+    },
+    {
+      type: "Contractual",
+      description: "Used for specific projects or time-bound tasks based on a contract that outlines the terms of employment, including duration, duties, and compensation.",
+      benefits: "Benefits and security are determined by contract terms, often with limited benefits compared to permanent positions.",
+      requirements: "Must fulfill contract terms and may vary depending on the project or task."
+    },
+    {
+      type: "Exempt",
+      description: "Positions exempt from certain civil service regulations or examinations due to the specialized nature of the work or the level of the position.",
+      benefits: "Varies depending on the position; can include higher compensation but potentially less job security.",
+      requirements: "Specific to the position, involving specialized skills or qualifications not covered by standard civil service rules."
+    },
+    {
+      type: "Job Order (JO)",
+      description: "Employs individuals on a 'per-job' or 'per-task' basis, often for routine or support functions. Employment is typically short-term or based on specific needs.",
+      benefits: "Usually minimal benefits and compensation based on completed jobs or tasks.",
+      requirements: "Qualifications are outlined in the job order itself; often does not require civil service eligibility."
+    },
+    {
+      type: "Contract of Service (COS)",
+      description: "Engages individuals to perform specific tasks or projects under a defined contract. Often used for specialized, temporary, or project-based roles.",
+      benefits: "Compensation and benefits are specified in the contract, typically with fewer benefits compared to permanent positions.",
+      requirements: "Specific to the tasks or projects and may not require civil service eligibility."
     }
   ]
 }
+
+// const miscellaneous = {
+//   classification: ['', 'Catering Services','Consumables','Food & Accommodation','Freight & Handling','Goods','Infrastructure','Machineries & Equipment','Motor Vehicle','Repair & Maintenance','Services(JO/COS)','Training','Training & Representation', 'Others'],
+//   banner_program: ['', 'Corn','GASS','HVCDP','Livestock','NUPAP','Organic','Rice','SAAD','STO', 'Others'],
+//   bac_unit : ['', 'BAC 1', 'BAC 2', 'Others'],
+//   divisions: ['', "ADMIN", "AMAD", "FOD", "ILD", "ICT", "PMED", "RAED", "REGULATORY", "RESEARCH","Others"],
+//   abbrev: [
+//     {
+//       "ADMIN": "Administrative and Finance Division",
+//       "AMAD": "Agribusiness and Marketing Assistance Division",
+//       "FOD": "Field Operations Division",
+//       "ILD": "Integrated Laboratory Division",
+//       "ICT": "Information and Communications Technology",
+//       "PMED": "Planning, Monitoring and Evaluation Division",
+//       "RAED": "Regional Agricultural Engineering Division",
+//       "REG": "Regulartory Division",
+//       "RES": "Research Division"
+//     }
+//   ]
+// }
 
 const purchaseRequestStatuses = [
   "Draft",               // The PR is being created but not yet submitted.
@@ -147,54 +146,7 @@ const purchaseRequestStatuses = [
   "Backordered"          // The PR items are on backorder and will arrive later.
 ];
 
-const purchaseRequestRoles = {
-  "End-User": [
-    "preparation",
-    "final_review",
-    "acceptance",
-    "final_acceptance",
-    "inspection_scheduling",
-    "documentation"
-  ],
-  "Program Coordinator": ["final_review"],
-  "Division Chief": [
-    "division_head_approval",
-    "final_review",
-    "voucher_approval"
-  ],
-  "Budget Section": ["earmarking", "fund_allocation"],
-  "Procurement Section (PS)": [
-    "philgesp_posting",
-    "preparation_quotation_form",
-    "procurement_finalization",
-    "po_preparation",
-    "award_preparation"
-  ],
-  "BAC Secretariat": [
-    "bac_review",
-    "delivery_confirmation",
-    "bac_evaluation"
-  ],
-  "BAC Members": ["bac_evaluation"],
-  "Canvassers": ["canvassing"],
-  "Supplier/Contractors": ["supplier_engaged"],
-  "RED/RTD": [
-    "executive_approval",
-    "executive_signoff",
-    "delivery_approval",
-    "final_signoff"
-  ],
-  "Admin Chief": ["final_signoff"],
-  "Accounting Section": [
-    "obligation_request",
-    "voucher_preparation",
-    "liquidation"
-  ],
-  "General Services Section": ["delivery_preparation", "inspection_scheduling", "documentation"],
-  "RAED": ["inspection_scheduling"],
-  "Inspectors": ["inspection"],
-  "Cashering Unit": ["payment_processing", "release_funds"]
-};
+
 
 // =========================
 // Permissions Configuration
@@ -250,7 +202,7 @@ const department = {
         admin: "",
         responsible: { employeeid: "108", name: "Wilberto O. Castillo" },
         acting: "",
-      }, 
+      },
       RTDO: {
         stands: "Regional Technical Director for Operations",
         email: "",
@@ -258,17 +210,17 @@ const department = {
         responsible: { employeeid: "109", name: "Engr. Cirilo N. Namoc" },
         acting: "",
       }
-    }, 
+    },
     BACs: {
       "BAC_1": {
-          stands: "BAC Secretariat 1",
-          email: "",
-          admin: "",
+        stands: "BAC Secretariat 1",
+        email: "",
+        admin: "",
       },
       "BAC_2": {
-          stands: "BAC Secretariat 2",
-          email: "",
-          admin: "",
+        stands: "BAC Secretariat 2",
+        email: "",
+        admin: "",
       }
     }
   },
@@ -340,7 +292,7 @@ const department = {
       stands: "Information and Communications Technology Division",
       email: "",
       admin: "",
-      responsible: { employeeid: "116", name: "Annearth V. Maribojoc" },
+      responsible: { employeeid: "116", name: "Annearth V. Maribojoc", position: "Information System Analyst II" },
       acting: "",
       sections: {
         IPPTS: {
@@ -408,7 +360,7 @@ const department = {
       stands: "Regulartory Division",
       "email": "",
       "admin": "",
-      responsible: {employeeid: "180", name: "Mayolyn T. Majaducon"},
+      responsible: { employeeid: "180", name: "Mayolyn T. Majaducon" },
       sections: {
         RLICASS: {
           stands: "Registration/Licensing/Inspection Certification/Accreditation Service Section",
@@ -431,7 +383,7 @@ const department = {
       stands: "Research Division",
       "email": "",
       "admin": "",
-      responsible: {employeeid: "180", name: "Fabio G. Enriquez"},
+      responsible: { employeeid: "180", name: "Fabio G. Enriquez" },
       sections: {
         TPCS: {
           stands: "Technology Packaging and Commercialization Section",
@@ -489,7 +441,7 @@ const department = {
       stands: "Integrated Laboratory Division",
       email: "",
       admin: "",
-      responsible: {employeeid: "180", name: "Norma B. Repol"},
+      responsible: { employeeid: "180", name: "Norma B. Repol" },
       sections: {
         SOILS: {
           stands: "Regional Soils Laboratory",
@@ -515,7 +467,7 @@ const department = {
           stands: "Regional Vaccine Production Laboratory",
           email: "",
           admin: "",
-          responsible: {employeeid: "180", name: "Ethan Turner"},
+          responsible: { employeeid: "180", name: "Ethan Turner" },
         }
       }
     },
@@ -535,87 +487,87 @@ const department = {
           stands: "Market Development Section",
           email: "",
           admin: "",
-          responsible: {employeeid: "180", name: "Jenie F. Evardo"},
+          responsible: { employeeid: "180", name: "Jenie F. Evardo" },
         },
         SUPPORT: {
           stands: "AgriBusiness Industry Support Section",
           email: "",
           admin: "",
-          responsible: {employeeid: "180", name: "Ana Delza S. Barimbao"},
+          responsible: { employeeid: "180", name: "Ana Delza S. Barimbao" },
         }
       }
     },
     "FOD": {
       stands: "Field Operations Division",
       email: "",
-      responsible: {employeeid: "180", name: "Gerry S. Avila"},
+      responsible: { employeeid: "180", name: "Gerry S. Avila", position: "Field Operations Head" },
       admin: "",
       sections: {
         RICE: {
           stands: "Rice Program",
           email: "",
-          responsible: {employeeid: "180", name: "Epifanio P. Qaudicos"},
+          responsible: { employeeid: "180", name: "Epifanio P. Qaudicos" },
           admin: "",
         },
         LIVESTOCK: {
           stands: "Livestock Program",
           email: "",
-          responsible: {employeeid: "180", name: "Zeam Voltaire E. Ampere"},
+          responsible: { employeeid: "180", name: "Zeam Voltaire E. Ampere" },
           admin: "",
         },
         CORN: {
           stands: "Corn Program",
           email: "",
-          responsible: {employeeid: "180", name: "Luvinia A. Corpus"},
+          responsible: { employeeid: "180", name: "Luvinia A. Corpus" },
           admin: "",
         },
         HVCDP: {
           stands: "High Value-Crops Development Program",
           email: "",
-          responsible: {employeeid: "180", name: "John Dennes R. Manunulo"},
+          responsible: { employeeid: "180", name: "John Dennes R. Manunulo" },
           admin: "",
         },
         OAP: {
           stands: "Organic Agriculture Program",
           email: "",
-          responsible: {employeeid: "180", name: "Mae E. Montecillo"},
+          responsible: { employeeid: "180", name: "Mae E. Montecillo" },
           admin: "",
         },
         NUPAP: {
           stands: "National Urban and Peri-Urban Agriculture Program",
           email: "",
-          responsible: {employeeid: "180", name: "Prescilla D. Soriano"},
+          responsible: { employeeid: "180", name: "Prescilla D. Soriano" },
           admin: "",
         },
         PATCOCEBU: {
           stands: "Patco-Cebu",
           email: "",
           responsible: "",
-          responsible: {employeeid: "180", name: "Marina C. Viniegas"},
+          responsible: { employeeid: "180", name: "Marina C. Viniegas" },
           admin: "",
         },
         PATCOBOHOL: {
           stands: "Patco-BOHOL",
           email: "",
-          responsible: {employeeid: "180", name: "Roman M. Dabalos"},
+          responsible: { employeeid: "180", name: "Roman M. Dabalos" },
           admin: "",
         },
         PATCONEGROSOR: {
           stands: "Patco-Negros Oriental",
           email: "",
-          responsible: {employeeid: "180", name: "Alejandro Rafal"},
+          responsible: { employeeid: "180", name: "Alejandro Rafal" },
           admin: "",
         },
         PATCOSIQUIJOR: {
           stands: "Patco-Siquijor",
           email: "",
-          responsible: {employeeid: "180", name: "Agnes M. Cafe"},
+          responsible: { employeeid: "180", name: "Agnes M. Cafe" },
           admin: "",
         },
         SAAD: {
           stands: "Special Area of Agriculture Development",
           email: "",
-          responsible: {employeeid: "180", name: "Liezl S. Pagaran"},
+          responsible: { employeeid: "180", name: "Liezl S. Pagaran" },
           admin: "",
         },
         IDS: {
@@ -623,7 +575,7 @@ const department = {
           email: "",
           responsible: "",
           admin: "",
-          responsible: {employeeid: "180", name: "Leonela G. Gocho"},
+          responsible: { employeeid: "180", name: "Leonela G. Gocho" },
         },
       }
     },
@@ -631,25 +583,25 @@ const department = {
       stands: "Regional Agricultural Engineering Division",
       "email": "",
       "admin": "",
-      responsible: {employeeid: "180", name: "Edna N. Yu"},
+      responsible: { employeeid: "180", name: "Edna N. Yu" },
       admin: "",
       sections: {
         EPDSS: {
           stands: "Engineering Plans, Design and Specifications Section",
           email: "",
-          responsible: {employeeid: "180", name: "Kenneth Jaysone C. Sanchez"},
+          responsible: { employeeid: "180", name: "Kenneth Jaysone C. Sanchez" },
           admin: "",
         },
         PPMS: {
           stands: "Program and Project Management Section",
           email: "",
-          responsible: {employeeid: "180", name: "Noel T. Cahiles"},
+          responsible: { employeeid: "180", name: "Noel T. Cahiles" },
           admin: "",
         },
         SRES: {
           stands: "Standard Regulation and Enforcement Section",
           email: "",
-          responsible: {employeeid: "180", name: "Rodrigo R. Pechon"},
+          responsible: { employeeid: "180", name: "Rodrigo R. Pechon" },
           admin: "",
         }
       }
@@ -669,97 +621,38 @@ const fundsAvailability = [
 
 
 // =========================
-// Approval Steps (SVP)
+// Approval Steps (Small Value Procurement)
 // =========================
-const approvalStepsSVP = [
-  { id: 1, steps_title: "End-User", stage: "prepared_by" },
-  { id: 2, steps_title: "Division Chief", stage: "division_head_approval" },
-  { id: 3, steps_title: "Procurement Section", stage: "philgeps_posting" },
-  { id: 4, steps_title: "Budget Section", stage: "budget_earmarking" },
-  { id: 5, steps_title: "BAC Secretariat", stage: "bac_review" },
-  { id: 6, steps_title: "Procurement Section", stage: "quotation_form_preparation" },
-  { id: 7, steps_title: "Canvassers", stage: "canvassing" },
-  { id: 8, steps_title: "Supplier/Contractors", stage: "supplier_engagement" },
-  { id: 9, steps_title: "BAC & BAC Secretariat", stage: "bac_evaluation" },
-  { id: 10, steps_title: "Procurement Section", stage: "procurement_finalization" },
-  { id: 11, steps_title: "RED/RTD", stage: "executive_approval" },
-  { id: 12, steps_title: "BAC Secretariat & Procurement Section", stage: "award_preparation" },
-  { id: 13, steps_title: "Procurement Section", stage: "po_preparation" },
-  { id: 14, steps_title: "End-User / Program Coordinator / Division Chief", stage: "final_review" },
-  { id: 15, steps_title: "Budget Section", stage: "fund_allocation" },
-  { id: 16, steps_title: "Accounting Section", stage: "obligation_request" },
-  { id: 17, steps_title: "RED/RTD", stage: "executive_signoff" },
-  { id: 18, steps_title: "General Services Section", stage: "delivery_preparation" },
-  { id: 19, steps_title: "RED/RTD", stage: "delivery_approval" },
-  { id: 20, steps_title: "BAC Secretariat", stage: "delivery_confirmation" },
-  { id: 21, steps_title: "GS / RAED / End-User", stage: "inspection_scheduling" },
-  { id: 22, steps_title: "Inspectors", stage: "inspection" },
-  { id: 23, steps_title: "End-User", stage: "acceptance" },
-  { id: 24, steps_title: "GS / End-User", stage: "documentation" },
-  { id: 25, steps_title: "End-User", stage: "final_acceptance" },
-  { id: 26, steps_title: "Accounting Section", stage: "voucher_preparation" },
-  { id: 27, steps_title: "RED/RTD", stage: "voucher_approval" },
-  { id: 28, steps_title: "Cashiering Unit", stage: "payment_processing" },
-  { id: 29, steps_title: "Accounting Section", stage: "liquidation" },
-  { id: 30, steps_title: "RED / RTD / Admin Chief", stage: "final_signoff" },
-  { id: 31, steps_title: "Cashiering Unit", stage: "fund_release" }
-];
+const approvalStepsSVP = CONST_SVP;
 
-const approvalStepsPublicBidding = [
-  { id: 1, steps_title: "End-User", stage: "prepared_by" },
-  { id: 2, steps_title: "Division Chief", stage: "division_head_approval" },
-  { id: 3, steps_title: "Budget Section", stage: "budget_earmarking" },
-  { id: 4, steps_title: "BAC Secretariat", stage: "pre_bid_documents_preparation" },
-  { id: 5, steps_title: "BAC", stage: "pre_bid_conference" },
-  { id: 6, steps_title: "Procurement Section", stage: "philgeps_posting" },
-  { id: 7, steps_title: "Suppliers", stage: "bid_submission" },
-  { id: 8, steps_title: "BAC", stage: "bid_opening" },
-  { id: 9, steps_title: "Technical Working Group", stage: "bid_evaluation" },
-  { id: 10, steps_title: "BAC", stage: "post_qualification" },
-  { id: 11, steps_title: "BAC", stage: "recommendation_for_award" },
-  { id: 12, steps_title: "HOPE (RED/RTD)", stage: "approval_of_award" },
-  { id: 13, steps_title: "BAC Secretariat", stage: "notice_of_award" },
-  { id: 14, steps_title: "Supplier", stage: "contract_signing" },
-  { id: 15, steps_title: "Procurement Section", stage: "po_preparation" },
-  { id: 16, steps_title: "Budget Section", stage: "fund_allocation" },
-  { id: 17, steps_title: "Accounting Section", stage: "obligation_request" },
-  { id: 18, steps_title: "General Services Section", stage: "delivery_preparation" },
-  { id: 19, steps_title: "Inspection Team", stage: "inspection" },
-  { id: 20, steps_title: "End-User", stage: "acceptance" },
-  { id: 21, steps_title: "Accounting Section", stage: "voucher_preparation" },
-  { id: 22, steps_title: "Division Chief", stage: "voucher_approval" },
-  { id: 23, steps_title: "Cashiering Unit", stage: "payment_processing" },
-  { id: 24, steps_title: "Accounting Section", stage: "liquidation" },
-  { id: 25, steps_title: "RED / RTD / Admin Chief", stage: "final_signoff" },
-  { id: 26, steps_title: "Cashiering Unit", stage: "fund_release" }
-];
-
-const modesOfProcurement = [
-  "Competitive Bidding",
-  "Limited Source Bidding",
-  "Direct Contracting",
-  "Repeat Order",
-  "Shopping",
-  "Negotiated Procurement",
-  "Emergency Procurement",
-  "Direct Procurement from Government Entities",
-  "Community Participation",
-  "Public-Private Partnership (PPP) Procurement",
-  "Other Fit-for-Purpose Modalities"
-];
+const modesOfProcurement = CONST_MISC.modesOfProcurement;
+const purchaseRequestRoles = CONST_MISC.purchaseRequestRoles;
+// const modesOfProcurement = [
+//   "Competitive Bidding",
+//   "Limited Source Bidding",
+//   "Direct Contracting",
+//   "Repeat Order",
+//   "Shopping",
+//   "Negotiated Procurement",
+//   "Emergency Procurement",
+//   "Direct Procurement from Government Entities",
+//   "Community Participation",
+//   "Public-Private Partnership (PPP) Procurement",
+//   "Other Fit-for-Purpose Modalities"
+// ];
 
 
 function getStepsDetails(stepNumber) {
-  return approvalStepsSVP.find(step => 
+  return approvalStepsSVP.find(step =>
     step.id === stepNumber
   );
 }
 function findAminByEmail(department, emailToFind) {
-  for(let division in department.divisions) {
+  for (let division in department.divisions) {
     const divisionData = department.divisions[division]
-    if(divisionData.email === emailToFind) {
+    if (divisionData.email === emailToFind) {
       return divisionData.admin
-    } 
+    }
   }
   return "Admin not found"
 }
@@ -770,6 +663,23 @@ function createSessionForGuest(guest) {
     { expiresIn: '1h' }
   );
 }
+
+// Helper to enrich a transaction with actions
+function addColumnActions(page, scope) {
+  if (!page) {
+    return false
+  }
+
+  return {
+    ...scope,
+    actions: JSON.stringify({
+      view: `/${page}/${scope.product_id}/view`,
+      update: `/${page}/${scope.product_id}/update`,
+      delete: `/${page}/${scope.product_id}/delete`
+    })
+  };
+}
+
 
 
 let transid = []
@@ -791,14 +701,11 @@ const SERVER_PORT = 4000;
 //   res.end()
 // })
 
-const serverIO = require('socket.io')(http)
-
 app.set("view engine", "ejs")
 app.set("views", [
   path.join(__dirname, "pages"),
   path.join(__dirname, "views")
 ]);
-app.set('io', serverIO)
 
 
 app.use('/', require('./routes/root'))
@@ -806,7 +713,14 @@ app.use(bodyParser.json());
 
 
 const sheetsRouter = require('./routes/sheets');
+const employeeRouter = require('./routes/employees');
+const trasactionRouter = require('./routes/transactions');
+
+const { styleText } = require('node:util');
 app.use('/api', sheetsRouter);
+app.use('/api', employeeRouter);
+app.use('/api', trasactionRouter);
+
 app.use(express.json());
 
 //pages
@@ -824,6 +738,7 @@ app.use('/uploads', express.static('uploads'));
 // login
 // ============================================
 app.use(express.urlencoded({ extended: true }))
+app.use(sanitizeInputMiddleware);
 app.use(session({
   key: 'session_cookie_name',
   secret: 'your_secret_key',
@@ -833,10 +748,14 @@ app.use(session({
   cookie: { secure: false }  // Set to `true` in production with HTTPS
 }));
 
+
+
+
 /////// SERVER
 const server = createServer(app);
 // const io = socketio(server);
 const io = new Server(server)
+app.set('io', io)
 let connectedUserMap = new Map();
 /////// endof SERVER
 
@@ -844,7 +763,7 @@ const { expressConnect, expressActivityLog } = _express(io, moment)
 
 expressConnect()
 // CRON JOBS
-const {checkDueNotifications, incrementNotification, sendNotification} = _cronjobs(moment, io)
+const { checkDueNotifications, incrementNotification, sendNotification } = _cronjobs(moment, io)
 let countNotif = 0
 // Define the cron job (this example runs every minute)
 const task = cron.schedule('* * * * *', async () => {
@@ -854,7 +773,7 @@ const task = cron.schedule('* * * * *', async () => {
   const duedates = checkDueNotifications(remarks)
 }, {
   scheduled: false
-}); 
+});
 task.start()
 // task.stop()
 // ENDOFCRONJOBS
@@ -862,28 +781,43 @@ task.start()
 // EMAIL
 let transporter = nodemailer.createTransport({
   service: 'gmail',  // Gmail service
-    auth: {
-      user: process.env.APP_EMAIL,  // Your Gmail address
-      pass: process.env.APP_PASS      // Your App Password (not your main Gmail password)
-    }
+  auth: {
+    user: process.env.APP_EMAIL,  // Your Gmail address
+    pass: process.env.APP_PASS      // Your App Password (not your main Gmail password)
+  }
 });
 // endof EMAIL
 
-app.use(async (req, res, next) =>{
+app.use(async (req, res, next) => {
+
+  // console.log('====================', connection);
 
   var components = ['Transactions', 'Employees', 'Documents']
+  // console.log({ huh: res.locals.SESSION_USER })
+  const { firstname, middlename, lastname } = req.session?.user || { firstname: '', middlename: '', lastname: '' };
 
-  const [notifications, transactions, summaryTransaction, summaryEmployee, activities] = await Promise.all([
+  // Get only the first character of middlename, if it exists
+  const middleInitial = middlename ? `${middlename.charAt(0)}.` : '';
+
+  const fullname = `${firstname} ${middleInitial} ${lastname}`;
+
+  // console.log(fullname);
+
+  const [notifications, transactions, summaryTransaction, summaryEmployee, activities, summaryMarketScopes, filteredTransactions] = await Promise.all([
     connection.retrieveNotifications(),
-    connection.getTransactions(),
-    connection.getTransactionSummary(),
-    connection.getEmployeeSummary(),
-    connection.getTransactionActivity(),
+    // connection.getTransactions(),
+    // connection.getPurchaseRequestsSummary(),
+    // connection.getEmployeeSummary(),
+    // // connection.getPurchaseRequestsActivity(),
+    // // connection.getMarketScopesSummary(),
+    // connection.getPurchaseRequestsByPreparedBy(fullname)
   ]);
 
   // Sort using Descending
-  notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  notifications?.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
+  // const filteredNotifications = {}
+  const filteredNotifications = notifications;
   let role = '';
   let userDivision = '';
   let userSection = '';
@@ -903,40 +837,55 @@ app.use(async (req, res, next) =>{
 
     availComponents = components;
 
-    const filteredActivity = activities.filter(activity =>
+    const filteredActivity = activities?.filter(activity =>
       activity.assigned_to === employeeid
     );
 
-    const productIds = filteredActivity.map(activity => activity.product_id);
+    const productIds = filteredActivity?.map(activity => activity.product_id);
     const numericUserId = parseInt(employeeid, 10);
-     // Filter transactions: created by or assigned to current user
-    const parsedTransactions = transactions.map(txn => ({
+    // Filter transactions: created by or assigned to current user
+    const safeParsePreparedBy = (value) => {
+      if (value == null) return null;
+      if (typeof value !== 'string') return value;
+      const trimmed = value.trim();
+      if (!trimmed || trimmed === 'undefined') return null;
+      try {
+        return JSON.parse(trimmed);
+      } catch (err) {
+        console.warn('Invalid JSON in prepared_by:', trimmed);
+        return null;
+      }
+    };
+
+    const parsedTransactions = transactions?.map(txn => ({
       ...txn,
-      prepared_by: typeof txn.prepared_by === 'string'
-        ? JSON.parse(txn.prepared_by)
-        : txn.prepared_by
+      prepared_by: safeParsePreparedBy(txn.prepared_by)
     }));
+
     let filteredTransactions;
 
-    filteredTransactions = parsedTransactions.filter(txn =>
-      txn.prepared_by?.employeeid === numericUserId || productIds.includes(txn.product_id)
+    filteredTransactions = parsedTransactions?.filter(txn =>
+      txn.prepared_by?.employeeid === numericUserId || productIds?.includes(txn.product_id)
     );
-    
-    if(sessionUser && sessionUser?.roles) {
-      sessionUser?.roles.includes('Guest') || sessionUser?.roles.includes('SuperAdmin') 
-        ? filteredTransactions = transactions 
+
+    if (sessionUser && sessionUser?.roles) {
+      sessionUser?.roles.includes('Guest') || sessionUser?.roles.includes('SuperAdmin')
+        ? filteredTransactions = transactions
         : filteredTransactions = filteredTransactions;
     }
 
-    totalTransactions = filteredTransactions.length;
+    totalTransactions = filteredTransactions?.length;
 
     try {
-      const { lists: userSession } = JSON.parse(userExperience);
-      const { division, section, position } = userSession?.[0] || {};
+      const { lists: userSession } = JSON.parse(userExperience || '{"lists": [{"office": "Pending", "salary": "", "status": true, "enddate": "present", "section": "Pending", "division": "Pending", "position": "Pending", "startdate": "2025-10-28", "employment": "Contract of Service (COS)", "arrangements": "On-site"}]}');
+      if (userSession?.length) {
+        const { division, section, position } = userSession?.[0] || {};
 
-      userDivision = division?.toUpperCase() || '';
-      userSection = section?.toUpperCase() || '';
-      userPosition = position?.toUpperCase() || '';
+        userDivision = division?.toUpperCase() || '';
+        userSection = section?.toUpperCase() || '';
+        userPosition = position?.toUpperCase() || '';
+      }
+
 
       // Optional: Restore role from DB if needed
       // const roleData = await connection.getCurrentUserRole(employeeid);
@@ -961,25 +910,25 @@ app.use(async (req, res, next) =>{
     SESSION_USER: req.session?.user,
     SESSION_USER_LOG: {
       designation: {
-        division: sessionUser ? findDivisionBySection(divisions, userDivision) : null,
+        division: sessionUser ? findDivisionBySection(divisions, userDivision) : 'PENDING',
         section: sessionUser ? userSection : null,
         position: sessionUser ? userPosition : null,
       },
       components: sessionUser ? availComponents : null,
     },
-    ROUTEINFO : {
+    ROUTEINFO: {
       path: req.path,
     },
     DEPARTMENT: JSON.stringify(department),
     // NOTIFICATIONS: countNotif,
     // NOTIFICATIONS: (req.url === '/login') ? countNotif:JSON.stringify(notifications), // *** DO NOT REMOVE
-    NOTIFICATIONS: JSON.stringify(notifications),
+    NOTIFICATIONS: JSON.stringify(filteredNotifications),
     logonUser: JSON.stringify(req.session.user),
     perClassification: {},
-    dafaultTransactionData: _preTransactionsData,
+    dafaultTransactionData: CONST_MISC,
     defaultData: _preDefaultData,
     purchaseRequestStatuses,
-    purchaseRequestRoles,
+    responsiblePersonAtStages,
     path: req.url,
     path2: req.path,
     currentPath: req.path,
@@ -987,6 +936,11 @@ app.use(async (req, res, next) =>{
     moment,
     approval_steps: approvalStepsSVP,
     modesOfProcurement,
+    purchaseRequestRoles,
+    PROCUREMENT: {
+      currentLaw: 'RA120092025',
+      previousLaw: 'RA91842002',
+    },
     getUserDivisionResponsible: (division) => {
       const divisionData = department.divisions[division];
       return divisionData ? divisionData.responsible : null;
@@ -1013,8 +967,8 @@ app.use(async (req, res, next) =>{
             division: divisionData.responsible,
             section: divisionData.sections[section].responsible
           };
-        } 
-        
+        }
+
         // Fallback → return only division responsible
         return { division: divisionData.responsible };
       })();
@@ -1024,23 +978,51 @@ app.use(async (req, res, next) =>{
 
     },
     SUMMARY: {
-      transactions: JSON.stringify(summaryTransaction[0]),
+      transactions: JSON.stringify(summaryTransaction?.[0]),
       totalTransactions,
-      employees: JSON.stringify(summaryEmployee[0])
+      employees: JSON.stringify(summaryEmployee?.[0]),
+      market_scopes: JSON.stringify(summaryMarketScopes?.[0])
     },
     STEPS: {
-      lists: approvalStepsSVP,
+      //lists: approvalStepsSVP,
+      lists: (transaction) => {
+        const { STEPS } = res.locals;
+        return STEPS?.getApprovalSteps(transaction);
+      },
+      getApprovalSteps: (transaction) => {
+        if (Number(transaction?.approved_budget || 0) >= 200_000) {
+          return CONST_PB;
+        }
+        return CONST_SVP;
+      },
+      getTotalSteps: (transaction) => {
+        if (Number(transaction.approved_budget) >= 200_000) {
+          return CONST_PB.length;
+        }
+        return CONST_SVP.length;
+      },
+      getCurrentProgress: (steps, product_id) => {
+        let current_step = getCurrentStep(steps, product_id)
+        const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
+        const current_step_title = getTitle(current_step_number)
+        return { current_step_title, current_step_number };
+      },
       getCurrentStep: (steps, product_id) => {
         const step = steps.find(step => step.product_id === product_id);
         return step ? step : null;
       },
       getDetails: (id) => {
         const { STEPS } = res.locals
-        return STEPS?.lists.find(step => step.id === id);
+        return STEPS?.lists().find(step => step.id === id);
       },
       getTitle: (step_id) => {
         const { STEPS } = res.locals
-        const step = STEPS?.lists.find(step => step.id === step_id);
+        const step = STEPS?.lists().find(step => step.id === step_id);
+        return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
+      },
+      getTitle: (transaction, step_id) => {
+        const { STEPS } = res.locals
+        const step = STEPS?.getApprovalSteps(transaction).find(step => step.id === step_id);
         return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
       },
     },
@@ -1059,26 +1041,66 @@ app.use(async (req, res, next) =>{
         const result = await connection.getEmployeeById(id);
         // console.log('Fetching employee by ID:', result);
         return JSON.stringify(result[0]);
+      },
+      generatePRCode: (row) => {
+        const requestID = addLeadingZeros(row.product_id)
+        return `PR${moment(row.pr_date).format('YYYYMMDD')}-${requestID}`
+      },
+      progressBar: (row) => {
+        const { STEPS, activities } = res.locals;
+        const { getApprovalSteps, getTotalSteps, getCurrentStep, getDetails, getTitle } = STEPS
+
+        const product_id = row.product_id
+        const mapActivities = activities.sort((a, b) => b.id - a.id).filter(activity => activity.product_id === product_id)
+
+        let current_step = getCurrentStep(mapActivities, product_id)
+
+        const current_step_number = current_step?.steps_number
+        const current_step_title = getTitle(row, current_step_number)
+
+        if (current_step_number > 0) {
+          const progress = Number((current_step_number / getTotalSteps(row)) * 100).toFixed(2);
+          
+          var html = `<div class="progress progress-sm sasdsads" style="height: 5px;"><div class="progress-bar" style="width: ${progress}%" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="${current_step_title}"></div></div>`
+
+          return (progress > 0) ? `${row.bid_notice_title} ${html}` : '';
+        }
+
+        return `Unknown for Classic`;
+      },
+      addColumnActions(page, scope) {
+        if (!page) {
+          return false
+        }
+
+        return {
+          ...scope,
+          actions: JSON.stringify({
+            view: `/${page}/${scope.product_id}/view`,
+            update: `/${page}/${scope.product_id}/update`,
+            delete: `/${page}/${scope.product_id}/delete`
+          })
+        };
       }
     },
     userAvailComponents: (component) => {
       // Single component
       if (typeof component === 'string') {
-        return availComponents.includes(component);
+        return availComponents?.includes(component);
       }
-  
+
       // Multiple components
       if (Array.isArray(component)) {
         return availComponents.every(c => components.includes(c));
       }
-  
+
       return false;
     },
     isGuest: () => {
       return SESSION_USER?.roles.includes('Guest');
     },
     isSuperAdmin: () => {
-      return SESSION_USER?.roles.includes('SuperAdmin')
+      return SESSION_USER?.roles.includes('SuperAdmin') || SESSION_USER?.roles.includes('Executive');
     },
     trimName(fullName) {
       const parts = fullName.trim().split(' ');
@@ -1135,7 +1157,7 @@ app.use(async (req, res, next) =>{
       const isOwner = employeeId === preparedById;
 
       if (process.env.NODE_ENV !== 'production') {
-        console.log('Ownership Check:', { employeeId, preparedById, isOwner });
+        // console.log('Ownership Check:', { employeeId, preparedById, isOwner });
       }
 
       return isOwner;
@@ -1196,10 +1218,12 @@ app.use(async (req, res, next) =>{
     },
     getCurrentHolderOfTransaction(transaction_id) {
       const activity = activities
-        .filter(act => act.product_id === transaction_id && act.status === 'pending' && act.assigned_to);
-      return (activity.length > 0) ? activity[0].assigned_to : false;
+        ?.filter(act => act.product_id === transaction_id && act.status === 'pending' && act.assigned_to);
+      return (activity?.length > 0) ? activity[0].assigned_to : false;
     },
+    getTransactionMarketScope(id) {
 
+    }
   };
 
   const { SESSION_USER, SESSION_USER_LOG, SUMMARY } = res.locals
@@ -1210,7 +1234,16 @@ app.use(async (req, res, next) =>{
 
 const loadAllTransactions = async (req, res, next) => {
   try {
-    res.locals.transactions = await connection.getTransactions();
+    // const transactions = await connection.getTransactions();
+    const transactions = await connection.retrieveTransactions();
+    // Sanitize prepared_by field - convert literal "undefined" strings to null
+    res.locals.transactions = transactions?.map(tx => ({
+      ...tx,
+      prepared_by: (tx.prepared_by === 'undefined' || tx.prepared_by === null || tx.prepared_by === undefined)
+        ? null
+        : tx.prepared_by
+    })) || [];
+
     next();
   } catch (error) {
     console.error("Error loading transactions:", error);
@@ -1244,6 +1277,27 @@ const loadAllSuppliers = async (req, res, next) => {
   } catch (error) {
     console.error("Error loading suppliers:", error);
     res.status(500).send("Internal Server Error: Middleware Load Suppliers");
+  }
+}
+const loadAllMarketScopes = async (req, res, next) => {
+  try {
+    const marketScopes = await connection.getMarketScopes();
+    res.MARKET_SCOPES = marketScopes;
+    res.locals.MARKET_SCOPES = marketScopes;
+    next();
+  } catch (error) {
+    console.error("Error loading market scopes:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Market Scopes");
+  }
+}
+
+const loadAllFunds = async (req, res, next) => {
+  try {
+    res.locals.FUNDS = await connection.getFunds();
+    next();
+  } catch (error) {
+    console.error("Error loading funds:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Funds");
   }
 }
 
@@ -1284,17 +1338,17 @@ function getDivisionAndPosition(experienceJson) {
 // FILE UPLOADS
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-      const uploadDir = './uploads';
-      if (!fs.existsSync(uploadDir)) {
-          fs.mkdirSync(uploadDir); // Create the uploads directory if it doesn't exist
-      }
-      cb(null, uploadDir); // Save files in the 'uploads' directory
+    const uploadDir = './uploads';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir); // Create the uploads directory if it doesn't exist
+    }
+    cb(null, uploadDir); // Save files in the 'uploads' directory
   },
   filename: (req, file, cb) => {
-      // Rename the file using a unique name
-      const ext = path.extname(file.originalname);
-      const newFileName = `file_${Date.now()}_${Math.floor(Math.random() * 1000)}${ext}`;
-      cb(null, newFileName); // Rename the file
+    // Rename the file using a unique name
+    const ext = path.extname(file.originalname);
+    const newFileName = `file_${Date.now()}_${Math.floor(Math.random() * 1000)}${ext}`;
+    cb(null, newFileName); // Rename the file
   }
 });
 
@@ -1305,103 +1359,337 @@ const upload = multer({ storage: storage });
 app.post('/upload', upload.array('fileToUpload[]'), async (req, res) => {
   console.log('assssssssssssssssssssss', req.body.refid)
   if (req.files && req.files.length > 0) {
-      // Send response with the new file names
-      const fileNames = req.files.map(file => file.filename);
+    // Send response with the new file names
+    const fileNames = req.files.map(file => file.filename);
 
-      if(req.body.refid) {
-        const { refid } = req.body
-        const updateDocumentAttachements = {
-          set: {
-            attachments: fileNames,
-            updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-          },
-          where: {
-            id: refid
-          }
-        }
-        // If the Document is Updated successfully
-        // it will now generate a new remarks
-        const result = await connection.updateDocumentTrackerStatus(JSON.stringify(updateDocumentAttachements))
-        if(result) {
-          const { username } = res.locals.SESSION_USER
-          const createActivity = {
-            refid,
-            message: "File attachments have been successfully added.", 
-            reciever: "N/A",
-            attachments: fileNames,
-            created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-            created_by: username,
-          }
-          await connection.createDocumentTrackerActivity(JSON.stringify(createActivity))
+    if (req.body.refid) {
+      const { refid } = req.body
+      const updateDocumentAttachements = {
+        set: {
+          attachments: fileNames,
+          updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+        },
+        where: {
+          id: refid
         }
       }
+      // If the Document is Updated successfully
+      // it will now generate a new remarks
+      const result = await connection.updateDocumentTrackerStatus(JSON.stringify(updateDocumentAttachements))
+      if (result) {
+        const { username } = res.locals.SESSION_USER
+        const createActivity = {
+          refid,
+          message: "File attachments have been successfully added.",
+          reciever: "N/A",
+          attachments: fileNames,
+          created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+          created_by: username,
+        }
+        await connection.createDocumentTrackerActivity(JSON.stringify(createActivity))
+      }
+    }
 
-      res.json({ files: fileNames });
+    res.json({ files: fileNames });
   } else {
-      res.status(400).json({ error: 'No files uploaded' });
+    res.status(400).json({ error: 'No files uploaded' });
   }
 });
 
-app.get('/', restrict, loadAllTransactions, loadAllActivities, async function(req, res){
-   const [
+app.get('/', restrict, loadAllTransactions, loadAllActivities, loadAllMarketScopes, async function (req, res) {
+  const [
     totalApprovedBudget,
     countPerPRClassification,
+    countPerProcurementType,
     cardsData,
     dataFromLast7Days
   ] = await Promise.all([
     connection.getTotalApprovedBudget(),
     connection.countPerPRClassification(),
+    connection.countPerProcurementType(),
     connection.cardsData(),
     connection.getDataFromLast7Days('remarks', 'date')
   ]);
- 
+
   var charts = cardsData.reduce((acc, { table_name, row_count, total_sum }) => {
     acc[table_name] = { row_count, total_sum };
     return acc;
   }, {});
 
-  const safeCardsData = charts || { employees: { row_count:0, total_sum:0 }, transactions: { row_count:0, total_sum:0 }, notifications: { row_count:0, total_sum:0 } };
+  const safeCardsData = charts || { employees: { row_count: 0, total_sum: 0 }, transactions: { row_count: 0, total_sum: 0 }, notifications: { row_count: 0, total_sum: 0 } };
 
-  console.log({charts})
+  console.log({ safeCardsData })
 
-  const perPRClassification = countPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
-    acc[pr_classification] = item_count;
-    return acc;
-  }, {});
+  // const perPRClassification = countPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
+  //   acc[pr_classification] = item_count;
+  //   return acc;
+  // }, {});
 
-  console.log('charts', perPRClassification)
-  
-  res.render('index', {
-    title: "Dashboard",
-    header: "Some users", 
-    totalApprovedBudget: JSON.stringify(totalApprovedBudget[0]),
-    perClassification: JSON.stringify(perPRClassification),
-    tableDashboard: JSON.stringify(dataFromLast7Days),
-    cardsData: safeCardsData,
-  });
+
+  if (res.locals.PROCUREMENT.currentLaw !== 'RA120092025') {
+
+    res.render('index', {
+      title: "Dashboard",
+      header: "Some users",
+      totalApprovedBudget: JSON.stringify(totalApprovedBudget[0]),
+      perClassification: JSON.stringify(perPRClassification),
+      tableDashboard: JSON.stringify(dataFromLast7Days),
+      cardsData: safeCardsData,
+    });
+  } else {
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/global.js'],
+        styles: [],
+        innerContent: '../pages/ra12009/index',
+        title: "Dashboard",
+        description: "Department of Agriculture - Regional Field Office 7",
+        ...res.locals,
+        totalApprovedBudget: JSON.stringify(totalApprovedBudget[0]),
+        perClassification: JSON.stringify(countPerPRClassification),
+        perProcurementType: JSON.stringify(countPerProcurementType),
+        tableDashboard: JSON.stringify(dataFromLast7Days),
+        cardsData: safeCardsData,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  }
+
 });
 
-app.get('/template', async function(req, res) {
-  let renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'), 
-  { 
-    title: "Template 2", 
-    ENVIRONMENT:res.locals.ENVIRONMENT, 
-    TEST_MODE: res.locals.TEST_MODE, 
-    NOTIFICATIONS: JSON.stringify({}),
-    perClassification:{}, 
-    path: req.path,
-    path2: req.path, 
-    innerContent: '../employees/index2',
-    employees: []
-  });
+app.get('/market-scope', restrict, loadAllMarketScopes, async (req, res) => {
+  try {
+    const marketScopes = await connection.getMarketScopes();
+
+    // Map over each record and add actions
+    const enrichedMarketScopes = marketScopes.map(scope => ({
+      ...scope, // keep existing fields
+      actions: JSON.stringify({
+        view: `/market-scope/${scope.id}/view`,
+        update: `/market-scope/${scope.id}/update`,
+        delete: `/market-scope/${scope.id}/delete`
+      })
+    }));
+
+    // console.log('Enriched Market Scopes:', enrichedMarketScopes);
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/market-scope.js'],
+        styles: ['/assets/css/pages/market-scope.css'],
+        innerContent: '../pages/market-scope/index',
+        title: "Market Scope List",
+        description: "List of Market Scope Analysis Submissions",
+        datatables: enrichedMarketScopes,
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/market-scope/new', restrict, loadAllSuppliers, async (req, res) => {
+  try {
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/market-scope.js'],
+        styles: ['/assets/css/pages/market-scope.css'],
+        innerContent: '../pages/market-scope/new',
+        title: "Add New Market Scope",
+        description: "Republic Act No. 12009 — Section 10, IRR, and Project Procurement Management Plan (Principle of Proportionality)",
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/market-scope/:id/view', restrict, loadAllTransactions, async (req, res) => {
+  try {
+    // const innerHTML = await connection.getMarketScopes({id: req.params.id})
+    const [innerHTML, activities] = await Promise.all([
+      connection.getMarketScopes({ id: req.params.id }),
+      connection.getTransactionActivity()
+    ]);
+
+    if (!innerHTML || innerHTML.length === 0) {
+      return res.status(404).send('Market Scope Analysis Not Found');
+    }
+
+    const { project_title, reference_number } = innerHTML[0];
+    const tables = await connection.getTransactionById(reference_number)
+
+    // Sanitize prepared_by in fetched tables as well
+    const cleanedTables = tables//?.map(tx => ({
+    //   ...tx,
+    //   prepared_by: (tx.prepared_by === 'undefined' || tx.prepared_by === null || tx.prepared_by === undefined)
+    //     ? null
+    //     : tx.prepared_by
+    // })) || [];
+
+    console.log(cleanedTables)
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        styles: ['/assets/css/pages/market-scope.css'],
+        scripts: ['/assets/js/pages/market-scope.js'],
+        innerContent: '../pages/market-scope/view',
+        title: project_title,
+        description: "",
+        results: innerHTML[0],
+        _datatables: cleanedTables,
+        _steps: activities.sort((a, b) => b.id - a.id),
+        options: {
+          hideTitle: true,
+          uniqueId: req.params.id,
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error Viewing Market Scope: Results', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/market-scope/:id/results', restrict, async (req, res) => {
+  try {
+    const [innerHTML, scopesResults, activities] = await Promise.all([
+      connection.getMarketScopes({ id: req.params.id }),
+      connection.getMarketScopesResults({ scoping_id: req.params.id }),
+      connection.getTransactionActivity()
+    ]);
+
+    if (!innerHTML || innerHTML.length === 0) {
+      return res.status(404).send('Market Scope Analysis Not Found');
+    }
+
+    const { project_title, reference_number } = innerHTML[0];
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/market-scope.js'],
+        innerContent: '../pages/market-scope/results',
+        title: "Market Scoping Results",
+        description: "Indicate recommendations based on the market scoping activities undertaken (RA 12009 IRR, Section 10.4).",
+        results: { 0: innerHTML[0], 1: scopesResults[0] },
+        // _datatables: tables,
+        _steps: activities.sort((a, b) => b.id - a.id),
+        options: {
+          // hideTitle: true,
+          uniqueId: req.params.id
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error Viewing Market Scope:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/market-scope/:id/print', restrict, async (req, res) => {
+  try {
+    const [innerHTML, scopesResults, activities] = await Promise.all([
+      connection.getMarketScopes({ id: req.params.id }),
+      connection.getMarketScopesResults({ scoping_id: req.params.id }),
+      connection.getTransactionActivity()
+    ]);
+
+    if (!innerHTML || innerHTML.length === 0) {
+      return res.status(404).send('Market Scope Analysis Not Found');
+    }
+
+    const { project_title, reference_number } = innerHTML[0];
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'custom-page.ejs'),
+      {
+        scripts: ['/assets/js/pages/market-scope.js'],
+        innerContent: '../pages/market-scope/print',
+        title: "Market Scoping Results",
+        description: "Indicate recommendations based on the market scoping activities undertaken (RA 12009 IRR, Section 10.4).",
+        results: { 0: innerHTML[0], 1: scopesResults[0] },
+        // _datatables: tables,
+        _steps: activities.sort((a, b) => b.id - a.id),
+        options: {
+          hideTitle: true,
+          uniqueId: req.params.id
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error Viewing Market Scope:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.post('/api/market-scope', restrict, async (req, res) => {
+  try {
+    console.log('Market Scope Analysis Request Body:', req.body);
+    const scopeResults = await connection.postMarketScope(req.body);
+    res.status(201).json({ message: 'Market Scope Analysis Submitted!', response: scopeResults });
+  } catch (error) {
+    console.error('Error fetching market scope analysis:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/market-scope-results', restrict, async (req, res) => {
+  try {
+    console.log('Market Scope Analysis Results:', req.body);
+    const scopeResults = await connection.postMarketScopeResults(req.body);
+    res.status(201).json({ message: 'Market Scope Analysis Results Submitted!', response: scopeResults });
+  } catch (error) {
+    console.error('Error fetching market scope analysis results:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/check-scoping/:id', async (req, res) => {
+  const scopingId = req.params.id;
+
+  try {
+    const rows = await connection.getMarketScopesResults({ scoping_id: scopingId })
+
+    res.json({ exists: rows.length > 0 });
+  } catch (err) {
+    console.error("Error checking scoping:", err);
+    res.status(500).json({ exists: false, error: err.message });
+  }
+});
+
+
+app.get('/template', async function (req, res) {
+  let renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+    {
+      title: "Template 2",
+      ENVIRONMENT: res.locals.ENVIRONMENT,
+      TEST_MODE: res.locals.TEST_MODE,
+      NOTIFICATIONS: JSON.stringify({}),
+      perClassification: {},
+      path: req.path,
+      path2: req.path,
+      innerContent: '../employees/index2',
+      employees: []
+    });
   // Rendered HTML
   res.status(200).send(renderedHtml)
 })
 
-app.get('/template2', async function(req, res) {
-  let renderedHtml = await ejs.renderFile(path.join(__dirname, 'components', 'charts', 'pie.ejs'), { });
-  renderedHtml += await ejs.renderFile(path.join(__dirname, 'components', 'notifications', 'index.ejs'), 
-  { message: "HAHAHHA"  });
+app.get('/template2', async function (req, res) {
+  let renderedHtml = await ejs.renderFile(path.join(__dirname, 'components', 'charts', 'pie.ejs'), {});
+  renderedHtml += await ejs.renderFile(path.join(__dirname, 'components', 'notifications', 'index.ejs'),
+    { message: "HAHAHHA" });
   res.status(200).send(renderedHtml)
 })
 
@@ -1447,7 +1735,7 @@ app.get('/login', async (req, res) => {
 
       return res.redirect('/guest-dashboard');
     }
-    if(req.session.user && req.session.isAuthenticated) {
+    if (req.session.user && req.session.isAuthenticated) {
       return res.redirect('/')
     }
     // 🧭 No token? Show login page
@@ -1456,7 +1744,7 @@ app.get('/login', async (req, res) => {
     console.error('Guest login error:', error);
     res.status(500).send('Internal Server Error');
   }
-}); 
+});
 
 app.post('/login', async (req, res) => {
   try {
@@ -1487,11 +1775,11 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Username and password are required.' });
     }
 
-    if(roles && roles.includes('SuperAdmin')) {
+    if (roles && roles.includes('SuperAdmin')) {
       req.session.isSuperAdmin = true;
     }
 
-    const userDetails = await connection.retrieveEmployeeByUsername(username);
+    const userDetails = await connection.getEmployeeByUsername(username);
     if (userDetails.length === 0) {
       req.session.error = 404;
       return res.redirect('/login');
@@ -1514,7 +1802,7 @@ app.post('/login', async (req, res) => {
     return res.redirect('/');
   } catch (error) {
     console.error('Login error:', error);
-    return res.status(500).json({ error: 'An error occurred while processing your request.' });
+    return res.status(500).json({ error: 'Failed to login!' });
   }
 });
 
@@ -1525,7 +1813,7 @@ app.get('/token', async (req, res) => {
     created_at: new moment().format('YYYY-MM-DD HH:mm:ss'),
     expires_at: new moment().add(1, 'hours').format('YYYY-MM-DD HH:mm:ss'),
     status: 'active',
-    meta:{
+    meta: {
       ip: req.ip,
       user_agent: req.headers['user-agent'],
       origin: 'guest_account_link',
@@ -1535,13 +1823,13 @@ app.get('/token', async (req, res) => {
   }
   console.log('Storing guest token:', guest)
   const result = await connection.storeGuestToken(guest)
-  if(result) {
+  if (result) {
     const guestUser = {
       employeeid: guestToken,
       username: 'Guest_User',
       email: 'guest@example.com',
       firstname: 'Guest',
-      lastname: 'User', 
+      lastname: 'User',
       middlename: '',
       extname: '',
       birthdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
@@ -1556,7 +1844,7 @@ app.get('/token', async (req, res) => {
           position: 'Data Controller X',
           startdate: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
           employment: 'Permanent',
-          arrangements: 'On-site', 
+          arrangements: 'On-site',
         }],
       },
       contacts: JSON.stringify({
@@ -1624,24 +1912,24 @@ app.post('/verify', async (req, res) => {
     let data = JSON.stringify(req.body)
     // Retrieve data accessing the database
     // console.log(data)
-    const employees = await connection.retrieveEmployee( data );
-    // console.log(employees)
+    const employees = await connection.retrieveEmployee(data);
+    console.log({ data, employees })
     if (employees.length != 0) {
-      res.status(200).json({ message: 'Account found!',  response: employees });
+      res.status(200).json({ message: 'Account found!', response: employees });
     } else {
-      res.status(404).json({ message: 'Account not found!',  response: employees });
+      res.status(404).json({ message: 'Account not found!', response: employees });
     }
-    
+
   } catch (error) {
     console.error('Unable to load data', error);
     res.status(500).send('Internal Server Error');
   }
 })
 
-app.get('/register', function(req, res){
+app.get('/register', function (req, res) {
   // res.status(200).send(req.params)
-  let {username} = req.params
-  let {blood_type, civil_status} = _preDefaultData
+  let { username } = req.params
+  let { blood_type, civil_status } = _preDefaultData
 
   res.render('register', {
     title: 'Sign Up',
@@ -1653,7 +1941,7 @@ app.get('/register', function(req, res){
 app.post('/register', async (req, res, next) => {
   try {
     let data = JSON.stringify(req.body)
-    let {set, where} = JSON.parse(data)
+    let { set, where } = JSON.parse(data)
 
     delete set.confirmPassword
 
@@ -1661,20 +1949,19 @@ app.post('/register', async (req, res, next) => {
     // set.password = JSON.stringify(set.password)
 
     set.password = bcrypt.hashSync(set.password, 8);
-    console.log({hashedPassword: (set.password) });
-    console.log({hashedPassword: bcrypt.hashSync('Admin123!', 8)});
+    // console.log({hashedPassword: (set.password) });
+    // console.log({hashedPassword: bcrypt.hashSync('Admin123!', 8)});
 
-    data = {set, where}
+    data = { set, where }
 
     // console.log(data)
     const register = await connection.amendEmployee(JSON.stringify(data));
 
-    if(register.length != 0) {
-      res.status(200).json({ message: 'Account is successfully register', response: register})
+    if (register.length != 0) {
+      res.status(200).json({ message: 'Account is successfully register', response: register })
     } else {
-      res.status(200).json({ message: 'Failed to register the account',  response: register });
+      res.status(200).json({ message: 'Failed to register the account', response: register });
     }
-    next()
   } catch (error) {
     console.error('There\'s issue on the REGISTRATION right now:', error);
     res.status(500).send('Internal Server Error');
@@ -1685,17 +1972,55 @@ app.post('/register/new', async (req, res) => {
   try {
     let data = JSON.stringify(req.body)
     const register = await connection.postEmployees(data)
-    if(register?.affectedRows){
-      const {employeeid} = JSON.parse(data)
+    if (register?.affectedRows) {
+      const { employeeid } = JSON.parse(data)
       const notif = {
         "message": "New user was registered",
-        "link": employeeid, 
+        "link": employeeid,
         "component": "employees",
         // "created_at": convertDate(new Date())
       }
       await connection.postNotifications(JSON.stringify(notif))
     }
-    res.status(200).json({ message: 'Account is successfully register', response: register})
+    res.status(200).json({ message: 'Account is successfully register', response: register })
+  } catch (error) {
+    console.error('There\'s issue on the system right now:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/signup', function (req, res) {
+  res.render('register/signup', {
+    title: 'Sign Up',
+    path: res.url
+    // logonUser: user
+  })
+})
+
+app.post('/signup', async function (req, res) {
+  try {
+    const { confirmPassword, referenceid, password, ...data } = req.body
+
+    delete confirmPassword;
+    delete referenceid;
+
+    const passwordHash = bcrypt.hashSync(password, 8);
+
+    const register = await connection.postEmployees(JSON.stringify({ ...data, password: passwordHash, roles: ['Pending'] }))
+
+    if (register?.affectedRows) {
+      const { employeeid } = JSON.parse(data)
+      const notif = {
+        "message": "New user was awaiting for approval",
+        "link": employeeid,
+        "component": "employees",
+        // "created_at": convertDate(new Date())
+      }
+      await connection.postNotifications(JSON.stringify(notif))
+
+      res.redirect('/');
+    }
+    res.status(200).json({ message: 'Account is successfully register', response: register })
   } catch (error) {
     console.error('There\'s issue on the system right now:', error);
     res.status(500).send('Internal Server Error');
@@ -1720,31 +2045,68 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
     );
 
     const productIds = filteredActivity.map(activity => activity.product_id);
-    
+
     const numericUserId = Number(userId);
+
+    const safeParsePreparedBy = (value) => {
+      if (value == null) return null;
+      if (typeof value !== 'string') return value;
+      const trimmed = value.trim();
+      if (!trimmed || trimmed === 'undefined') return null;
+      try {
+        return JSON.parse(trimmed);
+      } catch (err) {
+        console.warn('Invalid JSON in prepared_by:', trimmed);
+        return null;
+      }
+    };
 
     const parsedTransactions = transactions.map(txn => ({
       ...txn,
-      prepared_by: typeof txn.prepared_by === 'string'
-        ? JSON.parse(txn.prepared_by)
-        : txn.prepared_by
+      prepared_by: safeParsePreparedBy(txn.prepared_by)
     }));
 
     const filteredTransactions = parsedTransactions.filter(txn =>
       txn.prepared_by?.employeeid === numericUserId || productIds.includes(txn.product_id)
     );
 
-  
-    res.render('transactions/index', {
-      title: 'Transactions',
-      transactions: res.locals.isGuest() || res.locals.isSuperAdmin()  ? transactions : filteredTransactions,
-      moment,
-      connection,
-      predata: _preTransactionsData,
-      path: req.url,
-      steps: activities.sort((a, b) => b.id - a.id),
-      peso
-    });
+    const enrichedTransactions = transactions.map(scope => ({
+      ...scope, // keep existing fields
+      actions: addColumnActions('transactions', scope)
+    }));
+
+    const enrichedfilteredTransactions = filteredTransactions.map(scope => ({
+      ...scope, // keep existing fields
+      actions: addColumnActions('transactions', scope)
+    }));
+
+    if (res.locals.PROCUREMENT.currentLaw !== 'RA120092025') {
+      // Log the transactions being rendered
+      res.render('transactions/index', {
+        title: 'Transactions',
+        transactions: res.locals.isGuest() || res.locals.isSuperAdmin() ? transactions : filteredTransactions,
+        moment,
+        connection,
+        predata: CONST_MISC,
+        path: req.url,
+        steps: activities.sort((a, b) => b.id - a.id),
+        peso
+      });
+    } else {
+      const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+        {
+          scripts: [],
+          styles: [],
+          innerContent: '../pages/ra12009/transactions/index',
+          title: "Transactions",
+          description: "List of Purchase Request",
+          _datatables: res.locals.isGuest() || res.locals.isSuperAdmin() ? enrichedTransactions : enrichedfilteredTransactions,
+          _steps: activities.sort((a, b) => b.id - a.id),
+          ...res.locals,
+        });
+      // Rendered HTML
+      res.status(200).send(renderedHtml)
+    }
 
   } catch (error) {
     console.error('Error fetching transactions:', error);
@@ -1752,48 +2114,92 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
   }
 });
 
-app.get('/transactions/new', restrict, async (req, res) => {
+// app.get('/transactions/new', restrict, loadAllFunds, async (req, res) => {
+
+//   try {
+//       // const [CURRENT_FUNDS, CONTINUING_FUNDS] = await Promise.all([
+//       //   fetch('/api/sheets?sheetId=1alv_rcdABMcTuS7q5OBez9_CDboToPvmjXNRn2GI9pM&range=ALL%20CURRENT')
+//       //     .then(r => r.json()),
+//       //   fetch('/api/sheets?sheetId=1alv_rcdABMcTuS7q5OBez9_CDboToPvmjXNRn2GI9pM&range=ALL%20CONTINUING')
+//       //     .then(r => r.json())
+//       // ]);
+
+
+//       res.render('transactions/new', { 
+//         title: 'Create a new Transactions',
+//         moment: moment,
+//         // formatter: formatter,
+//         predata: CONST_MISC,
+//         path: req.url, 
+//         transactions: null,
+//         // FUNDS_ALLOCATIONS: {
+//         //   CURRENT_FUNDS: CURRENT_FUNDS.data.values,
+//         //   CONTINUING_FUNDS: CONTINUING_FUNDS.data.values
+//         // }
+//       }); // Pass the data to the template
+//   } catch (error) {
+//       console.error('Error fetching products:', error);
+//       res.status(500).send('Internal Server Error');
+//   }
+// })
+
+app.get('/transactions/new', restrict, loadAllFunds, async (req, res, next) => {
   try {
-      res.render('transactions/new', { 
-        title: 'Create a new Transactions',
-        moment: moment,
-        // formatter: formatter,
-        predata: _preTransactionsData,
-        path: req.url, 
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: [
+          // '/assets/js/pages/ra12009/transactions.js',
+          '/assets/js/pages/transactions.js',
+          // '/assets/js/components/transactions.js'
+        ],
+        innerContent: '../pages/ra12009/transactions/new',
+        title: "Create a new Transactions",
+        description: "",
         transactions: null,
-      }); // Pass the data to the template
+        predata: CONST_MISC,
+        mode: 'create',
+        options: {
+          buttons: [{ id: "updateTransactions", title: "Update", icon: "fa-save" }, { id: "createTransactions", title: "Create", icon: "fa-plus" },]
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
   } catch (error) {
-      console.error('Error fetching products:', error);
-      res.status(500).send('Internal Server Error');
+    next(error);
   }
 })
 
 app.get('/transactions/scan', restrict, async (req, res) => {
   try {
-      res.render('transactions/scan', { 
-        title: 'Scan Transaction QRCode',
-        moment: moment,
-        // formatter: formatter,
-        predata: _preTransactionsData,
-        path: req.url, 
-        transactions: null,
-      }); // Pass the data to the template
+    res.render('transactions/scan', {
+      title: 'Scan Transaction QRCode',
+      moment: moment,
+      // formatter: formatter,
+      predata: CONST_MISC,
+      path: req.url,
+      transactions: null,
+    }); // Pass the data to the template
   } catch (error) {
-      console.error('Error fetching products:', error);
-      res.status(500).send('Internal Server Error');
+    console.error('Error fetching page template:', error);
+    res.status(500).render('500', { title: "Internal Server Error", error });
   }
 })
 
 app.post('/transactions/new', restrict, async (req, res) => {
   try {
-    const { assigned_to, ...transactionData } = req.body;
-    const transactions = await connection.postTransactions( transactionData );
+    // this is now a raw data
+    const { assigned_to, marketScopeID, ...transactionData } = req.body;
 
-    if(transactions?.affectedRows){
+    // console.log(fund_source)
+
+    const transactions = await connection.postTransactions(transactionData);
+
+    if (transactions?.affectedRows) {
       const { insertId } = transactions
       const data = {
         "message": "New transaction was created",
-        "link": insertId, 
+        "link": insertId,
         "component": "transactions",
       }
       await connection.postTransactionActivity(JSON.stringify({
@@ -1802,23 +2208,125 @@ app.post('/transactions/new', restrict, async (req, res) => {
         status: "pending",
         assigned_to,
       }))
-      await connection.postNotifications(JSON.stringify(data))      
+      await connection.postNotifications(JSON.stringify(data))
+
+      // Step 1: retrieve current value
+      const rows = await connection.retrieveData(
+        'market_scoping',
+        'reference_number',
+        { id: marketScopeID }
+      );
+
+      const currentRef = rows[0]?.reference_number;
+
+      // Step 2: normalize to array
+      let refArray;
+      try {
+        refArray = JSON.parse(currentRef);
+        if (!Array.isArray(refArray)) refArray = [currentRef];
+      } catch {
+        refArray = [currentRef];
+      }
+
+      // Remove null, undefined, and empty string values
+      refArray = refArray.filter(item => item != null && item !== "");
+
+      // Step 3: append new insertId
+      refArray.push(insertId);
+
+      // Step 4: update back to DB
+      await connection.amendData(
+        'market_scoping',
+        JSON.stringify({
+          set: { reference_number: JSON.stringify(refArray) },
+          where: { id: marketScopeID }
+        })
+      );
+
     }
     // console.log('transactions', transactions)
     res.status(201).json({ message: 'Transaction created successfully!', response: transactions });
   } catch (error) {
-    console.error('Error adding transaction:', error);
-    res.status(500).send('Internal Server Error');
+    console.error('Error fetching page template:', error);
+    res.status(500).render('500', { title: "Internal Server Error", error });
   }
 })
 
-app.put('/transactions/update', restrict, async (req, res) => {
+// app.post('/transactions/add', restrict, async (req, res, next) => {
+//   try {
+//     const { assigned_to, marketScopeID, ...transactionData } = req.body;
+
+//     console.log('before it goes to database', {data: req.body})
+
+//     const transactions = await connection.postPurchaseRequest(transactionData);
+//     if (transactions?.affectedRows) {
+//       const { insertId } = transactions
+//       const data = {
+//         "message": "New transaction was created",
+//         "link": insertId,
+//         "component": "transactions",
+//       }
+//       await connection.postTransactionActivity(JSON.stringify({
+//         steps_number: 2,
+//         product_id: insertId,
+//         status: "pending",
+//         assigned_to,
+//       }))
+//       await connection.postNotifications(JSON.stringify(data))
+
+//       // Step 1: retrieve current value
+//       const rows = await connection.retrieveData(
+//         'market_scoping',
+//         'reference_number',
+//         { id: marketScopeID }
+//       );
+
+//       const currentRef = rows[0]?.reference_number;
+
+//       // Step 2: normalize to array
+//       let refArray;
+//       try {
+//         refArray = JSON.parse(currentRef);
+//         if (!Array.isArray(refArray)) refArray = [currentRef];
+//       } catch {
+//         refArray = [currentRef];
+//       }
+
+//       // Remove null, undefined, and empty string values
+//       refArray = refArray.filter(item => item != null && item !== "");
+
+//       // Step 3: append new insertId
+//       refArray.push(insertId);
+
+//       // Step 4: update back to DB
+//       await connection.amendData(
+//         'market_scoping',
+//         JSON.stringify({
+//           set: { reference_number: JSON.stringify(refArray) },
+//           where: { id: marketScopeID }
+//         })
+//       );
+
+//     }
+
+//     res.status(201).json({ message: 'Purchase Request created successfully!', response: transactions });
+//   } catch (error) {
+//     next(error);
+//   }
+// })
+
+app.patch('/transactions/update', restrict, async (req, res) => {
   try {
-    const {set} = JSON.stringify(req.body)
+    let data;
+    const { set, where } = req.body
     const { username } = res.locals.SESSION_USER
 
-    const transactions = await connection.putTransactions( JSON.stringify(req.body) );
-    if(set.includes('amount')) {
+    set.remarks = JSON.stringify({ remarks: set.remarks })
+
+    data = { set, where }
+
+    const transactions = await connection.putTransactions(JSON.stringify(data));
+    if (Object.keys(set).includes("amount")) {
       await connection.putRemarks(JSON.stringify({
         comment: `Add quoted amount of ${set?.amount}`,
         refid: transid,
@@ -1829,7 +2337,7 @@ app.put('/transactions/update', restrict, async (req, res) => {
     }
     res.status(200).json({ message: 'Transaction Successfully Updated!', response: transactions });
   } catch (error) {
-    console.error('Error adding transaction:', error);
+    console.error('Error updating transaction:', error);
     res.status(500).send('Internal Server Error');
   }
 })
@@ -1864,8 +2372,8 @@ app.post('/transactions/assign', async (req, res) => {
       );
 
       const getCurrentStep = Array.isArray(getAllSteps) && getAllSteps.length
-      ? parseInt(getAllSteps[getAllSteps.length - 1].steps_number, 10) || 0
-      : 1;
+        ? parseInt(getAllSteps[getAllSteps.length - 1].steps_number, 10) || 0
+        : 1;
 
       const data = {
         set: { assigned_to, updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss') },
@@ -1904,7 +2412,7 @@ app.post('/transactions/assignedto', async (req, res) => {
 
       await connection.updateTransactionActivity(JSON.stringify(data))
     }))
-    console.log({results})
+    console.log({ results })
     res.status(200).json({ message: 'Transaction assigned successfully.' })
   } catch (error) {
     console.error('Error assigning transaction:', error)
@@ -1913,24 +2421,15 @@ app.post('/transactions/assignedto', async (req, res) => {
 })
 
 app.put('/employees/update', restrict, async (req, res) => {
-  try{
+  try {
     const employee = await connection.amendEmployee(JSON.stringify(req.body))
-    if(employee.length != 0) {
-      res.status(200).json({ message: 'Successfully updated the Employee', response: employee})
+    if (employee.length != 0) {
+      res.status(200).json({ message: 'Successfully updated the Employee', response: employee })
     } else {
-      res.status(200).json({ message: 'Failed to update the employee',  response: employee });
+      res.status(200).json({ message: 'Failed to update the employee', response: employee });
     }
   } catch (error) {
     res.status(500).send({ response: error })
-  }
-})
-
-app.put('/transactions/:id', restrict, async (req, res) => {
-  try {
-   
-  } catch (error) {
-      console.error('Error deleting transaction:', error);
-      res.status(500).send('Internal Server Error');
   }
 })
 
@@ -1939,34 +2438,62 @@ app.get('/transactions/:id', restrict, async (req, res) => {
     const transid = req.params.id;
 
     const transactions = await connection.getTransactionById(transid);
-      res.render('transactions', { 
-        title: 'Transactions',
-        transactions: transactions, 
-        moment: moment,
-        path: res.url
-      }); // Pass the data to the template
+    res.render('transactions', {
+      title: 'Transactions',
+      transactions: transactions,
+      moment: moment,
+      path: res.url
+    }); // Pass the data to the template
   } catch (error) {
-      console.error('Error deleting transaction:', error);
-      res.status(500).send('Internal Server Error');
+    console.error('Error deleting transaction:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 
+// app.get('/transactions/:id/edit', restrict, async (req, res) => {
+//   try {
+//     const transid = req.params.id;
+
+//     const transactions = await connection.getTransactionById(transid);
+//     res.render('transactions/new', {
+//       predata: CONST_MISC,
+
+//       title: 'Transactions',
+//       transactions: transactions[0],
+//       moment: moment,
+//       path: res.url
+//     }); // Pass the data to the template
+//   } catch (error) {
+//     console.error('Error deleting transaction:', error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// })
+
 app.get('/transactions/:id/edit', restrict, async (req, res) => {
   try {
-    const transid = req.params.id;
-
-    const transactions = await connection.getTransactionById(transid);
-      res.render('transactions/new', { 
-        predata: _preTransactionsData,
-
-        title: 'Transactions',
-        transactions: transactions[0], 
-        moment: moment,
-        path: res.url
-      }); // Pass the data to the template
+    const transactions = await connection.getTransactionById(req.params.id);
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/transactions.js'],
+        innerContent: '../pages/ra12009/transactions/new',
+        title: "Update Transactions",
+        description: "",
+        transactions: transactions[0],
+        predata: CONST_MISC,
+        mode: 'update',
+        options: {
+          buttons: [
+            { id: "updateTransactions", title: "Update", icon: "fa-save" },
+            { id: "createTransactions", title: "Create", icon: "fa-plus" },
+          ]
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
   } catch (error) {
-      console.error('Error deleting transaction:', error);
-      res.status(500).send('Internal Server Error');
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 
@@ -1974,19 +2501,21 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
   try {
     const transid = req.params.id;
 
-    const [transactions, remarks, steps, suppliers] = await Promise.all([
+    const [transactions, remarks, steps, suppliers, awardedSupplier, marketScoping] = await Promise.all([
       connection.getTransactionById(transid),
       connection.getRemarksByRefid(transid),
       connection.getTransactionActivityId(JSON.stringify({ product_id: transid })),
-      connection.getTransactionSuppliers({ transaction_id: transid })
+      connection.getTransactionSuppliers({ transaction_id: transid }),
+      connection.getAwardedSupplier(transid),
+      connection.getMarketScopingByTransactionId(transid)
     ])
 
     const filteredActivities = res.locals.activities
-    .filter(activity => activity.product_id === Number(transid));
+      .filter(activity => activity.product_id === Number(transid));
 
     // expressActivityLog(filteredActivities)
-    console.log({transactions})
-    if(Array.isArray(transactions) && transactions.length === 0) {
+    console.log({ transactions })
+    if (Array.isArray(transactions) && transactions.length === 0) {
       res.render('404', {
         title: '404 Transaction Not Found',
         referer: req.referer,
@@ -1995,8 +2524,8 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
       });
       return;
     }
-    
-    res.render('transactions/view', { 
+
+    res.render('transactions/view', {
       title: 'Transactions: Remarks',
       transactions: transactions[0],
       remarks: remarks.sort((a, b) => b.id - a.id),
@@ -2005,29 +2534,31 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
       query: transid,
       steps: steps.sort((a, b) => b.id - a.id),
       _suppliers: JSON.stringify(suppliers || []),
+      _awardedSupplier: JSON.stringify(awardedSupplier[0] || {}),
+      _marketScopeId: JSON.stringify(marketScoping[0] || {}),
     }); // Pass the data to the template
-    
+
   } catch (error) {
-      console.error('Error displaying transaction:', error);
-      // res.status(500).send('Internal Server Error');
-      res.status(404).render('404', {
-        title: "404 Page not found",
-        component: "Transaction"
-      });
+    console.error('Error displaying transaction:', error);
+    // res.status(500).send('Internal Server Error');
+    res.status(404).render('404', {
+      title: "404 Page not found",
+      component: "Transaction"
+    });
   }
 })
 
 app.get('/transactions/:id/print', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
-    
+
     const [transactions, remarks] = await Promise.all([
       connection.getTransactionById(transid),
       connection.getRemarksByRefid(transid)
     ])
 
     if (transactions[0]) {
-      res.render('transactions/print', { 
+      res.render('transactions/print', {
         title: "Print Tracking Sheet",
         transactions: transactions[0],
         perClassification: {},
@@ -2050,14 +2581,14 @@ app.post('/transactions/:id/suppliers', restrict, async (req, res) => {
     console.log('req.body', req.body)
     const results = await connection.postTransactionSuppliers(JSON.stringify({
       refid: transid,
-      suppliers: req.body.suppliers,  
+      suppliers: req.body.suppliers,
     }))
     console.log({ results })
-    if(results?.affectedRows){
-      res.status(200).json({ status: 200, message: 'Suppliers successfully added to the transaction.' })
+    if (results?.affectedRows) {
+      res.status(200).json({ message: 'Suppliers successfully added to the transaction.' })
     } else {
-      res.status(500).json({ status: 500, message: 'Failed to add suppliers to the transaction.' })
-    } 
+      res.status(500).json({ message: 'Failed to add suppliers to the transaction.' })
+    }
   } catch (error) {
     console.error('Error saving Transactions suppliers:', error);
     res.status(404).render('404', {
@@ -2066,12 +2597,49 @@ app.post('/transactions/:id/suppliers', restrict, async (req, res) => {
     });
   }
 })
+app.get('/transactions/:id/suppliers/award', restrict, async (req, res) => {
+  try {
+    const transid = req.params.id;
+    const suppliers = await connection.getTransactionSuppliers({ transaction_id: transid, is_winner: 1 })
+    res.status(200).json({ suppliers })
+  } catch (error) {
+    console.error('Error fetching Transaction suppliers:', error);
+    res.status(404).render('404', {
+      title: "404 Page not found",
+      component: "Transaction"
+    });
+  }
+})
+app.post('/transactions/:id/suppliers/award', restrict, async (req, res) => {
+  try {
+    const transid = req.params.id;
+    const { supplier_id } = req.body;
+    console.log('Awarding supplier with ID:', supplier_id, 'for transaction ID:', transid);
+    const results = await connection.awardTransactionSupplier(JSON.stringify({
+      transaction_id: transid,
+      supplier_id,
+    }))
+    console.log({ results })
+    if (results?.affectedRows) {
+      res.status(200).json({ message: 'Supplier successfully awarded for the transaction.' })
+    } else {
+      res.status(500).json({ message: 'Failed to award supplier for the transaction.' })
+    }
+  } catch (error) {
+    console.error('Error awarding Transaction supplier:', error);
+    res.status(404).render('404', {
+      title: "404 Page not found",
+      component: "Transaction"
+    });
+  }
+})
+
 app.delete('/transactions/:id/status', restrict, async (req, res) => {
   try {
     const fullname = `${res.locals.SESSION_USER.firstname} ${res.locals.SESSION_USER.lastname}`;
     const employeeid = res.locals.SESSION_USER.employeeid
-    
-    const data = { 
+
+    const data = {
       pr_id: req.params.id,
       previous_status: 'draft',
       new_status: 'deleted',
@@ -2079,11 +2647,11 @@ app.delete('/transactions/:id/status', restrict, async (req, res) => {
       changed_by: employeeid
     };
 
-    const results = await connection.postTransactionsStatus( JSON.stringify(data) )
+    const results = await connection.postTransactionsStatus(JSON.stringify(data))
 
-    return results ? 
-    res.status(200).json({ status: 200, message: 'Transaction status successfully updated.' }) : 
-    res.status(500).json({ status: 500, message: 'Failed to delete the transactions.'})
+    return results ?
+      res.status(200).json({ status: 200, message: 'Transaction status successfully updated.' }) :
+      res.status(500).json({ status: 500, message: 'Failed to delete the transactions.' })
 
   } catch (error) {
     console.error('Error updating transaction status:', error);
@@ -2098,8 +2666,8 @@ app.delete('/transactions/:id/testing', restrict, async (req, res) => {
     // console.log('lists', lists)
     res.status(204).send(); // No content (successful deletion)
   } catch (error) {
-      console.error('Error fetching products:', error);
-      res.status(500).send('Internal Server Error');
+    console.error('Error fetching products:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 
@@ -2107,13 +2675,13 @@ app.get('/remarks/:id', restrict, async (req, res) => {
   try {
     const transId = req.params.id;
 
-    const [ remarks, transactions, steps ] = await Promise.all([
+    const [remarks, transactions, steps] = await Promise.all([
       connection.getRemarksByRefid(transId),
       connection.getTransactionById(transId),
       connection.getTransactionActivity()
     ]);
 
-    console.log({remarks, transactions})
+    console.log({ remarks, transactions })
 
     if (!remarks || !transactions) {
       console.warn('Missing remarks or transactions data for transId:', transId);
@@ -2150,13 +2718,13 @@ app.post('/remarks/new', restrict, async (req, res) => {
     if (!employeeid) {
       return res.status(400).json({ message: 'Invalid or missing employee ID.' });
     }
-    
+
     // Remove user from payload and attach session username
     // delete data.user;
-    const updatedRemarks = { ...data};
+    const updatedRemarks = { ...data };
     updatedRemarks.user = username
     updatedRemarks.date = moment().format('YYYY-MM-DD HH:mm:ss');
-    
+
     // ✅ Normalize refid
     let flattenedRefIds = [];
     try {
@@ -2165,7 +2733,7 @@ app.post('/remarks/new', restrict, async (req, res) => {
     } catch {
       flattenedRefIds = [Number(updatedRemarks.refid)];
     }
-    
+
     // ✅ Attach normalized refid
     // updatedRemarks.refid = JSON.stringify(1);
 
@@ -2173,7 +2741,7 @@ app.post('/remarks/new', restrict, async (req, res) => {
     if (typeof updatedRemarks.dueDate === 'number') {
       updatedRemarks.dueDate = moment().add(updatedRemarks.dueDate, 'days').format('YYYY-MM-DD');
     }
-    if(updatedRemarks.assignedto === true) {
+    if (updatedRemarks.assignedto === true) {
       updatedRemarks.assignedto = employeeid
     }
 
@@ -2273,7 +2841,7 @@ app.post('/notifications/new', restrict, async (req, res) => {
   try {
     const data = JSON.stringify(req.body)
     const results = await connection.postNotifications(data)
-    res.status(201).json({ message: 'New notification is added successfully', response: results})
+    res.status(201).json({ message: 'New notification is added successfully', response: results })
   } catch (error) {
     console.error('Error addding new notification on transaction:', error);
     res.status(500).send('Error addding notification on transaction:', error);
@@ -2282,7 +2850,7 @@ app.post('/notifications/new', restrict, async (req, res) => {
 
 app.post('/transcodes/new', restrict, async (req, res) => {
   try {
-    const codes = await connection.updateTransactionCodes( JSON.stringify(req.body) );
+    const codes = await connection.updateTransactionCodes(JSON.stringify(req.body));
     res.status(201).json({ message: 'Successfully added transaction codes!', response: codes });
   } catch (error) {
     console.error('Error addding transaction codes:', error);
@@ -2293,31 +2861,47 @@ app.post('/transcodes/new', restrict, async (req, res) => {
 app.get('/employees', restrict, async (req, res) => {
   const employees = await connection.retrieveEmployee()
   // const roles = await connection.retrieveEmployeeIdsWithRole()
-  // console.log(employees)
-  res.render('employees/index', {
-    title: 'Employees',
-    employees: JSON.stringify(employees),
-    // roles,
-  })
-})
 
-app.get('/employees/new', restrict, function(req, res){
+  if (res.locals.PROCUREMENT.currentLaw !== 'RA120092025') {
+
+    res.render('employees/index', {
+      title: 'Employees',
+      employees: JSON.stringify(employees),
+      // roles,
+    })
+  } else {
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: [],
+        styles: [],
+        innerContent: '../pages/ra12009/employees/index',
+        title: "Employees",
+        description: "List of all employees including inactive or retired....",
+        results: { employees },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  }
+});
+
+app.get('/employees/new', restrict, function (req, res) {
   res.render('employees/new', {
     defaultData: _preDefaultData,
-    title: 'Add Employee', 
+    title: 'Add Employee',
     path: res.url,
     moment
   })
 })
 
-app.get('/employees/:id/profile', restrict, loadAllTransactions, async function(req, res){
+app.get('/employees/:id/profile', restrict, loadAllTransactions, async function (req, res) {
   try {
     const employee = await connection.getEmployeeById(req.params.id);
-    console.log({employee})
-    if(employee.length > 0) {
+    console.log({ employee })
+    if (employee.length > 0) {
       res.render('employees/profile', {
         employee: employee[0],
-        title: 'Profile', 
+        title: 'Profile',
         employeeid: req.params.id,
       })
     } else {
@@ -2346,14 +2930,38 @@ async function getFormData(employeeId = null) {
 }
 
 // Register Employee Route
-app.get('/employees/register', restrict, async (req, res) => {
+// app.get('/employees/register', restrict, async (req, res) => {
+//   try {
+//     const { roles, employees } = await getFormData();
+//     res.render('employees/register', {
+//       title: 'Register Employee',
+//       employees,
+//       mode: 'register',
+//     });
+//   } catch (error) {
+//     console.error('Error loading register form:', error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// });
+app.get('/employees/register', async (req, res) => {
   try {
     const { roles, employees } = await getFormData();
-    res.render('employees/register', {
-      title: 'Register Employee',
-      employees,
-      mode: 'register',
-    });
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: [],
+        styles: [],
+        innerContent: '../pages/ra12009/employees/register',
+        title: "Employees",
+        description: "List of all employees including inactive or retired....",
+        results: { employees },
+        mode: 'register',
+        options: {
+          buttons: [{ id: "updateEmployee", title: "Update", icon: "fa-save" }, { id: "registerEmployee", title: "Create", icon: "fa-plus" },]
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
   } catch (error) {
     console.error('Error loading register form:', error);
     res.status(500).send('Internal Server Error');
@@ -2361,18 +2969,44 @@ app.get('/employees/register', restrict, async (req, res) => {
 });
 
 // Update Employee Route
+// app.get('/employees/:id/update', restrict, async (req, res) => {
+//   try {
+//     const employeeId = req.params.id;
+//     const { roles, employees } = await getFormData(employeeId);
+
+//     res.render('employees/register', {
+//       title: 'Update Employee',
+//       employees,
+//       mode: 'update',
+//     });
+//   } catch (error) {
+//     console.error('Error loading update form:', error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// });
+
 app.get('/employees/:id/update', restrict, async (req, res) => {
   try {
-    const employeeId = req.params.id;
-    const { roles, employees } = await getFormData(employeeId);
-
-    res.render('employees/register', {
-      title: 'Update Employee',
-      employees,
-      mode: 'update',
-    });
+    console.log('Fetching data for employee ID:', req.params.id);
+    const { roles, employees } = await getFormData(req.params.id);
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: [],
+        styles: [],
+        innerContent: '../pages/ra12009/employees/register',
+        title: "Employees",
+        description: "List of all employees including inactive or retired....",
+        results: { employees },
+        mode: 'update',
+        options: {
+          buttons: [{ id: "updateEmployee", title: "Update", icon: "fa-save" }, { id: "registerEmployee", title: "Create", icon: "fa-plus" },]
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
   } catch (error) {
-    console.error('Error loading update form:', error);
+    console.error('Error loading register form:', error);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -2382,50 +3016,64 @@ app.delete('/employees/:id', restrict, async (req, res) => {
     // const transid = req.params.id;
     // const force = req.params.force
 
-    const {id} = req.params
+    const { id } = req.params
 
     // let lists = await connection.hideToDisplay('employees', transid);
-    console.log({id, force})
+    console.log({ id, force })
     res.status(204).send(); // No content (successful deletion)
   } catch (error) {
-      console.error('Error fetching products:', error);
-      res.status(500).send('Internal Server Error');
+    console.error('Error fetching products:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 
-app.get('/inventory', restrict, async function(req, res){
+app.get('/inventory', restrict, async function (req, res) {
   res.render('inventory/', {
     title: "Inventory"
   })
 })
 
-app.get('/qrscanner', restrict, async function(req, res){
+app.get('/qrscanner', restrict, async function (req, res) {
   res.render('scanner', {
     title: "Scan QR Code"
   })
 })
-app.get('/suppliers', restrict, loadAllSuppliers, async function(req, res){
-  res.render('suppliers/index', {
-    title: "Suppliers"
-  })
+app.get('/suppliers', restrict, loadAllSuppliers, async function (req, res) {
+  try {
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: [],
+        styles: [],
+        innerContent: '../pages/ra12009/suppliers/index',
+        title: "List of Suppliers",
+        description: "External entities or individuals that provide goods, services, or resources to an organization",
+        results: {},
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
 })
-app.get('/suppliers/:id/view', restrict, loadAllSuppliers, async function(req, res){
+app.get('/suppliers/:id/view', restrict, loadAllSuppliers, async function (req, res) {
   try {
     const supplier = await connection.getSuppliersById(req.params.id);
-    console.log({supplier})
-    
+    console.log({ supplier })
+
     res.render('suppliers/profile', {
       title: "Suppliers",
       results: supplier[0],
     })
-    
+
   } catch (error) {
     console.error('Error retrieving supplier:', error);
     res.status(500).render('404');
   }
-  
+
 })
-app.get('/suppliers/new', restrict, async function(req, res){
+app.get('/suppliers/new', restrict, async function (req, res) {
   res.render('suppliers/new', {
     title: "Suppliers"
   })
@@ -2461,7 +3109,7 @@ app.post('/suppliers/add', restrict, async function (req, res) {
   }
 });
 // DOCUMENTS
-app.get('/documents', restrict, async function(req, res){
+app.get('/documents', restrict, async function (req, res) {
   const results = await connection.getDocumentTrackerData()
   let analysisData = await connection.getDocumentTrackerAnalysis()
   let analysisDataReplies = await connection.getDocumentTrackerActivityReplies()
@@ -2472,29 +3120,29 @@ app.get('/documents', restrict, async function(req, res){
   res.render('documents/index', {
     title: 'Documents',
     displayData: results,
-    analysis: {analysisData, analysisDataReplies},
+    analysis: { analysisData, analysisDataReplies },
   })
 })
 
-app.get('/documents/template/newEmail', restrict, function(req, res) {
+app.get('/documents/template/newEmail', restrict, function (req, res) {
   res.render('emails/new2', {
     title: 'Template on New Email'
   })
 })
 
-app.post('/documents/create', restrict, async function(req, res){
+app.post('/documents/create', restrict, async function (req, res) {
   try {
     const data = JSON.stringify(req.body)
     // console.log(data)
     const results = await connection.createDocumentTracker(data)
-    res.status(200).json({ message: 'New Document is being on Track', response: results})
+    res.status(200).json({ message: 'New Document is being on Track', response: results })
   } catch (error) {
     console.error('Error addding new notification on transaction:', error);
-    res.status(400).send({ message: 'Error addding notification on transaction:', response: error});
+    res.status(400).send({ message: 'Error addding notification on transaction:', response: error });
   }
 })
 
-app.post('/documents/send', restrict, async function(req, res) {
+app.post('/documents/send', restrict, async function (req, res) {
   try {
     const { subject, to, html, id, timetocomply, created_by, attachments } = req.body;
     console.log(req.body);
@@ -2524,10 +3172,10 @@ app.post('/documents/send', restrict, async function(req, res) {
         id
       }
     }
-  
+
     const createActivity = {
       refid: id,
-      message: html, 
+      message: html,
       reciever: to,
       attachments: attachments,
       timetocomply: moment(timetocomply).format('YYYY-MM-DD HH:mm:ss'),
@@ -2537,7 +3185,7 @@ app.post('/documents/send', restrict, async function(req, res) {
 
     let emails = to.split(', ')
     let t_username = []
-    emails.forEach(email=>{
+    emails.forEach(email => {
       const admin = findAminByEmail(department, email)
       t_username.push(admin)
     })
@@ -2555,7 +3203,7 @@ app.post('/documents/send', restrict, async function(req, res) {
     const updateDocumentTrackerActivity = await connection.createDocumentTrackerActivity(JSON.stringify(createActivity))
     const sendNotification = await connection.postNotifications(JSON.stringify(notifications))
     console.log('Email sent:', info.response);
-    
+
     res.status(200).json({ message: 'Email sent successfully', response: info });
 
   } catch (error) {
@@ -2564,42 +3212,42 @@ app.post('/documents/send', restrict, async function(req, res) {
   }
 });
 
-app.get('/documents/:id', restrict, async function(req, res){
+app.get('/documents/:id', restrict, async function (req, res) {
   try {
-    const {id} = req.params
+    const { id } = req.params
     const results = await connection.retrieveDocuments('documents', JSON.stringify(req.params))
-    const activities = await connection.getDocumentTrackerActivity(JSON.stringify({refid:id}))
+    const activities = await connection.getDocumentTrackerActivity(JSON.stringify({ refid: id }))
     const employees = await connection.retrieveEmployee()
     if (results.length > 0) {
       const { username } = res.locals.SESSION_USER
       var { priority, created_by } = results[0]
       if (priority === 'confidential' && created_by !== username) {
         res.render('unauthorize', {
-          title: "Unauthorized Access", 
+          title: "Unauthorized Access",
         })
-      } else { 
+      } else {
         res.render('documents/id', {
-          title: "Document", 
-          displayData: results[0], 
+          title: "Document",
+          displayData: results[0],
           activities: activities.sort((a, b) => b.id - a.id),
           employeesData: employees,
         })
       }
     }
-    
+
   } catch (error) {
     console.error('Error on displaying the document:', error);
     res.status(404).render('404', {
-      title: "Document", 
+      title: "Document",
       component: "Document"
     });
   }
 })
 
-app.post('/documents/:id/activity', restrict, async function(req, res){
-  try { 
+app.post('/documents/:id/activity', restrict, async function (req, res) {
+  try {
     const results = await connection.createDocumentTrackerActivity(JSON.stringify(req.body))
-    res.status(200).json({ message: 'New remarks is added', response: results})
+    res.status(200).json({ message: 'New remarks is added', response: results })
   } catch (error) {
     res.status(400).send('Error addding remarks:', error);
   }
@@ -2608,8 +3256,8 @@ app.post('/documents/:id/activity', restrict, async function(req, res){
 // ENDOF DOCUMENTS
 
 // To Be Feature
-app.get('/calendar', restrict, async function(req, res){
-  
+app.get('/calendar', restrict, async function (req, res) {
+
   res.render('documents/calendar', {
     title: 'Calendar',
   })
@@ -2647,14 +3295,14 @@ app.post("/approve", async (req, res) => {
     //     date: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
     //   }))
     // }
-   
+
     // console.log([trans_id, steps_number + 1])
     await connection.postTransactionActivity(JSON.stringify({
-      status: 'pending', 
-      product_id, 
+      status: 'pending',
+      product_id,
       created_at: moment(new Date()).add(1, 'minute').format('YYYY-MM-DD HH:mm:ss'),
       steps_number: parseInt(steps_number, 10) + 1,
-      updated_by, 
+      updated_by,
     }))
 
     await connection.postNotifications(JSON.stringify({
@@ -2672,12 +3320,12 @@ app.post("/approve", async (req, res) => {
 
 app.post("/disapprove", async (req, res) => {
   const { product_id, steps_number, remarks, updated_by } = req.body;
-  console.log('disapprove steps', {product_id, steps_number, remarks})
+  console.log('disapprove steps', { product_id, steps_number, remarks })
   try {
     const data = {
       set: {
         status: 'disapproved',
-        updated_by, 
+        updated_by,
         updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
         remarks
       },
@@ -2707,19 +3355,19 @@ app.post("/disapprove", async (req, res) => {
 // APIs
 app.route('/api/employees')
   .all(restrict)
-  .get(async (req, res) =>{
+  .get(async (req, res) => {
     const employees = await connection.retrieveEmployee();
-    if(employees) return  res.status(200).json({response: employees})
-    return res.status(400).json({response: 'No Record is Found!'})
+    if (employees) return res.status(200).json({ response: employees })
+    return res.status(400).json({ response: 'No Record is Found!' })
   })
 app.route('/api/transactions')
   .all(restrict)
-  .get(async (req, res) =>{
+  .get(async (req, res) => {
     const transactions = await connection.retrieveTransactions();
-    if(transactions) return  res.status(200).json({response: transactions})
-    return res.status(400).json({response: 'No Record is Found!'})
+    if (transactions) return res.status(200).json({ response: transactions })
+    return res.status(400).json({ response: 'No Record is Found!' })
   })
-app.route('/api/transactions/:id')
+app.route('/api/transactionsss/:id')
   .all(restrict)
   .get(async (req, res) => {
     const { id } = req.params;
@@ -2770,89 +3418,119 @@ app.route('/api/documents/:id')
     const { created_at } = JSON.parse(results)
     // Then, validate the creation date
 
-    return res.status(400).json({ response: JSON.parse(results) }); 
+    return res.status(400).json({ response: JSON.parse(results) });
   });
 
 app.route('/api/qrcode/:id')
-   .all(restrict)
-   .get(async (req, res) => {
-    const {id} = req.params
+  .all(restrict)
+  .get(async (req, res) => {
+    const { id } = req.params
 
     let results = await connection.getTransactionByQRCode(id)
-    
-    if(results.length > 0) { 
+
+    if (results.length > 0) {
       results = JSON.stringify(results[0])
-      return res.status(200).json({ response: JSON.parse(results), component: 'transactions' });  
+      return res.status(200).json({ response: JSON.parse(results), component: 'transactions' });
     } else {
       results = await connection.getDocumentTrackerID(id)
-      if(results.length > 0) {
-        return res.status(200).json({ response: JSON.parse(results), component: 'documents' });  
+      if (results.length > 0) {
+        return res.status(200).json({ response: JSON.parse(results), component: 'documents' });
       }
     }
 
-    return res.status(400).json({ response: 'No data related to the QR Code', component: false });  
-   })
+    return res.status(400).json({ response: 'No data related to the QR Code', component: false });
+  })
 
 // SETTINGS page
 // Status: Super Admin only, restrict to access
-app.get('/settings', restrict, async function(req, res){
+app.get('/settings', restrict, async (req, res) => {
   try {
-    const results = await connection.getSettings() ?? {}
-    let employees = await connection.retrieveEmployee()
-    const { username } = res.locals.SESSION_USER
-    employees.sort((a, b) => 
-      a.lastname.toLowerCase() < b.lastname.toLowerCase() ? -1 : 
-      (a.lastname.toLowerCase() > b.lastname.toLowerCase() ? 1 : 0)
-    );
-
-    if (res.locals.isSuperAdmin()) { // user is admin
-
-      const results = await connection.getSettings();
-      // Convert rows into { key_name: value } object for easy mapping to inputs
-      const mapped = {};
-      results.forEach(row => {
-        mapped[row.key_name] = row.value;
+    if (!res.locals.isSuperAdmin()) {
+      return res.status(404).render('unauthorized', {
+        title: 'Page Not Found',
+        component: 'Page'
       });
-
-      // res.status(200).json({ settings: mapped });
-
-      return res.render('settings', {
-        title: "Settings",
-        settings: JSON.parse(JSON.stringify(results)),
-        employees: JSON.parse(JSON.stringify(employees)),
-        settings: mapped,
-      })
     }
-    res.status(404).render('unauthorized', {
-      title: 'Page Not Found',
-      component: 'Page'
+
+    const [settings, executives, divisions] = await Promise.all([connection.getSettings(), connection.getOffice(1), connection.getOffice()])
+
+    const mappedSettings = {};
+    settings.forEach(row => {
+      mappedSettings[row.key_name] = row.value;
     });
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/settings.js'],
+        styles: ['/assets/css/pages/settings.css'],
+        innerContent: '../pages/ra12009/settings',
+        title: "Site Settings",
+        description: "List of Market Scope Analysis Submissions",
+        settings: [mappedSettings, executives, divisions],
+        employees: [],
+        options: {
+          hideTitle: false,
+          hideFooter: true,
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    return res.status(200).send(renderedHtml)
   } catch (error) {
-    res.status(404).render('404', {
-      title: 'Page Not Found',
-      component: 'Page'
-    });
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 
-app.post('/settings', restrict, async function(req, res){
+app.post('/settings', restrict, async function (req, res) {
   try {
     const settingsData = req.body
     const values = settingsData.map(item => [item.key_name, item.key_value, 'string', null, 1]);
 
     const results = await connection.postSettings(values)
-    res.status(200).json({ message: 'Settings updated!', response: results})
+    res.status(200).json({ message: 'Settings updated!', response: results, success: true })
   } catch (error) {
-    res.status(400).json({ message: `Error saving settings: ${error}`, response: {} });
-  } 
+    res.status(400).json({ message: `Error saving settings: ${error}`, response: {}, success: false });
+  }
 })
+
+app.post('/funds_source', restrict, async function (req, res) {
+  try {
+    const { source_code } = req.body;
+
+    if (!source_code) {
+      return res.status(400).json({
+        message: 'Source code is required.',
+        success: false
+      });
+    }
+
+    // Pass parameter into your DB function
+    const funds = await connection.getFunds(source_code);
+    // console.log('Funds retrieved:', {source_code, funds});
+    // Send back the result
+    return res.status(200).json({
+      message: 'Funds retrieved successfully.',
+      response: funds,
+      success: true
+    });
+
+  } catch (error) {
+    console.error("Error saving fund source:", error);
+    res.status(400).json({
+      message: `Error saving fund source: ${error}`,
+      response: {},
+      success: false
+    });
+  }
+});
 
 // DEMO
 app.get('/forms/forms.html', restrict, function (req, res) {
   res.redirect('/demo/forms/forms.html');
 });
-app.get('/request', function(req, res){
-  res.render('request',{
+app.get('/request', function (req, res) {
+  res.render('request', {
     title: "Request",
     path: res.path,
   })
@@ -2890,22 +3568,155 @@ app.get('/charts/distributions', (req, res) => {
   });
 });
 
-app.use(async function(req, res, next){
-  res.status(404).render('404', {
-    title: 'Page not Found',
-    component: 'Page'
-  });
-  next()
+app.get('/purchaseOrder', loadAllActivities, async (req, res) => {
+  try {
+
+    const [transactions, activities] = await Promise.all([
+      connection.getTransactions(),
+      connection.getActivities()
+    ]);
+
+    // const filterActivities = activities?.filter(activity => activity.status == 'pending');
+    const filterTransactionActivitiesSVP = activities?.filter(activity => activity.steps_number >= 13);
+    const filterTransactionActivitiesPublicBidding = activities?.filter(activity => activity.steps_number >= 10)
+
+    const mapActivitiesSVP = filterTransactionActivitiesSVP?.map(activity => {
+      return activity.product_id
+    })
+
+    const mapActivitiesPublicBidding = filterTransactionActivitiesPublicBidding?.map(activity => {
+      return activity.product_id
+    })
+
+    const activitiesSVP_PublicBidding = [...mapActivitiesSVP, ...mapActivitiesPublicBidding];
+    console.log(activitiesSVP_PublicBidding)
+
+    const filterTransactions = transactions?.filter(transaction => activitiesSVP_PublicBidding.includes(transaction.product_id))
+
+    // console.log({ mapActivities, filterTransactions })
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js'], // look for assets/js/misc.js
+        styles: [],
+        innerContent: '../pages/purchaseOrders/index',
+        title: "Purchase Orders",
+        description: "Description here...",
+        _datatables: filterTransactions,
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/purchaseOrder/:id/create', async (req, res) => {
+  try {
+
+     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: [], // look for assets/js/misc.js
+        styles: [],
+        innerContent: '../pages/purchaseOrders/create',
+        title: "Purchase Orders",
+        description: "Description here...",
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+
+  } catch (err) {
+
+  }
 })
+
+app.post('/purchaseOrder/:id/create', async (req, res) => {
+  try {
+    const product_id = req.params.id
+    res.redirect('/purchaseOrder')
+  } catch (err) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/disbursementVouchers', loadAllActivities, async (req, res) => {
+  try {
+
+    const [transactions, activities] = await Promise.all([
+      connection.getTransactions(),
+      connection.getActivities()
+    ]);
+
+    // const filterActivities = activities?.filter(activity => activity.status == 'pending');
+    const filterTransactionActivitiesSVP = activities?.filter(activity => activity.steps_number >= 26);
+    const filterTransactionActivitiesPublicBidding = activities?.filter(activity => activity.steps_number >= 22)
+
+    const mapActivitiesSVP = filterTransactionActivitiesSVP?.map(activity => {
+      return activity.product_id
+    })
+
+    const mapActivitiesPublicBidding = filterTransactionActivitiesPublicBidding?.map(activity => {
+      return activity.product_id
+    })
+
+    const activitiesSVP_PublicBidding = [...mapActivitiesSVP, ...mapActivitiesPublicBidding];
+    console.log(activitiesSVP_PublicBidding)
+
+    const filterTransactions = transactions?.filter(transaction => activitiesSVP_PublicBidding.includes(transaction.product_id))
+
+    // console.log({ mapActivities, filterTransactions })
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js'], // look for assets/js/misc.js
+        styles: [],
+        innerContent: '../pages/purchaseOrders/index',
+        title: "Disburement Vouchers",
+        description: "Description here...",
+        _datatables: filterTransactions,
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+// app.use(async function (req, res, next) {
+//   res.status(404).render('404', {
+//     title: 'Page not Found',
+//     component: 'Page'
+//   });
+//   next()
+// })
+
+// 404 Not Found
+app.use((req, res) => {
+  res.status(404).render('404', { title: 'Page Not Found' });
+});
+
+// 500 Internal Server Error
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+
+  res.status(500).render('500', {
+    title: "Internal Server Error",
+    error: err
+  });
+});
 
 // STARTING ON ExpressJS
 // const server = http.createServer(app, (req, res) => {
 //   // Get the protocol (http or https)
 //   const protocol = req.connection.encrypted ? 'https://' : 'http://';
-    
+
 //   // Get the host (hostname and port)
 //   const host = req.headers.host;
-  
+
 //   // Get the request URL
 //   const url = req.url;
 
@@ -2926,12 +3737,28 @@ app.use(async function(req, res, next){
 //   console.log('a user connected', socket.id)
 // })
 
+// Initialize database connection
+// const dbConfig = {
+//   host: process.env.DB_HOST,
+//   user: process.env.DB_USER,
+//   password: process.env.DB_PASSWORD,
+//   database: process.env.DB_DATABASE || 'procurementtracker',
+//   charset: "utf8mb4"
+// };
+
+// DatabaseConnection.connect(dbConfig).then(() => {
+//   console.log('Database connection established successfully');
+// }).catch((err) => {
+//   console.error('Failed to connect to database:', err);
+//   process.exit(1);
+// });
+
 // ENDOF ExpressJS
 server.on('error', (err) => {
   console.error('Server error:', err);
 });
 
 server.listen(SERVER_PORT, '0.0.0.0', () => {
-  logger.info(`Server running on port ${SERVER_PORT}`);
+  // logger.info(`Server running on port ${SERVER_PORT}`);
   console.log('Server started on', SERVER_PORT);
 });

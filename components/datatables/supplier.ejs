@@ -19,7 +19,9 @@
                     <td><%= item.address %></td>
                     <td>
                         <a href="/suppliers/<%= item.id %>/view" class="btn btn-link btn-primary"><i class="fa fa-eye"></i></a>
+                        <% if (isSuperAdmin()) { %>
                         <a href="/suppliers/<%= item.id %>/delete" class="btn btn-link btn-danger"><i class="fa fa-trash"></i></a>
+                        <% } %>
                     </td>
                 </tr>
             <% }); } else { %>

@@ -1,15 +1,6 @@
 <!-- Header Template -->
 <%- include('../views/header') -%>
 <% 
-  // const { transactions } = cardsData
-  
-  // Destructuring the object
-  /* const {
-    employees: { row_count: employeesRowCount, total_sum: employeesTotalSum },
-    transactions: { row_count: transactionsRowCount, total_sum: transactionsTotalSum },
-    notifications: { row_count: notificationsRowCount, total_sum: notificationsTotalSum }
-  } = cardsData; */
-
   const employeesRowCount = cardsData?.employees?.row_count || 0;
   const employeesTotalSum = cardsData?.employees?.total_sum || 0;
   const transactionsRowCount = cardsData?.transid?.row_count || 0;
@@ -20,22 +11,9 @@
   let componentTransaction = transactions
   let componentActivity = activities
 
-
-  // componentTransaction = JSON.parse(JSON.stringify(componentTransaction))
-
   const parseAmount = (str) => parseFloat(str.replace(/,/g, '').trim()) || 0;
 
   const monthlyTotals = {};
-
-  /* componentTransaction.forEach(({ pr_date, fund_source }) => {
-    const month = new Date(pr_date).toLocaleString('default', { month: 'long', year: 'numeric' });
-    fund_source = JSON.parse(fund_source);
-    const totalAmount = fund_source.reduce((sum, entry) => sum + parseAmount(entry.amount), 0);
-
-    console.log('Monthly', month);
-
-    monthlyTotals[month] = (monthlyTotals[month] || 0) + totalAmount;
-  }); */
 
   // Step 1: Initialize all months with zero
   const allMonths = Array.from({ length: 12 }, (_, i) => {
@@ -61,6 +39,8 @@
   const jsonMonths = JSON.stringify(months);
   const values = Object.entries(monthlyTotals).map(([_, value]) => value);
 
+  console.log({values})
+
   const latestStepsByProduct = {}
   const latestStepsByProduct2 = {}
   let arrayProductIds = []
@@ -68,8 +48,11 @@
   componentActivity.forEach(entry => {
     const { product_id, steps_number, status } = entry;
 
+    const transactions = componentTransaction.filter(txn=>txn.product_id === product_id)
+
+    console.log('AsDADASDASD    ' {transactions})
+
     if(!latestStepsByProduct[product_id] || steps_number > latestStepsByProduct[product_id]) {
-      // latestStepsByProduct[product_id] = steps_number;
       if (!latestStepsByProduct2[steps_number] && status === 'pending') {
         latestStepsByProduct2[steps_number] = [];
       }
@@ -79,14 +62,10 @@
     } 
   })
 
-  // const stepsIndex = Object.values(latestStepsByProduct).map(key => STEPS.getTitle(Number(key)));
-  // const stepsValues = Object.keys(latestStepsByProduct)
 
   const stepsIndex = Object.keys(latestStepsByProduct2).map(key => STEPS.getTitle(Number(key)));
   const stepsValues = Object.values(latestStepsByProduct2).map(productIds => {
     const length = productIds.length
-    // console.log('Distribution', length)
-    // const title = STEPS.getTitle(Number(length))
     return length
   });
 %>
