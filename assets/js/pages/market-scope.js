@@ -295,10 +295,15 @@ export function configMarketScopesTransactions() {
       },
       // {
       //   render: (data, type, row) => {
-      //     console.log(JSON.parse(row[6]))
+      //     const fund_source = row[6] || '';
 
-      //     const raw = row[6] || '';
-      //     const values = raw.split(',').map(v => v.trim()).filter(Boolean);
+      //     const source = JSON.parse(fund_source)
+
+      //     const sources = source.map(item => item.source);
+
+      //     // console.log(sources)
+
+      //     const values = sources[0].split(',').map(v => v.trim()).filter(Boolean);
 
       //     const html = values.map(val => {
       //       // Safely split on " | "
@@ -316,7 +321,7 @@ export function configMarketScopesTransactions() {
       //     </div>
       //     `
       //   },
-      //   targets: 5                                
+      //   targets: 5
       // },
       { visible: true, targets: [1, 5, -3] }, //[4, 6, 10, 12, -1]
       { visible: false, targets: '_all' },

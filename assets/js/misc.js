@@ -430,11 +430,11 @@ function submitGuestToken() {
 // Initial call to set the time
 // refreshDiv();
 
-// Refresh every second
+// // Refresh every second
 // setInterval(refreshDiv, 1000);
 
 // Initial call to fetch the notification
-// fetchNotificationCount() // Enable this shits
+fetchNotificationCount() // Enable this shits
 
 // Periodically check for updated notif`ication count (e.g., every 5 seconds)
-// setInterval(fetchNotificationCount, 5000); // Adjust interval as needed  // Enable this shits
+setInterval(fetchNotificationCount, 5000); // Adjust interval as needed  // Enable this shits

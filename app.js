@@ -804,7 +804,7 @@ app.use(async (req, res, next) => {
   // console.log(fullname);
 
   const [notifications, transactions, summaryTransaction, summaryEmployee, activities, summaryMarketScopes, filteredTransactions] = await Promise.all([
-    // connection.retrieveNotifications(),
+    connection.retrieveNotifications(),
     // connection.getTransactions(),
     // connection.getPurchaseRequestsSummary(),
     // connection.getEmployeeSummary(),
@@ -816,7 +816,8 @@ app.use(async (req, res, next) => {
   // Sort using Descending
   notifications?.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-  const filteredNotifications = {}
+  // const filteredNotifications = {}
+  const filteredNotifications = notifications;
   let role = '';
   let userDivision = '';
   let userSection = '';

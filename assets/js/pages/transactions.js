@@ -777,7 +777,43 @@ function duplicateNodes() {
   });
 }
 
-// Event Listener 
+function createTransactionsCodes() {
+  const transCodeText = document.getElementById('po_transCodeText')
+  createTransactionCode.addEventListener('click', function (e) {
+    if (transCodeText.value === '') return
+    const transid = e.target.dataset.transid
+    const apiUrl = '/transcodes/new';
+    const data = { transid, code: transCodeText.value }
+
+    const requestOptions = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    };
+    console.log(requestOptions)
+
+    fetch(apiUrl, requestOptions)
+      .then(response => {
+        if (!response.ok) notifyCustom('', 'Error', 'Issues on retrieving an data', 'warning')
+        return response.json()
+      })
+      .then(data => {
+        if (!data) return notifyCustom('', 'Error', 'Failed to create new remarks', 'danger')
+
+        notifyCustom('', 'Success', 'Added the transaction codes!', 'info')
+      })
+      .catch(error => {
+        notifyCustom('Error', error, 'danger')
+      })
+    // Clear after saving successfully
+    transCodeText.value = ''
+  })
+}
+//////////////////////////////////////////////////////////////////////////
+///////////////////////////// Event Listener /////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 document.getElementById('chargingTo')?.addEventListener('click', (e) => {
   if (e.target.matches('input, select')) {
     console.log('Changed:', e.target.name, e.target.value);
@@ -798,3 +834,6 @@ if (updateTransaction) updateTransaction();
 
 const addButton = document.getElementById('addButton');
 if (addButton) duplicateNodes();
+
+const createTransactionCode = document.getElementById('createTransactionCode')
+if (createTransactionCode) createTransactionsCodes();

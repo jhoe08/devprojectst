@@ -23,7 +23,7 @@
       aria-labelledby="notifDropdown"
     >
     <!-- NOTIFICATIONS -->
-      <% if (notifs_length === 0) { %>
+      <% if (notifs_length !== 0) { %>
       <li class="">
         <div class="dropdown-title">
           You have <span class="countNotif"><%= notifs_length %></span> new notification

@@ -60,8 +60,6 @@
 
     const marketScopeLink = `/market-scope/${scopeId}/view`
 
-
-    console.log({ ASDASD:  steps })
 %>
     
   %>
@@ -291,13 +289,12 @@
                             </h6>
                             <span class="text-muted">Transaction Codes</span>
                           </div>
-                          <% if ([2,3].includes(current_step_number)) { %>
+                          
                           <div class="float-end pt-1">
                             <button  data-bs-toggle="modal" data-bs-target="#codeModal" id="addTransactionCodes" class="btn btn-icon btn-link op-8 me-1">
                               <i class="fas fa-plus-circle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add PR Number"></i>
                             </button>
                           </div>
-                          <% } %>
                         </div>
                       </div>
                     </div>
@@ -347,13 +344,13 @@
                           <%
                             const getStageTitle = () => {
                               if (stageCanvassing) return "Canvassing Suppliers";
-                              if (stagePO) return "Awarding Suppliers";
+                              if (stageAward && !awardedSupplierID) return "Awarding Suppliers";
                               return "Awarded Suppliers";
                             };
                           %>
                           <h4 class="card-title"><%= getStageTitle() %></h4>
 
-                          <% if (stepNum < 15) { %>
+                          <% if (stepNum < 15 && stageCanvassing) { %>
                           <div class="card-tools transcations-code text-uppercase form-group-add">
                               <button id="addButton" class="btn btn-icon btn-link btn-primary btn-xs">
                                 <span class="fa fa-plus"></span>
@@ -415,7 +412,7 @@
                             </div>
                           <% } %>
                         </div>
-                        <% } if (stepNum >= 15) { %>
+                        <% } if (stageAward) { %>
                         <div id="supplierWinner " class="selectgroup w-100">
                           <% 
                             const suppliersArray = SUPPLIERS || [];  
@@ -442,7 +439,7 @@
                                   value="<%= supplier_id %>" 
                                   class="selectgroup-input"
                                   <%= supplier_id === awardedSupplierID ? 'checked' : '' %>
-                                  <%= stepNum >= 15 ? 'disabled' : '' %>
+                                  <%= (stepNum >= 15 || awardedSupplierID) ? 'disabled' : '' %>
                                 >
                                 <div class="card selectgroup-button p-3 mb-0">
                                   <div class="d-flex align-items-center">
@@ -464,10 +461,10 @@
                       <% if (stepNum >= 6 && stepNum < 13) { %>
                       <div class="card-action align-right" style="padding: 15px 30px;">
                        
-                          <% if (haveSuppliers) { %>
+                          <% if (haveSuppliers && stageCanvassing) { %>
                           <button id="submitSupplier" class="btn btn-success">Submit</button>
                           <% } %>
-                         <% if (stageAward ) { %>
+                         <% if (stageAward && !awardedSupplierID) { %>
                           <button id="awardSupplier" class="btn btn-primary" >Award Supplier</button>
                          <% } %>
                       </div>
