@@ -14,7 +14,7 @@
 // 13 -2 bid_notice_title  
 // 14 -1 remarks
 
-$('.transactionsTables').DataTable({
+$('.transactionsTables')?.DataTable({
     responsive: true,
     order: [[0, 'desc']],
     columnDefs: [
@@ -96,8 +96,8 @@ $('.transactionsTables').DataTable({
                             </a>
                         </span>
                         <span data-bs-toggle="tooltip" aria-label="Create Purchase Order" data-bs-original-title="Create Purchase Order">
-                            <a href="/purchaseOrder/${row[15]}/create" data-product-id="${row[15]}" type="button" class="btn btn-link btn-success">
-                                <i class="fas fa-cart-plus"></i>
+                            <a href="/purchaseOrder/${row[15]}/create" data-product-id="${row[15]}" type="button" class="btn btn-link btn-warning">
+                                <i class="fas fa-cart-plus fs-4"></i>
                             </a>
                         </span>
                     </div>
@@ -116,3 +116,4 @@ $('.transactionsTables').DataTable({
         { visible: false, targets: '_all' },
     ]
 })
+

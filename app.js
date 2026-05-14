@@ -741,11 +741,13 @@ app.use(bodyParser.json());
 const sheetsRouter = require('./routes/sheets');
 const employeeRouter = require('./routes/employees');
 const trasactionRouter = require('./routes/transactions');
+const purchaseOrderRouter = require('./routes/purchaseOrders');
 
 const { styleText } = require('node:util');
 app.use('/api', sheetsRouter);
 app.use('/api', employeeRouter);
 app.use('/api', trasactionRouter);
+app.use('/api', purchaseOrderRouter);
 
 app.use(express.json());
 
@@ -2388,6 +2390,7 @@ app.patch('/transactions/update', restrict, async (req, res) => {
   }
 })
 
+// this will assign to who is currently in session
 app.post('/transactions/assign', async (req, res) => {
   const { transactions: rawTransactions } = req.body;
   const assigned_to = res?.locals?.SESSION_USER?.employeeid;
@@ -2585,6 +2588,7 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
       _suppliers: JSON.stringify(suppliers || []),
       _awardedSupplier: JSON.stringify(awardedSupplier[0] || {}),
       _marketScopeId: JSON.stringify(marketScoping[0] || {}),
+
     }); // Pass the data to the template
 
   } catch (error) {
@@ -3645,7 +3649,7 @@ app.get('/purchaseOrder', loadAllActivities, async (req, res) => {
     // console.log({ mapActivities, filterTransactions })
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js'], // look for assets/js/misc.js
+        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js', '/assets/js/pages/purchaseOrders/index.js'], // look for assets/js/misc.js
         styles: [],
         innerContent: '../pages/purchaseOrders/index',
         title: "Create a Purchase Orders",
@@ -3672,7 +3676,7 @@ app.get('/purchaseOrder/:id/create', loadAllSuppliers, async (req, res) => {
 
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: [], // look for assets/js/misc.js
+        scripts: ['/assets/js/pages/purchaseOrders/addProduct.js'], // look for assets/js/misc.js
         styles: [],
         innerContent: '../pages/purchaseOrders/create',
         title: "Purchase Orders",
@@ -3689,14 +3693,29 @@ app.get('/purchaseOrder/:id/create', loadAllSuppliers, async (req, res) => {
   }
 })
 
-app.post('/purchaseOrder/:id/create', async (req, res) => {
+app.post('/purchaseOrder/create', async (req, res) => { 
   try {
+    const { purchase_request_id, supplier_code, order_number, status, product, quantity, unit_price } = req.body
 
+    const perQuery = product.map((item, index) => ({
+      order_number,
+      purchase_request_id,
+      product: item,
+      supplier_code,
+      quantity: quantity[index],
+      unit_price: unit_price[index],
+      order_date: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+    }))
 
+    const results = await connection.postPurchaseOrders(perQuery);
+
+    if(results) return;
+
+    return false;
 
     res.redirect('/purchaseOrder')
   } catch (err) {
-    console.error('Error fetching page template:', error);
+    console.error('Error fetching page template:', err);
     res.status(500).send('Internal Server Error');
   }
 })

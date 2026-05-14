@@ -1322,11 +1322,54 @@ const databaseUtils = {
         });
       });
     } catch (error) {
-      console.error("Unexpected error: getMarketScopingByTransactionId()", err);
-      throw err; // propagate error to caller
+      console.error("Unexpected error: getMarketScopingByTransactionId()", error);
+      throw error; // propagate error to caller
     }
   },
+  getPurchaseOrders: async (data) => {
+    try {
+      if(data) {
+        return await databaseUtils.retrieveData('purchase_orders', '*', data)
+      }
+      return await databaseUtils.retrieveData('purchase_orders', data)
+    } catch (error) {
+      console.error("Unexpected error: getPurchaseOrders()", error);
+      throw error; // propagate error to caller
+    }
+  },
+  postPurchaseOrders: async (data) => {
+    try {
 
+      const _keys = Object.keys(data[0]); // column names
+      const placeholders = '(' + _keys.map(() => '?').join(', ') + ')';
+
+      // Build VALUES for all rows
+      const valuesSql = data.map(() => placeholders).join(', ');
+
+      // Flatten values into one array
+      const values = data.flatMap(obj => Object.values(obj));
+
+      const query = `
+        INSERT INTO ${prefix}.purchase_orders
+          (${_keys.join(', ')})
+        VALUES ${valuesSql}
+      `;
+
+      return new Promise((resolve, reject) => {
+        connection.query(query, values, (error, results) => {
+          if (error) reject(error);
+          else resolve(results);
+        });
+      });
+
+    } catch (error) {
+      console.error("Unexpected error: postPurchaseOrders()", error);
+      throw error; // propagate error to caller
+    }
+  },
+  ///////////////////////////////
+  /////////// FUNDS /////////////
+  ///////////////////////////////
   getFunds: async (source) => {
     const normalized = (source || '').trim().toLowerCase();
 

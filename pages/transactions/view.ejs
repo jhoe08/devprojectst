@@ -329,7 +329,7 @@
                       const stepNum = steps[0]?.steps_number || 0;
 
                       const stageCanvassing = [6, 7, 8, 9, 10].includes(steps[0]?.steps_number);
-                      const stageAward = [10, 11, 12].includes(steps[0]?.steps_number);
+                      const stageAward = [ 11, 12].includes(steps[0]?.steps_number);
                       const stagePO = [13, 14].includes(steps[0]?.steps_number);
                       
             
@@ -414,7 +414,7 @@
                             </div>
                           <% } %>
                         </div>
-                        <% } if (stageAward) { %>
+                        <% } if (stageAward || stagePO) { %>
                         <div id="supplierWinner " class="selectgroup w-100">
                           <% 
                             const suppliersArray = SUPPLIERS || [];  
@@ -460,18 +460,18 @@
                         </div>
                         <% } %>
                       </div>
-                      <% if (stepNum >= 6 && stepNum < 13) { %>
+                      <%# if (stepNum >= 6 && stepNum < 13) { %>
                       <div class="card-action align-right" style="padding: 15px 30px;">
                        
                           <% if (haveSuppliers && stageCanvassing) { %>
                           <button id="submitSupplier" class="btn btn-success">Submit</button>
                           <% } %>
-                         <% if (stageAward && !awardedSupplierID) { %>
+                         <% if (stageAward || !awardedSupplierID) { %>
                           <button id="awardSupplier" class="btn btn-primary" >Award Supplier</button>
                          <% } %>
                       </div>
                       
-                     <% } %>
+                     <%# } %>
                     </div>
                     <% } %>
                   </div>
@@ -544,4 +544,4 @@
 </script> -->
 <% } %>
 <!-- Footer Template -->
-<%- include('../../views/footer', { scripts: { 'suppliers': '/assets/js/pages/suppliers.js', 'approvalRouting' : '/assets/js/approvalRouting.js' } }) -%>
+<%- include('../../views/footer', { scripts: { 'suppliers': '/assets/js/pages/suppliers.js', 'approvalRouting' : '/assets/js/approvalRouting.js', 'assignto': '/assets/js/assignedtome.js' } }) -%>
