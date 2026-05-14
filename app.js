@@ -192,7 +192,7 @@ const department = {
       stands: "Office of the Regional Executive Director",
       email: "",
       admin: "",
-      responsible: { employeeid: "107", name: "Dir. Angel C. Enriquez, CESO III" },
+      responsible: { employeeid: 73001, name: "Dir. Angel C. Enriquez, CESO III" },
       acting: "",
     },
     RTDs: {
@@ -200,64 +200,52 @@ const department = {
         stands: "Regional Technical Director for Research and Regulations ",
         email: "",
         admin: "",
-        responsible: { employeeid: "108", name: "Wilberto O. Castillo" },
+        responsible: { employeeid: 73002, name: "Wilberto O. Castillo" },
         acting: "",
       },
       RTDO: {
         stands: "Regional Technical Director for Operations",
         email: "",
         admin: "",
-        responsible: { employeeid: "109", name: "Engr. Cirilo N. Namoc" },
+        responsible: { employeeid: 73003, name: "Engr. Cirilo N. Namoc" },
         acting: "",
       }
     },
-    BACs: {
-      "BAC_1": {
-        stands: "BAC Secretariat 1",
-        email: "",
-        admin: "",
-      },
-      "BAC_2": {
-        stands: "BAC Secretariat 2",
-        email: "",
-        admin: "",
-      }
-    }
   },
   divisions: {
     "ADMIN": {
       stands: "Administrative and Finance Division",
       email: "",
       admin: "",
-      responsible: { employeeid: "110", name: "Melquiades B. Ibarra, Ph.D" },
+      responsible: { employeeid: 72001, name: "Melquiades B. Ibarra, Ph.D" },
       acting: "",
       sections: {
         HRMS: {
           stands: "Human Resource Management Section",
           email: "",
           admin: "",
-          responsible: { employeeid: "111", name: "Maria Isabel A. Martinez" },
+          responsible: { employeeid: 72002, name: "Maria Isabel A. Martinez" },
           acting: "",
         },
         GS: {
           stands: "General Services Section",
           email: "",
           admin: "",
-          responsible: { employeeid: "112", name: "Anecita A. Sespeñe" },
+          responsible: { employeeid: 72003, name: "Anecita A. Sespeñe" },
           acting: "",
         },
         PROCUREMENT: {
           stands: "Procurement Section",
           email: "",
           admin: "",
-          responsible: "",
+          responsible: { employeeid: 74011, name: "Admin PS" },
           acting: "",
         },
         ACCOUNTING: {
           stands: "Accounting Section",
           email: "",
           admin: "",
-          responsible: { employeeid: "113", name: "Mark Rey T. Paguray" },
+          responsible: { employeeid: 72004, name: "Mark Rey T. Paguray" },
           acting: "",
         },
         INFORMATION: {
@@ -271,7 +259,7 @@ const department = {
           stands: "Budget Section",
           email: "",
           admin: "",
-          responsible: { employeeid: "115", name: "Rosalie S. Gallego" },
+          responsible: { employeeid: 72006, name: "Rosalie S. Gallego" },
           acting: "",
         }
       }
@@ -280,7 +268,7 @@ const department = {
       stands: "Agricultural Competitiveness and Extension Division",
       email: "",
       admin: "",
-      responsible: { employeeid: "116", name: "Basta Taga Aced" },
+      responsible: { employeeid: 1028, name: "Charlene Jagna" },
       acting: "",
       sections: {
         SPPS: {
@@ -292,7 +280,7 @@ const department = {
       stands: "Information and Communications Technology Division",
       email: "",
       admin: "",
-      responsible: { employeeid: "116", name: "Annearth V. Maribojoc", position: "Information System Analyst II" },
+      responsible: { employeeid: 1038, name: "Annearth V. Maribojoc", position: "Information System Analyst II" },
       acting: "",
       sections: {
         IPPTS: {
@@ -336,7 +324,7 @@ const department = {
       stands: "Planning, Monitoring and Evaluation Division",
       "email": "",
       "admin": "",
-      responsible: { employeeid: "70005", name: "Elvin J. Milleza" },
+      responsible: { employeeid: 1037, name: "Elvin J. Milleza" },
       acting: "",
       sections: {
         PPS: {
@@ -360,7 +348,7 @@ const department = {
       stands: "Regulartory Division",
       "email": "",
       "admin": "",
-      responsible: { employeeid: "180", name: "Mayolyn T. Majaducon" },
+      responsible: { employeeid: 75001, name: "Mayolyn T. Majaducon" },
       sections: {
         RLICASS: {
           stands: "Registration/Licensing/Inspection Certification/Accreditation Service Section",
@@ -383,7 +371,8 @@ const department = {
       stands: "Research Division",
       "email": "",
       "admin": "",
-      responsible: { employeeid: "180", name: "Fabio G. Enriquez" },
+      responsible: { employeeid: 74002, name: "Fabio G. Enriquez" },
+      acting: { employeeid: 76002, name: "Fabio G. Enriquez" },
       sections: {
         TPCS: {
           stands: "Technology Packaging and Commercialization Section",
@@ -441,7 +430,7 @@ const department = {
       stands: "Integrated Laboratory Division",
       email: "",
       admin: "",
-      responsible: { employeeid: "180", name: "Norma B. Repol" },
+      responsible: { employeeid: 74003, name: "Norma B. Repol" },
       sections: {
         SOILS: {
           stands: "Regional Soils Laboratory",
@@ -500,43 +489,43 @@ const department = {
     "FOD": {
       stands: "Field Operations Division",
       email: "",
-      responsible: { employeeid: "180", name: "Gerry S. Avila", position: "Field Operations Head" },
+      responsible: { employeeid: 74005, name: "Gerry S. Avila", position: "Field Operations Head" },
       admin: "",
       sections: {
         RICE: {
           stands: "Rice Program",
           email: "",
-          responsible: { employeeid: "180", name: "Epifanio P. Qaudicos" },
+          responsible: { employeeid: 74006, name: "Epifanio P. Qaudicos" },
           admin: "",
         },
         LIVESTOCK: {
           stands: "Livestock Program",
           email: "",
-          responsible: { employeeid: "180", name: "Zeam Voltaire E. Ampere" },
+          responsible: { employeeid: 1049, name: "Zeam Voltaire E. Ampere" },
           admin: "",
         },
         CORN: {
           stands: "Corn Program",
           email: "",
-          responsible: { employeeid: "180", name: "Luvinia A. Corpus" },
+          responsible: { employeeid: 74007, name: "Roy Manzano" },
           admin: "",
         },
         HVCDP: {
           stands: "High Value-Crops Development Program",
           email: "",
-          responsible: { employeeid: "180", name: "John Dennes R. Manunulo" },
+          responsible: { employeeid: 77002, name: "John Dennes R. Manunulo" },
           admin: "",
         },
         OAP: {
           stands: "Organic Agriculture Program",
           email: "",
-          responsible: { employeeid: "180", name: "Mae E. Montecillo" },
+          responsible: { employeeid: 77003, name: "Mae E. Montecillo" },
           admin: "",
         },
         NUPAP: {
           stands: "National Urban and Peri-Urban Agriculture Program",
           email: "",
-          responsible: { employeeid: "180", name: "Prescilla D. Soriano" },
+          responsible: { employeeid: 77004, name: "Prescilla D. Soriano" },
           admin: "",
         },
         PATCOCEBU: {
@@ -606,6 +595,43 @@ const department = {
         }
       }
     },
+  },
+  BACs: {
+    // Both BAC 1 and BAC 2 Approving Person Cirilo N. Namoc
+    "BAC_1": {
+      stands: "BAC 1",
+      email: "",
+      admin: "",
+      responsible: { employeeid: 701, name: "Edna N. Yu" }, // BAC Chair
+      committee: {
+        acting: { employeeid: 702, name: "Bienvenido D. Acabal" }, // Vice
+        members: [
+          { employeeid: 703, name: "Anna Delza S. Barimbao" },
+          { employeeid: 703, name: "Leo S. Pelletero" },
+          { employeeid: 703, name: "Lorelei B. Acha" },
+          { employeeid: 703, name: "Grace len C. Dagala" },
+          { employeeid: 703, name: "Aurea M. Madrio" },
+        ],
+        secretariat: {}
+      }
+    },
+    "BAC_2": {
+      stands: "BAC 2",
+      email: "",
+      admin: "",
+      responsible: { employeeid: 73002, name: "Wilberto O. Castillo" },
+      committee: {
+        acting: { employeeid: 74005, name: "Gerry S. Avila" }, // Vice
+        members: [
+          { employeeid: 75001, name: "Mayolyn T. Majaducon" },
+          { employeeid: 74003, name: "Norma B. Repol" },
+          { employeeid: 74033, name: "Genelyn I. Milleza" },
+          { employeeid: 74032, name: "Senador S. Ponce" },
+          { employeeid: 74031, name: "Julius M. Galvan" },
+        ],
+        secretariat: {}
+      }
+    }
   },
   permissions
 }
@@ -715,11 +741,13 @@ app.use(bodyParser.json());
 const sheetsRouter = require('./routes/sheets');
 const employeeRouter = require('./routes/employees');
 const trasactionRouter = require('./routes/transactions');
+const purchaseOrderRouter = require('./routes/purchaseOrders');
 
 const { styleText } = require('node:util');
 app.use('/api', sheetsRouter);
 app.use('/api', employeeRouter);
 app.use('/api', trasactionRouter);
+app.use('/api', purchaseOrderRouter);
 
 app.use(express.json());
 
@@ -946,6 +974,8 @@ app.use(async (req, res, next) => {
       return divisionData ? divisionData.responsible : null;
     },
     getUserResponsible: (division, section) => {
+
+
       const divisionData = department.divisions[division];
 
       const results = (() => {
@@ -957,7 +987,7 @@ app.use(async (req, res, next) => {
         }
 
         // If section head is equal to sessions users → return division responsible only
-        if (divisionData.sections[section].responsible.employeeid == res.locals.SESSION_USER.employeeid) {
+        if (divisionData.sections[section]?.responsible?.employeeid == res.locals.SESSION_USER.employeeid) {
           return { division: divisionData.responsible };
         }
 
@@ -976,6 +1006,18 @@ app.use(async (req, res, next) => {
       // console.log('Responsible fetched:', { division, section, results });
       return results;
 
+    },
+    getBACInfo(bacKey, type = "responsible") {
+      const bac = department.BACs[bacKey];
+      if (!bac) return null;
+
+      if (type === "responsible") {
+        return bac.responsible || null;
+      }
+      if (type === "committee") {
+        return bac.committee || null;
+      }
+      return null;
     },
     SUMMARY: {
       transactions: JSON.stringify(summaryTransaction?.[0]),
@@ -1060,7 +1102,7 @@ app.use(async (req, res, next) => {
 
         if (current_step_number > 0) {
           const progress = Number((current_step_number / getTotalSteps(row)) * 100).toFixed(2);
-          
+
           var html = `<div class="progress progress-sm sasdsads" style="height: 5px;"><div class="progress-bar" style="width: ${progress}%" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="${current_step_title}"></div></div>`
 
           return (progress > 0) ? `${row.bid_notice_title} ${html}` : '';
@@ -1217,8 +1259,12 @@ app.use(async (req, res, next) => {
       return JSON.stringify(employee) || {};
     },
     getCurrentHolderOfTransaction(transaction_id) {
+      const { activities } = res.locals
       const activity = activities
         ?.filter(act => act.product_id === transaction_id && act.status === 'pending' && act.assigned_to);
+
+      console.log({ aaaa: activity })
+
       return (activity?.length > 0) ? activity[0].assigned_to : false;
     },
     getTransactionMarketScope(id) {
@@ -1524,6 +1570,8 @@ app.get('/market-scope/:id/view', restrict, loadAllTransactions, async (req, res
 
     const { project_title, reference_number } = innerHTML[0];
     const tables = await connection.getTransactionById(reference_number)
+
+    console.log({ tables })
 
     // Sanitize prepared_by in fetched tables as well
     const cleanedTables = tables//?.map(tx => ({
@@ -2342,18 +2390,22 @@ app.patch('/transactions/update', restrict, async (req, res) => {
   }
 })
 
+// this will assign to who is currently in session
 app.post('/transactions/assign', async (req, res) => {
   const { transactions: rawTransactions } = req.body;
   const assigned_to = res?.locals?.SESSION_USER?.employeeid;
 
   try {
-    const transactions = JSON.parse(rawTransactions); // Ensure it's an array
+
+    const transactions = rawTransactions.replace(/^\[|\]$/g, '')
+      .split(',')                // split into array
+      .map(txn => txn.trim());   // trim spaces
 
     const results = await Promise.all(
       transactions.map(txn => connection.getTransactionByQRCode(txn))
     );
 
-    console.log('Assigning transactions:ASSDA ', { transactions, results });
+    console.log('sssssssssss', { results })
 
     if (results.includes(null)) {
       return res.status(400).json({ status: 400, message: 'One or more transactions not found.' });
@@ -2536,6 +2588,7 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
       _suppliers: JSON.stringify(suppliers || []),
       _awardedSupplier: JSON.stringify(awardedSupplier[0] || {}),
       _marketScopeId: JSON.stringify(marketScoping[0] || {}),
+
     }); // Pass the data to the template
 
   } catch (error) {
@@ -3596,11 +3649,11 @@ app.get('/purchaseOrder', loadAllActivities, async (req, res) => {
     // console.log({ mapActivities, filterTransactions })
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js'], // look for assets/js/misc.js
+        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js', '/assets/js/pages/purchaseOrders/index.js'], // look for assets/js/misc.js
         styles: [],
         innerContent: '../pages/purchaseOrders/index',
-        title: "Purchase Orders",
-        description: "Description here...",
+        title: "Create a Purchase Orders",
+        description: "Description here.. as.",
         _datatables: filterTransactions,
         ...res.locals,
       });
@@ -3612,32 +3665,57 @@ app.get('/purchaseOrder', loadAllActivities, async (req, res) => {
   }
 });
 
-app.get('/purchaseOrder/:id/create', async (req, res) => {
+app.get('/purchaseOrder/:id/create', loadAllSuppliers, async (req, res) => {
   try {
 
-     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+    const product_id = req.params.id
+    const getSupplierWinner = await connection.getTransactionSuppliers({ transaction_id: product_id, is_winner: 1 })
+
+    const { SUPPLIERS } = res.locals
+    const filterSupplier = SUPPLIERS.filter(txn => txn.id === getSupplierWinner[0].supplier_id)
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: [], // look for assets/js/misc.js
+        scripts: ['/assets/js/pages/purchaseOrders/addProduct.js'], // look for assets/js/misc.js
         styles: [],
         innerContent: '../pages/purchaseOrders/create',
         title: "Purchase Orders",
+        results: [getSupplierWinner, filterSupplier],
         description: "Description here...",
         ...res.locals,
       });
     // Rendered HTML
     res.status(200).send(renderedHtml)
 
-  } catch (err) {
-
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 
-app.post('/purchaseOrder/:id/create', async (req, res) => {
+app.post('/purchaseOrder/create', async (req, res) => { 
   try {
-    const product_id = req.params.id
+    const { purchase_request_id, supplier_code, order_number, status, product, quantity, unit_price } = req.body
+
+    const perQuery = product.map((item, index) => ({
+      order_number,
+      purchase_request_id,
+      product: item,
+      supplier_code,
+      quantity: quantity[index],
+      unit_price: unit_price[index],
+      order_date: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+    }))
+
+    const results = await connection.postPurchaseOrders(perQuery);
+
+    if(results) return;
+
+    return false;
+
     res.redirect('/purchaseOrder')
   } catch (err) {
-    console.error('Error fetching page template:', error);
+    console.error('Error fetching page template:', err);
     res.status(500).send('Internal Server Error');
   }
 })

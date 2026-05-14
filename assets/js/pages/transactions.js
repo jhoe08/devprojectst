@@ -352,9 +352,10 @@ export default function configTransactions() {
       {
         render: (data, type, row) => {
           const values = JSON.parse(row[7] || '[]');
-          const html = values.map(val =>
-            `<span class="badge badge-count">${val}</span>`
-          ).join(' ');
+          const html = values
+            .filter(val => val && val.trim() !== "") // remove empty or whitespace-only
+            .map(val => `<span class="badge badge-count">${val}</span>`)
+            .join(' ');
 
           // const [classification, procurementType] = JSON.parse(row[9]) || [];
           const classification = row[9];

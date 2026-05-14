@@ -119,6 +119,8 @@ const steps = {
         { id: 28, steps_title: "RED/RTD/Admin. Chief", stage: "check_signing" },
         { id: 29, steps_title: "Cashiering Unit", stage: "release_payment" }
     ]
+    // Awarding BAC 2 - Lydon
+    // Omnibus, Sworn Statement - kung PO above 200,000
 }
 
 module.exports = steps;

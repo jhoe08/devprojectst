@@ -109,7 +109,7 @@
         <div class="flex-1 ms-3 pt-1">
           <div class="username"><%- item.firstname %> • <%- item.experience ? `${section} ${division}` : '' %></div>
           <div class="text">
-            <span class="badge badge-<%- (item.status === 'dark') ? 'black' : ((typeRemark % 2 === 0) ? 'info' : 'success') %> mr-3">
+            <span class="hidden badge badge-<%- (item.status === 'dark') ? 'black' : ((typeRemark % 2 === 0) ? 'info' : 'success') %> mr-3">
               <%- (typeRemark % 2 === 0) ? 'In' : 'Out' %>
             </span>
             <%- item.comment %>

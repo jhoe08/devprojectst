@@ -2,11 +2,11 @@ const main = {
   assignTransaction: () => {
     // console.log('Assign Transaction Module Loaded');
     const assignBtn = document.getElementById('assignedto');
-   
+
     assignBtn.addEventListener('click', () => {
       const transactions = document.getElementById('assignedTransactions').value;
 
-      if(transactions === '') { return; } // No transactions selected
+      if (transactions === '') { return; } // No transactions selected
 
       const payload = { transactions };
 
@@ -17,24 +17,38 @@ const main = {
         },
         body: JSON.stringify(payload),
       })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.status !== 200) {
-          notifyCustom('bell', 'Error', 'Failed to assign transactions', 'error');
-          return;
-        } 
-        console.log('Success:', data);
-        return notifyCustom('bell', 'Success', 'Transactions assigned successfully', 'success');
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-        return notifyCustom('bell', 'Error', 'Unexpected error occurred', 'error');
-      });
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status !== 200) {
+            notifyCustom('bell', 'Error', 'Failed to assign transactions', 'error');
+            return;
+          }
+          console.log('Success:', data);
+          return notifyCustom('bell', 'Success', 'Transactions assigned successfully', 'success');
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+          return notifyCustom('bell', 'Error', 'Unexpected error occurred', 'error');
+        });
       // alert('Transactions assigned to you successfully!');
-    }); 
+    });
   },
+  isOnTransactionViewPage(id = 4) {
+    return window.location.pathname === `/transactions/${id}/view`;
+  }
 };
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
   main.assignTransaction();
 });
+
+
+const transactionId = document.querySelector('[data-transaction-id]')
+if (transactionId) {
+  if(main.isOnTransactionViewPage(transactionId.dataset.transactionId)) {
+    const qrcode = document.querySelector('[data-qrcode]')
+    document.getElementById('assignedTransactions').value = JSON.stringify([qrcode.dataset.qrcode])
+  }
+}

@@ -95,12 +95,13 @@
     ? `${firstname} ${safeMiddle[0]}. ${lastname}`
     : `${firstname} ${lastname}`;
 
+  console.log( getBACInfo('BAC_1') )
 %>
   <input 
     id="created_by" 
     type="hidden"
     value="<%= JSON.stringify({employeeid, name: fullname, position }) %>" 
-    data-responsible="<%= JSON.stringify(getUserResponsible(division, section)) %>"
+    data-responsible="<%= JSON.stringify(getUserResponsible(division, section) || getBACInfo('BAC_1')) %>"
     data-user-role="<%= roles %>"
     data-has-allowed-roles="<%= hasAllowedRole(roles) %>"
     />

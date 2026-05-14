@@ -426,6 +426,13 @@ function submitGuestToken() {
   document.getElementById('guestForm').submit();
 }
 
+function hideStepsEmpty() {
+  const elem = document.querySelectorAll('[data-step]')
+  elem?.forEach(el=>{
+    return el.dataset.step ? '' : el.classList.add('hidden')
+  })
+}
+hideStepsEmpty()
 // DO NOT FUCKING DELETE THIS CODE
 // Initial call to set the time
 // refreshDiv();
