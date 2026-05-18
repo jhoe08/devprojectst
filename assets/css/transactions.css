@@ -49,6 +49,11 @@
     opacity: 0.7;
 }
 
+.visibility-hidden {
+  visibility: hidden;
+
+}
+
 /* Datatables in Mobile */
 /* @media (max-width: 768px) {
  .dataTable {

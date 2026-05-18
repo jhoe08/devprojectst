@@ -250,6 +250,13 @@
                                 <span  class="text-<%=badgeClass%> ps-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Fund Source <%= fund_source %>">
                                   <%- textFundSource -%>
                                 </span>
+                                 <%
+                                  if(current_step_number >= 14 && awardedQuotedPrice) {
+                                    const savings = budget - awardedQuotedPrice
+                                    const savingsPercent  = (savings / budget) * 100
+                                  %>
+                                <span class="ms-3 text-success" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%= peso(savings.toFixed(2)) %>">(<%= savingsPercent.toFixed(2) %>% saved)</span>
+                                <% } %>
                               </h6>
                               <span class="text-muted">Approved Budget of the Contract</span>
                             </div>
@@ -257,21 +264,7 @@
                               <small class="text-muted"></small>
                             </div>
                           </div>
-                          <div class="col-md-6 d-flex <%= current_step_number >= 14 ? '' : 'hidden' %>">
-                            <div class="avatar">
-                              <span class="avatar-title rounded-circle border border-white bg-info"><i class="fas fa-piggy-bank"></i></span>
-                            </div>
-                            <div class="flex-1 ms-3 pt-1 "">
-                              <%
-
-                                const savings = budget - awardedQuotedPrice
-                                const savingsPercent  = (savings / budget) * 100
-                              %>
-                              <h6 class="text-uppercase mb-1"><%= peso(awardedQuotedPrice) %><span class="ms-3 text-success" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%= peso(savings.toFixed(2)) %>">(<%= savingsPercent.toFixed(2) %>% saved)</span></h6>
-                              <span class="text-muted">Price Quoted</span>
-                            </div>
-                            <div class="float-end pt-1"></div>
-                          </div>
+                          
                         </div>
                         <div class="separator-dashed"></div>
                         <div class="d-flex">
@@ -414,7 +407,7 @@
                             </div>
                           <% } %>
                         </div>
-                        <% } if (stageAward || stagePO) { %>
+                        <% } if ((stageAward || stagePO) || haveSuppliers) { %>
                         <div id="supplierWinner " class="selectgroup w-100">
                           <% 
                             const suppliersArray = SUPPLIERS || [];  
@@ -518,7 +511,7 @@
                     <div class="card-body">
                       <ol class="activity-feed mb-0" data-current-steps="<%= steps[0]?.steps_number %>">
                         <% var {approved_budget : budget} = transactions  %>
-                        <%- include('../views/partials/activity-feed', { budget, approval_steps }) -%>
+                        <%- include('../views/partials/activity-feed', { budget, approval_steps: getApprovalSteps(transactions) }) -%>
                       </ol>
                     </div>
                   </div>

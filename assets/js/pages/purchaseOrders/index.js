@@ -19,7 +19,7 @@ document.querySelectorAll('.form-button-action [data-product-id]')?.forEach(asyn
         if (products && products.length > 0) {
             console.log({ products });
             el.closest('[data-bs-toggle="tooltip"]').setAttribute('data-bs-original-title', 'View Purchase Order')
-            el.setAttribute('href', `/purchaseOrder/${product_id}/view`);
+            el.setAttribute('href', `/purchaseOrders/${product_id}/view`);
             el.classList.add('btn-success')
             el.classList.remove('btn-warning')
             el.querySelector('.fas').classList.add('fa-shopping-cart')

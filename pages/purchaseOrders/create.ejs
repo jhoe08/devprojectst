@@ -65,7 +65,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form id="purchaseOrderForm" action="/purchaseOrder/create" method="POST" class="row g-3">
+                    <form id="purchaseOrderForm" action="/purchaseOrders/create" method="POST" class="row g-3">
                         <input type="hidden" name="purchase_request_id" value="<%= transaction_id %>">
                         <input type="hidden" name="supplier_code" value="<%= supplier_code %>">
                         <!-- Order Number -->

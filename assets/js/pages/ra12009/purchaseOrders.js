@@ -96,7 +96,7 @@ $('.transactionsTables')?.DataTable({
                             </a>
                         </span>
                         <span data-bs-toggle="tooltip" aria-label="Create Purchase Order" data-bs-original-title="Create Purchase Order">
-                            <a href="/purchaseOrder/${row[15]}/create" data-product-id="${row[15]}" type="button" class="btn btn-link btn-warning">
+                            <a href="/purchaseOrders/${row[15]}/create" data-product-id="${row[15]}" type="button" class="btn btn-link btn-warning">
                                 <i class="fas fa-cart-plus fs-4"></i>
                             </a>
                         </span>

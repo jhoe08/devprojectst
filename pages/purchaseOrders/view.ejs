@@ -1,0 +1,132 @@
+<%
+    const [purchaseOrder, isWinner, supplierDetails, purchaseRequest]=results; 
+    if(!purchaseOrder) return;
+    const { order_number, status, order_date, purchase_request_id, product, quantity, unit_price, total_amount }=purchaseOrder;
+    const { transaction_id, quoted_price }=isWinner[0];
+    const { supplier_code, supplier_name, contact_person, address }=supplierDetails[0];
+    let { bid_notice_title, approved_budget, requisitioner, fund_source }=purchaseRequest[0];
+  
+    fund_source = JSON.parse(fund_source);
+    let textFundSource, badgeClass;
+                                  
+    if (Array.isArray(fund_source)) {
+      fund_source.forEach(item => {
+        const [fund, meta] = item.source.split('::')
+        const [paps, cls, obj, desc, source] = meta.split(' | ').filter(Boolean);
+        badgeClass = source === undefined ? 'info' : 'warning';
+        fund_source = `${paps} | ${cls} | ${obj} | ${desc}`
+        textFundSource = `${cls} | ${obj} | ${desc}`;
+      });
+    }
+%>
+  <div class="row row-card-no-pd mt--2">
+    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h5><b>Purchase Order #</b></h5>
+              <p class="text-muted"><%= moment(order_date).format('MMM DD, YYYY') %></p>
+            </div>
+            <h3 class="text-info fw-bold"><%= purchaseOrder[0].order_number %></h3>
+          </div>
+          <div class="separator-dashed mt-0"></div>
+          <div class="d-flex justify-content-between mt-2">
+            <p class="text-muted mb-0">Status</p>
+            <p class="text-muted mb-0"><%= status %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-6 col-xl-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h5><b><%= bid_notice_title %></b></h5>
+              <p class="text-muted"><%= requisitioner %></p>
+            </div>
+            <h3 class="text-success fw-bold"><%= UTILS.peso(approved_budget) %></h3>
+          </div>
+          <div class="progress progress-sm">
+            <div class="progress-bar bg-success w-25" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <div class="d-flex justify-content-between mt-2">
+            <p class="text-muted mb-0"><%= textFundSource %></p>
+            <p class="text-muted mb-0"><i class="text-<%= badgeClass %> fas fa-check"></i></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h5><b><%= supplier_name %></b></h5>
+              <p class="text-muted"><%= supplier_code %></p>
+            </div>
+          </div>
+          <div class="separator-dashed mt-0"></div>
+          <div class="d-flex justify-content-between mt-2">
+            <p class="text-muted mb-0"><%= contact_person %></p>
+            <p class="text-muted mb-0">
+              <a href="https://www.google.com/maps/search/<%= encodeURIComponent(address) %>" target="_blank" class="text-decoration-none">
+                <i class="fas fa-map-marker-alt"></i> View Map
+              </a>
+              <a href="tel:<%= contact_person %>" class="text-decoration-none ms-2">
+                <i class="fas fa-phone"></i> Call
+              </a>  
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+   <!-- Order Line -->
+  <div class="card card-round">
+    <div class="card-header">
+      <div class="card-head-row card-tools-still-right">
+        <div class="card-title">Order Line</div>
+        <div class="card-tools">
+          <div class="dropdown">
+            <button class="btn btn-icon btn-clean me-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-h"></i>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <!-- Projects table -->
+         <%- include('../../components/datatables/tables', {
+            tableId: 'orderLineTable',
+            thead: ['Product', 'Quantity', 'Unit Price', 'Total Amount', 'Status'],
+            tbody: purchaseOrder.map(po => ({
+              product: po.product || 'N/A',
+              quantity: po.quantity || 0,
+              unit_price: UTILS.peso(po.unit_price) || 0,
+              total_amount: UTILS.peso(po.total_amount) || 0,
+              status: po.status || 'N/A'
+            })), 
+            hideColumns:[]
+         }) -%>
+      </div>
+    </div>
+    <div class="card-footer">
+      
+      <!-- Actions -->
+      <div class="d-flex justify-content-end">
+        <a href="/purchaseOrders/<%= purchaseOrder[0].purchase_request_id %>/edit" class="btn btn-warning me-2">Edit</a>
+        <a href="/purchaseOrders" class="btn btn-secondary">Back to List</a>
+      </div>
+
+    </div>
+  </div>

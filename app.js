@@ -3621,7 +3621,7 @@ app.get('/charts/distributions', (req, res) => {
   });
 });
 
-app.get('/purchaseOrder', loadAllActivities, async (req, res) => {
+app.get('/purchaseOrders', loadAllActivities, async (req, res) => {
   try {
 
     const [transactions, activities] = await Promise.all([
@@ -3665,7 +3665,7 @@ app.get('/purchaseOrder', loadAllActivities, async (req, res) => {
   }
 });
 
-app.get('/purchaseOrder/:id/create', loadAllSuppliers, async (req, res) => {
+app.get('/purchaseOrders/:id/create', loadAllSuppliers, async (req, res) => {
   try {
 
     const product_id = req.params.id
@@ -3693,7 +3693,41 @@ app.get('/purchaseOrder/:id/create', loadAllSuppliers, async (req, res) => {
   }
 })
 
-app.post('/purchaseOrder/create', async (req, res) => { 
+app.get('/purchaseOrders/:id/view', loadAllSuppliers, async (req, res) => {
+  try {
+
+    const product_id = req.params.id
+    const getSupplierWinner = await connection.getTransactionSuppliers({ transaction_id: product_id, is_winner: 1 })
+
+    const { SUPPLIERS } = res.locals
+    const filterSupplier = SUPPLIERS.filter(txn => txn.id === getSupplierWinner[0].supplier_id)
+
+    const purchaseRequest = await connection.getTransactionById(product_id)
+    const purchaseOrder = await connection.getPurchaseOrders({ purchase_request_id: product_id })
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/purchaseOrders/addProduct.js'], // look for assets/js/misc.js
+        styles: [],
+        innerContent: '../pages/purchaseOrders/view',
+        title: `Purchase Order - ${product_id}`,
+        results: [purchaseOrder, getSupplierWinner, filterSupplier, purchaseRequest],
+        description: "Description here...",
+        options: {
+          hideTitle: true,
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.post('/purchaseOrders/create', async (req, res) => { 
   try {
     const { purchase_request_id, supplier_code, order_number, status, product, quantity, unit_price } = req.body
 
