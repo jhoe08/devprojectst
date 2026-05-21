@@ -1,10 +1,19 @@
 <%
-    const [purchaseOrder, isWinner, supplierDetails, purchaseRequest]=results; 
-    if(!purchaseOrder) return;
-    const { order_number, status, order_date, purchase_request_id, product, quantity, unit_price, total_amount }=purchaseOrder;
+    const [purchaseOrders, isWinner, supplierDetails, purchaseRequest, purchaseRequestActivities, purchaseOrderProducts]=results; 
+    if(!purchaseOrders || purchaseOrders.length === 0) return;
+    const { po_number, status, created_at, pr_id, total_amount }=purchaseOrders[0];
     const { transaction_id, quoted_price }=isWinner[0];
     const { supplier_code, supplier_name, contact_person, address }=supplierDetails[0];
     let { bid_notice_title, approved_budget, requisitioner, fund_source }=purchaseRequest[0];
+
+    const transactions = purchaseRequest[0];
+
+    const { getApprovalSteps, getCurrentStep, getDetails, getTitle } = STEPS
+
+    let current_step = getCurrentStep(purchaseRequestActivities, pr_id)
+    current_step_number = current_step?.steps_number
+    current_step_title = getTitle(transactions, current_step_number)
+
   
     fund_source = JSON.parse(fund_source);
     let textFundSource, badgeClass;
@@ -18,6 +27,21 @@
         textFundSource = `${cls} | ${obj} | ${desc}`;
       });
     }
+    
+    // Check statuses
+    let overallStatus;
+    if (purchaseOrders.some(po => po.status === 'Pending')) {
+      overallStatus = 'Pending';
+    } else if (purchaseOrders.some(po => po.status === 'Approve')) {
+      overallStatus = 'Approve';
+    } else if (purchaseOrders.every(po => po.status === 'Approve')) {
+      overallStatus = 'Completed';
+    } else {
+      overallStatus = 'Unknown';
+    }
+
+    console.log('/purchaseOrders/view', purchaseOrderProducts)
+
 %>
   <div class="row row-card-no-pd mt--2">
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
@@ -26,14 +50,14 @@
           <div class="d-flex justify-content-between">
             <div>
               <h5><b>Purchase Order #</b></h5>
-              <p class="text-muted"><%= moment(order_date).format('MMM DD, YYYY') %></p>
+              <p class="text-muted"><%= moment(created_at).format('MMM DD, YYYY') %></p>
             </div>
-            <h3 class="text-info fw-bold"><%= purchaseOrder[0].order_number %></h3>
+            <h3 class="text-info fw-bold"><%= po_number %></h3>
           </div>
           <div class="separator-dashed mt-0"></div>
           <div class="d-flex justify-content-between mt-2">
             <p class="text-muted mb-0">Status</p>
-            <p class="text-muted mb-0"><%= status %></p>
+            <p class="text-muted mb-0 text-capitalize"><%= status %></p>
           </div>
         </div>
       </div>
@@ -48,9 +72,7 @@
             </div>
             <h3 class="text-success fw-bold"><%= UTILS.peso(approved_budget) %></h3>
           </div>
-          <div class="progress progress-sm">
-            <div class="progress-bar bg-success w-25" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-          </div>
+          <%- include('../../views/partials/progress', {length: STEPS.getTotalSteps(transactions), progress: current_step_number, title: current_step_title }) -%>
           <div class="d-flex justify-content-between mt-2">
             <p class="text-muted mb-0"><%= textFundSource %></p>
             <p class="text-muted mb-0"><i class="text-<%= badgeClass %> fas fa-check"></i></p>
@@ -108,13 +130,17 @@
         <!-- Projects table -->
          <%- include('../../components/datatables/tables', {
             tableId: 'orderLineTable',
-            thead: ['Product', 'Quantity', 'Unit Price', 'Total Amount', 'Status'],
-            tbody: purchaseOrder.map(po => ({
-              product: po.product || 'N/A',
-              quantity: po.quantity || 0,
-              unit_price: UTILS.peso(po.unit_price) || 0,
-              total_amount: UTILS.peso(po.total_amount) || 0,
-              status: po.status || 'N/A'
+            thead: ['Product', 'Quantity', 'Unit Price', 'Total Amount', 'Actions'],
+            tbody: purchaseOrderProducts.map(product => ({
+              product: product.description || 'N/A',
+              quantity: product.quantity || 0,
+              unit_price: UTILS.peso(product.unit_price) || 0,
+              total_price: UTILS.peso(product.total_price) || 0,
+              actions: `
+                <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Change to Received">
+                  <a href="/purchaseOrders/${product.po_number}/products/${product.id}" class="btn btn-link btn-warning"><i class="fas fa-hourglass-half"></i></a>
+                </span>
+              `
             })), 
             hideColumns:[]
          }) -%>
@@ -124,7 +150,7 @@
       
       <!-- Actions -->
       <div class="d-flex justify-content-end">
-        <a href="/purchaseOrders/<%= purchaseOrder[0].purchase_request_id %>/edit" class="btn btn-warning me-2">Edit</a>
+        <a href="/purchaseOrders/<%= pr_id %>/edit" class="btn btn-warning me-2">Edit</a>
         <a href="/purchaseOrders" class="btn btn-secondary">Back to List</a>
       </div>
 

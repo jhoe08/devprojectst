@@ -584,7 +584,7 @@ export const smallValueMessages = {
     }
 };
 
-export const publicBiddingMessages = {
+export const publicBiddingMessages2 = {
     1: {
         initial: {
             title: "Submit Bid Proposal",
@@ -1170,6 +1170,183 @@ export const publicBiddingMessages = {
     }
 };
 
+export const publicBiddingMessages = {
+    1: {
+        initial: { title: "Prepare Purchase Request", text: "Click 'Confirm' to prepare the Purchase Request." },
+        confirmed: { title: "Request Prepared", text: "The Purchase Request has been successfully prepared." },
+        denied: { title: "Preparation Denied", text: "The Purchase Request was not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of PR preparation has been recorded." }
+    },
+    2: {
+        initial: { title: "Program Coordinator Preparation", text: "Click 'Confirm' to prepare the PR with the Program Coordinator." },
+        confirmed: { title: "PR Prepared", text: "The Program Coordinator has prepared the Purchase Request." },
+        denied: { title: "Preparation Denied", text: "The Program Coordinator did not prepare the PR." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of PR preparation has been recorded." }
+    },
+    3: {
+        initial: { title: "Division Chief Approval", text: "Click 'Confirm' to submit the PR for Division Chief approval." },
+        confirmed: { title: "PR Approved", text: "The Division Chief has approved the Purchase Request." },
+        denied: { title: "Approval Denied", text: "The Division Chief did not approve the PR." },
+        confirmedDenied: { title: "Denial Recorded", text: "The Division Chief's denial has been recorded." }
+    },
+    4: {
+        initial: { title: "PR Numbering", text: "Click 'Confirm' to assign a PR number." },
+        confirmed: { title: "PR Numbered", text: "The Purchase Request has been numbered." },
+        denied: { title: "Numbering Denied", text: "The PR was not numbered." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of PR numbering has been recorded." }
+    },
+    5: {
+        initial: { title: "Fund Allocation", text: "Click 'Confirm' to allocate funds for the PR." },
+        confirmed: { title: "Funds Allocated", text: "Funds have been successfully allocated." },
+        denied: { title: "Allocation Denied", text: "Funds were not allocated." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of fund allocation has been recorded." }
+    },
+    6: {
+        initial: { title: "Executive Approval", text: "Click 'Confirm' to submit the PR for executive approval." },
+        confirmed: { title: "PR Approved", text: "The PR has been approved by RED/RTD/Division Chief." },
+        denied: { title: "Approval Denied", text: "The PR was not approved." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of PR approval has been recorded." }
+    },
+    7: {
+        initial: { title: "Start Bidding Process", text: "Click 'Confirm' to initiate the bidding process." },
+        confirmed: { title: "Bidding Started", text: "The bidding process has been initiated." },
+        denied: { title: "Bidding Denied", text: "The bidding process was not started." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of bidding initiation has been recorded." }
+    },
+    8: {
+        initial: { title: "Evaluation", text: "Click 'Confirm' to begin evaluation." },
+        confirmed: { title: "Evaluation Completed", text: "The evaluation has been successfully completed." },
+        denied: { title: "Evaluation Denied", text: "The evaluation was not conducted." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of evaluation has been recorded." }
+    },
+    9: {
+        initial: { title: "BAC Resolution", text: "Click 'Confirm' to prepare the BAC resolution." },
+        confirmed: { title: "Resolution Prepared", text: "The BAC resolution has been prepared." },
+        denied: { title: "Resolution Denied", text: "The BAC resolution was not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of BAC resolution has been recorded." }
+    },
+    10: {
+        initial: { title: "PO/Contract Preparation", text: "Click 'Confirm' to prepare the PO/Contract." },
+        confirmed: { title: "PO Prepared", text: "The PO/Contract has been prepared." },
+        denied: { title: "Preparation Denied", text: "The PO/Contract was not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of PO preparation has been recorded." }
+    },
+    11: {
+        initial: { title: "ORS/BURS Signing", text: "Click 'Confirm' to sign the ORS/BURS." },
+        confirmed: { title: "ORS/BURS Signed", text: "The ORS/BURS has been signed." },
+        denied: { title: "Signing Denied", text: "The ORS/BURS was not signed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of ORS/BURS signing has been recorded." }
+    },
+    12: {
+        initial: { title: "Budget Endorsement", text: "Click 'Confirm' to endorse the budget." },
+        confirmed: { title: "Budget Endorsed", text: "The budget has been endorsed." },
+        denied: { title: "Endorsement Denied", text: "The budget was not endorsed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of budget endorsement has been recorded." }
+    },
+    13: {
+        initial: { title: "Funds Availability", text: "Click 'Confirm' to certify funds availability." },
+        confirmed: { title: "Funds Certified", text: "Funds availability has been certified." },
+        denied: { title: "Certification Denied", text: "Funds availability was not certified." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of funds certification has been recorded." }
+    },
+    14: {
+        initial: { title: "PO/Contract Approval", text: "Click 'Confirm' to approve the PO/Contract." },
+        confirmed: { title: "PO Approved", text: "The PO/Contract has been approved." },
+        denied: { title: "Approval Denied", text: "The PO/Contract was not approved." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of PO approval has been recorded." }
+    },
+    15: {
+        initial: { title: "Supplier Confirmation", text: "Click 'Confirm' to confirm supplier acceptance." },
+        confirmed: { title: "Supplier Confirmed", text: "The supplier has confirmed acceptance." },
+        denied: { title: "Confirmation Denied", text: "The supplier did not confirm." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of supplier confirmation has been recorded." }
+    },
+    16: {
+        initial: { title: "NTP Approval", text: "Click 'Confirm' to approve the Notice to Proceed." },
+        confirmed: { title: "NTP Approved", text: "The Notice to Proceed has been approved." },
+        denied: { title: "Approval Denied", text: "The NTP was not approved." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of NTP approval has been recorded." }
+    },
+    17: {
+        initial: { title: "NTP Confirmation", text: "Click 'Confirm' to confirm the Notice to Proceed." },
+        confirmed: { title: "NTP Confirmed", text: "The Notice to Proceed has been confirmed." },
+        denied: { title: "Confirmation Denied", text: "The NTP was not confirmed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of NTP confirmation has been recorded." }
+    },
+    18: {
+        initial: { title: "Posting Update", text: "Click 'Confirm' to update posting." },
+        confirmed: { title: "Posting Updated", text: "The posting has been updated." },
+        denied: { title: "Update Denied", text: "The posting was not updated." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of posting update has been recorded." }
+    },
+    19: {
+        initial: { title: "Project Implementation", text: "Click 'Confirm' to begin project implementation." },
+        confirmed: { title: "Project Implemented", text: "The project has been implemented." },
+        denied: { title: "Implementation Denied", text: "The project was not implemented." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of project implementation has been recorded." }
+    },
+    20: {
+        initial: { title: "Inspection", text: "Click 'Confirm' to conduct inspection of delivered items." },
+        confirmed: { title: "Inspection Completed", text: "The inspection has been successfully completed." },
+        denied: { title: "Inspection Denied", text: "The inspection was not conducted." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of inspection has been recorded." }
+    },
+    21: {
+        initial: { title: "Turnover Documents", text: "Click 'Confirm' to prepare turnover documents." },
+        confirmed: { title: "Documents Prepared", text: "The turnover documents have been prepared." },
+        denied: { title: "Preparation Denied", text: "The turnover documents were not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of turnover documentation has been recorded." }
+    },
+    22: {
+        initial: { title: "Voucher Preparation", text: "Click 'Confirm' to prepare the Disbursement Voucher." },
+        confirmed: { title: "Voucher Prepared", text: "The Disbursement Voucher has been prepared." },
+        denied: { title: "Preparation Denied", text: "The Disbursement Voucher was not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of voucher preparation has been recorded." }
+    },
+    23: {
+        initial: { title: "Voucher Signing", text: "Click 'Confirm' to sign the Disbursement Voucher." },
+        confirmed: { title: "Voucher Signed", text: "The Disbursement Voucher has been signed." },
+        denied: { title: "Signing Denied", text: "The Disbursement Voucher was not signed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of voucher signing has been recorded." }
+    },
+    24: {
+        initial: { title: "Voucher Approval", text: "Click 'Confirm' to approve the Disbursement Voucher." },
+        confirmed: { title: "Voucher Approved", text: "The Disbursement Voucher has been approved." },
+        denied: { title: "Approval Denied", text: "The Disbursement Voucher was not approved." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of voucher approval has been recorded." }
+    },
+    25: {
+        initial: { title: "Voucher Processing", text: "Click 'Confirm' to process the Disbursement Voucher." },
+        confirmed: { title: "Voucher Processed", text: "The Disbursement Voucher has been processed." },
+        denied: { title: "Processing Denied", text: "The Disbursement Voucher was not processed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of voucher processing has been recorded." }
+    },
+    26: {
+        initial: { title: "Check Preparation", text: "Click 'Confirm' to prepare the check for payment." },
+        confirmed: { title: "Check Prepared", text: "The check has been prepared." },
+        denied: { title: "Preparation Denied", text: "The check was not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of check preparation has been recorded." }
+    },
+    27: {
+        initial: { title: "ADA Review", text: "Click 'Confirm' to review the ADA." },
+        confirmed: { title: "ADA Reviewed", text: "The ADA has been reviewed." },
+        denied: { title: "Review Denied", text: "The ADA was not reviewed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of ADA review has been recorded." }
+    },
+    28: {
+        initial: { title: "Check Signing", text: "Click 'Confirm' to sign the check." },
+        confirmed: { title: "Check Signed", text: "The check has been signed." },
+        denied: { title: "Signing Denied", text: "The check was not signed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of check signing has been recorded." }
+    },
+    29: {
+        initial: { title: "Release Payment", text: "Click 'Confirm' to release the payment." },
+        confirmed: { title: "Payment Released", text: "The payment has been released." },
+        denied: { title: "Release Denied", text: "The payment was not released." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of payment release has been recorded." }
+    },
+};
+
 export function showConfirmationAlert(options) {
     const {
         title = "Are you sure?",
@@ -1242,31 +1419,32 @@ export function showConfirmationAlert(options) {
 }
 
 export function initApprovalRouting() {
-    
+    console.log('Approval routing initialized');
     // Get the card element that holds transaction data
     const transactionCard = document.querySelector('.card[data-current-transactions]');
 
+    if (!transactionCard) return
     // Parse the JSON data stored in the dataset
-    const transactionData = JSON.parse(transactionCard.dataset.currentTransactions);
+    const transactionData = JSON.parse(transactionCard?.dataset.currentTransactions);
 
     // Destructure the approved budget from the parsed data
     const { approved_budget: approvedBudget } = transactionData;
 
     // Decide which message set to use based on the budget threshold
-    const messageSet = parseFloat(approvedBudget) > 1_000_000 
-    ? publicBiddingMessages 
-    : smallValueMessages;
+    const messageSet = parseFloat(approvedBudget) > 200_000
+        ? publicBiddingMessages
+        : smallValueMessages;
 
     // console.log(messageSet);
 
-    
+
     $(document).on("click", ".alert_confirm", function (e) {
         e.preventDefault()
         const productId = $(this).data('product-id')
         const currentStep = $(this).data('step')
         const updatedBy = $('#created_by').val()
-        
-        
+
+
 
         if ([6, 7, 8].includes(currentStep)) {
             // const suppliers = document.getElementById(`suppliers_step`).value;
@@ -1308,6 +1486,16 @@ export function initApprovalRouting() {
         })
     })
 }
+
+function getMessages(budget, currentStep) {
+    if (parseFloat(budget) > 200_000) {
+        return publicBiddingMessages[currentStep].initial.title;
+    }
+    return smallValueMessages[currentStep].initial.title;
+}
+window.getProcurementMessages = getMessages;
+window.publicBiddingMessages = publicBiddingMessages;
+window.smallValueMessages = smallValueMessages;
 
 if (typeof window !== "undefined") {
     initApprovalRouting();

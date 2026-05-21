@@ -47,23 +47,12 @@ const utils = {
     }
     return text;
   },
-  addLeadingZeros(number) {
-    // Convert the number to a string to count its digits
+  addLeadingZeros(number, totalLength = 5) {
+    // Convert to string
     const numStr = number.toString();
-    const numDigits = numStr.length;
 
-    // Determine how many leading zeros to add
-    if (numDigits === 1) {
-      return "0000" + number; // Add 4 leading zeros for single-digit
-    } else if (numDigits === 2) {
-      return "000" + number;  // Add 3 leading zeros for two digits
-    } else if (numDigits === 3) {
-      return "00" + number;   // Add 2 leading zeros for three digits
-    } else if (numDigits === 4) {
-      return "0" + number;    // Add 1 leading zero for four digits
-    } else {
-      return number.toString(); // No leading zeros for five or more digits
-    }
+    // Pad with leading zeros until it reaches the desired length
+    return numStr.padStart(totalLength, "0");
   },
   validateEmail(email) {
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;

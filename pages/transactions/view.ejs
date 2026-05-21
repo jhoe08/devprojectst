@@ -79,7 +79,7 @@
               <div class="col-md-6" data-current-steps="<%= steps %>">
                   <h3 class="fw-bold mb-3"><%- transactions.bid_notice_title -%></h3>
                   <h6 class="text-muted hidden">System Generated Code: <small id="trackingCode"><%= trackerid %></small></h6>
-                  <h6 class="text-muted">Prepared by: <a href="/employees/<%= preparedbyid %>/profile"><%= preparedbyname %></a></h6>
+                  <h6 class="text-muted">Prepared by: <a href="/employees/<%= preparedbyid %>/profile"><%= preparedbyname %></a> | <%= STEPS.getCurrentStageGroup(transactions, current_step_number).group %></h6>
                   <%- include('../../views/partials/progress', {length: STEPS.getTotalSteps(transactions), progress: current_step_number, title: current_step_title }) -%>
               </div>
               <div class="ms-md-auto py-2 py-md-0" data-current-step="<%= JSON.stringify(current_step) %>">
@@ -497,7 +497,7 @@
                       <% } %>
                     </div>
                   </div>
-                  <div class="card">
+                  <div class="card recent-activity-card" data-current-activity="<%= steps[0]?.steps_number %>">
                     <div class="card-header">
                       <div class="card-head-row card-tools-still-right">
                         <div class="card-title">Recent Activity</div>
@@ -537,4 +537,4 @@
 </script> -->
 <% } %>
 <!-- Footer Template -->
-<%- include('../../views/footer', { scripts: { 'suppliers': '/assets/js/pages/suppliers.js', 'approvalRouting' : '/assets/js/approvalRouting.js', 'assignto': '/assets/js/assignedtome.js' } }) -%>
+<%- include('../../views/footer', { scripts: { 'suppliers': '/assets/js/pages/suppliers.js', 'approvalRouting' : '/assets/js/approvalRouting.js', 'pr' : '/assets/js/pages/purchaseRequests/index.js', 'assignto': '/assets/js/assignedtome.js' } }) -%>

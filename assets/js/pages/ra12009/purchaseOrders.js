@@ -87,23 +87,23 @@ $('.transactionsTables')?.DataTable({
             title: 'ABC'
         },
         {
-            render: (data, type, row) => {
-                return `
-                    <div class="form-button-action" data-transid="2">
-                        <span data-bs-toggle="tooltip" aria-label="View Transactions" data-bs-original-title="View Transactions">
-                            <a href="/transactions/${row[15]}/view" data-transid="${row[15]}" type="button" class="btn btn-link btn-primary">
-                                <i class="fa fa-eye"></i>
-                            </a>
-                        </span>
-                        <span data-bs-toggle="tooltip" aria-label="Create Purchase Order" data-bs-original-title="Create Purchase Order">
-                            <a href="/purchaseOrders/${row[15]}/create" data-product-id="${row[15]}" type="button" class="btn btn-link btn-warning">
-                                <i class="fas fa-cart-plus fs-4"></i>
-                            </a>
-                        </span>
-                    </div>
-                `
-            },
-            targets: 3,
+            // render: (data, type, row) => {
+            //     return `
+            //         <div class="form-button-action" data-transid="2">
+            //             <span data-bs-toggle="tooltip" aria-label="View Transactions" data-bs-original-title="View Transactions">
+            //                 <a href="/transactions/${row[15]}/view" data-transid="${row[15]}" type="button" class="btn btn-link btn-primary">
+            //                     <i class="fa fa-eye"></i>
+            //                 </a>
+            //             </span>
+            //             <span data-bs-toggle="tooltip" aria-label="Create Purchase Order" data-bs-original-title="Create Purchase Order">
+            //                 <a href="/purchaseOrders/${row[15]}/create" data-product-id="${row[15]}" type="button" class="btn btn-link btn-warning">
+            //                     <i class="fas fa-cart-plus fs-4"></i>
+            //                 </a>
+            //             </span>
+            //         </div>
+            //     `
+            // },
+            targets: -1,
             title: 'Actions'
         },
         // {
@@ -112,7 +112,7 @@ $('.transactionsTables')?.DataTable({
         //     },
         //     targets: 13,
         // },
-        { visible: true, targets: [1, 2, 3] }, //[4, 6, 10, 12, -1]
+        { visible: true, targets: [1, 2, -1] }, //[4, 6, 10, 12, -1]
         { visible: false, targets: '_all' },
     ]
 })

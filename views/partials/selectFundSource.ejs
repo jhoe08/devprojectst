@@ -1,0 +1,37 @@
+<div class="card">
+    <div class="card-header">
+        <div class="card-head-row card-tools-still-right">
+            <h4 class="card-title">Charge To</h4>
+            <div class="card-tools transcations-code text-uppercase form-group-add">
+                <button id="addFundSourceButton" class="btn btn-icon btn-link btn-primary btn-xs">
+                    <span class="fa fa-plus"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div id="fundSourceLists"></div>
+    </div>
+</div>
+
+<template id="addFundSourceTemplate">
+    <div class="fund-entry card mb-2 p-2 d-flex">
+        <button type="button" class="remove-fund-source-btn btn btn-danger btn-border"
+            style="height: stretch;margin-bottom: 15px;"><i class="fas fa-times"></i></button>
+        <div class="form-group p-0 form-control input-full">
+            <div class="selectgroup w-100">
+                <label for="source_current" class="selectgroup-item">
+                    <input type="radio" name="funds_source_0" value="current" id="source_current"
+                        class="selectgroup-input current" data-bs-toggle="modal" data-bs-target="#fundsChargeToModal">
+                    <span class="selectgroup-button">CURRENT</span>
+                </label>
+                <label for="source_continuing" class="selectgroup-item">
+                    <input type="radio" name="funds_source_0" value="continuing" id="source_continuing"
+                        class="selectgroup-input continuing" data-bs-toggle="modal"
+                        data-bs-target="#fundsChargeToModal">
+                    <span class="selectgroup-button">CONTINUING</span>
+                </label>
+            </div>
+        </div>
+    </div>
+</template>

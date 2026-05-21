@@ -1340,19 +1340,14 @@ const databaseUtils = {
   postPurchaseOrders: async (data) => {
     try {
 
-      const _keys = Object.keys(data[0]); // column names
+      const _keys = Object.keys(data); // column names
       const placeholders = '(' + _keys.map(() => '?').join(', ') + ')';
-
-      // Build VALUES for all rows
-      const valuesSql = data.map(() => placeholders).join(', ');
-
-      // Flatten values into one array
-      const values = data.flatMap(obj => Object.values(obj));
+      const values = Object.values(data);
 
       const query = `
         INSERT INTO ${prefix}.purchase_orders
           (${_keys.join(', ')})
-        VALUES ${valuesSql}
+        VALUES ${placeholders}
       `;
 
       return new Promise((resolve, reject) => {
@@ -1364,6 +1359,51 @@ const databaseUtils = {
 
     } catch (error) {
       console.error("Unexpected error: postPurchaseOrders()", error);
+      throw error; // propagate error to caller
+    }
+  },
+
+  postPurchaseOrderProducts: async (data) => {
+    try {
+      
+      const _keys = Object.keys(data[0]); // column names
+      const placeholders = '(' + _keys.map(() => '?').join(', ') + ')';
+
+      // Build VALUES for all rows
+      const valuesSql = data.map(() => placeholders).join(', ');
+
+      // Flatten values into one array
+      const values = data.flatMap(obj => Object.values(obj));
+
+      const query = `
+        INSERT INTO ${prefix}.po_products
+          (${_keys.join(', ')})
+        VALUES ${valuesSql}
+      `;
+
+      console.log('postPurchaseOrderProducts', { query, values });
+
+      return new Promise((resolve, reject) => {
+        connection.query(query, values, (error, results) => {
+          if (error) reject(error);
+          else resolve(results);
+        });
+      });
+
+    } catch (error) {
+      console.error("Unexpected error: postPOProducts()", error);
+      throw error; // propagate error to caller
+    }
+  },
+
+  getPurchaseOrderProducts: async (data) => {
+    try {
+      if(data) {
+        return await databaseUtils.retrieveData('po_products', '*', data)
+      }
+      return await databaseUtils.retrieveData('po_products', data)
+    } catch (error) {
+      console.error("Unexpected error: getPOProducts()", error);
       throw error; // propagate error to caller
     }
   },

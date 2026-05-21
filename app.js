@@ -1067,6 +1067,43 @@ app.use(async (req, res, next) => {
         const step = STEPS?.getApprovalSteps(transaction).find(step => step.id === step_id);
         return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
       },
+      getCurrentStageGroup(transaction, currentId) {
+        const { STEPS } = res.locals;
+        const workflow = STEPS?.getApprovalSteps(transaction);
+        // const workflow = steps;
+        if (!workflow) {
+          console.error(`Unknown transaction type: ${workflow}`);
+          return null;
+        }
+
+        // Find the current step
+        const currentStep = workflow.find(step => step.id === currentId);
+        if (!currentStep) {
+          console.error(`Step id ${currentId} not found in ${workflow}`);
+          return null;
+        }
+
+        // Group stages by broad categories
+        const groups = {
+          pr: ['prepared_by', 'pr_preparation', 'division_head_approval', 'pr_numbering', 'fund_allocation', 'budget_earmarking', 'approval_pr'],
+          canvassing: ['quotation_form_preparation', 'canvassing', 'supplier_engagement', 'supplier_serving', 'bid_submission', 'bac_evaluation', 'review_and_posting', 'distribution_of_canvass', 'abstract_and_resolution'],
+          awarding: ['award_preparation', 'award_segregation', 'noa_and_resolution_approval', 'noa_confirmation_and_po_joc', 'posting_of_award'],
+          po: ['po_preparation', 'po_contract_preparation', 'ors_burs_signing', 'budget_endorsement', 'funds_availability', 'obligation_request', 'po_joc_processing', 'po_joc_approval', 'executive_signoff', 'supplier_confirmation', 'ntp_approval', 'ntp_confirmation', 'posting_update', 'serving_po_joc'],
+          delivery: ['delivery_preparation', 'delivery_approval', 'delivery_confirmation', 'project_implementation', 'inspection_scheduling', 'inspection', 'acceptance', 'documentation', 'final_acceptance', 'turnover_docs'],
+          dv: ['voucher_preparation', 'voucher_signing', 'voucher_approval', 'voucher_processing'],
+          payments: ['payment_processing', 'check_preparation', 'ada_review', 'check_signing', 'fund_release', 'release_payment', 'liquidation', 'final_signoff']
+        };
+
+        // Find which group the current stage belongs to
+        const groupName = Object.keys(groups).find(group =>
+          groups[group].includes(currentStep.stage)
+        );
+
+        return {
+          currentStep,
+          group: groupName || 'unknown'
+        };
+      }
     },
     UTILS: {
       hashPasswordUtils,
@@ -1087,6 +1124,10 @@ app.use(async (req, res, next) => {
       generatePRCode: (row) => {
         const requestID = addLeadingZeros(row.product_id)
         return `PR${moment(row.pr_date).format('YYYYMMDD')}-${requestID}`
+      },
+      generatePOCode: (pr_id) => {
+        const requestID = addLeadingZeros(pr_id, 4)
+        return `PO${moment().format('MM-DD-YY')}${requestID}`;
       },
       progressBar: (row) => {
         const { STEPS, activities } = res.locals;
@@ -2199,6 +2240,7 @@ app.get('/transactions/new', restrict, loadAllFunds, async (req, res, next) => {
           // '/assets/js/pages/ra12009/transactions.js',
           '/assets/js/pages/transactions.js',
           // '/assets/js/components/transactions.js'
+          '/assets/js/pages/purchaseRequests/addFundSource.js'
         ],
         innerContent: '../pages/ra12009/transactions/new',
         title: "Create a new Transactions",
@@ -3669,10 +3711,14 @@ app.get('/purchaseOrders/:id/create', loadAllSuppliers, async (req, res) => {
   try {
 
     const product_id = req.params.id
+    const purchaseOrder = await connection.getPurchaseOrders({ pr_id: product_id })
     const getSupplierWinner = await connection.getTransactionSuppliers({ transaction_id: product_id, is_winner: 1 })
+
 
     const { SUPPLIERS } = res.locals
     const filterSupplier = SUPPLIERS.filter(txn => txn.id === getSupplierWinner[0].supplier_id)
+
+    const purchaseRequest = await connection.getTransactionById(product_id)
 
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
@@ -3680,7 +3726,7 @@ app.get('/purchaseOrders/:id/create', loadAllSuppliers, async (req, res) => {
         styles: [],
         innerContent: '../pages/purchaseOrders/create',
         title: "Purchase Orders",
-        results: [getSupplierWinner, filterSupplier],
+        results: [purchaseRequest, purchaseOrder, getSupplierWinner, filterSupplier],
         description: "Description here...",
         ...res.locals,
       });
@@ -3702,8 +3748,28 @@ app.get('/purchaseOrders/:id/view', loadAllSuppliers, async (req, res) => {
     const { SUPPLIERS } = res.locals
     const filterSupplier = SUPPLIERS.filter(txn => txn.id === getSupplierWinner[0].supplier_id)
 
-    const purchaseRequest = await connection.getTransactionById(product_id)
-    const purchaseOrder = await connection.getPurchaseOrders({ purchase_request_id: product_id })
+
+    const [purchaseRequest, purchaseOrders, purchaseRequestActivities] = await Promise.all([
+      connection.getTransactionById(product_id),
+      connection.getPurchaseOrders({ pr_id: product_id }),
+      connection.getTransactionActivityId(JSON.stringify({ product_id: product_id })),
+
+    ])
+
+    let purchaseOrderProducts = [];
+    if (purchaseOrders.length > 0) {
+      console.log('Fetching products for PO:', purchaseOrders[0].po_number);
+      purchaseOrderProducts = await connection.getPurchaseOrderProducts({
+        po_number: purchaseOrders[0].po_number
+      });
+      console.log('Products result:', purchaseOrderProducts);
+    } else {
+      console.warn('No purchase orders found for product_id:', product_id);
+    }
+
+    const sortPurchaseRequestActivities = purchaseRequestActivities.sort((a, b) => b.id - a.id)
+
+    console.log({ sortPurchaseRequestActivities })
 
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
@@ -3711,7 +3777,7 @@ app.get('/purchaseOrders/:id/view', loadAllSuppliers, async (req, res) => {
         styles: [],
         innerContent: '../pages/purchaseOrders/view',
         title: `Purchase Order - ${product_id}`,
-        results: [purchaseOrder, getSupplierWinner, filterSupplier, purchaseRequest],
+        results: [purchaseOrders, getSupplierWinner, filterSupplier, purchaseRequest, sortPurchaseRequestActivities, purchaseOrderProducts],
         description: "Description here...",
         options: {
           hideTitle: true,
@@ -3727,30 +3793,72 @@ app.get('/purchaseOrders/:id/view', loadAllSuppliers, async (req, res) => {
   }
 })
 
-app.post('/purchaseOrders/create', async (req, res) => { 
+app.post('/purchaseOrders/create', async (req, res) => {
   try {
-    const { purchase_request_id, supplier_code, order_number, status, product, quantity, unit_price } = req.body
+    const { product, unit, quantity, unit_price, ...purchaseOrder } = req.body;
 
-    const perQuery = product.map((item, index) => ({
-      order_number,
-      purchase_request_id,
-      product: item,
-      supplier_code,
+    // ✅ Validate PO data
+    if (!purchaseOrder || Object.keys(purchaseOrder).length === 0) {
+      return res.status(400).json({ message: 'Purchase Order data is required!' });
+    }
+
+    // ✅ Check if PO already exists
+    const existingPO = await connection.getPurchaseOrders({ po_number: purchaseOrder.po_number });
+    if (existingPO && existingPO.length > 0) {
+      // return res.status(409).json({ message: 'Purchase Order already exists!' });
+    }
+
+    // ✅ Build product line items
+    const perProduct = product.map((item, index) => ({
+      po_number: purchaseOrder.po_number,
+      description: item,
+      unit: unit[index],
       quantity: quantity[index],
       unit_price: unit_price[index],
-      order_date: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-    }))
+    }));
 
-    const results = await connection.postPurchaseOrders(perQuery);
+    console.log({ purchaseOrder, perProduct });
 
-    if(results) return;
+    // ✅ Create PO header
+    if (!existingPO || existingPO.length === 0) {
+      const createPO = await connection.postPurchaseOrders(purchaseOrder);
+      if (!createPO) {
+        return res.status(500).json({ message: 'Failed to create Purchase Order!' });
+      }
+    }
 
-    return false;
+    // ✅ Create PO products
+    const createPOProducts = await connection.postPurchaseOrderProducts(perProduct);
+    if (!createPOProducts) {
+      return res.status(500).json({ message: 'Failed to create Purchase Order products!' });
+    }
 
-    res.redirect('/purchaseOrder')
-  } catch (err) {
-    console.error('Error fetching page template:', err);
-    res.status(500).send('Internal Server Error');
+    // ✅ Redirect after success
+    res.redirect('/purchaseOrders');
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+
+})
+
+app.post('/purchaseOrders/:code/products/:productId', async (req, res) => {
+  try {
+    const { code, productId } = req.params;
+
+    const updateData = {
+      set: {
+
+      },
+      where: {
+        id: productId,
+        po_number: code,
+      }
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 })
 
@@ -3779,12 +3887,14 @@ app.get('/disbursementVouchers', loadAllActivities, async (req, res) => {
 
     const filterTransactions = transactions?.filter(transaction => activitiesSVP_PublicBidding.includes(transaction.product_id))
 
+    const { STEPS } = res
+
     // console.log({ mapActivities, filterTransactions })
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
         scripts: ['/assets/js/pages/ra12009/purchaseOrders.js'], // look for assets/js/misc.js
         styles: [],
-        innerContent: '../pages/purchaseOrders/index',
+        innerContent: '../pages/disbursementVouchers/index',
         title: "Disburement Vouchers",
         description: "Description here...",
         _datatables: filterTransactions,

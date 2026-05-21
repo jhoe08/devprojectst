@@ -601,7 +601,7 @@ function updateTransaction() {
 
 
   // Retrieve only the remarks
-  const remarks = transactions.remarks
+  const remarks = transactions?.remarks
 
   console.log({ remarks })
 

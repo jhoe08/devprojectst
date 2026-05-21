@@ -13,7 +13,7 @@
     </div>
     <div class="card-body">
         <%- include('../../components/datatables/tables', { 
-          tableId: "purchaseOrders", 
+          tableId: "disbursementVouchers", 
           classes: "transactionsTables",
           thead: [...Object.keys(_datatables[0] || {}), "refno", "actions"], 
           tbody: _datatables?.map(txn => ({
@@ -30,9 +30,9 @@
                                 <i class="fa fa-eye"></i>
                             </a>
                         </span>
-                        <span data-bs-toggle="tooltip" aria-label="Create Purchase Order" data-bs-original-title="Create Purchase Order">
-                            <a href="/purchaseOrders/${txn.product_id}/create" data-product-id="${txn.product_id}" type="button" class="btn btn-link btn-warning">
-                                <i class="fas fa-cart-plus fs-4"></i>
+                        <span data-bs-toggle="tooltip" aria-label="Create Disbursement Voucher" data-bs-original-title="Create Disbursement Voucher">
+                            <a href="/disbursementVouchers/${UTILS.generatePOCode(txn.product_id)}/create" data-transid="${txn.product_id}" type="button" class="btn btn-link btn-primary">
+                                <i class="fas fa-file-signature"></i>
                             </a>
                         </span>
                     </div>

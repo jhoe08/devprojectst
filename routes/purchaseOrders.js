@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get('/purchaseOrders/:id', async (req, res) => {
     try {
-       const purchaseOrder = await connection.getPurchaseOrders({ purchase_request_id: req.params.id })
+       const purchaseOrder = await connection.getPurchaseOrders({ pr_id: req.params.id })
         console.log({purchaseOrder})
 
        return res.json(purchaseOrder);
@@ -18,6 +18,15 @@ router.get('/purchaseOrders/:id', async (req, res) => {
     }
 });
 
+router.get('/purchaseOrders/:code/products', async (req, res) => {
+    try {
+         const purchaseOrderProducts = await connection.getPurchaseOrderProducts({ po_number: req.params.code })
+         return res.json(purchaseOrderProducts);
+    } catch (error) {
+        console.error('Error fetching purchase order products:', error);
+        res.status(500).json({ error: 'Failed to fetch purchase order products' });
+    }
+});
 
 
 module.exports = router;
