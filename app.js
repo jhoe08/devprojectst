@@ -21,6 +21,7 @@ const utils = require("./admin/utils");
 const moment = require('moment');
 const bodyParser = require('body-parser');
 const ejs = require('ejs')
+const flash = require('connect-flash');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const { v4: uuidv4 } = require('uuid');
@@ -742,12 +743,14 @@ const sheetsRouter = require('./routes/sheets');
 const employeeRouter = require('./routes/employees');
 const trasactionRouter = require('./routes/transactions');
 const purchaseOrderRouter = require('./routes/purchaseOrders');
+const disbursementVoucherRouter = require('./routes/disbursementVouchers');
 
 const { styleText } = require('node:util');
 app.use('/api', sheetsRouter);
 app.use('/api', employeeRouter);
 app.use('/api', trasactionRouter);
 app.use('/api', purchaseOrderRouter);
+app.use('/api', disbursementVoucherRouter);
 
 app.use(express.json());
 
@@ -762,9 +765,6 @@ app.use('/assets', express.static(viewsAssets))
 app.use('/employees', express.static(viewsAssets))
 app.use('/uploads', express.static('uploads'));
 
-// ============================================
-// login
-// ============================================
 app.use(express.urlencoded({ extended: true }))
 app.use(sanitizeInputMiddleware);
 app.use(session({
@@ -775,6 +775,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: { secure: false }  // Set to `true` in production with HTTPS
 }));
+app.use(flash());
 
 
 
@@ -1129,6 +1130,45 @@ app.use(async (req, res, next) => {
         const requestID = addLeadingZeros(pr_id, 4)
         return `PO${moment().format('MM-DD-YY')}${requestID}`;
       },
+      getPOCode: (po_date, pr_id) => {
+        const requestID = addLeadingZeros(pr_id, 4)
+        return `PO${moment(po_date).format('MM-DD-YY')}${requestID}`;
+      },
+      generateDVCode: (po_id) => { // 26-05-0001
+        const requestID = addLeadingZeros(po_id, 4)
+        return `${moment().format('YY-MM')}-${requestID}`;
+      },
+      getFundSources: (row) => {
+        let { fund_source } = row;
+        if (!fund_source) return [];
+
+        try {
+          const parsed = JSON.parse(fund_source);
+
+          if (Array.isArray(parsed)) {
+            return parsed.map(item => {
+              const [fund, meta] = item.source.split('::');
+              const [paps, cls, obj, desc, source] = meta.split(' | ').filter(Boolean);
+
+              return {
+                fund,
+                paps,
+                cls,
+                obj,
+                desc,
+                source,
+                // You can also add combined display strings if needed:
+                displayFull: `${fund} | ${paps} | ${cls} | ${obj} | ${desc} | ${source}`,
+                displayShort: `${cls} | ${obj} | ${desc}`
+              };
+            });
+          }
+        } catch (err) {
+          console.error("Error parsing fund_source:", err);
+        }
+
+        return [];
+      },
       progressBar: (row) => {
         const { STEPS, activities } = res.locals;
         const { getApprovalSteps, getTotalSteps, getCurrentStep, getDetails, getTitle } = STEPS
@@ -1385,6 +1425,16 @@ const loadAllFunds = async (req, res, next) => {
   } catch (error) {
     console.error("Error loading funds:", error);
     res.status(500).send("Internal Server Error: Middleware Load Funds");
+  }
+}
+
+const loadAllPurchaseOrders = async (req, res, next) => {
+  try {
+    res.locals.PURCHASE_ORDERS = await connection.getPurchaseOrders();
+    next();
+  } catch (error) {
+    console.error("Error loading purchase orders:", error);
+    res.status(500).send("Internal Server Error: Middleware Load Purchase Orders");
   }
 }
 
@@ -3862,7 +3912,7 @@ app.post('/purchaseOrders/:code/products/:productId', async (req, res) => {
   }
 })
 
-app.get('/disbursementVouchers', loadAllActivities, async (req, res) => {
+app.get('/disbursementVouchers', loadAllActivities, loadAllPurchaseOrders, async (req, res) => {
   try {
 
     const [transactions, activities] = await Promise.all([
@@ -3892,11 +3942,149 @@ app.get('/disbursementVouchers', loadAllActivities, async (req, res) => {
     // console.log({ mapActivities, filterTransactions })
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js'], // look for assets/js/misc.js
+        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js', '/assets/js/pages/disbursementVouchers/index.js'], // this is dataTablesjs
         styles: [],
         innerContent: '../pages/disbursementVouchers/index',
         title: "Disburement Vouchers",
-        description: "Description here...",
+        description: "An official financial form used by government agencies to authorize and record the payment of public funds for legal obligations.",
+        _datatables: filterTransactions,
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/disbursementVouchers/:code/view', loadAllActivities, loadAllSuppliers, async (req, res) => {
+  try {
+    const { code } = req.params;
+
+    const [purchaseRequest, purchaseOrder, supplierWinner] = await Promise.all([
+      connection.getPurchaseRequests({ product_id: Number(code.slice(-4)) }),
+      connection.getPurchaseOrders({ pr_id: Number(code.slice(-4)) }),
+      connection.getTransactionSuppliers({ transaction_id: Number(code.slice(-4)), is_winner: 1 }),
+    ]);
+
+    const disbursementVouchersAcitivity = await connection.getDisbursementVouchersActivity({ dv_number: code })
+
+    console.log({ disbursementVouchersAcitivity })
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/disbursementVouchers/createVoucher.js'], // look for assets/js/misc.js
+        styles: [],
+        innerContent: '../pages/disbursementVouchers/view',
+        title: "Disburement Vouchers",
+        description: `Description here...`,
+        results: [purchaseRequest, purchaseOrder, supplierWinner, disbursementVouchersAcitivity],
+        ...res.locals,
+        options: {
+          hideTitle: true,
+        },
+        notify: {
+          success: req.flash('success'),
+          error: req.flash('error'),
+          info: req.flash('info')
+        }
+      });
+
+    req.flash('info', 'You are now viewing the details of the disbursement voucher. Please proceed with caution when updating the information on this page.');
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.post('/disbursementVouchers/:code/view', async (req, res) => {
+  const { code } = req.params;
+  try {
+    const { dv_number, po_code, supplier_code, amount, particulars, status } = req.body;
+
+    const results = await connection.postDisbursementVouchers({
+      dv_number,
+      po_code,
+      supplier_code,
+      amount,
+      particulars,
+      status,
+      dv_date: moment(new Date()).format('YYYY-MM-DD'),
+      created_by: res.locals.SESSION_USER.username,
+      updated_by: res.locals.SESSION_USER.username,
+    });
+
+    await connection.postDisbursementVouchersActivity({
+      dv_number,
+      step_id: 1,
+      step_title: 'Voucher Preparation',
+      stage: 'voucher_preparation',
+      status: 'Completed',
+      created_by: res.locals.SESSION_USER.username,
+      updated_by: res.locals.SESSION_USER.username,
+    })
+
+    req.flash('success', 'Disbursement voucher saved successfully!');
+    res.redirect(`/disbursementVouchers/${Number(code.slice(-4))}/view`);
+  } catch (error) {
+    console.error('Error creating disbursement voucher:', error);
+    req.flash('error', 'Failed to save disbursement voucher.');
+    // res.status(500).json({ message: 'Failed to create disbursement voucher', error: error.message });
+    res.redirect(`/disbursementVouchers/${code}/view`);
+
+  }
+})
+
+app.patch('/disbursementVouchers/:code/view', async (req, res) => {
+  try {
+    const { code } = req.params;
+    const { dv_number, po_code, supplier_code, amount, particulars, status } = req.body;
+  } catch (error) {
+    console.error('Error updating disbursement voucher:', error);
+    req.flash('error', 'Failed to update disbursement voucher.');
+    res.status(500).json({ message: 'Failed to update disbursement voucher', error: error.message });
+  }
+})
+
+app.get('/checkPayments', loadAllActivities, loadAllPurchaseOrders, async (req, res) => {
+  try {
+
+    const [transactions, activities] = await Promise.all([
+      connection.getTransactions(),
+      connection.getActivities()
+    ]);
+
+    // const filterActivities = activities?.filter(activity => activity.status == 'pending');
+    const filterTransactionActivitiesSVP = activities?.filter(activity => activity.steps_number >= 31);
+    const filterTransactionActivitiesPublicBidding = activities?.filter(activity => activity.steps_number >= 26)
+
+    const mapActivitiesSVP = filterTransactionActivitiesSVP?.map(activity => {
+      return activity.product_id
+    })
+
+    const mapActivitiesPublicBidding = filterTransactionActivitiesPublicBidding?.map(activity => {
+      return activity.product_id
+    })
+
+    const activitiesSVP_PublicBidding = [...mapActivitiesSVP, ...mapActivitiesPublicBidding];
+    console.log(activitiesSVP_PublicBidding)
+
+    const filterTransactions = transactions?.filter(transaction => activitiesSVP_PublicBidding.includes(transaction.product_id))
+
+    const { STEPS } = res
+
+    // console.log({ mapActivities, filterTransactions })
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js'], // this is dataTablesjs
+        styles: [],
+        innerContent: '../pages/checkPayments/index',
+        title: "Check Payments",
+        description: "A written order directing a bank to pay a specific amount from the payer's account to a named recipient—a payment method that remains surprisingly common in B2B transactions despite the rise of digital alternatives.",
         _datatables: filterTransactions,
         ...res.locals,
       });

@@ -1,0 +1,133 @@
+<%
+    const [purchaseRequest, purchaseOrder, supplierWinner, DV_Acitivity] = results;
+    if(purchaseOrder.length === 0) return;
+    const { bid_notice_title, fund_source, approved_budget } = purchaseRequest[0];
+    const { po_id, pr_id, po_number, supplier_code, total_amount, status, created_at, updated_at } = purchaseOrder[0];
+    const { transaction_id, supplier_id, quoted_price } = supplierWinner[0];
+
+    const supplierDetails = SUPPLIERS.find(supplier => supplier.id === supplier_id) || {};
+    const { supplier_name, tin, address } = supplierDetails;
+
+%>
+<div class="row row-card-no-pd mt--2">
+    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5><b>Disbursement Voucher #</b></h5>
+                        <p class="text-muted"><a href="/purchaseOrders/<%= pr_id %>/view" class="text-decoration-none">
+                                <%= `${po_number}` %>
+                            </a>
+                        </p>
+                    </div>
+                    <h3 class="text-warning fw-bold">
+                        <%= UTILS.generateDVCode(pr_id) ?? '26-05-00001' %>
+                    </h3>
+                </div>
+                <div class="separator-dashed mt-0"></div>
+                <div class="d-flex justify-content-between mt-2">
+                    <p class="text-muted mb-0">Status</p>
+                    <p class="text-muted mb-0 text-capitalize">
+                        <%= 'Draft' %>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-6 col-xl-5">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5><b>
+                                <%= bid_notice_title %>
+                            </b></h5>
+                        <p class="text-muted"><a href="/transactions/<%= pr_id %>/view" class="text-decoration-none">
+                                <%= UTILS.generatePRCode(purchaseRequest[0]) %>
+                            </a></p>
+                    </div>
+                    <h3 class="text-success fw-bold">
+                        <%= UTILS.peso(approved_budget) %>
+                    </h3>
+                </div>
+                <div class="separator-dashed mt-0"></div>
+                <div class="d-flex justify-content-between mt-2">
+                    <p class="text-muted mb-0">
+                        <%= UTILS.getFundSources(purchaseRequest[0])?.map(item=> item.paps) || 'N/A' %>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-6 col-xl-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5><b>
+                                <%= supplier_name ?? 'N/A' %>
+                            </b></h5>
+                        <p class="text-muted">
+                            <%= `${tin ? `TIN: ${tin}` : 'N/A' }` %>
+                        </p>
+                    </div>
+                </div>
+                <div class="separator-dashed mt-0"></div>
+                <div class="d-flex justify-content-between mt-2">
+                    <p class="text-muted mb-0">
+                        <%= address ?? 'N/A' %>
+                    </p>
+                    <p class="text-muted mb-0">
+                        <a href="https://www.google.com/maps/search/" target="_blank" class="text-decoration-none">
+                            <i class="fas fa-map-marker-alt"></i> View Map
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-round">
+    <div class="card-header">
+        <div class="card-head-row card-tools-still-right">
+            <div class="card-title">History</div>
+            <div class="card-tools">
+                <form id="disbursementVoucherForm" action="/disbursementVouchers/<%= po_number %>/view" method="POST">
+                    <input type="hidden" name="dv_number" value="<%= UTILS.generateDVCode(pr_id) %>">
+                    <input type="hidden" name="po_code" value="<%= po_number %>">
+                    <input type="hidden" name="supplier_code" value="<%= supplier_code %>">
+                    <input type="hidden" name="amount" value="<%= quoted_price %>">
+                    <input type="hidden" name="particulars" value="<%= bid_notice_title %>">
+                    <input type="hidden" name="status" value="Pending">
+                    <button type="submit" class="btn btn-label-info btn-round btn-sm">
+                        <span class="btn-label">
+                            <i class="fas fa-file-signature"></i>
+                        </span>
+                        Create</button>
+                </form>
+                <button type="submit" class="btn btn-primary btn-round btn-sm">
+                        <span class="btn-label">
+                            <i class="fas fa-plus"></i>
+                        </span>
+                        Add Remarks</button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <!-- Projects table -->
+            <%- include('../../components/datatables/tables', { 
+                tableId: "disbursementVoucherHistory" ,
+                classes: "historyTables" , 
+                thead: ['Remarks', 'Date' , 'User' ] , 
+                tbody: DV_Acitivity?.map(activity => ({
+                    remarks: activity.step_title,
+                    date: moment(activity.created_at).format('LLL'),
+                    user: activity.created_by
+                })) || [],
+                hideColumns: [] }) %>
+        </div>
+    </div>
+</div>

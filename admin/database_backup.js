@@ -800,7 +800,7 @@ const databaseUtils = {
         })
         .join(' AND');
     }
-    // console.log('Retrieving Data...', query)
+    console.log('Retrieving Data...', query)
     connection.query(query, (error, results) => {
       if (error) {
         reject(error)
@@ -1326,6 +1326,17 @@ const databaseUtils = {
       throw error; // propagate error to caller
     }
   },
+  getPurchaseRequests: async (data) => {
+    try {
+      if(data) {
+        return await databaseUtils.retrieveData('transid', '*', data)
+      }
+      return await databaseUtils.retrieveData('transid', data)
+    } catch (error) {
+      console.error("Unexpected error: getPurchaseRequests()", error);
+      throw error; // propagate error to caller
+    }
+  },
   getPurchaseOrders: async (data) => {
     try {
       if(data) {
@@ -1407,6 +1418,81 @@ const databaseUtils = {
       throw error; // propagate error to caller
     }
   },
+  
+  postDisbursementVouchers: async (data) => {
+    try {
+      const _keys = Object.keys(data); // column names
+      const placeholders = '(' + _keys.map(() => '?').join(', ') + ')';
+      const values = Object.values(data);
+
+      const query = `
+        INSERT INTO ${prefix}.disbursement_vouchers
+          (${_keys.join(', ')})
+        VALUES ${placeholders}
+      `;
+
+      return new Promise((resolve, reject) => {
+        connection.query(query, values, (error, results) => {
+          if (error) reject(error);
+          else resolve(results);
+        });
+      });
+
+    } catch (error) {
+      console.error("Unexpected error: postDisbursementVouchers()", error);
+      throw error; // propagate error to caller
+    }
+  },
+  
+  getDisbursementVouchers: async (data) => {
+    try {
+      if(data) {
+        return await databaseUtils.retrieveData('disbursement_vouchers', '*', data)
+      }
+      return await databaseUtils.retrieveData('disbursement_vouchers', data)
+    } catch (error) {
+      console.error("Unexpected error: getDisbursementVouchers()", error);
+      throw error; // propagate error to caller
+    }
+  },
+  
+  postDisbursementVouchersActivity: async (data) => {
+    try {
+      const _keys = Object.keys(data);
+      const placeholders = '(' + _keys.map(() => '?').join(', ') + ')';
+      const values = Object.values(data);
+
+      const query = `
+        INSERT INTO ${prefix}.disbursement_voucher_activities
+          (${_keys.join(', ')})
+        VALUES ${placeholders}
+      `;
+
+      return new Promise((resolve, reject) => {
+        connection.query(query, values, (error, results) => {
+          if (error) reject(error);
+          else resolve(results);
+        });
+      });
+
+    } catch (error) {
+      console.error("Unexpected error: postDisbursementVouchersActivity()", error);
+      throw error; // propagate error to caller
+    }
+  },
+
+  getDisbursementVouchersActivity: async (data) => {
+    try {
+      if(data) {
+        return await databaseUtils.retrieveData('disbursement_voucher_activities', '*', data)
+      }
+      return await databaseUtils.retrieveData('disbursement_voucher_activities', data)
+    } catch (error) {
+      console.error("Unexpected error: getDisbursementVouchersActivity()", error);
+      throw error; // propagate error to caller
+    }
+  },
+
   ///////////////////////////////
   /////////// FUNDS /////////////
   ///////////////////////////////

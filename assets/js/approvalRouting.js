@@ -1,4 +1,4 @@
-export const smallValueMessages = {
+export const smallValueMessagesOld = {
     1: {
         initial: {
             title: "Submit Purchase Request",
@@ -584,7 +584,214 @@ export const smallValueMessages = {
     }
 };
 
-export const publicBiddingMessages2 = {
+export const smallValueMessages = {
+    1: {
+        initial: { title: "Submit Purchase Request", text: "Click 'Confirm' to submit the Purchase Request for processing." },
+        confirmed: { title: "Request Submitted", text: "The Purchase Request has been successfully submitted." },
+        denied: { title: "Submission Denied", text: "The Purchase Request was not submitted by the End-User." },
+        confirmedDenied: { title: "Denial Recorded", text: "The End-User's denial has been successfully recorded." }
+    },
+    2: {
+        initial: { title: "Executive Review", text: "Click 'Confirm' to submit the PR for RTD review." },
+        confirmed: { title: "Review Completed", text: "The RTD has reviewed the Purchase Request." },
+        denied: { title: "Review Denied", text: "The RTD did not review the Purchase Request." },
+        confirmedDenied: { title: "Denial Recorded", text: "The RTD's denial has been recorded." }
+    },
+    3: {
+        initial: { title: "Funding Allocation", text: "Click 'Confirm' to allocate funds for the PR." },
+        confirmed: { title: "Funds Allocated", text: "Funds have been successfully allocated." },
+        denied: { title: "Allocation Denied", text: "Funds were not allocated." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of fund allocation has been recorded." }
+    },
+    4: {
+        initial: { title: "Canvass Preparation", text: "Click 'Confirm' to prepare the canvass forms." },
+        confirmed: { title: "Canvass Prepared", text: "The canvass forms have been prepared." },
+        denied: { title: "Preparation Denied", text: "The canvass forms were not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of canvass preparation has been recorded." }
+    },
+    5: {
+        initial: { title: "Canvass Signing", text: "Click 'Confirm' to sign the canvass forms." },
+        confirmed: { title: "Canvass Signed", text: "The canvass forms have been signed." },
+        denied: { title: "Signing Denied", text: "The canvass forms were not signed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of canvass signing has been recorded." }
+    },
+    6: {
+        initial: { title: "Review and Posting", text: "Click 'Confirm' to review and post the canvass." },
+        confirmed: { title: "Review Completed", text: "The canvass has been reviewed and posted." },
+        denied: { title: "Review Denied", text: "The canvass was not reviewed or posted." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of canvass review has been recorded." }
+    },
+    7: {
+        initial: { title: "Distribution of Canvass", text: "Click 'Confirm' to distribute the canvass forms." },
+        confirmed: { title: "Canvass Distributed", text: "The canvass forms have been distributed." },
+        denied: { title: "Distribution Denied", text: "The canvass forms were not distributed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of canvass distribution has been recorded." }
+    },
+    8: {
+        initial: { title: "Supplier Serving", text: "Click 'Confirm' to serve the canvass to suppliers." },
+        confirmed: { title: "Suppliers Served", text: "The canvass has been served to suppliers." },
+        denied: { title: "Serving Denied", text: "The canvass was not served to suppliers." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of supplier serving has been recorded." }
+    },
+    9: {
+        initial: { title: "Bid Submission", text: "Click 'Confirm' to submit bids." },
+        confirmed: { title: "Bids Submitted", text: "The bids have been successfully submitted." },
+        denied: { title: "Submission Denied", text: "The bids were not submitted." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of bid submission has been recorded." }
+    },
+    10: {
+        initial: { title: "Bid Opening", text: "Click 'Confirm' to open the bids." },
+        confirmed: { title: "Bids Opened", text: "The bids have been opened." },
+        denied: { title: "Opening Denied", text: "The bids were not opened." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of bid opening has been recorded." }
+    },
+    11: {
+        initial: { title: "Abstract and Resolution", text: "Click 'Confirm' to prepare the abstract and resolution." },
+        confirmed: { title: "Abstract Prepared", text: "The abstract and resolution have been prepared." },
+        denied: { title: "Preparation Denied", text: "The abstract and resolution were not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of abstract preparation has been recorded." }
+    },
+    12: {
+        initial: { title: "BAC Signing and TWG Evaluation", text: "Click 'Confirm' to sign and evaluate." },
+        confirmed: { title: "Evaluation Completed", text: "The BAC and TWG evaluation has been completed." },
+        denied: { title: "Evaluation Denied", text: "The BAC and TWG evaluation was not completed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of evaluation has been recorded." }
+    },
+    13: {
+        initial: { title: "Award Segregation", text: "Click 'Confirm' to segregate awards." },
+        confirmed: { title: "Award Segregated", text: "The awards have been segregated." },
+        denied: { title: "Segregation Denied", text: "The awards were not segregated." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of award segregation has been recorded." }
+    },
+    14: {
+        initial: { title: "NOA and Resolution Approval", text: "Click 'Confirm' to approve the NOA and resolution." },
+        confirmed: { title: "NOA Approved", text: "The NOA and resolution have been approved." },
+        denied: { title: "Approval Denied", text: "The NOA and resolution were not approved." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of NOA approval has been recorded." }
+    },
+    15: {
+        initial: { title: "NOA Confirmation and PO/JOC", text: "Click 'Confirm' to confirm NOA and prepare PO/JOC." },
+        confirmed: { title: "NOA Confirmed", text: "The NOA has been confirmed and PO/JOC prepared." },
+        denied: { title: "Confirmation Denied", text: "The NOA was not confirmed or PO/JOC not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of NOA confirmation has been recorded." }
+    },
+    16: {
+        initial: { title: "Posting of Award", text: "Click 'Confirm' to post the award." },
+        confirmed: { title: "Award Posted", text: "The award has been posted." },
+        denied: { title: "Posting Denied", text: "The award was not posted." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of award posting has been recorded." }
+    },
+    17: {
+        initial: { title: "ORS/BURS Charging", text: "Click 'Confirm' to charge ORS/BURS." },
+        confirmed: { title: "ORS/BURS Charged", text: "The ORS/BURS has been charged." },
+        denied: { title: "Charging Denied", text: "The ORS/BURS was not charged." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of ORS/BURS charging has been recorded." }
+    },
+    18: {
+        initial: { title: "Obligation Numbering", text: "Click 'Confirm' to assign obligation number." },
+        confirmed: { title: "Obligation Numbered", text: "The obligation has been numbered." },
+        denied: { title: "Numbering Denied", text: "The obligation was not numbered." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of obligation numbering has been recorded." }
+    },
+    19: {
+        initial: { title: "PO/JOC Processing", text: "Click 'Confirm' to process the PO/JOC." },
+        confirmed: { title: "PO/JOC Processed", text: "The PO/JOC has been successfully processed." },
+        denied: { title: "Processing Denied", text: "The PO/JOC was not processed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of PO/JOC processing has been recorded." }
+    },
+    20: {
+        initial: { title: "PO/JOC Approval", text: "Click 'Confirm' to approve the PO/JOC." },
+        confirmed: { title: "PO/JOC Approved", text: "The PO/JOC has been approved." },
+        denied: { title: "Approval Denied", text: "The PO/JOC was not approved." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of PO/JOC approval has been recorded." }
+    },
+    21: {
+        initial: { title: "Serving PO/JOC", text: "Click 'Confirm' to serve the PO/JOC." },
+        confirmed: { title: "PO/JOC Served", text: "The PO/JOC has been served." },
+        denied: { title: "Serving Denied", text: "The PO/JOC was not served." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of PO/JOC serving has been recorded." }
+    },
+    22: {
+        initial: { title: "NTP Approval", text: "Click 'Confirm' to approve the Notice to Proceed." },
+        confirmed: { title: "NTP Approved", text: "The Notice to Proceed has been approved." },
+        denied: { title: "Approval Denied", text: "The NTP was not approved." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of NTP approval has been recorded." }
+    },
+    23: {
+        initial: { title: "Posting PO/JOC/NTP", text: "Click 'Confirm' to post the PO/JOC/NTP." },
+        confirmed: { title: "Posting Completed", text: "The PO/JOC/NTP has been posted." },
+        denied: { title: "Posting Denied", text: "The PO/JOC/NTP was not posted." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of posting has been recorded." }
+    },
+    24: {
+        initial: { title: "Project Implementation", text: "Click 'Confirm' to begin project implementation." },
+        confirmed: { title: "Project Implemented", text: "The project has been implemented." },
+        denied: { title: "Implementation Denied", text: "The project was not implemented." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of project implementation has been recorded." }
+    },
+    25: {
+        initial: { title: "Inspection", text: "Click 'Confirm' to conduct inspection." },
+        confirmed: { title: "Inspection Completed", text: "The inspection has been completed." },
+        denied: { title: "Inspection Denied", text: "The inspection was not conducted." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of inspection has been recorded." }
+    },
+    26: {
+        initial: { title: "Turnover Documents", text: "Click 'Confirm' to prepare turnover documents." },
+        confirmed: { title: "Documents Prepared", text: "The turnover documents have been prepared." },
+        denied: { title: "Preparation Denied", text: "The turnover documents were not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of turnover documentation has been recorded." }
+    },
+    27: {
+        initial: { title: "Voucher Preparation", text: "Click 'Confirm' to prepare the Disbursement Voucher." },
+        confirmed: { title: "Voucher Prepared", text: "The Disbursement Voucher has been prepared." },
+        denied: { title: "Preparation Denied", text: "The Disbursement Voucher was not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of voucher preparation has been recorded." }
+    },
+    28: {
+        initial: { title: "Voucher Signing", text: "Click 'Confirm' to sign the Disbursement Voucher." },
+        confirmed: { title: "Voucher Signed", text: "The Disbursement Voucher has been signed." },
+        denied: { title: "Signing Denied", text: "The Disbursement Voucher was not signed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of voucher signing has been recorded." }
+    },
+    29: {
+        initial: { title: "Voucher Processing", text: "Click 'Confirm' to process the Disbursement Voucher." },
+        confirmed: { title: "Voucher Processed", text: "The Disbursement Voucher has been processed." },
+        denied: { title: "Processing Denied", text: "The Disbursement Voucher was not processed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of voucher processing has been recorded." }
+    },
+    30: {
+        initial: { title: "Voucher Approval", text: "Click 'Confirm' to approve the Disbursement Voucher." },
+        confirmed: { title: "Voucher Approved", text: "The Disbursement Voucher has been approved." },
+        denied: { title: "Approval Denied", text: "The Disbursement Voucher was not approved." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of voucher approval has been recorded." }
+    },
+    31: {
+        initial: { title: "Check Preparation", text: "Click 'Confirm' to prepare the check for payment." },
+        confirmed: { title: "Check Prepared", text: "The check has been prepared." },
+        denied: { title: "Preparation Denied", text: "The check was not prepared." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of check preparation has been recorded." }
+    },
+    32: {
+        initial: { title: "ADA Review", text: "Click 'Confirm' to review the ADA." },
+        confirmed: { title: "ADA Reviewed", text: "The ADA has been reviewed." },
+        denied: { title: "Review Denied", text: "The ADA was not reviewed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of ADA review has been recorded." }
+    },
+    33: {
+        initial: { title: "Check Signing", text: "Click 'Confirm' to sign the check." },
+        confirmed: { title: "Check Signed", text: "The check has been signed." },
+        denied: { title: "Signing Denied", text: "The check was not signed." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of check signing has been recorded." }
+    },
+    34: {
+        initial: { title: "Release Payment", text: "Click 'Confirm' to release the payment." },
+        confirmed: { title: "Payment Released", text: "The payment has been released." },
+        denied: { title: "Release Denied", text: "The payment was not released." },
+        confirmedDenied: { title: "Denial Recorded", text: "The denial of payment release has been recorded." }
+    }
+};
+
+export const publicBiddingMessagesOld = {
     1: {
         initial: {
             title: "Submit Bid Proposal",

@@ -1,0 +1,21 @@
+<% if(typeof notify !== 'undefined' && notify) { %>
+<script>
+  
+    <% if (notify.success && notify.success.length) { %>
+      notifyCustom('bell', 'Success', '<%= notify.success[0] %>', 'success')
+    <% } %>
+
+    <% if (notify.error && notify.error.length) { %>
+      notifyCustom('close', 'Error', '<%= notify.error[0] %>', 'danger')
+    <% } %>
+
+    <% if (notify.info && notify.info.length) { %>
+      notifyCustom('check', 'Info', '<%= notify.info[0] %>', 'info')
+    <% } %>
+
+    <% if (notify.warning && notify.warning.length) { %>
+      notifyCustom('exclamation', 'Warning', '<%= notify.warning[0] %>', 'warning')
+    <% } %>
+  
+</script>
+<% } %>
