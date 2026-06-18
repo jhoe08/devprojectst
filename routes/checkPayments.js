@@ -29,7 +29,7 @@ router.use(session({
 }));
 router.use(flash());
 
-router.get('/disbursementVouchers/:id', async (req, res) => {
+router.get('/checkPayments/:id', async (req, res) => {
     try {
         const disbursementVouchers = await connection.getDisbursementVouchers({ dv_number: req.params.id })
         req.flash('info', 'Drafted disbursement voucher successfully!');

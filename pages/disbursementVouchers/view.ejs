@@ -7,7 +7,7 @@
 
     const supplierDetails = SUPPLIERS.find(supplier => supplier.id === supplier_id) || {};
     const { supplier_name, tin, address } = supplierDetails;
-
+    
 %>
 <div class="row row-card-no-pd mt--2">
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
@@ -29,7 +29,7 @@
                 <div class="d-flex justify-content-between mt-2">
                     <p class="text-muted mb-0">Status</p>
                     <p class="text-muted mb-0 text-capitalize">
-                        <%= 'Draft' %>
+                        <span class="badge badge-black mr-2"><%= 'Draft' %></span>
                     </p>
                 </div>
             </div>
@@ -94,20 +94,22 @@
         <div class="card-head-row card-tools-still-right">
             <div class="card-title">History</div>
             <div class="card-tools">
-                <form id="disbursementVoucherForm" action="/disbursementVouchers/<%= po_number %>/view" method="POST">
+                <form id="disbursementVoucherForm" action="/disbursementVouchers/<%= po_number %>/create" method="POST">
+                    <input type="hidden" name="ref_number" value="<%= pr_id %>">
                     <input type="hidden" name="dv_number" value="<%= UTILS.generateDVCode(pr_id) %>">
+                    <input type="hidden" name="pr_number" value="<%= UTILS.generatePRCode(purchaseRequest[0]) %>">
                     <input type="hidden" name="po_code" value="<%= po_number %>">
                     <input type="hidden" name="supplier_code" value="<%= supplier_code %>">
                     <input type="hidden" name="amount" value="<%= quoted_price %>">
                     <input type="hidden" name="particulars" value="<%= bid_notice_title %>">
                     <input type="hidden" name="status" value="Pending">
-                    <button type="submit" class="btn btn-label-info btn-round btn-sm">
+                    <button type="submit" class="btn btn-primary btn-round btn-sm">
                         <span class="btn-label">
                             <i class="fas fa-file-signature"></i>
                         </span>
                         Create</button>
                 </form>
-                <button type="submit" class="btn btn-primary btn-round btn-sm">
+                <button id="addRemarksBtn" type="submit" class="btn btn-primary btn-round btn-sm">
                         <span class="btn-label">
                             <i class="fas fa-plus"></i>
                         </span>

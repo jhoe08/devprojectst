@@ -54,6 +54,17 @@
 <script src="/assets/js/upload.js"></script>
 
 <script>
+  tinymce.init({
+    selector: '#editor',
+    height: 300,
+    menubar: false,
+    plugins: 'lists link table',
+    toolbar: 'undo redo | bold italic underline | bullist numlist | link image | code | table',
+    content_style: 'body { font-family:Arial,Helvetica,sans-serif; font-size:14px }'
+  });
+</script>
+
+<script>
   function handleLeave(evt, item, legend) {
     legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
       colors[index] = color.length === 9 ? color.slice(0, -2) : color;

@@ -879,7 +879,7 @@ const databaseUtils = {
   }),
   createDocumentTracker: async (data) => {
     const now = convertDate(new Date())
-    data = JSON.parse(data)
+    // data = JSON.parse(data)
     data = JSON.stringify({ ...data, created_at: now, updated_at: now })
     return await databaseUtils.storeData('documents', data)
   },

@@ -129,7 +129,7 @@ if(createDocumentTrackerBtn) {
         time: 1000,
       });
 
-      window.location.href = `/documents/${insertId}`
+      window.location.href = `/documents/${insertId}/view`
     })
     .catch(error => {
         notifyCustom('bell', 'Failed to fetch data', error, 'danger')

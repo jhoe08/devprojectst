@@ -9,6 +9,7 @@ const connection = require("./admin/database_backup");
 // const DatabaseConnection = require("./admin/database/DatabaseConnection");
 const misc = require("./admin/misc")
 const utils = require("./admin/utils");
+const { approveTransaction } = require('./services/approvalService');
 
 // const sharedJsonHelperPath = pathToFileURL(path.join(__dirname, 'assets/js/helpers/jsonHelper.js')).href;
 // let sharedJsonHelper;
@@ -3254,7 +3255,7 @@ app.post('/suppliers/add', restrict, async function (req, res) {
   }
 });
 // DOCUMENTS
-app.get('/documents', restrict, async function (req, res) {
+app.get('/v1/documents', restrict, async function (req, res) {
   const results = await connection.getDocumentTrackerData()
   let analysisData = await connection.getDocumentTrackerAnalysis()
   let analysisDataReplies = await connection.getDocumentTrackerActivityReplies()
@@ -3269,6 +3270,33 @@ app.get('/documents', restrict, async function (req, res) {
   })
 })
 
+app.get('/documents', restrict, async function (req, res) {
+  try {
+    const documents = await connection.getDocumentTrackerData()
+
+    console.log({ documents })
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/ra12009/dataTables-documents.js'],
+        styles: [],
+        innerContent: '../pages/ra12009/documents/index',
+        title: "Documents",
+        description: "A document published by a government agency or organization that contains official information or policies.",
+        results: [documents],
+        employees: [],
+        options: {
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    return res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching documents:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
 app.get('/documents/template/newEmail', restrict, function (req, res) {
   res.render('emails/new2', {
     title: 'Template on New Email'
@@ -3278,8 +3306,14 @@ app.get('/documents/template/newEmail', restrict, function (req, res) {
 app.post('/documents/create', restrict, async function (req, res) {
   try {
     const data = JSON.stringify(req.body)
-    // console.log(data)
-    const results = await connection.createDocumentTracker(data)
+    const results = await connection.createDocumentTracker(req.body)
+    const activity = await connection.createDocumentTrackerActivity(JSON.stringify({
+      refid: results.insertId,
+      message: 'Document is created',
+      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      created_by: res.locals.SESSION_USER.username,
+    }))
+    
     res.status(200).json({ message: 'New Document is being on Track', response: results })
   } catch (error) {
     console.error('Error addding new notification on transaction:', error);
@@ -3357,7 +3391,7 @@ app.post('/documents/send', restrict, async function (req, res) {
   }
 });
 
-app.get('/documents/:id', restrict, async function (req, res) {
+app.get('/v1/documents/:id', restrict, async function (req, res) {
   try {
     const { id } = req.params
     const results = await connection.retrieveDocuments('documents', JSON.stringify(req.params))
@@ -3389,12 +3423,76 @@ app.get('/documents/:id', restrict, async function (req, res) {
   }
 })
 
+app.get('/documents/:id/view', restrict, async function (req, res) {
+  try {
+    const { id } = req.params
+    const documents = await connection.retrieveDocuments('documents', JSON.stringify({ id: id }))
+    const activities = await connection.getDocumentTrackerActivity(JSON.stringify({ refid: id }))
+    const employees = await connection.retrieveEmployee()
+
+    activities.sort((a, b) => b.id - a.id);
+
+    if (documents.length > 0) {
+      const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+        {
+          scripts: [],
+          styles: [],
+          innerContent: '../pages/ra12009/documents/view',
+          title: "",
+          description: "List of Market Scope Analysis Submissions",
+          results: [documents, activities, employees],
+          employees: [],
+          options: {
+            hideTitle: true,
+          },
+          ...res.locals,
+        });
+      // Rendered HTML
+      return res.status(200).send(renderedHtml)
+    } else {
+      res.status(404).render('404', {
+        title: "Document",
+        component: "Document"
+      });
+    }
+
+  } catch (error) {
+    console.error('Display issue on the Document:', error);
+    res.status(400).send({ message: 'Display issue on the Document:', response: error });
+  }
+})
+
 app.post('/documents/:id/activity', restrict, async function (req, res) {
   try {
     const results = await connection.createDocumentTrackerActivity(JSON.stringify(req.body))
     res.status(200).json({ message: 'New remarks is added', response: results })
   } catch (error) {
     res.status(400).send('Error addding remarks:', error);
+  }
+})
+
+app.get('/documents/:id/print', restrict, async function (req, res) {
+  try {
+    const { id } = req.params
+    const documents = await connection.retrieveDocuments('documents', JSON.stringify({ id: id }))
+    const activities = await connection.getDocumentTrackerActivity(JSON.stringify({ refid: id }))
+    const employees = await connection.retrieveEmployee()
+    activities.sort((a, b) => b.id - a.id);
+    if (documents.length > 0) {
+      res.render('documents/print', {
+        title: "Print Document",
+        displayData: documents[0],
+        activities,
+        employeesData: employees,
+        moment,
+      })
+    }
+  } catch (error) {
+    console.error('Error on displaying the document:', error);
+    res.status(404).render('404', {
+      title: "Document",
+      component: "Document"
+    });
   }
 })
 
@@ -3741,7 +3839,7 @@ app.get('/purchaseOrders', loadAllActivities, async (req, res) => {
     // console.log({ mapActivities, filterTransactions })
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js', '/assets/js/pages/purchaseOrders/index.js'], // look for assets/js/misc.js
+        scripts: ['/assets/js/pages/ra12009/dataTables.js', '/assets/js/pages/purchaseOrders/index.js'], // look for assets/js/misc.js
         styles: [],
         innerContent: '../pages/purchaseOrders/index',
         title: "Create a Purchase Orders",
@@ -3912,6 +4010,21 @@ app.post('/purchaseOrders/:code/products/:productId', async (req, res) => {
   }
 })
 
+app.get('/api/disbursementVouchers/:code', async (req, res) => {
+  try {
+    const { code } = req.params;
+    const disbursementVoucher = await connection.getDisbursementVouchers({ dv_number: code });
+
+    if (!disbursementVoucher || disbursementVoucher.length === 0) {
+      return res.status(404).json({ message: 'Disbursement Voucher not found!' });
+    }
+    res.status(200).json(disbursementVoucher);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+})
+
 app.get('/disbursementVouchers', loadAllActivities, loadAllPurchaseOrders, async (req, res) => {
   try {
 
@@ -3942,7 +4055,7 @@ app.get('/disbursementVouchers', loadAllActivities, loadAllPurchaseOrders, async
     // console.log({ mapActivities, filterTransactions })
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js', '/assets/js/pages/disbursementVouchers/index.js'], // this is dataTablesjs
+        scripts: ['/assets/js/pages/ra12009/dataTables.js', '/assets/js/pages/disbursementVouchers/index.js'], // this is dataTablesjs
         styles: [],
         innerContent: '../pages/disbursementVouchers/index',
         title: "Disburement Vouchers",
@@ -3970,8 +4083,6 @@ app.get('/disbursementVouchers/:code/view', loadAllActivities, loadAllSuppliers,
 
     const disbursementVouchersAcitivity = await connection.getDisbursementVouchersActivity({ dv_number: code })
 
-    console.log({ disbursementVouchersAcitivity })
-
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
         scripts: ['/assets/js/pages/disbursementVouchers/createVoucher.js'], // look for assets/js/misc.js
@@ -3987,11 +4098,12 @@ app.get('/disbursementVouchers/:code/view', loadAllActivities, loadAllSuppliers,
         notify: {
           success: req.flash('success'),
           error: req.flash('error'),
-          info: req.flash('info')
+          info: req.flash('info'),
+          warning: req.flash('warning'),
         }
       });
 
-    req.flash('info', 'You are now viewing the details of the disbursement voucher. Please proceed with caution when updating the information on this page.');
+    // req.flash('info', 'You are now viewing the details of the disbursement voucher. Please proceed with caution when updating the information on this page.');
     // Rendered HTML
     res.status(200).send(renderedHtml)
 
@@ -4001,13 +4113,14 @@ app.get('/disbursementVouchers/:code/view', loadAllActivities, loadAllSuppliers,
   }
 })
 
-app.post('/disbursementVouchers/:code/view', async (req, res) => {
+app.post('/disbursementVouchers/:code/create', loadAllActivities, async (req, res) => {
   const { code } = req.params;
   try {
-    const { dv_number, po_code, supplier_code, amount, particulars, status } = req.body;
+    const { ref_number, dv_number, pr_number, po_code, supplier_code, amount, particulars, status } = req.body;
 
     const results = await connection.postDisbursementVouchers({
       dv_number,
+      pr_number,
       po_code,
       supplier_code,
       amount,
@@ -4028,8 +4141,24 @@ app.post('/disbursementVouchers/:code/view', async (req, res) => {
       updated_by: res.locals.SESSION_USER.username,
     })
 
-    req.flash('success', 'Disbursement voucher saved successfully!');
-    res.redirect(`/disbursementVouchers/${Number(code.slice(-4))}/view`);
+    const { STEPS, activities: ACTIVITIES } = res.locals;
+    const sortActivities = ACTIVITIES.sort((a, b) => b.id - a.id).filter(activity => activity.product_id === ref_number);
+    const current_step = STEPS.getCurrentStep(sortActivities, ref_number);
+
+    const current_step_number = current_step?.steps_number
+    const current_step_title = getTitle(row, current_step_number)
+
+    // await approveTransaction({ 
+    //   product_id: ref_number, 
+    //   steps_number: current_step, 
+    //   updated_by: res.locals.SESSION_USER.username, 
+    //   remarks: 'Auto-approved', 
+    //   username: res.locals.SESSION_USER.username, 
+    //   connection, io 
+    // });
+
+    req.flash('success', 'Disbursement voucher created successfully!');
+    res.redirect(`/disbursementVouchers/${code}/view`);
   } catch (error) {
     console.error('Error creating disbursement voucher:', error);
     req.flash('error', 'Failed to save disbursement voucher.');
@@ -4039,7 +4168,7 @@ app.post('/disbursementVouchers/:code/view', async (req, res) => {
   }
 })
 
-app.patch('/disbursementVouchers/:code/view', async (req, res) => {
+app.patch('/disbursementVouchers/:code/update', async (req, res) => {
   try {
     const { code } = req.params;
     const { dv_number, po_code, supplier_code, amount, particulars, status } = req.body;
@@ -4080,7 +4209,7 @@ app.get('/checkPayments', loadAllActivities, loadAllPurchaseOrders, async (req, 
     // console.log({ mapActivities, filterTransactions })
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: ['/assets/js/pages/ra12009/purchaseOrders.js'], // this is dataTablesjs
+        scripts: ['/assets/js/pages/ra12009/dataTables.js'], // this is dataTablesjs
         styles: [],
         innerContent: '../pages/checkPayments/index',
         title: "Check Payments",

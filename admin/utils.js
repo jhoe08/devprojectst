@@ -49,7 +49,8 @@ const utils = {
   },
   addLeadingZeros(number, totalLength = 5) {
     // Convert to string
-    const numStr = number.toString();
+    console.log('addLeadingZeros', number, totalLength)
+    const numStr = number?.toString() || String(number);
 
     // Pad with leading zeros until it reaches the desired length
     return numStr.padStart(totalLength, "0");

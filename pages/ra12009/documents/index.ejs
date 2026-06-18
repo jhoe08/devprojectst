@@ -1,0 +1,40 @@
+<%
+    const [ documents ] = results;
+%>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-head-row card-tools-still-right">
+            <div class="card-title">List of <%=title%>
+            </div>
+            <div class="card-tools">
+                <a href="#" class="btn btn-primary btn-round btn-sm" data-bs-toggle="modal" data-bs-target="#createDocumentTracker"><i class="fas fa-plus"></i> Add New</a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <%- include('../../../components/datatables/tables', { 
+          tableId: "documents", 
+          classes: "documentsDataTables",
+          thead: [...(Array.isArray(documents) && documents.length > 0 
+                    ? Object.keys(documents[0]) 
+                    : ['as']), "actions"], 
+          tbody: documents?.map(doc => ({
+                ...doc,
+                actions: `
+                    <div class="form-button-action" data-transid="2">
+                        <span data-bs-toggle="tooltip" aria-label="View Transactions" data-bs-original-title="View Transactions">
+                            <a href="/documents/${doc.id}/view" data-transid="${doc.product_id}" type="button" class="btn btn-link btn-primary">
+                                <i class="fa fa-eye"></i>
+                            </a>
+                        </span>
+                    </div>
+                `
+            })) || [], 
+          hideColumns: [] 
+        }) %>
+    </div>
+</div>
+
+<!-- Employee Modal: Create -->
+<%- include('../../../components/modals/documents/create') -%>

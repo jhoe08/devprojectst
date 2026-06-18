@@ -322,9 +322,10 @@
       const qrcodes = document.querySelectorAll('[data-qrcode]')
       if(qrcodes.length > 0){
         qrcodes.forEach(codes=>{
-          const qrcode = codes.dataset.qrcode
-          console.log(qrcode)
-          new QRCode(`transid-${qrcode}`, qrcode); 
+          const qrcode = codes.dataset.qrcode;
+          const type = codes.dataset.type;
+          
+          new QRCode(`${qrcode}`, qrcode); 
         })
       }
       

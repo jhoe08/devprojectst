@@ -14,7 +14,7 @@ document.querySelectorAll('.form-button-action #viewPage')?.forEach(async el => 
     const voucherId = el.dataset.voucher;
     try {
         const voucher = await fetchDisbursementVoucher(voucherId); // must await if async
-        console.log("Element:", el);
+        console.log("Element:", voucher);
 
         if (voucher && voucher.length > 0) {
             el.closest('[data-bs-toggle="tooltip"]').setAttribute('data-bs-original-title', 'View Voucher')

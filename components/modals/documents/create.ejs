@@ -97,8 +97,10 @@
               <option title="RTD 1" value="RTD 1" selected>RTD 1</option>
               <option title="RTD 2" value="RTD 2" selected>RTD 2</option>
               <%
-                const {divisions} = dafaultTransactionData
-                divisions.forEach(division=> { 
+                
+                const { directors, divisions } = JSON.parse(DEPARTMENT || {})
+
+                Object.keys(divisions || {}).forEach(division => {
                   if(division) { 
               %>
                     <option title=" <%= division %>" value="<%= division %>">Division <%= division %></option>

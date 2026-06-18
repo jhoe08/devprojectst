@@ -12,9 +12,13 @@ async function fetchDisbursementVoucher(id) {
 
 window.addEventListener('DOMContentLoaded', async () => {
     const form = document.getElementById('disbursementVoucherForm');
+    const addRemarksBtn = document.getElementById('addRemarksBtn');
+
     await fetchDisbursementVoucher(form.dv_number.value).then(data => {
         if (data && data.length > 0) {
             form.remove();
+        } else {
+            addRemarksBtn.remove();
         }
     })
 })
