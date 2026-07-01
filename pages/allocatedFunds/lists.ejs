@@ -1,0 +1,40 @@
+<div class="card">
+    <div class="card-header">
+        <div class="card-head-row card-tools-still-right">
+            <div class="card-title">List of <%=title%>
+            </div>
+            <div class="card-tools">
+                <button id="refreshTransactions" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card"
+                    data-component="transactions">
+                    <span class="fa fa-sync-alt"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <% 
+            const raw = FUNDS?.value
+            const value = JSON.parse(raw)
+            const rawData = JSON.parse(value.data)
+            const rawValues = rawData.values
+
+            console.log(rawValues[0])
+        %>
+
+        <%- include('../../components/datatables/tables', { 
+          tableId: "allocatedFunds", 
+          classes: "allocatedFunds",
+          thead: [...rawValues[0].slice(0,5), "meta", "actions"], 
+          tbody: rawValues.slice(1)?.map(fnd => ({
+                ...fnd.slice(0, 5),
+                meta: {
+
+                },
+                actions: `
+                    
+                `
+            })), 
+          hideColumns: [] 
+        }) %>
+    </div>
+</div>

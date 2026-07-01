@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrative Issuance - City of Veridia</title>
+    <style>
+        /* CSS Reset & Document Framework */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            color: #111111;
+            background-color: #e0e0e0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Printable Document Layout Container */
+        .document-container {
+            background-color: #faf9f6;
+            /* Off-white paper color texture */
+            width: 8.5in;
+            min-height: 11in;
+            padding: 0.8in;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            border: 1px solid #d3d3d3;
+            position: relative;
+        }
+
+        /* Thin Double Outline Border Layer */
+        .outer-border {
+            border: 1px solid #222222;
+            padding: 4px;
+            height: 100%;
+            min-height: 9.4in;
+        }
+
+        .inner-border {
+            border: 1px solid #222222;
+            padding: 30px;
+            height: 100%;
+            min-height: 9.3in;
+        }
+
+        /* Header Layout Matrix */
+        .header-section {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 25px;
+        }
+
+        /* Emblem / Logo Design Layout */
+        .logo-container {
+            margin-right: 25px;
+        }
+
+        .logo {
+            width: 140px;
+            height: 140px;
+        }
+
+        .logo img {
+            width: 100%;
+        }
+
+        .emblem-container {
+            flex: 0 0 140px;
+            margin-right: 25px;
+        }
+
+        .emblem {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 4px double #1d4ed8;
+            /* Deep royal blue */
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: inset 0 0 0 4px #eab308;
+            /* Gold inner ring */
+        }
+
+        .emblem-graphic {
+            font-size: 42pt;
+            color: #1d4ed8;
+            line-height: 1;
+            z-index: 2;
+        }
+
+        .emblem-text {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            font-size: 7.5pt;
+            font-weight: bold;
+            color: #1d4ed8;
+            text-transform: uppercase;
+        }
+
+        /* Header Typography Block */
+        .header-text-block {
+            flex: 1;
+            padding-top: 5px;
+        }
+
+        .jurisdiction-title {
+            font-family: 'Arial', sans-serif;
+            font-size: 11pt;
+            letter-spacing: 0.5px;
+            color: #333333;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .main-issuance-title {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 21pt;
+            font-weight: bold;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+            color: #000000;
+            margin-bottom: 4px;
+        }
+
+        .authority-office {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .authority-location {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 11pt;
+            color: #444444;
+        }
+
+        /* Controlled Metadata Matrix Box */
+        .metadata-box {
+            background-color: #ededed;
+            border: 1px solid #cccccc;
+            width: 65%;
+            margin-left: auto;
+            margin-bottom: 35px;
+            padding: 12px 18px;
+        }
+
+        .metadata-row {
+            display: flex;
+            margin-bottom: 5px;
+            font-size: 11pt;
+        }
+
+        .metadata-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .metadata-label {
+            font-weight: bold;
+            text-transform: uppercase;
+            width: 160px;
+            letter-spacing: 0.3px;
+        }
+
+        .metadata-value {
+            color: #111111;
+        }
+
+        /* Core Subheading Layout */
+        .document-subheading {
+            text-align: center;
+            font-size: 14pt;
+            font-weight: bold;
+            text-decoration: underline;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Content Text Paragraphs */
+        .document-body-text {
+            font-size: 12pt;
+            text-align: justify;
+            text-indent: 0.5in;
+            line-height: 1.5;
+            color: #111111;
+        }
+
+        /* Print Layout Processing Optimization */
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+
+            .document-container {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="document-container">
+        <div class="outer-border">
+            <div class="inner-border">
+
+                <!-- Header Layout Matrix -->
+                <header class="header-section">
+                    <div class="logo-container">
+                        <div class="logo">
+                            <img src="../assets/img/da-logo.png">
+                        </div>
+                    </div>
+                    <div class="header-text-block">
+                        <div class="jurisdiction-title">Republic of the Philippines</div>
+                        <h1 class="main-issuance-title">Administrative Issuance</h1>
+                        <div class="authority-office">Office of the Regional Executive Director</div>
+                        <div class="authority-location">DA-RFO7 Complex, Highway Maguikay, Mandaue, 6014 Cebu</div>
+                    </div>
+                </header>
+
+                <!-- Controlled Metadata Matrix Box -->
+                <section class="metadata-box">
+                    <div class="metadata-row">
+                        <div class="metadata-label">Issuance Number:</div>
+                        <div class="metadata-value">2024-AO-012</div>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Effective Date:</div>
+                        <div class="metadata-value">October 26, 2024</div>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Subject:</div>
+                        <div class="metadata-value">Revised Remote Work Policy</div>
+                    </div>
+                </section>
+
+                <!-- Content Execution Frame -->
+                <main>
+                    <h2 class="document-subheading">Executive Order No. 12 (Series of 2024)</h2>
+                    <p class="document-body-text">
+                        An Executive Order outlining the ADMINISTRATIVE Issuance within the government installation
+                        including keys to remote configurations, revised remote candidatures, and policy to national
+                        milestones, administrative regulations, and due to incidental work demands under the Revised
+                        Remote Work framework. And by the high authority vested in this office, all rules outlined
+                        hereafter must be maintained.
+                    </p>
+                </main>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

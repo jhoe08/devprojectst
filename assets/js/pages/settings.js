@@ -76,7 +76,29 @@ class Settings {
     });
   }
   autopopulate(target) {
-
+  }
+  autosave_funds(key_name, value) {
+    const values = [key_name, value];
+    fetch('/settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(values)
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log("Settings save response:", data);
+      if (data.success) {
+        notifyCustom('bell', 'Success', 'Auto saved successfully.', 'success');
+      } else {
+        notifyCustom('alert', 'Error', 'Auto save failed.', 'danger');
+      }
+    })
+    .catch(error => {
+      console.error('Error saving settings:', error);
+      notifyCustom('alert', 'Error', 'An error occurred while auto /saving settings.', 'danger');
+    });
   }
   saveSettings() {
     const container = document.getElementById('v-pills-api-icons');
@@ -100,19 +122,19 @@ class Settings {
       },
       body: JSON.stringify(settingsData)
     })
-      .then(response => response.json())
-      .then(data => {
-        console.log("Settings save response:", data);
-        if (data.success) {
-          notifyCustom('bell', 'Success', 'Settings saved successfully.', 'success');
-        } else {
-          notifyCustom('alert', 'Error', 'Failed to save settings.', 'danger');
-        }
-      })
-      .catch(error => {
-        console.error('Error saving settings:', error);
-        notifyCustom('alert', 'Error', 'An error occurred while saving settings.', 'danger');
-      });
+    .then(response => response.json())
+    .then(data => {
+      console.log("Settings save response:", data);
+      if (data.success) {
+        notifyCustom('bell', 'Success', 'Settings saved successfully.', 'success');
+      } else {
+        notifyCustom('alert', 'Error', 'Failed to save settings.', 'danger');
+      }
+    })
+    .catch(error => {
+      console.error('Error saving settings:', error);
+      notifyCustom('alert', 'Error', 'An error occurred while saving settings.', 'danger');
+    });
   }
   dropdownFunds(data) {
     if (!data || !data.parsed || !Array.isArray(data.parsed.values)) {
@@ -129,7 +151,7 @@ class Settings {
       console.warn('dropdownFunds: PAP column not found');
       return;
     }
-
+    console.log('dropdownFunds')
     const values = new Set();
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];

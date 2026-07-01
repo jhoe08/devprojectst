@@ -26,6 +26,19 @@
       ]
     },
     {
+      label: "Allocated Funds",
+      icon: "fas fa-money",
+      path: "/market-scope",
+      collapseId: "market-scope",
+      show: PROCUREMENT.currentLaw === 'RA120092025',
+      children: [
+        { label: "Lists", path: "/market-scope", badge: total_market_scopes },
+        { label: "Add New", path: "/market-scope/new" },
+        { label: "Analytics", path: "/404" }
+      ]
+    },
+    
+    {
       label: "Scan QR Code",
       icon: "fas fa-qrcode",
       path: "/qrscanner",

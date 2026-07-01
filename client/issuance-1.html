@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrative Issuance Template</title>
+    <style>
+        /* CSS Reset & Document Base */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            color: #111111;
+            background-color: #f4f4f4;
+            padding: 40px 20px;
+        }
+
+        /* Printable A4 Document Container */
+        .issuance-container {
+            background-color: #ffffff;
+            max-width: 8.27in; /* A4 Width */
+            min-height: 11.69in; /* A4 Height */
+            margin: 0 auto;
+            padding: 1.0in; /* Standard 1-inch margins */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Institutional Header */
+        .issuance-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px double #002855; /* Formal primary color accent */
+            padding-bottom: 20px;
+        }
+        .agency-logo {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #002855;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .agency-subtext {
+            font-size: 10pt;
+            font-style: italic;
+            color: #555555;
+            margin-bottom: 15px;
+        }
+        .issuance-title {
+            font-size: 16pt;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin-top: 10px;
+        }
+
+        /* Metadata Block Table */
+        .metadata-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 35px;
+        }
+        .metadata-table td {
+            padding: 6px 0;
+            vertical-align: top;
+        }
+        .metadata-label {
+            font-weight: bold;
+            width: 15%;
+            text-transform: uppercase;
+            font-size: 11pt;
+        }
+        .metadata-value {
+            width: 85%;
+        }
+        .border-line {
+            border-top: 1px solid #111111;
+            margin-bottom: 30px;
+        }
+
+        /* Document Body Content Hierarchy */
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        .policy-text {
+            text-align: justify;
+            margin-bottom: 15px;
+            text-indent: 0.5in; /* Standard paragraph indent */
+        }
+        
+        /* Clause Decimal Numbering Layout */
+        .clause-list {
+            list-style: none;
+            padding-left: 0.5in;
+            margin-bottom: 15px;
+        }
+        .clause-item {
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+        .clause-number {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        /* Authority Sign-off Block */
+        .sign-off-block {
+            margin-top: 60px;
+            page-break-inside: avoid;
+            float: right;
+            width: 45%;
+        }
+        .signature-space {
+            height: 50px; /* Space for physical or digital signature stamp */
+        }
+        .signer-name {
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #111111;
+            padding-bottom: 2px;
+        }
+        .signer-title {
+            font-size: 11pt;
+            color: #333333;
+            margin-top: 5px;
+        }
+
+        /* Clean Print Optimization */
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+            .issuance-container {
+                box-shadow: none;
+                padding: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="issuance-container">
+        
+        <!-- Institutional Header -->
+        <header class="issuance-header">
+            <div class="agency-logo">Nexus Enterprises Holdings</div>
+            <div class="agency-subtext">123 Corporate Ave., Ortigas, Pasig City, Philippines</div>
+            <div class="issuance-title">MEMORANDUM CIRCULAR NO. 2026-004</div>
+        </header>
+
+        <!-- Metadata Block -->
+        <table class="metadata-table">
+            <tr>
+                <td class="metadata-label">TO:</td>
+                <td class="metadata-value">All Department Heads, Division Chiefs, and Regional Personnel</td>
+            </tr>
+            <tr>
+                <td class="metadata-label">FROM:</td>
+                <td class="metadata-value">Office of the Vice President for Human Resources</td>
+            </tr>
+            <tr>
+                <td class="metadata-label">DATE:</td>
+                <td class="metadata-value">June 26, 2026</td>
+            </tr>
+            <tr>
+                <td class="metadata-label">SUBJECT:</td>
+                <td class="metadata-value"><strong>Amended Guidelines on Hybrid Work Arrangements</strong></td>
+            </tr>
+        </table>
+
+        <div class="border-line"></div>
+
+        <!-- Document Body -->
+        <main>
+            <h2 class="section-title">1.0 Purpose and Rationale</h2>
+            <p class="policy-text">
+                This Circular updates institutional guidelines concerning remote and on-site operational hours. The amendments aim to maintain operational continuity, enhance collaborative output, and sustain consistency with our established corporate productivity benchmarks.
+            </p>
+
+            <h2 class="section-title">2.0 Scope and Coverage</h2>
+            <p class="policy-text">
+                This issuance applies strictly to all full-time regular employees, probationary staff, and contractual personnel operating within the corporate headquarters and secondary regional satellite branches.
+            </p>
+
+            <h2 class="section-title">3.0 Core Policy Directives</h2>
+            <ul class="clause-list">
+                <li class="clause-item">
+                    <span class="clause-number">3.1</span><strong>Mandatory Core On-Site Days:</strong> All operational teams must report physically to their designated workspaces on Mondays and Wednesdays.
+                </li>
+                <li class="clause-item">
+                    <span class="clause-number">3.2</span><strong>Core Collaborative Hours:</strong> Inter-departmental meetings, syncs, and operational alignments must be scheduled strictly between 10:00 AM and 3:00 PM.
+                </li>
+            </ul>
+
+            <h2 class="section-title">4.0 Compliance and Monitoring</h2>
+            <p class="policy-text">
+                Failure to adhere to these standardized operational requirements will trigger an immediate review under Article IV (Code of Discipline) of the Employee Handbook. Division Chiefs are directed to submit weekly logs.
+            </p>
+
+            <h2 class="section-title">5.0 Effectivity</h2>
+            <p class="policy-text">
+                This Order shall take effect immediately upon digital distribution and official publication on the institutional intranet portal.
+            </p>
+        </main>
+
+        <!-- Sign-off Block -->
+        <section class="sign-off-block">
+            <div class="signature-space"></div>
+            <div class="signer-name">Maria L. Santos</div>
+            <div class="signer-title">Vice President<br>Human Resource Management Division</div>
+        </section>
+        
+        <div style="clear: both;"></div>
+
+    </div>
+
+</body>
+</html>

@@ -3313,7 +3313,7 @@ app.post('/documents/create', restrict, async function (req, res) {
       created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
       created_by: res.locals.SESSION_USER.username,
     }))
-    
+
     res.status(200).json({ message: 'New Document is being on Track', response: results })
   } catch (error) {
     console.error('Error addding new notification on transaction:', error);
@@ -4215,6 +4215,25 @@ app.get('/checkPayments', loadAllActivities, loadAllPurchaseOrders, async (req, 
         title: "Check Payments",
         description: "A written order directing a bank to pay a specific amount from the payer's account to a named recipient—a payment method that remains surprisingly common in B2B transactions despite the rise of digital alternatives.",
         _datatables: filterTransactions,
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/allocatedFunds', loadAllFunds, async (req, res) => {
+  try {
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/ra12009/allocatedFunds.js'], // this is dataTablesjs
+        styles: [],
+        innerContent: '../pages/allocatedFunds/lists',
+        title: "Allocated Funds",
+        description: "Specific amounts of money set aside or distributed for a particular purpose, project, or department. In budgeting and accounting, this represents the strategic designation of financial resources to ensure operational needs and long-term goals are adequately funded without overspending.",
         ...res.locals,
       });
     // Rendered HTML
