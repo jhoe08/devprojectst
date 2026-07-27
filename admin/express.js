@@ -71,6 +71,8 @@ const _express = (io, moment) => {
         console.log('Emitting retrieveActitivities with:', socketID);
         socket.emit('retrieveActitivities', socketID || 'No ID');
 
+        socket.emit('syncFunds', { message: 'Syncing funds data from server...' });
+
         socket.on('displayActivities', data => {
           console.log('Server: Display Activities Event Triggered admin/express', data)
         })
@@ -86,7 +88,6 @@ const _express = (io, moment) => {
         console.log('Notification Event Triggered', data)
       })
     } 
-
     const expressActivityLog = (data) => {
       // console.log('Activity Log Event Triggered admin/express', data)
     

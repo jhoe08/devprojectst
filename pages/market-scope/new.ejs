@@ -53,41 +53,46 @@
                         <td><label for="a1">Consultations with suppliers / contractors / consultants / professional
                                 associations or industry groups</label></td>
                         <td>
-                            Highlights of consultations or meetings; proof of attendance; reports; summaries;
-                            screenshots;
-                            brochures; publications; price quotations; canvass sheets; Market Analysis Report or similar
-                            documents
+                            <%- include('../../views/partials/ms-documentation', { data: ['consultations_with_suppliers', ["Highlights of consultations or meetings","Proof of attendance", "Reports", "Summaries", "Screenshots", "Brochures", "Publications", "Price quotations", "Canvass sheets", "Market Analysis Report or similar documents"]]}) %>
                         </td>
                     </tr>
                     <tr>
                         <td><input type="checkbox" id="a2" name="activity_summits" /></td>
                         <td><label for="a2">Participation in summits, fora, or conferences</label></td>
-                        <td>Highlights of consultations or meetings; proof of attendance; reports</td>
+                        <td>
+                            <%- include('../../views/partials/ms-documentation', { data: ['participation_in_summits', ["Highlights of consultations or meetings","Proof of attendance", "Reports"]]}) %>
+                        </td>
                     </tr>
                     <tr>
                         <td><input type="checkbox" id="a3" name="activity_reports" /></td>
                         <td><label for="a3">Review of technical, financial, or market/scientific reports</label></td>
-                        <td>Reports; summaries; screenshots; brochures; publications; Market Analysis Report or similar
-                            document; online product reviews</td>
+                        <td>
+                            <%- include('../../views/partials/ms-documentation', { data: ['participation_in_summits', ["Reports", "Summaries", "Screenshots", "Brochures", "Publications", "Market Analysis Report or similar documents", "Online product reviews"]]}) %>
+                        </td>
                     </tr>
                     <tr>
                         <td><input type="checkbox" id="a4" name="activity_brochures" /></td>
                         <td><label for="a4">Review of product/service brochures, marketing materials, industry
                                 journals/publications, or related materials</label></td>
-                        <td>Reports; summaries; screenshots; brochures; publications; online product reviews</td>
+                        <td>
+                            <%- include('../../views/partials/ms-documentation', { data: ['participation_in_summits', ["Reports", "Summaries", "Screenshots", "Brochures", "Publications", "Online product reviews"]]}) %>
+                        </td>
                     </tr>
                     <tr>
                         <td><input type="checkbox" id="a5" name="activity_price_sourcing" /></td>
                         <td><label for="a5">Price sourcing for quotations or cost estimates from suppliers, contractors,
                                 or
                                 consultants</label></td>
-                        <td>Price quotations; canvass sheets; online product reviews</td>
+                        <td>
+                            <%- include('../../views/partials/ms-documentation', { data: ['consultations_with_suppliers', ["Price quotations", "Canvass sheets", "Online product reviews"]]}) %>
+                        </td>
                     </tr>
                     <tr>
                         <td><input type="checkbox" id="a6" name="activity_philgeps" /></td>
                         <td><label for="a6">Use of data from PhilGEPS or agency websites</label></td>
-                        <td>Reports; summaries; screenshots; price quotations; canvass sheets; PhilGEPS postings; online
-                            product reviews</td>
+                        <td>
+                            <%- include('../../views/partials/ms-documentation', { data: ['participation_in_summits', ["Reports", "Summaries", "Screenshots", "Price quotations", "Canvass sheets", "PhilGEPS postings", "Online product reviews"]]}) %>
+                        </td>
                     </tr>
                     <tr>
                         <td><input type="checkbox" id="a7" name="activity_other" /></td>

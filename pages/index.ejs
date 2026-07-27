@@ -63,7 +63,7 @@
   })
 
 
-  const stepsIndex = Object.keys(latestStepsByProduct2).map(key => STEPS.getTitle(Number(key)));
+  const stepsIndex = Object.keys(latestStepsByProduct2).map(key => STEPS.getTitleById(Number(key)));
   const stepsValues = Object.values(latestStepsByProduct2).map(productIds => {
     const length = productIds.length
     return length

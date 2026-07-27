@@ -163,3 +163,7 @@ table.dataTable {
     margin-right: 10px;
   }
 }
+
+.swal-text {
+  text-align: center;
+}

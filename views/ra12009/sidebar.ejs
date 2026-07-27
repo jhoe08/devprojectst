@@ -30,10 +30,26 @@
       path: "/allocated-funds",
       collapseId: "allocated-funds",
       children: [
-        { label: "Earmarked", path: "/allocated-funds/earmarked" },
-        { label: "Purchase Request", path: "/allocated-funds/purchase-requests" },
-        { label: "Obligations", path: "/allocated-funds/obligations" },
-        { label: "Disbursement", path: "/allocated-funds/disbursement" },
+        { label: "Current Funds", 
+          path: "/allocatedFunds/current",
+          children: [
+            { label: "Earmarked", path: "/allocatedFunds/current/earmarked" },
+            { label: "Purchase Request", path: "/allocatedFunds/current/purchase-requests" },
+            { label: "Obligations", path: "/allocatedFunds/current/obligations" },
+            { label: "Disbursement", path: "/allocatedFunds/current/disbursement" },
+          ],
+          show: false,
+        },
+        { label: "Funds", 
+          path: "/allocatedFunds",
+          children: [
+            { label: "Earmarked", path: "/allocatedFunds/current/earmarked" },
+            { label: "Purchase Request", path: "/allocatedFunds/current/purchase-requests" },
+            { label: "Obligations", path: "/allocatedFunds/current/obligations" },
+            { label: "Disbursement", path: "/allocatedFunds/current/disbursement" },
+          ] 
+        },
+        
       ]
     },
     {
@@ -137,6 +153,7 @@
                  <div class="collapse" id="<%= item.collapseId %>">
                    <ul class="nav nav-collapse">
                      <% item.children.forEach(child => { %>
+                      <% if (child.show !== false) { %>
                        <li>
                          <a href="<%= child.path %>">
                            <span class="sub-item"><%= child.label %>
@@ -146,6 +163,7 @@
                            </span>
                          </a>
                        </li>
+                      <% } %>
                      <% }) %>
                    </ul>
                  </div>

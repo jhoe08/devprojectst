@@ -39,7 +39,7 @@ const charts = {
         var ctx = canvas.getContext("2d");
 
         const keysAsArrays = Object.fromEntries(
-            data.map(item => [item.procurement_type, item.item_count])
+            data.map(item => [item.pr_classification, item.item_count])
         );
 
         labels = Object.keys(keysAsArrays)
@@ -367,25 +367,18 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!doughnut && !pie) return;
 
     const doughnutDatasets = doughnut.dataset.values ? JSON.parse(doughnut.dataset.values) : {};
+    const barDatasets = bar.dataset.values ? JSON.parse(bar.dataset.values) : {};
+
+    console.log({ doughnutDatasets, barDatasets })
 
     const doughnutLabels = Object.keys(doughnutDatasets);
     const doughnutData = Object.values(doughnutDatasets);
 
-    const barDatasets = bar.dataset.values ? JSON.parse(bar.dataset.values) : {};
-    // const barDatasets = bar.dataset.values ? bar.dataset.values : {};
-    // const barLabels = Object.keys(barDatasets);
-    // const barData = Object.values(barDatasets);
-
     const pieLabels = pie.dataset.labels ? JSON.parse(pie.dataset.labels) : {};
     const piePoints = pie.dataset.points ? JSON.parse(pie.dataset.points) : {};
-
-    // charts.doughnut('chartClassification', doughnutLabels, doughnutData);
-    charts.doughnut('chartClassification', '', doughnutData);
-
-    charts.bar('chartProcurementType', '', barDatasets)
-
-    console.log({ pieLabels, piePoints })
-
+   
+    charts.doughnut('chartClassification', '', doughnutDatasets);
+    charts.bar('chartProcurementType', '', barDatasets);
     charts.pie('chartDistribution', pieLabels, piePoints);
 
     const lineLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

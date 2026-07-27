@@ -208,7 +208,7 @@ function settingsFundsChargeToModal(target) {
     saveBtn.addEventListener('click', () => {
 
       const selectedInput = document.querySelector('.active input[name*="funds_source_"]:checked');
-      const budgetInput = document.getElementById('budget')
+      const budgetInput = document.querySelector('#budget')
       if (!selectedInput) return;
 
       const selectedValue = selectedInput.value;
@@ -242,10 +242,12 @@ function settingsFundsChargeToModal(target) {
       document.body.dataset.fundsAllocation = JSON.stringify(chargedArray);
       budgetInput.value = parseFloat(fundsArray.charge)
 
+      console.log(budgetInput.value)
 
-      document.querySelector(`#chargedFunds_${target}`).closest('.row').classList.toggle('hidden')
-      document.querySelector(`#chargedFunds_${target}`).value = fundsText
-      document.querySelector(`#chargedAmount_${target}`).value = fundsArray.charge
+
+      // document.querySelector(`.active #chargedFunds_${target}`).closest('.row').classList.toggle('hidden')
+      document.querySelector(`.active #chargedFunds_${target}`).value = fundsText
+      document.querySelector(`.active #chargedAmount_${target}`).value = fundsArray.charge
 
       console.log('Funds charged to: ', { target, chargedArray })
 
@@ -254,14 +256,14 @@ function settingsFundsChargeToModal(target) {
 
       const group = selectedInput.closest('.form-group');
       if (group) {
-        group.classList.add('hidden');
+        //group.classList.add('hidden');
       }
 
-    });
+    },{ once: true }); // listener runs only once
   }
 }
 
-function settingsFundsAllocation() {
+function settingsFundsAllocation(target) {
   const srcSelect = document.querySelector('select#source[name="source"]');
   const funds_sourceRadios = document.querySelectorAll('input[name^="funds_source_"]');
 
@@ -315,7 +317,8 @@ function settingsFundsAllocation() {
 
           let dataFunds;
           try {
-            dataFunds = JSON.parse(rawFunds);
+            // dataFunds = JSON.parse(rawFunds);
+            dataFunds = rawFunds
           } catch (err) {
             console.error("Failed to parse dataFunds:", err, rawFunds);
             return;
@@ -717,8 +720,10 @@ function updateTransaction() {
 }
 
 function duplicateNodes() {
+  // console.log('duplicateNodes');
   let rowCount = 1;
   addButton.addEventListener('click', function () {
+    console.log('duplicateNodes');
     // Cache containers once
     const chargingRow = document.querySelector('#chargingTo .row');
     const supplierRow = document.querySelector('#supplierInfo .row');
@@ -764,7 +769,7 @@ function duplicateNodes() {
     const removeButton = clonedForm.querySelector('.fa-minus-circle');
     if (removeButton) {
       removeButton.addEventListener('click', () => {
-        console.log('Remove button clicked for row:', clonedForm.dataset.id);
+        console.log('Remove button clicked for row: ', clonedForm.dataset.id);
         clonedForm.remove();
       });
     }
@@ -823,7 +828,7 @@ document.getElementById('chargingTo')?.addEventListener('click', (e) => {
     const index = Number(parts[parts.length - 1]);
 
     settingsFundsChargeToModal(index);
-    settingsFundsAllocation();
+    settingsFundsAllocation(index);
   }
 });
 
@@ -833,7 +838,9 @@ if (createTransaction) createTransaction();
 const updateTransactions = document.getElementById('updateTransactions')
 if (updateTransaction) updateTransaction();
 
-const addButton = document.getElementById('addButton');
+const addNewPrContainer = document.querySelector('.form-group-add')
+
+const addButton = addNewPrContainer?.querySelector('#addButton');
 if (addButton) duplicateNodes();
 
 const createTransactionCode = document.getElementById('createTransactionCode')

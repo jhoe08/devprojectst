@@ -1,10 +1,39 @@
+<% 
+    if (FUNDS.length === 2) {
+        const [currentFunds, continuingFunds] = FUNDS;
+        const currentRaw = currentFunds.value;
+        const continuingRaw = continuingFunds.value;
+
+        const currentValue = JSON.parse(currentRaw);
+        const continuingValue = JSON.parse(continuingRaw);
+
+        // Merge the data from both sources
+        const mergedData = {
+            lastUpdated: new Date(Math.max(new Date(currentValue.lastUpdated), new Date(continuingValue.lastUpdated))).toISOString(),
+            data: {
+                values: [...currentValue.data.values.slice(1), ...continuingValue.data.values.slice(1)]
+            }
+        };
+
+        FUNDS.value = JSON.stringify(mergedData);
+    }
+
+    const raw = FUNDS.value
+    const value = JSON.parse(raw)
+    const rawData = value.data
+    const rawValues = rawData.values
+
+    const lastUpdated = new Date(value.lastUpdated).toLocaleString('en-US')
+%>
+
 <div class="card">
     <div class="card-header">
         <div class="card-head-row card-tools-still-right">
             <div class="card-title">List of <%=title%>
             </div>
             <div class="card-tools">
-                <button id="refreshTransactions" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card"
+                Last Sync: <%= lastUpdated %>
+                <button id="sysncFunds" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card"
                     data-component="transactions">
                     <span class="fa fa-sync-alt"></span>
                 </button>
@@ -12,29 +41,33 @@
         </div>
     </div>
     <div class="card-body">
-        <% 
-            const raw = FUNDS?.value
-            const value = JSON.parse(raw)
-            const rawData = JSON.parse(value.data)
-            const rawValues = rawData.values
-
-            console.log(rawValues[0])
-        %>
-
+        
         <%- include('../../components/datatables/tables', { 
-          tableId: "allocatedFunds", 
-          classes: "allocatedFunds",
-          thead: [...rawValues[0].slice(0,5), "meta", "actions"], 
-          tbody: rawValues.slice(1)?.map(fnd => ({
-                ...fnd.slice(0, 5),
-                meta: {
+            tableId: "allocatedFunds", 
+            classes: "allocatedFunds",
+            thead: ["fund", "pap", "class", "obj_code", "description", "source", "adjusted_allotment", "obligation", "unobligated_allotment", "earmark", "balance_net_earmark", "actions"], 
+            tbody: rawValues
+                .filter(row => {
+                    // skip if row is falsy, empty array, or all cells empty/whitespace/backtick
+                    if (!row || row.length === 0 || row[1] === '' || row[2] === '') return false;
+                    return row.some(cell => cell && cell.trim() !== "" && cell.trim() !== "`");
+                }) // skip empty rows
+                .map(row => ({
+                    fund: row[0],             // FUND
+                    pap: row[1],              // PAP
+                    class: row[2],            // CLASS
+                    obj_code: row[3],         // OBJ CODE
+                    description: row[4],      // DESCRIPTION
+                    source: row.length === 11 ? row[5] : null, // only for CONTINUING
+                    adjusted_allotment: row[row.length - 5],
+                    obligation: row[row.length - 4],
+                    unobligated_allotment: row[row.length - 3],
+                    earmark: row[row.length - 2],
+                    balance_net_earmark: row[row.length - 1],
+                    actions: ``
+                })), 
+            hideColumns: [] 
+            }) %>
 
-                },
-                actions: `
-                    
-                `
-            })), 
-          hideColumns: [] 
-        }) %>
     </div>
 </div>

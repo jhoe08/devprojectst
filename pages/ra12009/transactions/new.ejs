@@ -87,7 +87,7 @@
                   </select>
               </div>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-6">
               <% var budget=0; var cleanBudget=0; if (transactions) { budget=transactions?.approved_budget
                 cleanBudget=budget.replace(/,/g, '' ); budget=parseFloat(cleanBudget) } %>
                 <div class="form-group form-group-default" data-budget="<%-budget%>">
@@ -99,7 +99,7 @@
                   </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
               <div class="form-group form-group-default">
                 <label for="bidNoticeTitle">Requisitioner</label>
                 <div class="input-icon">
@@ -109,7 +109,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 hidden">
               <div class="form-group form-group-default form-group-select">
                 <label for="bacUnit">BAC Unit</label>
                   <select id="bacUnit" name="bacUnit" class="form-select">
@@ -190,8 +190,8 @@
 
               
             </div>
-            <% }) } else { %>
-              <div class="row" id="charging_0" data-id="0">
+            <% }) } else if(false) { %>
+              <div class="row hidden" id="charging_0" data-id="0">
                 <div class="col-md-12 d-flex">
                   <div class="col-md-1 pe-3">
                     <div class="form-group form-group-default form-group-minus">
@@ -204,7 +204,10 @@
                   </div>
                 </div>
               </div>
-              <% } %>
+            <% } else { %>
+              <div id="fundSourceLists"></div>
+              <%- include('../../../components/templates/fundSource') %>
+            <% } %>
 
         </div>
     </div>

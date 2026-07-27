@@ -95,6 +95,10 @@ const expressNodes = {
                 divs[0].textContent = data
             }
         })
+
+        _io.on('syncFunds', data => {
+            console.log('syncFunds data', data)
+        })
         
     }
 }

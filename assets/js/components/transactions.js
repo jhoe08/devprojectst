@@ -521,6 +521,9 @@
     })
   }
   if (addButton) {
+
+    console.log('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+
     let rowCount = 1;
     addButton.addEventListener('click', function () {
       // Cache containers once

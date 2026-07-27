@@ -74,15 +74,15 @@
     } 
   })
 
-  console.log({ latestStepsByProduct2 })
-
-  const stepsIndex = Object.keys(latestStepsByProduct2).map(key => STEPS.getTitle(Number(key)));
+  const stepsIndex = Object.keys(latestStepsByProduct2).map(key => STEPS.getTitleById(Number(key)));
   const stepsValues = Object.values(latestStepsByProduct2).map(productIds => {
     const length = productIds.length
-    console.log('Distribution', length)
-    const title = STEPS.getTitle(Number(length))
+    // console.log('Distribution', length)
+    const title = STEPS.getTitleById(Number(length))
     return length
   });
+
+  console.log({ stepsIndex })
 
 %>
 
@@ -305,7 +305,7 @@
     <%- include('../../components/charts/multipleLine', { title: "Purchase Request", description: "", datasets: {months:jsonMonths, amounts:[], abcs: _abcs_values, disbursements: []} }) -%>
     </div>
     <div class="col-sm-12 col-md-6 col-lg-4" >
-    <%- include('../../components/charts/pie', { id:"chartClassification", title: "Classification", datasets: perProcurementType }) -%>
+    <%- include('../../components/charts/pie', { id:"chartClassification", title: "Classification", datasets: perClassification }) -%>
     </div>
     <div class="col-sm-12 col-md-6 col-lg-4" >
     <%- include('../../components/charts/pie', { id:"chartProcurementType", title: "Procurement Type", datasets: perProcurementType }) -%>

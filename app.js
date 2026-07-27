@@ -10,6 +10,7 @@ const connection = require("./admin/database_backup");
 const misc = require("./admin/misc")
 const utils = require("./admin/utils");
 const { approveTransaction } = require('./services/approvalService');
+const { syncAllFunds } = require('./services/googleSheetsService');
 
 // const sharedJsonHelperPath = pathToFileURL(path.join(__dirname, 'assets/js/helpers/jsonHelper.js')).href;
 // let sharedJsonHelper;
@@ -27,7 +28,12 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const { v4: uuidv4 } = require('uuid');
 
-const { svp: CONST_SVP, publicBidding: CONST_PB, responsiblePersonAtStages, MISC: CONST_MISC } = require('./admin/const')
+const { 
+  svp: CONST_SVP, 
+  publicBidding2: 
+  CONST_PB, 
+  responsiblePersonAtStages, 
+  MISC: CONST_MISC } = require('./admin/const')
 
 
 // const logger = require('./utils/logger');
@@ -1059,15 +1065,15 @@ app.use(async (req, res, next) => {
         const { STEPS } = res.locals
         return STEPS?.lists().find(step => step.id === id);
       },
-      getTitle: (step_id) => {
+      getTitleById: (step_id) => {
         const { STEPS } = res.locals
         const step = STEPS?.lists().find(step => step.id === step_id);
-        return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
+        return step ? step.steps_title : `(-) Unknown Step (step_id: ${step_id})`;
       },
-      getTitle: (transaction, step_id) => {
+      getTitleByTransaction: (transaction, step_id) => {
         const { STEPS } = res.locals
         const step = STEPS?.getApprovalSteps(transaction).find(step => step.id === step_id);
-        return step ? step.steps_title : `Unknown Step (step_id: ${step_id})`;
+        return step ? step.steps_title : `(+) Unknown Step (step_id: ${step_id})`;
       },
       getCurrentStageGroup(transaction, currentId) {
         const { STEPS } = res.locals;
@@ -1123,6 +1129,10 @@ app.use(async (req, res, next) => {
         // console.log('Fetching employee by ID:', result);
         return JSON.stringify(result[0]);
       },
+      generateReferenceCode: (row) => {
+        const requestID = addLeadingZeros(row.id, 3)
+        return `MSC${moment(row.prepared_by_date).format('YYYYMMDD')}-${requestID}`
+      },
       generatePRCode: (row) => {
         const requestID = addLeadingZeros(row.product_id)
         return `PR${moment(row.pr_date).format('YYYYMMDD')}-${requestID}`
@@ -1138,6 +1148,11 @@ app.use(async (req, res, next) => {
       generateDVCode: (po_id) => { // 26-05-0001
         const requestID = addLeadingZeros(po_id, 4)
         return `${moment().format('YY-MM')}-${requestID}`;
+      },
+      generateSupplierCode: (supplier_id) => {
+        supplier_id = parseInt(supplier_id, 10) + 1 || 0; // Ensure it's a number
+        const requestID = addLeadingZeros(supplier_id, 4)
+        return `SUP${requestID}`;
       },
       getFundSources: (row) => {
         let { fund_source } = row;
@@ -1421,7 +1436,11 @@ const loadAllMarketScopes = async (req, res, next) => {
 
 const loadAllFunds = async (req, res, next) => {
   try {
-    res.locals.FUNDS = await connection.getFunds();
+    // res.locals.FUNDS = await connection.getFunds('current');
+    res.locals.FUNDS = await Promise.all([
+      connection.getFunds('current'),
+      connection.getFunds('continuing')
+    ]);
     next();
   } catch (error) {
     console.error("Error loading funds:", error);
@@ -1556,12 +1575,16 @@ app.get('/', restrict, loadAllTransactions, loadAllActivities, loadAllMarketScop
 
   const safeCardsData = charts || { employees: { row_count: 0, total_sum: 0 }, transactions: { row_count: 0, total_sum: 0 }, notifications: { row_count: 0, total_sum: 0 } };
 
-  console.log({ safeCardsData })
+  // console.log({ safeCardsData })
 
-  // const perPRClassification = countPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
-  //   acc[pr_classification] = item_count;
-  //   return acc;
-  // }, {});
+  // console.log('countPerPRClassification', countPerPRClassification)
+
+  const perPRClassification = countPerPRClassification.reduce((acc, { pr_classification, item_count }) => {
+    acc[pr_classification] = item_count;
+    return acc;
+  }, {});
+
+  console.log('perPRClassification', perPRClassification)
 
 
   if (res.locals.PROCUREMENT.currentLaw !== 'RA120092025') {
@@ -1575,6 +1598,8 @@ app.get('/', restrict, loadAllTransactions, loadAllActivities, loadAllMarketScop
       cardsData: safeCardsData,
     });
   } else {
+    console.log({ countPerPRClassification })
+
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
         scripts: ['/assets/js/global.js'],
@@ -2235,7 +2260,7 @@ app.get('/transactions', restrict, loadAllEmployees, async (req, res) => {
     } else {
       const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
         {
-          scripts: [],
+          scripts: ['/assets/js/pages/suppliers/index.js'],
           styles: [],
           innerContent: '../pages/ra12009/transactions/index',
           title: "Transactions",
@@ -2289,7 +2314,7 @@ app.get('/transactions/new', restrict, loadAllFunds, async (req, res, next) => {
       {
         scripts: [
           // '/assets/js/pages/ra12009/transactions.js',
-          '/assets/js/pages/transactions.js',
+          // '/assets/js/pages/transactions.js',
           // '/assets/js/components/transactions.js'
           '/assets/js/pages/purchaseRequests/addFundSource.js'
         ],
@@ -3018,7 +3043,7 @@ app.get('/employees', restrict, async (req, res) => {
   } else {
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: [],
+        scripts: ['/assets/js/pages/suppliers/index.js'],
         styles: [],
         innerContent: '../pages/ra12009/employees/index',
         title: "Employees",
@@ -3157,21 +3182,21 @@ app.get('/employees/:id/update', restrict, async (req, res) => {
   }
 });
 
-app.delete('/employees/:id', restrict, async (req, res) => {
-  try {
-    // const transid = req.params.id;
-    // const force = req.params.force
+// app.delete('/employees/:id', restrict, async (req, res) => {
+//   try {
+//     // const transid = req.params.id;
+//     // const force = req.params.force
 
-    const { id } = req.params
+//     const { id } = req.params
 
-    // let lists = await connection.hideToDisplay('employees', transid);
-    console.log({ id, force })
-    res.status(204).send(); // No content (successful deletion)
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    res.status(500).send('Internal Server Error');
-  }
-})
+//     // let lists = await connection.hideToDisplay('employees', transid);
+//     console.log({ id, force })
+//     res.status(204).send(); // No content (successful deletion)
+//   } catch (error) {
+//     console.error('Error fetching products:', error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// })
 
 app.get('/inventory', restrict, async function (req, res) {
   res.render('inventory/', {
@@ -3188,7 +3213,7 @@ app.get('/suppliers', restrict, loadAllSuppliers, async function (req, res) {
   try {
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: [],
+        scripts: ['/assets/js/pages/suppliers/index.js'],
         styles: [],
         innerContent: '../pages/ra12009/suppliers/index',
         title: "List of Suppliers",
@@ -3220,8 +3245,11 @@ app.get('/suppliers/:id/view', restrict, loadAllSuppliers, async function (req, 
 
 })
 app.get('/suppliers/new', restrict, async function (req, res) {
+  const lastId = await connection.getLastId('suppliers');
+
   res.render('suppliers/new', {
-    title: "Suppliers"
+    title: "Suppliers",
+    lastId: lastId
   })
 })
 app.post('/suppliers/add', restrict, async function (req, res) {
@@ -3229,6 +3257,7 @@ app.post('/suppliers/add', restrict, async function (req, res) {
     const {
       supplier_code,
       supplier_name,
+      supplier_tin,
       contact_person,
       email,
       phone,
@@ -3238,7 +3267,7 @@ app.post('/suppliers/add', restrict, async function (req, res) {
 
     // Defensive: check if all fields are empty
     console.log('Received supplier data:', req.body);
-    const allEmpty = [supplier_code, supplier_name, contact_person, email, phone, address, status]
+    const allEmpty = [supplier_code, supplier_name, supplier_tin, contact_person, email, phone, address, status]
       .every(field => !field || field.trim() === '');
 
     if (allEmpty) {
@@ -3246,7 +3275,7 @@ app.post('/suppliers/add', restrict, async function (req, res) {
     }
 
     // Insert into DB (example using MySQL with async/await)
-    const result = await connection.postSuppliers(JSON.stringify(req.body));
+    const result = await connection.postSuppliers(req.body);
     console.log('Supplier added with ID:', result);
     res.status(200).json({ message: 'Supplier added successfully.' });
   } catch (error) {
@@ -3254,6 +3283,21 @@ app.post('/suppliers/add', restrict, async function (req, res) {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
+// app.delete('/supplier/:id', async function (req, res) {
+//   const { id } = req.params;   // capture ID from URL
+//   const { name, path } = req.body; // optional extra data from body
+
+//   console.log(`Deleting record: ${id}, name: ${name}, path: ${path}`);
+
+//   // TODO: add your database or file deletion logic here
+//   // Example: db.remove(id);
+
+//   res.json({
+//     success: true,
+//     message: `Record ${id} (${name}) has been deleted.`
+//   });
+// })
+
 // DOCUMENTS
 app.get('/v1/documents', restrict, async function (req, res) {
   const results = await connection.getDocumentTrackerData()
@@ -3684,6 +3728,19 @@ app.route('/api/qrcode/:id')
     return res.status(400).json({ response: 'No data related to the QR Code', component: false });
   })
 
+app.route('/api/allocatedFunds')
+  .all(restrict)
+  .get(async (req, res) => {
+    try {
+      const result = await syncAllFunds(); // fetch from Google Sheets and upsert DB
+      console.log('Funds sync result:', result);
+      res.json({ success: true, lastUpdated: result.lastUpdated });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to sync funds' });
+    }
+  })
+
 // SETTINGS page
 // Status: Super Admin only, restrict to access
 app.get('/settings', restrict, async (req, res) => {
@@ -3729,6 +3786,8 @@ app.post('/settings', restrict, async function (req, res) {
   try {
     const settingsData = req.body
     const values = settingsData.map(item => [item.key_name, item.key_value, 'string', null, 1]);
+
+    console.log('Settings data to be saved:', values);
 
     const results = await connection.postSettings(values)
     res.status(200).json({ message: 'Settings updated!', response: results, success: true })
@@ -4225,15 +4284,15 @@ app.get('/checkPayments', loadAllActivities, loadAllPurchaseOrders, async (req, 
   }
 })
 
-app.get('/allocatedFunds', loadAllFunds, async (req, res) => {
+app.get('/allocatedFunds/current', loadAllFunds, async (req, res) => {
   try {
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
         scripts: ['/assets/js/pages/ra12009/allocatedFunds.js'], // this is dataTablesjs
         styles: [],
         innerContent: '../pages/allocatedFunds/lists',
-        title: "Allocated Funds",
-        description: "Specific amounts of money set aside or distributed for a particular purpose, project, or department. In budgeting and accounting, this represents the strategic designation of financial resources to ensure operational needs and long-term goals are adequately funded without overspending.",
+        title: "Current Allocated Funds",
+        description: "Refer to money that has been specifically set aside or designated for a particular purpose or project. In a budgeting or accounting context, \"current allocated funds\" represents the remaining, unspent balance available for that designated use at this exact point in time.",
         ...res.locals,
       });
     // Rendered HTML
@@ -4243,6 +4302,78 @@ app.get('/allocatedFunds', loadAllFunds, async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 })
+
+app.get('/allocatedFunds', loadAllFunds, async (req, res) => {
+  try {
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/ra12009/allocatedFunds.js'], // this is dataTablesjs
+        styles: ['/assets/css/pages/allocatedFunds.css'],
+        innerContent: '../pages/allocatedFunds/lists-v2',
+        title: "Allocated Funds",
+        description: "Allocated funds are financial resources set aside, assigned, or distributed for a specific purpose, project, or recipient.",
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/allocatedFunds/earmarked', loadAllFunds, async (req, res) => {
+  try {
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/ra12009/allocatedFunds.js'], // this is dataTablesjs
+        styles: [],
+        innerContent: '../pages/allocatedFunds/lists',
+        title: "Earmarked Funds",
+        description: "Specific pools of money set aside by a government, corporation, or organization for a strictly designated purpose, meaning they cannot be used for general operating expenses.",
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.delete('/:path/:id', async (req, res) => {
+  const { path, id } = req.params;
+
+  try {
+    // Map path to actual table name
+    const tableMap = {
+      suppliers: 'suppliers',
+      employees: 'employees',
+      transid: 'transid'
+    };
+
+    const table = tableMap[path];
+
+    console.log(table)
+
+    if (!table) {
+      return res.status(400).json({ error: 'Invalid path' });
+    }
+
+    // Example SQL deletion (using parameterized query)
+    // await db.query(`DELETE FROM ${table} WHERE id = ?`, [id]);
+    await connection.archive(table, id)
+
+    res.json({
+      success: true,
+      message: `/${path} record with ID ${id} deleted`
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 // app.use(async function (req, res, next) {
 //   res.status(404).render('404', {

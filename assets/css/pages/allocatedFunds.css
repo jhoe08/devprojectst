@@ -1,0 +1,10 @@
+tbody {
+
+    td[data-index="6"],
+    td[data-index="7"],
+    td[data-index="8"],
+    td[data-index="9"],
+    td[data-index="10"] {
+        text-align: right;
+    }
+}

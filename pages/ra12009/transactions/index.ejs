@@ -59,7 +59,12 @@
                 userPosition = userPosition?.toLowerCase();
 
                 for(var i=0; i < transactions.length; i++) { 
+
+                    if (transactions[i].archive !== 1) {
+
                     var {pr_date, approved_budget, product_id, pr_classification, procurement_type, banner_program, bid_notice_title, requisitioner, division, fund_source, bac_unit, trans_code, prepared_by } = transactions[i]
+
+                    
 
                     date = moment(pr_date).format('L')
                     
@@ -176,7 +181,7 @@
                         <% } %>
                         
                         <% if ((hasAllowedRole(['SuperAdmin']) && !isComplete) || isCreatorOfTransaction(transactions[i])) { %>
-                        <button data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn btn-delete btn-link btn-danger" data-original-title="Remove"  id="alert_demo_<%= product_id %>">
+                        <button data-id="<%= transactions[i].product_id %>" data-name="<%= bid_notice_title %>" data-path="/transid" data-transid="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="alert_danger btn btn-delete btn-link btn-danger" data-original-title="Remove"  id="alert_demo_<%= product_id %>">
                         <i class="fa fa-trash"></i>
                         </button>
                         <% } %>
@@ -190,7 +195,9 @@
                     <%= procurement_type %>
                     </td>
                 </tr>
-                <% } %>
+                <% } 
+                }
+                %>
                 </tbody>
         </table>
     </div>

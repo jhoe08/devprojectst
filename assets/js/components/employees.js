@@ -301,62 +301,6 @@
         });
       })
     }
-    if (deleteEmployee) {
-      deleteEmployee.forEach(danger=>{
-        danger.addEventListener('click', (event)=>{
-          let employees = danger
-          let {id, name} = employees.dataset
-
-          document.querySelectorAll('#employees tr').forEach(row => row.classList.remove('selected'));
-          event.target.closest('tr').classList.add('selected')
-
-          title = `Are you sure to delete ${name}?`
-          message = "Once deleted, you will not be able to recover this file!"
-
-            swal({
-                title,
-                text: "Once deleted, you will not be able to recover this employee file!",
-                icon: "warning",
-                // buttons: ["Cancel", "Delete it!", "ASD"],
-                buttons: {
-                  cancel: true,
-                  confirm: "Confirm",
-                  roll: {
-                    text: "Force Delete!",
-                    value: "forceDelete",
-                  },
-                },
-                dangerMode: true, })
-            .then((willDelete) => {
-              let url = `/employees/${id}`
-             
-              switch(willDelete) {
-                case true:
-                  console.log('Confirm 1', url)
-                break;
-                case 'forceDelete':
-                  url += '/force'
-                  console.log('Confirm 2', url)
-                break;
-                default:
-                  document.querySelectorAll('#employees tr').forEach(row => row.classList.remove('selected'));
-                break;
-              }
-
-              fetch(url, {
-                method: 'DELETE' })
-              .then(res => {
-                return res.text()}) // or res.json()
-              .then(data => {
-                swal("Poof! Transaction file has been deleted!", {
-                icon: "success", });
-                // if Yes
-                document.querySelector('tr.selected').remove().draw(false)
-              }) // endof fetch()
-            });
-        })
-      })
-    }
     if (roleInputEnter) {
       roleInputEnter.addEventListener('keypress', function(event) {
       if (event.key === 'Enter') {

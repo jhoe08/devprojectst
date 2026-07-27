@@ -1,5 +1,5 @@
 <%
-    const { id:parentId, project_title, reference_number, date_conducted, end_user_unit, consultations_with_suppliers, participation_in_summits, review_reports, review_brochures, price_sourcing, use_philgeps_data, other_activity, documentation, prepared_by_name, prepared_by_position, prepared_by_date, prepared_by_signature, reviewed_by_name, reviewed_by_position, reviewed_by_date, reviewed_by_signature } = results[0] || {}
+    const { id:parentId, project_title, reference_number, estimated_budget, date_conducted, end_user_unit, consultations_with_suppliers, participation_in_summits, review_reports, review_brochures, price_sourcing, use_philgeps_data, other_activity, documentation, prepared_by_name, prepared_by_position, prepared_by_date, prepared_by_signature, reviewed_by_name, reviewed_by_position, reviewed_by_date, reviewed_by_signature } = results[0] || {}
     
     const { scoping_id:refId, results:scopingResults, document_reference, created_at, updated_at } = results[1] || {}
     
@@ -171,6 +171,27 @@
         top: -13px;
     }
 
+    .top-series {
+        position: absolute;
+        top: -15px;
+        right: -45px;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    .top-series img {
+        width: 100px;
+    }
+
+    .top-series .series-number {
+        font-size: 12px;
+        text-align: center;
+    }
+
+    .top-series strong {
+        display: block;
+    }
+
     .page-inner {
         padding: 0 !important;
     }
@@ -241,6 +262,13 @@
         <img class="daLogo" src="/client/assets/img/da-logo-masaganang-ekonomiya.png"
             alt="Department of Agriculture - Masaganang Agrikultura, Maunlad na Ekonomiya">
     </div>
+    <div class="top-series">
+        <div class="series-number">
+            <div id="<%- parentId -%>" data-qrcode="<%- parentId -%>" class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- parentId -%>"></div>
+            <%= UTILS.generateReferenceCode(results[0]) %>
+            <strong>Reference No.</strong>
+        </div>
+    </div>
 
     <header>
         <h5 class="mb-0 fs-6">Republic of the Philippines</h5>
@@ -286,7 +314,7 @@
                 </tr>
                 <tr>
                     <td class="w-50">Estimated Budget</td>
-                    <td class="w-50"></td>
+                    <td class="w-50"><%= UTILS.peso(estimated_budget) %></td>
                 </tr>
                 <tr>
                     <td class="w-50">Period of Market Scoping [From (mm/yyyy) To (mm/yyyy)]</td>

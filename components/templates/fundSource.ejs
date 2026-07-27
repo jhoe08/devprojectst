@@ -1,0 +1,48 @@
+<!-- Template -->
+<template id="fundSourceTemplate">
+    <div class="fundSource-entry form-group p-0">
+        <div class="row">
+            <div class="col-md-1 pe-3">
+                <div class="form-group form-group-default form-group-minus">
+                    <label for="minusButton_0">Rmv</label>
+                    <button id="minusButton_0" class="form-control fas fa-minus-circle"></button>
+                </div>
+            </div>
+            <div class="col-md-11">
+                <div class="selectgroup w-100">
+                    <label for="current_0" class="selectgroup-item">
+                        <input type="radio" name="funds_source_0" value="current" id="current_0"
+                            class="selectgroup-input" data-bs-toggle="modal" data-bs-target="#fundsChargeToModal">
+                        <span class="selectgroup-button">CURRENT</span>
+                    </label>
+                    <label for="continuing_0" class="selectgroup-item">
+                        <input type="radio" name="funds_source_0" value="continuing" id="continuing_0"
+                            class="selectgroup-input" data-bs-toggle="modal" data-bs-target="#fundsChargeToModal">
+                        <span class="selectgroup-button">CONTINUING</span>
+                    </label>
+                </div>
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="form-group form-group-default">
+                            <label for="chargedFunds_0">Allocations</label>
+                            <div class="input-icon">
+                                <input id="chargedFunds_0" name="chargedFunds_0" type="text" class="form-control"
+                                    value="" readonly="">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 ps-0">
+                        <div class="form-group form-group-default">
+                            <label for="chargedAmount_0">Amount</label>
+                            <div class="input-icon">
+                                <input id="chargedAmount_0" name="chargedAmount_0" data-type="number" type="text"
+                                    class="form-control" value="" readonly="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</template>

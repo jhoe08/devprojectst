@@ -14,6 +14,7 @@ const tables = {
   remark: 'remarks',
   document: 'documents',
   notification: 'notifications',
+  suppliers: 'suppliers',
   settings: 'settings',
   market_scope: 'market_scoping',
   market_scope_results: 'market_scoping_results',
@@ -995,6 +996,9 @@ const databaseUtils = {
   },
 
   postSettings: async (values) => {
+
+    console.log('postSettings', values)
+
     const query = `
       INSERT INTO ${prefix}.${tables.settings} 
       (key_name, value, type, description, is_active) 
@@ -1015,6 +1019,28 @@ const databaseUtils = {
     });
 
   },
+
+  postSettingsByKey: async (keyName, value, type, description, isActive) => {
+    const query = `
+      INSERT INTO ${prefix}.${tables.settings}
+      (key_name, value, type, description, is_active)
+      VALUES (?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        value = VALUES(value),
+        type = VALUES(type),
+        description = VALUES(description),
+        is_active = VALUES(is_active)
+    `;
+
+    console.log('postSettingsByKey', { keyName, value, type, description, isActive });
+    return new Promise((resolve, reject) => {
+      connection.query(query, [keyName, value, type, description, isActive], (error, results) => {
+        if (error) reject(error);
+        else resolve(results);
+      });
+    });
+  },
+
   getSettings: async () => {
     const query = `
       SELECT key_name, value, type, description, is_active
@@ -1057,7 +1083,7 @@ const databaseUtils = {
     return await databaseUtils.retrieveData('suppliers')
   },
   postTransactionSuppliers: async (data) => {
-    console.log('postSuppliers', data)
+    console.log('postTransactionSuppliers', data)
     const { suppliers, refid: transactionId } = JSON.parse(data)
 
     const dataArray = suppliers.map(supplier => ({
@@ -1069,6 +1095,11 @@ const databaseUtils = {
     console.log('dataArray', dataArray)
 
     return await databaseUtils.storeMultipleData('suppliers_activity', dataArray, true)
+  },
+  postSuppliers: async (data) => {
+    console.log('postSuppliers', data)
+       
+    return await databaseUtils.storeData(tables.suppliers, JSON.stringify(data))
   },
   getTransactionSuppliers: async (data) => {
     console.log('getTransactionSuppliers', data)
@@ -1504,8 +1535,11 @@ const databaseUtils = {
     } else if (normalized === 'continuing') {
       return await databaseUtils.getSettingByKey('fund_source_continuing')
     } else {
-      console.warn(`Main Source was loaded as fallback for funds. Please check the key "funds_source" in settings.`)
-      return await databaseUtils.getSettingByKey('funds_source')
+      const [current, continuing] = await Promise.all([
+        databaseUtils.getSettingByKey('fund_source_current'),
+        databaseUtils.getSettingByKey('fund_source_continuing')
+      ]);
+      return JSON.stringify({ current, continuing });
     }
   },
 
@@ -1518,6 +1552,25 @@ const databaseUtils = {
     return await databaseUtils.retrieveData(tables.divisions, '*', data)
   },
 
+  getLastId: async (table) => {
+    const query = `SELECT MAX(id) AS last_id FROM ${prefix}.${table}`;
+    return new Promise((resolve, reject) => {
+      connection.query(query, (error, results) => {
+        if (error) reject(error);
+        else resolve(results[0].last_id);
+      });
+    });
+  },
+
+  archive: async (table, id) => {
+    const query = `UPDATE ${table} SET archive = 1 WHERE id = ?`;
+    return new Promise((resolve, reject) => {
+      connection.query(query, [id], (error, results) => {
+        if (error) reject(error);
+        else resolve(results[0]);
+      });
+    });
+  }
 
 }
 

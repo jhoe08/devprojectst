@@ -1,0 +1,189 @@
+<% 
+    if (FUNDS.length === 2) {
+        const [currentFunds, continuingFunds] = FUNDS;
+        const currentRaw = currentFunds.value;
+        const continuingRaw = continuingFunds.value;
+
+        const currentValue = JSON.parse(currentRaw);
+        const continuingValue = JSON.parse(continuingRaw);
+
+        // Merge the data from both sources
+        const mergedData = {
+            lastUpdated: new Date(Math.max(new Date(currentValue.lastUpdated), new Date(continuingValue.lastUpdated))).toISOString(),
+            data: {
+                values: [...currentValue.data.values.slice(1), ...continuingValue.data.values.slice(1)],
+                
+                current: currentValue.data.values.slice(1),
+                continuing: continuingValue.data.values.slice(1)
+            }
+        };
+
+        FUNDS.value = JSON.stringify(mergedData);
+    }
+
+    const raw = FUNDS.value
+    const value = JSON.parse(raw)
+    const rawData = value.data
+    const rawValues = rawData.values
+
+    const currentValues = rawData.current
+    const continuingValues = rawData.continuing
+
+    const lastUpdated = new Date(value.lastUpdated).toLocaleString('en-US')
+
+    // const filteredValues = rawValues
+    // .filter(row => {
+    //     // skip if row is falsy, empty array, or all cells empty/whitespace/backtick
+    //     if (!row || row.length === 0 || row[1] === '' || row[2] === '') return false;
+    //     return row.some(cell => cell && cell.trim() !== "" && cell.trim() !== "`");
+    // }) // skip empty rows
+    // .map(row => ({
+    //     fund: row[0],             // FUND
+    //     pap: row[1],              // PAP
+    //     class: row[2],            // CLASS
+    //     obj_code: row[3],         // OBJ CODE
+    //     description: row[4],      // DESCRIPTION
+    //     source: row.length === 11 ? row[5] : null, // only for CONTINUING
+    //     adjusted_allotment: row[row.length - 5],
+    //     obligation: row[row.length - 4],
+    //     unobligated_allotment: row[row.length - 3],
+    //     earmark: row[row.length - 2],
+    //     balance_net_earmark: row[row.length - 1],
+    //     actions: ``
+    // }))
+
+    const filteredCurrent = currentValues
+    .filter(row => {
+        // skip if row is falsy, empty array, or all cells empty/whitespace/backtick
+        if (!row || row.length === 0 || row[1] === '' || row[2] === '') return false;
+        return row.some(cell => cell && cell.trim() !== "" && cell.trim() !== "`");
+    }) // skip empty rows
+    .map(row => ({
+        fund: row[0],             // FUND
+        pap: row[1],              // PAP
+        class: row[2],            // CLASS
+        obj_code: row[3],         // OBJ CODE
+        description: row[4],      // DESCRIPTION
+        source: row.length === 11 ? row[5] : null, // only for CONTINUING
+        adjusted_allotment: row[row.length - 5],
+        obligation: row[row.length - 4],
+        unobligated_allotment: row[row.length - 3],
+        earmark: row[row.length - 2],
+        balance_net_earmark: row[row.length - 1],
+        actions: ``
+    }))
+
+    const filteredContinuing = continuingValues
+    .filter(row => {
+        // skip if row is falsy, empty array, or all cells empty/whitespace/backtick
+        if (!row || row.length === 0 || row[1] === '' || row[2] === '') return false;
+        return row.some(cell => cell && cell.trim() !== "" && cell.trim() !== "`");
+    }) // skip empty rows
+    .map(row => ({
+        fund: row[0],             // FUND
+        pap: row[1],              // PAP
+        class: row[2],            // CLASS
+        obj_code: row[3],         // OBJ CODE
+        description: row[4],      // DESCRIPTION
+        source: row.length === 11 ? row[5] : null, // only for CONTINUING
+        adjusted_allotment: row[row.length - 5],
+        obligation: row[row.length - 4],
+        unobligated_allotment: row[row.length - 3],
+        earmark: row[row.length - 2],
+        balance_net_earmark: row[row.length - 1],
+        actions: ``
+    }))
+%>
+<div class="card">
+    <div class="card-header">
+        <div class="card-head-row card-tools-still-right">
+            <div class="card-title">List of <%=title%>
+            </div>
+            <div class="card-tools">
+                Last Sync: <%= lastUpdated %>
+                <button id="sysncFunds" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card"
+                    data-component="transactions">
+                    <span class="fa fa-sync-alt"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div>
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation"><button class="nav-link active" href="#tab-current"
+                        data-bs-toggle="tab" data-bs-target="#tab-current">CURRENT</button></li>
+                <li><button class="nav-link" href="#tab-continuing" data-bs-toggle="tab"
+                        data-bs-target="#tab-continuing">CONTINUING</button></li>
+            </ul>
+            <div class="tab-content pt-2">
+                <div class="tab-pane show active" id="tab-current">
+                    <table id="table-current" class="allocatedFunds table table-striped table-bordered" cellspacing="0"
+                        width="100%">
+                        <thead>
+                            <tr>
+                                <th>FUND</th>
+                                <th>PAP</th>
+                                <th>CLASS</th>
+                                <th>OBJ CODE</th>
+                                <th>DESCRIPTION</th>
+                                <th>SOURCE</th>
+                                <th>ADJUSTED ALLOTMENT</th>
+                                <th>OBLIGATION</th>
+                                <th>UNOBLIGATED ALLOTMENT</th>
+                                <th>EARMARK</th>
+                                <th>BALANCE NET EARMARK</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% filteredCurrent.forEach(list=> { %>
+                            <tr>
+                                <% Object.entries(list).forEach(([key, value], index)=> { %>
+                                <td data-index="<%= index %>" class="<%= index == Object.entries(list).length - 1 ? 'text-center' : '' %>">
+                                    <%- value %>
+                                </td>
+                                <% }); %>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane" id="tab-continuing">
+                    <table id="table-continuing" class="allocatedFunds table table-striped table-bordered" cellspacing="0"
+                        width="100%">
+                        <thead>
+                            <tr>
+                                <th>FUND</th>
+                                <th>PAP</th>
+                                <th>CLASS</th>
+                                <th>OBJ CODE</th>
+                                <th>DESCRIPTION</th>
+                                <th>SOURCE</th>
+                                <th>ADJUSTED ALLOTMENT</th>
+                                <th>OBLIGATION</th>
+                                <th>UNOBLIGATED ALLOTMENT</th>
+                                <th>EARMARK</th>
+                                <th>BALANCE NET EARMARK</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% filteredContinuing.forEach(list=> { %>
+                            <tr>
+                                <% Object.entries(list).forEach(([key, value], index)=> { %>
+                                <td data-index="<%= index %>" class="<%= index == Object.entries(list).length - 1 ? 'text-center' : '' %>">
+                                    <%- value %>
+                                </td>
+                                <% }); %>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
