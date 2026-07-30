@@ -5,7 +5,7 @@
   <div class="selectgroup selectgroup-pills">
     <% documentationOptions.forEach(function(opt) { %>
       <label class="selectgroup-item">
-        <input type="checkbox" name="value" value="<%= opt %>" class="selectgroup-input">
+        <input type="checkbox" name="<%= target %>" value="<%= opt %>" class="selectgroup-input">
         <span class="selectgroup-button"><%= opt %></span>
       </label>
     <% }); %>

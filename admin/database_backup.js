@@ -1197,17 +1197,24 @@ const databaseUtils = {
     const {
       projectTitle: project_title,
       refNo: reference_number,
-      estimatedBudget: estimated_budget,
+      estimatedBudget: rawBudget,
       endUser: end_user_unit,
       periodOfMarketScoping: date_conducted,
       expectedDateOfDelivery: expected_delivery,
-      activity_consultations: consultations_with_suppliers,
-      activity_summits: participation_in_summits,
-      activity_reports: review_reports,
-      activity_brochures: review_brochures,
-      activity_price_sourcing: price_sourcing,
-      activity_philgeps: use_philgeps_data,
-      activity_other: other_activity,
+      // activity_consultations: consultations_with_suppliers,
+      // activity_summits: participation_in_summits,
+      // activity_reports: review_reports,
+      // activity_brochures: review_brochures,
+      // activity_price_sourcing: price_sourcing,
+      // activity_philgeps: use_philgeps_data,
+      // activity_other: other_activity,
+      // consultations_with_suppliers,
+      // participation_in_summits,
+      // review_reports,
+      // review_brochures,
+      // price_sourcing,
+      // use_philgeps_data,
+      other_activity,
       other_docs: documentation,
       preparedBy,
       preparedDate: prepared_by_date,
@@ -1218,6 +1225,15 @@ const databaseUtils = {
     } = data;
 
     console.log('postMarketScope', data);
+    const estimated_budget = parseFloat(rawBudget.replace(/,/g, ""));
+
+    const consultations_with_suppliers = JSON.stringify(data.consultations_with_suppliers);
+    const participation_in_summits     = JSON.stringify(data.participation_in_summits);
+    const review_reports               = JSON.stringify(data.review_reports);
+    const review_brochures             = JSON.stringify(data.review_brochures);
+    const price_sourcing               = JSON.stringify(data.price_sourcing);
+    const use_philgeps_data            = JSON.stringify(data.use_philgeps_data);
+
     // Safely split names and positions
     const [prepared_by_name = null, prepared_by_position = null] =
       preparedBy?.split(", ").map((s) => s.trim()) || [];

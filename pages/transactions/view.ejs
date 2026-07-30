@@ -15,12 +15,12 @@
     const requestID = UTILS.addLeadingZeros(product_id)
     const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
 
-    const { getApprovalSteps, getCurrentStep, getDetails, getTitle } = STEPS
+    const { getApprovalSteps, getCurrentStep, getDetails, getTitleByTransaction } = STEPS
 
 
     let current_step = getCurrentStep(steps, product_id)
     current_step_number = current_step?.steps_number
-    current_step_title = getTitle(transactions, current_step_number)
+    current_step_title = getTitleByTransaction(transactions, current_step_number)
 
     const currentHolder = getCurrentHolderOfTransaction(transactions.product_id)
     let userDetailsExp, employeesInSameDivision = {}

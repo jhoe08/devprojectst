@@ -8,11 +8,11 @@
 
     const transactions = purchaseRequest[0];
 
-    const { getApprovalSteps, getCurrentStep, getDetails, getTitle } = STEPS
+    const { getApprovalSteps, getCurrentStep, getDetails, getTitleByTransaction } = STEPS
 
     let current_step = getCurrentStep(purchaseRequestActivities, pr_id)
     current_step_number = current_step?.steps_number
-    current_step_title = getTitle(transactions, current_step_number)
+    current_step_title = getTitleByTransaction(transactions, current_step_number)
 
   
     fund_source = JSON.parse(fund_source);

@@ -161,14 +161,3 @@ document.querySelector('#updateTransactions')
             notifyCustom('exclamation', 'Error', 'Unexpected error occurred', 'danger');
         }
     });
-
-setInterval(() => {
-    const numberInputs = document.querySelectorAll('input[data-type="number"]');
-    // Add event listener to each input
-
-    numberInputs.forEach(input => {
-        // console.log('Updating totals and formatting numbers...', formatNumberWithCommas);
-        // input.addEventListener('change', formatNumberWithCommas);  
-        formatNumberWithCommas({ target: input }); // Initial formatting on page load
-    });
-}, 1000);

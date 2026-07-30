@@ -103,12 +103,12 @@
 
                                    console.log({ fund_source })
 
-                                  const { lists, getCurrentStep, getDetails, getTitle } = STEPS
+                                  const { lists, getCurrentStep, getDetails, getTitleById } = STEPS
 
 
                                   let current_step = getCurrentStep(steps, product_id)
                                   const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
-                                  current_step_title = getTitle(current_step_number)
+                                  current_step_title = getTitleById(current_step_number)
 
                                   const requestID = UTILS.addLeadingZeros(product_id)
                                   const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`

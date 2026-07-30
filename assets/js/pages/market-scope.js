@@ -2,6 +2,8 @@ const marketScope = {
   init() {
     console.log('Market Scope page initialized');
 
+    this.autoFill()
+
     const form = document.getElementById('marketScopeForm');
     const formResults = document.getElementById('marketScopeResults')
     const dateInput = document.querySelectorAll('input[type="date"]');
@@ -45,9 +47,6 @@ const marketScope = {
       });
     }
 
-    this.autoFill()
-
-
   },
   handleSubmit(e) {
     let payload = {};
@@ -56,11 +55,12 @@ const marketScope = {
       if (input.type === 'file') return; // skip file inputs
 
       let value;
+      value = input.value
+
       if (input.type === 'checkbox') {
-        value = input.checked; // true/false
-      } else {
-        value = input.value;
-      }
+        if (!input.checked) return;
+        value = input.value; // true/false
+      } 
 
       // If the name already exists, convert to array and push
       if (payload[input.name]) {
@@ -72,8 +72,10 @@ const marketScope = {
         payload[input.name] = value;
       }
 
-      console.log(`${input.name}: ${payload[input.name]}`);
+      // console.log(`${input.name}: ${payload[input.name]}`);
     });
+
+    console.log(payload)
 
     fetch('/api/market-scope', {
       method: 'POST',
@@ -84,10 +86,13 @@ const marketScope = {
     })
       .then(response => response.json())
       .then(data => {
-        console.log('Success:', data);
-        alert('Market Scope form submitted successfully!');
-        // Reset form after submission
-        e.target.reset();
+        console.log(data)
+        if (data && data.status === 201) {
+          alert(`${data.message} Reference: ${data.response?.reference_number || 'N/A'}`);
+          e.target.reset();
+        } else {
+          alert(`Unexpected response (status: ${data.status}). Please try again.`);
+        }
       })
       .catch((error) => {
         console.error('Error:', error);

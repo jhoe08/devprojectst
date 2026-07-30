@@ -346,32 +346,32 @@
                     <tr>
                         <td><%= consultations_with_suppliers ? '☒' : '☐' %></td>
                         <td>Consultations with suppliers / contractors / consultants / industry groups</td>
-                        <td><%= consultations_with_suppliers ? 'Proof of attendance, reports, summaries, brochures, price quotations' : 'NONE' %></td>
+                        <td><%= consultations_with_suppliers ? [].concat(JSON.parse(consultations_with_suppliers)).join(', ') : 'NONE' %></td>
                     </tr>
                     <tr>
                         <td><%= participation_in_summits ? '☒' : '☐' %></td>
                         <td>Participation in summits, fora, or conferences</td>
-                        <td class="w-50"><%= participation_in_summits ? 'Proof of attendance, reports, summaries, brochures' : 'NONE' %></td>
+                        <td class="w-50"><%= participation_in_summits ? [].concat(JSON.parse(participation_in_summits)).join(', ') : 'NONE' %></td>
                     </tr>
                     <tr>
                         <td><%= review_reports ? '☒' : '☐' %></td>
                         <td>Review of technical, financial, or market/scientific reports</td>
-                        <td class="w-50"><%= review_reports ? 'Reports, summaries, brochures, publications' : 'NONE' %></td>
-                    </tr>
+                        <td class="w-50"><%= review_reports ? [].concat(JSON.parse(review_reports)).join(', ') : 'NONE' %></td>
+                    </tr>review_reports
                     <tr class="page-break">
                         <td width="72"><%= review_brochures ? '☒' : '☐' %></td>
                         <td>Review of product or service brochures, marketing materials, industry journals</td>
-                        <td class="w-50"><%= review_brochures ? 'Reports, summaries, brochures, publications' : 'NONE' %></td>
+                        <td class="w-50"><%= review_brochures ? [].concat(JSON.parse(review_brochures)).join(', ') : 'NONE' %></td>
                     </tr>
                     <tr>
                         <td><%= price_sourcing ? '☒' : '☐' %></td>
                         <td>Price sourcing for quotations or cost estimates</td>
-                        <td class="w-50"><%= price_sourcing ? 'Price quotations, canvass sheets, online product reviews' : 'NONE' %></td>
+                        <td class="w-50"><%= price_sourcing ? [].concat(JSON.parse(price_sourcing)).join(', ') : 'NONE' %></td>
                     </tr>
                     <tr>
                         <td><%= use_philgeps_data ? '☒' : '☐' %></td>
                         <td>Use of data from PhilGEPS or agency websites</td>
-                        <td class="w-50"><%= use_philgeps_data ? 'Reports, screenshots, postings' : 'NONE' %></td>
+                        <td class="w-50"><%= use_philgeps_data ? [].concat(JSON.parse(use_philgeps_data)).join(', ') : 'NONE' %></td>
                     </tr>
                     <tr>
                         <td><%= other_activity ? '☒' : '☐' %></td>

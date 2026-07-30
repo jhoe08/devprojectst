@@ -1802,10 +1802,10 @@ app.post('/api/market-scope', restrict, async (req, res) => {
   try {
     console.log('Market Scope Analysis Request Body:', req.body);
     const scopeResults = await connection.postMarketScope(req.body);
-    res.status(201).json({ message: 'Market Scope Analysis Submitted!', response: scopeResults });
+    res.status(201).json({ status: 201, message: 'Market Scope Analysis Submitted!', response: scopeResults });
   } catch (error) {
     console.error('Error fetching market scope analysis:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ status: 500, message: 'Internal Server Error', error: 'Error fetching market scope analysis' });
   }
 });
 
