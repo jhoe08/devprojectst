@@ -207,7 +207,11 @@ function settingsFundsChargeToModal(target) {
   if (container && saveBtn) {
     saveBtn.addEventListener('click', () => {
 
-      const selectedInput = document.querySelector('.active input[name*="funds_source_"]:checked');
+      const activeSection = document.querySelector('.active')
+      const target = activeSection.dataset.id
+
+      // const selectedInput = document.querySelector('.active input[name*="funds_source_"]:checked');
+      const selectedInput = activeSection.querySelector(`input[name*="funds_source_${target}"]:checked`)
       const budgetInput = document.querySelector('#budget')
       if (!selectedInput) return;
 
@@ -239,8 +243,12 @@ function settingsFundsChargeToModal(target) {
 
       chargedArray[target] = { ...fundsArray };
 
+      const totalCharge = Object.values(chargedArray).reduce((sum, entry) => {
+        return sum + (parseFloat(entry.charge) || 0);
+      }, 0);
+
       document.body.dataset.fundsAllocation = JSON.stringify(chargedArray);
-      budgetInput.value = parseFloat(fundsArray.charge)
+      budgetInput.value = totalCharge
 
       console.log(budgetInput.value)
 
@@ -259,7 +267,7 @@ function settingsFundsChargeToModal(target) {
         //group.classList.add('hidden');
       }
 
-    },{ once: true }); // listener runs only once
+    }, { once: true }); // listener runs only once
   }
 }
 
@@ -267,13 +275,19 @@ function settingsFundsAllocation(target) {
   const srcSelect = document.querySelector('select#source[name="source"]');
   const funds_sourceRadios = document.querySelectorAll('input[name^="funds_source_"]');
 
+
+
   funds_sourceRadios.forEach(radio => {
-    // 
-
-    radio.closest('.row').classList.add('active');
-
 
     radio.addEventListener('change', async function (e) {
+      console.log('asdfasdfasdf')
+
+      document.getElementById('fundSourceLists')
+        .querySelectorAll('.row')
+        .forEach(row => row.classList.remove('active'));
+
+      radio.closest('.row').classList.add('active');
+
       e.preventDefault();
       if (this.checked) {
         try {
@@ -778,7 +792,7 @@ function duplicateNodes() {
     rowCount++;
 
     // Append cloned row to the correct container
-    const formContainer = chargingRow ? document.getElementById('chargingTo') : document.getElementById('supplierInfo');
+    const formContainer = chargingRow ? document.querySelector('#chargingTo .fundSource-entry ') : document.getElementById('supplierInfo');
     formContainer.appendChild(clonedForm);
   });
 }
