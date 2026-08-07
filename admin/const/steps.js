@@ -124,13 +124,12 @@ const steps = {
         { id: 1, steps_title: "Regional Agricultural Engineering Division/End-User", stage: "prepared_by" },
         { id: 2, steps_title: "Program Coordinator End-User/Program Coordinator", stage: "pr_preparation" },
         { id: 3, steps_title: "Division Chief", stage: "division_head_approval" },
-        { id: 4, steps_title: "Procurement Section", stage: "pr_numbering" }, // to_be removed
+        { id: 4, steps_title: "Procurement Section", stage: "pr_numbering" }, 
         { id: 5, steps_title: "Budget Section", stage: "fund_allocation" },
-        { id: 6, steps_title: "RED/RTD/Division Chief", stage: "approval_pr" }, // ID set to 3 && removed
-        { id: 7, steps_title: "BAC/BAC Secretariat", stage: "bidding_preparation" }, //stage: bidding_preparation *** Additional Fields remarks:: Status 
-        
+        { id: 6, steps_title: "RED/RTD/Division Chief", stage: "approval_pr" }, 
+        { id: 7, steps_title: "BAC/BAC Secretariat", stage: "bidding_preparation" }, 
         { id: 8, steps_title: "TWG Concerned", stage: "evaluation" }, 
-        { id: 9, steps_title: "BAC Secretariat", stage: "bac_resolution" }, // ----> Until Awarding
+        { id: 9, steps_title: "BAC Secretariat", stage: "bac_resolution" }, 
         // Purchase Order (PO) / Contract
         { id: 10, steps_title: "Procurement Section", stage: "po_contract_preparation" },
         { id: 11, steps_title: "End-User/Program Coordinator/Div. Chief", stage: "ors_burs_signing" },
@@ -155,9 +154,13 @@ const steps = {
         { id: 27, steps_title: "Accounting Section", stage: "ada_review" },
         { id: 28, steps_title: "RED/RTD/Admin. Chief", stage: "check_signing" },
         { id: 29, steps_title: "Cashiering Unit", stage: "release_payment" }
-    ]
+    ],
     // Awarding BAC 2 - Lydon
     // Omnibus, Sworn Statement - kung PO above 200,000
+    // ENDOF publicBidding2
+    procurementProcess: [
+        
+    ]
 }
 
 module.exports = steps;

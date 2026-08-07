@@ -244,4 +244,4 @@ fetch('/api/sheets?sheetId=1alv_rcdABMcTuS7q5OBez9_CDboToPvmjXNRn2GI9pM&range=AL
   .then(data => settingsPage.dropdownFunds(data))
   .catch(err => console.error('sheet fetch error', err));
 
-$('#organizationalTable').DataTable(settingsPage.configDataTables('organizationalTable'));
+// $('#organizationalTable').DataTable(settingsPage.configDataTables('organizationalTable'));

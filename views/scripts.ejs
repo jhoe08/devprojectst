@@ -91,3 +91,47 @@
 </script>
 
 <script src="/assets/js/modals/remarks.js"></script>
+
+<!-- Intro.js JS -->
+<script src="/introjs/intro.min.js"></script>
+<script>
+  introJs().onafterchange(function (element) {
+    if (element.id === 'navToggle') {
+      element.click(); // auto-open menu when tour reaches this step
+    }
+  });
+  document.getElementById('siteTourBtn').addEventListener('click', () => {
+    introJs().setOptions({
+      steps: [
+        { element: document.querySelector('h1'), intro: "Welcome to the Procurement Tracker!", title: "👋 Welcome!" },
+        { element: document.querySelector('.sidebar'), intro: "This is sidebar where you can navigate through the sites." },
+        { element: document.querySelector('.main-header'), intro: "This is main header where you can see your profile, settings, and notifications." },
+        { element: document.querySelector('.page-inner'), intro: "This is where you can see the content of the page." }
+      ],
+      showProgress: true,
+      showStepNumbers: true
+    }).start();
+  });
+
+  document.getElementById('createTransactionBtn').addEventListener('click', () => {
+    introJs().setOptions({
+      steps: [
+        { element: document.querySelector('h1'), intro: "This tutorial will guide you step by step.", title: "📝 Tutorial Overview" },
+        { element: document.querySelector('[href="#market-scope"]'), intro: "Step 1: Click here to open the navigation menu" },
+        { element: document.querySelector('input[type=email]'), intro: "Step 2: Enter your email" },
+        { element: document.querySelector('button[type=submit]'), intro: "Step 3: Submit the form" }
+      ],
+      showProgress: true,
+      showStepNumbers: true
+    }).start();
+
+    introJs().onafterchange(function (element) {
+      if (element.attr('href') === '#market-scope') {
+        element.click(); // auto-open menu when tour reaches this step
+      }
+    });
+  });
+
+
+
+</script>

@@ -743,6 +743,7 @@ app.set("views", [
 
 
 app.use('/', require('./routes/root'))
+app.use('/introjs', express.static(path.join(__dirname, 'node_modules/intro.js/minified')));
 app.use(bodyParser.json());
 
 
@@ -1054,7 +1055,7 @@ app.use(async (req, res, next) => {
       getCurrentProgress: (steps, product_id) => {
         let current_step = getCurrentStep(steps, product_id)
         const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
-        const current_step_title = getTitle(current_step_number)
+        const current_step_title = getTitleById(current_step_number)
         return { current_step_title, current_step_number };
       },
       getCurrentStep: (steps, product_id) => {
@@ -1187,7 +1188,7 @@ app.use(async (req, res, next) => {
       },
       progressBar: (row) => {
         const { STEPS, activities } = res.locals;
-        const { getApprovalSteps, getTotalSteps, getCurrentStep, getDetails, getTitle } = STEPS
+        const { getApprovalSteps, getTotalSteps, getCurrentStep, getDetails, getTitleByTransaction } = STEPS
 
         const product_id = row.product_id
         const mapActivities = activities.sort((a, b) => b.id - a.id).filter(activity => activity.product_id === product_id)
@@ -1195,7 +1196,7 @@ app.use(async (req, res, next) => {
         let current_step = getCurrentStep(mapActivities, product_id)
 
         const current_step_number = current_step?.steps_number
-        const current_step_title = getTitle(row, current_step_number)
+        const current_step_title = getTitleByTransaction(row, current_step_number)
 
         if (current_step_number > 0) {
           const progress = Number((current_step_number / getTotalSteps(row)) * 100).toFixed(2);
@@ -3761,11 +3762,11 @@ app.get('/settings', restrict, async (req, res) => {
 
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: ['/assets/js/pages/settings.js'],
+        scripts: ['/assets/js/pages/settings.js', '/assets/vendor/sortablejs@1.15.0/Sortable.min.js'],
         styles: ['/assets/css/pages/settings.css'],
         innerContent: '../pages/ra12009/settings',
         title: "Site Settings",
-        description: "List of Market Scope Analysis Submissions",
+        description: "A centralized hub in an app, website, or software where users can view and change their personal preferences, account details, and system configurations. It lets people customize how a platform looks, behaves, and protects their data.",
         settings: [mappedSettings, executives, divisions],
         employees: [],
         options: {
@@ -4205,7 +4206,7 @@ app.post('/disbursementVouchers/:code/create', loadAllActivities, async (req, re
     const current_step = STEPS.getCurrentStep(sortActivities, ref_number);
 
     const current_step_number = current_step?.steps_number
-    const current_step_title = getTitle(row, current_step_number)
+    const current_step_title = getTitleByTransaction(row, current_step_number)
 
     // await approveTransaction({ 
     //   product_id: ref_number, 
