@@ -3,7 +3,7 @@ set hour=%TIME:~0,2%
 if "%hour:~0,1%"==" " set hour=0%hour:~1,1%
 set TIMESTAMP=%DATE:~10,4%-%DATE:~4,2%-%DATE:~7,2%_%hour%%TIME:~3,2%
 
-set BACKUP_DIR=C:\Users\Admin\Documents\devprojectst\dumps
+set BACKUP_DIR=C:\Users\Admin\Documents\www\devprojectst\dumps
 if not exist "%BACKUP_DIR%" (
     mkdir "%BACKUP_DIR%"
 )

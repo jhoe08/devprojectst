@@ -28,11 +28,10 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const { v4: uuidv4 } = require('uuid');
 
-const { 
-  svp: CONST_SVP, 
-  publicBidding2: 
-  CONST_PB, 
-  responsiblePersonAtStages, 
+const {
+  svp2: CONST_SVP,
+  publicBidding2: CONST_PB,
+  responsiblePersonAtStages,
   MISC: CONST_MISC } = require('./admin/const')
 
 
@@ -2134,25 +2133,77 @@ app.post('/register', async (req, res, next) => {
   }
 })
 
+// app.post('/register/new', async (req, res) => {
+//   try {
+//     let data = JSON.stringify(req.body)
+//     let { experience, contacts, others } = req.body
+//     experience = JSON.stringify(experience)
+//     contacts = JSON.stringify(contacts)
+//     others = JSON.stringify(others)
+//     data.experience = experience
+//     data.contacts = contacts
+//     data.others = others
+
+//     console.log('New Registration Data:', data);
+
+//     const register = await connection.postEmployees(data)
+//     if (register?.affectedRows) {
+//       const { employeeid } = JSON.parse(data)
+//       const notif = {
+//         "message": "New user was registered",
+//         "link": employeeid,
+//         "component": "employees",
+//         // "created_at": convertDate(new Date())
+//       }
+//       await connection.postNotifications(JSON.stringify(notif))
+
+
+//     }
+//     res.status(200).json({ message: 'Account is successfully register', response: register })
+//   } catch (error) {
+//     console.error('There\'s issue on the system right now:', error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// })
+
 app.post('/register/new', async (req, res) => {
   try {
-    let data = JSON.stringify(req.body)
-    const register = await connection.postEmployees(data)
+    // Keep as object
+    let data = { ...req.body };
+
+    // Ensure nested fields are stringified
+    data.experience = JSON.stringify(req.body.experience || {});
+    data.contacts = JSON.stringify(req.body.contacts || {});
+    data.others = JSON.stringify(req.body.others || {});
+
+    console.log('New Registration Data:', data);
+
+    // Stringify only when posting
+    const register = await connection.postEmployees(JSON.stringify(data));
+
+
     if (register?.affectedRows) {
-      const { employeeid } = JSON.parse(data)
+      const { employeeid } = data; // already an object
       const notif = {
-        "message": "New user was registered",
-        "link": employeeid,
-        "component": "employees",
-        // "created_at": convertDate(new Date())
-      }
-      await connection.postNotifications(JSON.stringify(notif))
+        message: "New user was registered",
+        link: employeeid,
+        component: "employees",
+        // created_at: convertDate(new Date())
+      };
+      await connection.postNotifications(JSON.stringify(notif));
     }
-    res.status(200).json({ message: 'Account is successfully register', response: register })
+
+    
+
+    res.status(200).json({
+      message: 'Account is successfully registered',
+      response: register
+    });
   } catch (error) {
-    console.error('There\'s issue on the system right now:', error);
+    console.error("There's issue on the system right now:", error);
     res.status(500).send('Internal Server Error');
   }
+
 })
 
 app.get('/signup', function (req, res) {
@@ -4308,7 +4359,7 @@ app.get('/allocatedFunds', loadAllFunds, async (req, res) => {
   try {
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: ['/assets/js/pages/ra12009/allocatedFunds.js'], // this is dataTablesjs
+        scripts: ['/assets/vendor/dataTables/rowGroup.dataTables.min.js', '/assets/js/pages/ra12009/allocatedFunds.js'], // this is dataTablesjs
         styles: ['/assets/css/pages/allocatedFunds.css'],
         innerContent: '../pages/allocatedFunds/lists-v2',
         title: "Allocated Funds",

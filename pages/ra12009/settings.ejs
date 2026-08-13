@@ -1,7 +1,8 @@
 <%
   let { directors, divisions } = JSON.parse(DEPARTMENT)
 
-  const steps = approval_steps
+  const steps_svp = STEPS?.lists(200000)
+  const steps_pb = STEPS?.lists(200001)
 
   const { integration_email, integration_api_key, integration_client_id, integration_client_secret, executive } = settings[0] || {};
 
@@ -278,6 +279,7 @@
                                     </tr>
                                 </tfoot>
                                 <tbody>
+                                    <div class="nested-sortable">
                                     <% const renderRow=(key, stands, email, type, responsible)=> {
                                         const data = {key, stands, email, type, responsible}
                                         %>
@@ -346,6 +348,7 @@
                                                 <% }) %>
                                             <% }) %>
                                         <% } %>
+                                    </div>
 
                                 </tbody>
 
@@ -452,7 +455,8 @@
                                     <tr>
                                         <td>
                                             <ul class="list-group">
-                                                <% steps.forEach(function(step) { %>
+                                                <% console.log( steps_svp ) %>
+                                                <% steps_svp.forEach(function(step) { %>
                                                     <li class="">{ id: <strong>
                                                             <%= step.id %>
                                                         </strong>, steps_title: <%= step.steps_title %> }</li>
@@ -470,6 +474,20 @@
                                             <span class="badge badge-danger"><i class="fas fa-edit"></i> Edit</span>
                                         </td>
 
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <ul class="list-group">
+                                                <% console.log( steps_pb ) %>
+                                                <% steps_pb.forEach(function(step) { %>
+                                                    <li class="">{ id: <strong>
+                                                            <%= step.id %>
+                                                        </strong>, steps_title: <%= step.steps_title %> }</li>
+                                                    <% }); %>
+                                            </ul>
+                                        </td>
+                                        <td></td>
+                                        <td></td>
                                     </tr>
                                 </tbody>
                             </table>

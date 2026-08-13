@@ -28,6 +28,9 @@ const main = {
       // console.log('Sync button clicked');
       // const allocatedFundsInstance = new AllocatedFunds();
       allocatedFunds.syncFunds()
+      setTimeout(() => {
+        document.location.reload();
+      }, 3000); // Reload the page after 3 seconds
       // allocatedFundsInstance.sysncFunds()
     })
 

@@ -31,27 +31,6 @@
 
     const lastUpdated = new Date(value.lastUpdated).toLocaleString('en-US')
 
-    // const filteredValues = rawValues
-    // .filter(row => {
-    //     // skip if row is falsy, empty array, or all cells empty/whitespace/backtick
-    //     if (!row || row.length === 0 || row[1] === '' || row[2] === '') return false;
-    //     return row.some(cell => cell && cell.trim() !== "" && cell.trim() !== "`");
-    // }) // skip empty rows
-    // .map(row => ({
-    //     fund: row[0],             // FUND
-    //     pap: row[1],              // PAP
-    //     class: row[2],            // CLASS
-    //     obj_code: row[3],         // OBJ CODE
-    //     description: row[4],      // DESCRIPTION
-    //     source: row.length === 11 ? row[5] : null, // only for CONTINUING
-    //     adjusted_allotment: row[row.length - 5],
-    //     obligation: row[row.length - 4],
-    //     unobligated_allotment: row[row.length - 3],
-    //     earmark: row[row.length - 2],
-    //     balance_net_earmark: row[row.length - 1],
-    //     actions: ``
-    // }))
-
     const filteredCurrent = currentValues
     .filter(row => {
         // skip if row is falsy, empty array, or all cells empty/whitespace/backtick

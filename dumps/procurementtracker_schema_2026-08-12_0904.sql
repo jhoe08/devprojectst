@@ -24,6 +24,75 @@ CREATE DATABASE /*!32312 IF NOT EXISTS*/ `procurementtracker` /*!40100 DEFAULT C
 USE `procurementtracker`;
 
 --
+-- Table structure for table `departments`
+--
+
+DROP TABLE IF EXISTS `departments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `departments` (
+  `department_id` int NOT NULL AUTO_INCREMENT,
+  `abbr` varchar(20) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text,
+  `funds_allocation` varchar(100) DEFAULT NULL,
+  `head_employee_id` int DEFAULT NULL,
+  `parent_department_id` int DEFAULT NULL,
+  `parent_office_id` int DEFAULT NULL,
+  PRIMARY KEY (`department_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `disbursement_voucher_activities`
+--
+
+DROP TABLE IF EXISTS `disbursement_voucher_activities`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `disbursement_voucher_activities` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `dv_number` varchar(50) NOT NULL,
+  `step_id` int NOT NULL,
+  `step_title` varchar(100) NOT NULL,
+  `stage` varchar(100) NOT NULL,
+  `status` enum('Pending','In Progress','Completed','Rejected') DEFAULT 'Pending',
+  `remarks` text,
+  `created_by` varchar(50) NOT NULL,
+  `updated_by` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `disbursement_vouchers`
+--
+
+DROP TABLE IF EXISTS `disbursement_vouchers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `disbursement_vouchers` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `dv_number` varchar(50) NOT NULL,
+  `pr_number` varchar(50) DEFAULT NULL,
+  `po_code` varchar(50) NOT NULL,
+  `supplier_code` varchar(50) NOT NULL,
+  `amount` decimal(15,2) NOT NULL,
+  `particulars` text,
+  `dv_date` date NOT NULL,
+  `status` enum('Pending','Approved','Released','Completed') DEFAULT 'Pending',
+  `created_by` varchar(50) NOT NULL,
+  `updated_by` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `dv_number` (`dv_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `documents`
 --
 
@@ -37,9 +106,10 @@ CREATE TABLE `documents` (
   `status` varchar(45) NOT NULL,
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `created_by` varchar(45) NOT NULL,
+  `created_by` varchar(100) DEFAULT NULL,
   `source` varchar(255) DEFAULT NULL,
   `source_name` varchar(255) DEFAULT NULL,
+  `attachments` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=armscii8;
@@ -61,7 +131,7 @@ CREATE TABLE `documents_activity` (
   `created_by` varchar(45) DEFAULT NULL,
   `created_at` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=armscii8;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=armscii8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -86,9 +156,27 @@ CREATE TABLE `employees` (
   `password` varchar(500) DEFAULT NULL,
   `roles` varchar(255) DEFAULT NULL,
   `components` varchar(255) DEFAULT NULL,
+  `archive` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `employeeid_UNIQUE` (`employeeid`)
-) ENGINE=InnoDB AUTO_INCREMENT=185 DEFAULT CHARSET=armscii8;
+) ENGINE=InnoDB AUTO_INCREMENT=70027 DEFAULT CHARSET=armscii8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `executive_offices`
+--
+
+DROP TABLE IF EXISTS `executive_offices`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `executive_offices` (
+  `office_id` int NOT NULL AUTO_INCREMENT,
+  `abbr` varchar(20) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text,
+  `head_employee_id` int DEFAULT NULL,
+  PRIMARY KEY (`office_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -118,15 +206,17 @@ DROP TABLE IF EXISTS `market_scoping`;
 CREATE TABLE `market_scoping` (
   `id` int NOT NULL AUTO_INCREMENT,
   `project_title` varchar(255) NOT NULL,
+  `estimated_budget` decimal(15,2) DEFAULT NULL,
   `reference_number` varchar(100) DEFAULT NULL,
   `date_conducted` text,
   `end_user_unit` varchar(255) DEFAULT NULL,
-  `consultations_with_suppliers` tinyint(1) DEFAULT '0',
-  `participation_in_summits` tinyint(1) DEFAULT '0',
-  `review_reports` tinyint(1) DEFAULT '0',
-  `review_brochures` tinyint(1) DEFAULT '0',
-  `price_sourcing` tinyint(1) DEFAULT '0',
-  `use_philgeps_data` tinyint(1) DEFAULT '0',
+  `expected_delivery` date DEFAULT NULL,
+  `consultations_with_suppliers` json DEFAULT NULL,
+  `participation_in_summits` json DEFAULT NULL,
+  `review_reports` json DEFAULT NULL,
+  `review_brochures` json DEFAULT NULL,
+  `price_sourcing` json DEFAULT NULL,
+  `use_philgeps_data` json DEFAULT NULL,
   `other_activity` text,
   `documentation` text,
   `prepared_by_name` varchar(255) DEFAULT NULL,
@@ -137,6 +227,24 @@ CREATE TABLE `market_scoping` (
   `reviewed_by_position` varchar(255) DEFAULT NULL,
   `reviewed_by_date` timestamp NULL DEFAULT NULL,
   `reviewed_by_signature` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `market_scoping_results`
+--
+
+DROP TABLE IF EXISTS `market_scoping_results`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `market_scoping_results` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `scoping_id` int NOT NULL,
+  `results` json NOT NULL,
+  `document_reference` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -176,7 +284,107 @@ CREATE TABLE `notifications` (
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=213 DEFAULT CHARSET=armscii8;
+) ENGINE=InnoDB AUTO_INCREMENT=87 DEFAULT CHARSET=armscii8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `po_deliveries`
+--
+
+DROP TABLE IF EXISTS `po_deliveries`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `po_deliveries` (
+  `delivery_id` int NOT NULL AUTO_INCREMENT,
+  `po_number` varchar(50) NOT NULL,
+  `place_of_delivery` varchar(255) NOT NULL,
+  `delivery_date` date NOT NULL,
+  `remarks` text,
+  PRIMARY KEY (`delivery_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `po_delivery_products`
+--
+
+DROP TABLE IF EXISTS `po_delivery_products`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `po_delivery_products` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `delivery_id` int NOT NULL,
+  `po_product_id` int NOT NULL,
+  `delivered_quantity` decimal(12,2) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `po_products`
+--
+
+DROP TABLE IF EXISTS `po_products`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `po_products` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `po_number` varchar(50) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `unit` varchar(50) DEFAULT NULL,
+  `quantity` decimal(12,2) NOT NULL,
+  `unit_price` decimal(12,2) NOT NULL,
+  `total_price` decimal(12,2) GENERATED ALWAYS AS ((`quantity` * `unit_price`)) STORED,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `purchase_orders`
+--
+
+DROP TABLE IF EXISTS `purchase_orders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `purchase_orders` (
+  `po_id` int NOT NULL AUTO_INCREMENT,
+  `pr_id` int NOT NULL,
+  `po_number` varchar(50) NOT NULL,
+  `supplier_code` varchar(50) NOT NULL,
+  `total_amount` decimal(12,2) NOT NULL,
+  `status` enum('draft','approved','fund_release','disbursed','progress','completed','cancelled') DEFAULT 'draft',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`po_id`),
+  UNIQUE KEY `po_number` (`po_number`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `purchase_request`
+--
+
+DROP TABLE IF EXISTS `purchase_request`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `purchase_request` (
+  `product_id` int NOT NULL AUTO_INCREMENT,
+  `trans_id` int DEFAULT NULL,
+  `trans_code` varchar(250) DEFAULT NULL,
+  `pr_date` datetime DEFAULT NULL,
+  `approved_budget` varchar(45) DEFAULT NULL,
+  `pr_classification` varchar(50) DEFAULT NULL,
+  `requisitioner` text,
+  `prepared_by` json DEFAULT NULL,
+  `division` varchar(45) DEFAULT NULL,
+  `banner_program` text,
+  `fund_source` json DEFAULT NULL,
+  `bac_unit` varchar(45) DEFAULT NULL,
+  `bid_notice_title` text,
+  `remarks` text,
+  `procurement_type` varchar(50) DEFAULT NULL,
+  UNIQUE KEY `product_id_UNIQUE` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=armscii8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -197,7 +405,7 @@ CREATE TABLE `remarks` (
   `assignedto` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=armscii8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=armscii8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -233,7 +441,7 @@ CREATE TABLE `settings` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `key_name` (`key_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=215 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=259 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -247,6 +455,7 @@ CREATE TABLE `suppliers` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `supplier_code` varchar(50) NOT NULL,
   `supplier_name` varchar(255) DEFAULT NULL,
+  `supplier_tin` varchar(12) NOT NULL,
   `contact_person` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `phone` varchar(50) DEFAULT NULL,
@@ -254,10 +463,11 @@ CREATE TABLE `suppliers` (
   `status` enum('active','inactive') DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `archive` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `supplier_code` (`supplier_code`),
   UNIQUE KEY `supplier_code_2` (`supplier_code`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -276,8 +486,9 @@ CREATE TABLE `suppliers_activity` (
   `remarks` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_supplier_transaction` (`transaction_id`,`supplier_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -288,12 +499,14 @@ DROP TABLE IF EXISTS `transid`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `transid` (
+  `id` int DEFAULT NULL,
   `product_id` int NOT NULL AUTO_INCREMENT,
   `trans_id` int DEFAULT NULL,
   `trans_code` varchar(250) DEFAULT NULL,
   `pr_date` datetime DEFAULT NULL,
   `approved_budget` varchar(45) DEFAULT NULL,
   `pr_classification` varchar(50) DEFAULT NULL,
+  `procurement_type` text,
   `requisitioner` text,
   `prepared_by` varchar(255) DEFAULT NULL,
   `division` varchar(45) DEFAULT NULL,
@@ -302,8 +515,9 @@ CREATE TABLE `transid` (
   `bac_unit` varchar(45) DEFAULT NULL,
   `bid_notice_title` text,
   `remarks` text,
+  `archive` tinyint(1) DEFAULT NULL,
   UNIQUE KEY `product_id_UNIQUE` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=armscii8;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=armscii8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -326,7 +540,7 @@ CREATE TABLE `transid_activity` (
   `created_by` varchar(100) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=185 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -344,7 +558,7 @@ CREATE TABLE `transid_status_history` (
   `changed_by` int NOT NULL,
   `changed_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -356,4 +570,4 @@ CREATE TABLE `transid_status_history` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-12  9:04:32
+-- Dump completed on 2026-08-12  9:04:32

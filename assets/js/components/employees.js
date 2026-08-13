@@ -58,6 +58,119 @@
         })
       })
     }
+    // WORKING
+    // if (registerEmployee) {
+    //   const apiUrl = '/register/new';
+      
+    //   registerEmployee.addEventListener('click', function(){
+    //      let divisionValue = ''
+    //      let sectionValue = ''
+        
+    //     if(typeof division == 'undefined' || division === null) {
+    //       division  = document.getElementById('division_0')
+    //       sectionValue = division.dataset.selected
+    //       divisionValue = division.dataset.division
+
+    //       console.log({sectionValue, divisionValue})
+    //     }
+
+    //     var checkedComponents = document.querySelectorAll('input[name="components"]:checked');
+    //     var checkedRoles = document.querySelectorAll('input[name="roles"]:checked');
+        
+    //     var checkedComponentsValues = Array.from(checkedComponents).map(function(checkbox) {
+    //         return checkbox.value;
+    //     });
+
+    //     var checkedRolesValues = Array.from(checkedRoles).map(function(checkbox) {
+    //         return checkbox.value;
+    //     });
+      
+    //     const data = {
+    //       employeeid: employeeid.value,
+    //       firstname: firstname.value,
+    //       middlename: middlename.value,
+    //       lastname: lastname.value,
+    //       extname: extname?.value,
+    //       birthdate: dob.value,
+    //       experience: {
+    //         lists: [{
+    //           office: companyname.value,
+    //           division: divisionValue ?? division.value,
+    //           section: sectionValue ?? division.value,
+    //           salary: salary.value,
+    //           status: true,
+    //           enddate: 'present',
+    //           position: position.value,
+    //           startdate: startdate.value,
+    //           employment: employment.value,
+    //           arrangements: 'On-site', 
+    //         }],
+    //       },
+    //       contacts: {
+    //         email: emailAdd.value,
+    //         mobile: mobile.value,
+    //       },
+    //       others: {
+    //         civilstatus: civilstatus.value,
+    //         gender: gender.value
+    //       },
+    //       components: JSON.stringify(checkedComponentsValues),
+    //       roles: JSON.stringify(checkedRolesValues),
+    //     }
+
+    //     // into JSON format
+    //     let {experience, contacts, others} = data
+    //     experience = JSON.stringify(experience)
+    //     contacts = JSON.stringify(contacts)
+    //     others = JSON.stringify(others)
+    //     data.experience = experience
+    //     data.contacts = contacts
+    //     data.others = others
+  
+    //     console.log({data})
+
+    //     const requestOptions = {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //       body: JSON.stringify(data)
+    //     };
+        
+    //     fetch(apiUrl, requestOptions)
+    //     .then(response => {
+    //       if (!response.ok) {
+    //         // throw new Error('Network response was not ok');
+    //         notifyCustom('bell', 'System Error', 'Network response was not ok!', 'danger')
+    //       }
+    //       return response.json();
+    //     })
+    //     .then(data => {
+    //       if(!data) {
+    //         notifyCustom('bell', 'Error', 'Failed to create the Transaction', 'danger')
+    //       }
+  
+    //       let {message, response } = data
+    //       let {insertId} = response
+          
+    //       $.notify({
+    //         icon: 'icon-bell',
+    //         title: `${message}`,
+    //         message: `Transaction ID#${insertId}`,
+    //       },{
+    //         type: 'success',
+    //         placement: {
+    //           from: "top",
+    //           align: "right"
+    //         },
+    //         time: 1000,
+    //       });
+    //     })
+    //     .catch(error => {
+    //         notifyCustom('bell', 'Failed to fetch data', error, 'danger')
+    //     });
+    //   })
+    // }
     if (registerEmployee) {
       const apiUrl = '/register/new';
       
@@ -74,14 +187,14 @@
         }
 
         var checkedComponents = document.querySelectorAll('input[name="components"]:checked');
-        var checkedRoles = document.querySelectorAll('input[name="roles"]:checked');
+        var selectedRoles = document.querySelectorAll('select[name="pr_roles"] option:checked');
         
         var checkedComponentsValues = Array.from(checkedComponents).map(function(checkbox) {
             return checkbox.value;
         });
 
-        var checkedRolesValues = Array.from(checkedRoles).map(function(checkbox) {
-            return checkbox.value;
+        var selectedRolesValues = Array.from(selectedRoles).map(function(option) {
+            return option.value;
         });
       
         const data = {
@@ -114,17 +227,17 @@
             gender: gender.value
           },
           components: JSON.stringify(checkedComponentsValues),
-          roles: JSON.stringify(checkedRolesValues),
+          roles: JSON.stringify(selectedRolesValues),
         }
 
         // into JSON format
         let {experience, contacts, others} = data
-        experience = JSON.stringify(experience)
-        contacts = JSON.stringify(contacts)
-        others = JSON.stringify(others)
-        data.experience = experience
-        data.contacts = contacts
-        data.others = others
+        // experience = JSON.stringify(experience)
+        // contacts = JSON.stringify(contacts)
+        // others = JSON.stringify(others)
+        // data.experience = experience
+        // data.contacts = contacts
+        // data.others = others
   
         console.log({data})
 
@@ -149,13 +262,13 @@
             notifyCustom('bell', 'Error', 'Failed to create the Transaction', 'danger')
           }
   
-          let {message, response } = data
-          let {insertId} = response
+          let {message } = data
           
           $.notify({
             icon: 'icon-bell',
-            title: `${message}`,
-            message: `Transaction ID#${insertId}`,
+            title: `Successfully created!`,
+            // message: `Transaction ID#${insertId}`,
+            message: `${message}`,
           },{
             type: 'success',
             placement: {
@@ -170,7 +283,8 @@
         });
       })
     }
-    
+    // endof WORKING
+
     if (updateEmployee) {
       const apiUrl = '/employees/update';
       
@@ -301,6 +415,8 @@
         });
       })
     }
+
+
     if (roleInputEnter) {
       roleInputEnter.addEventListener('keypress', function(event) {
       if (event.key === 'Enter') {

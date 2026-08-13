@@ -1176,18 +1176,18 @@
     </script>
 
     <script>
-    // // Make table rows draggable
-    // new Sortable(document.querySelectorAll('.nested-sortable'), {
+    // Make table rows draggable
+    // new Sortable(document.querySelector('#organizationalTable > tbody'), {
     //   animation: 150,
-    //   handle: 'td',   // drag by any cell
-    //   // ghostClass: 'sortable-ghost',
+    //   handle: 'tr',   // drag by any cell
+    //   ghostClass: 'sortable-ghost',
     //   group: 'nested',
     //   fallbackOnBody: true,
     //   swapThreshold: 0.65
     // });
 
     // Loop through each nested sortable element (like <ul> inside cells)
-    const nestedSortables = document.querySelectorAll('.nested-sortable');
+    const nestedSortables = document.querySelectorAll('#organizationalTable > tbody');
     for (let i = 0; i < nestedSortables.length; i++) {
       new Sortable(nestedSortables[i], {
         group: 'nested',
@@ -1197,7 +1197,11 @@
       });
     }
   </script>
-    
+  <style>
+    #organizationalTable > tbody > tr {
+      cursor: move;  /* Change cursor to indicate draggable rows */
+    }
+  </style>
 
   </body>
 </html>
