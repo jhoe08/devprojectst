@@ -1,8 +1,10 @@
 <% 
-    if (FUNDS.length === 2) {
+    if (!FUNDS) return 404;
+
+    if (FUNDS?.length === 2) {
         const [currentFunds, continuingFunds] = FUNDS;
-        const currentRaw = currentFunds.value;
-        const continuingRaw = continuingFunds.value;
+        const currentRaw = currentFunds?.value;
+        const continuingRaw = continuingFunds?.value;
 
         const currentValue = JSON.parse(currentRaw);
         const continuingValue = JSON.parse(continuingRaw);
@@ -12,7 +14,6 @@
             lastUpdated: new Date(Math.max(new Date(currentValue.lastUpdated), new Date(continuingValue.lastUpdated))).toISOString(),
             data: {
                 values: [...currentValue.data.values.slice(1), ...continuingValue.data.values.slice(1)],
-                
                 current: currentValue.data.values.slice(1),
                 continuing: continuingValue.data.values.slice(1)
             }

@@ -100,7 +100,7 @@
       element.click(); // auto-open menu when tour reaches this step
     }
   });
-  document.getElementById('siteTourBtn').addEventListener('click', () => {
+  document.getElementById('siteTourBtn')?.addEventListener('click', () => {
     introJs().setOptions({
       steps: [
         { element: document.querySelector('h1'), intro: "Welcome to the Procurement Tracker!", title: "👋 Welcome!" },
@@ -113,7 +113,7 @@
     }).start();
   });
 
-  document.getElementById('createTransactionBtn').addEventListener('click', () => {
+  document.getElementById('createTransactionBtn')?.addEventListener('click', () => {
     introJs().setOptions({
       steps: [
         { element: document.querySelector('h1'), intro: "This tutorial will guide you step by step.", title: "📝 Tutorial Overview" },

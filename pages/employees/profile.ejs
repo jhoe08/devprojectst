@@ -1,10 +1,20 @@
 <!-- Header Template -->
 <%- include('../../views/header') -%>
-<% var {employeeid, firstname, lastname, middlename, birthdate, experience, username, contacts} = employee %>
-<% if(experience) { 
+<% var {employeeid, firstname, lastname, middlename, extname, birthdate, experience, username, contacts} = employee %>
+<% 
+
     var { lists } = JSON.parse(experience)
-    var { office, salary, startdate, enddate, position, division, section } = lists[0] 
- } 
+    let {
+      office = null,
+      salary = 0,
+      startdate = '',
+      enddate = '',
+      position = '',
+      division = '',
+      section = '',
+      banner = ''
+    } = lists?.[0] || {};
+
 
   const dateOfBirth = new Date(birthdate); // example
   const today = new Date();
@@ -26,7 +36,8 @@
  
  %>
 <div class="wrapper" data-employee="<%= employee[0] %>">
-    <%- include('../../views/sidebar') -%>
+    <%# include('../../views/sidebar') #%>
+    <%- include('../views/ra12009/sidebar') -%>
 
     <div class="main-panel">
       <%- include('../../views/main-header') -%>
@@ -47,7 +58,7 @@
                     <div class="user-profile text-center">
                       <div class="name"><%= [firstname, middlename, lastname].filter(Boolean).join(' ') %>, <%= age || 0 %></div>
                       <div class="job"><%= position %></div>
-                      <div class="desc">A man who hates loneliness</div>
+                      <div class="desc"><%= extname || 'N/A' %></div>
                       <div class="social-media">
                         <a class="btn btn-info btn-twitter btn-sm btn-link" href="#">
                           <span class="btn-label just-icon"><i class="icon-social-twitter"></i>
@@ -85,7 +96,7 @@
         
                 <div class="card-box">
                     <h4 class="header-title">Office Location</h4>
-                    <p class="mb-3"><%=office%> - <%=division%></p>
+                    <p class="mb-3"><%= `${office || 'N/A'}` %> - <%=division%></p>
                 </div> <!-- end card-box-->
         
             </div> <!-- end col-->
@@ -114,14 +125,16 @@
 
                             <ul class="list-unstyled timeline-sm">
                             <% if(experience) { %> 
-                                <% var { lists } = JSON.parse(experience)
-                                    for(var i=0; i < lists.length; i++) { 
-                                    var { office, salary, startdate, enddate, position, office, banner } = lists[i]
-                                        %>
-                                <li class="timeline-sm-item" data-exclusive="<%= enddate %>">
-                                    <span class="timeline-sm-date"><%= moment(startdate).format('YYYY') %> - <%= (enddate == 'present') ? enddate :  moment(enddate).format('YY') %></span>
-                                    <h5 class="mt-0 mb-1"><%= position %> <%= salary %></h5>
-                                    <p><%= [office, division, banner].join(', ') %></p>
+                                <% 
+                                var { lists } = JSON.parse(experience)
+                                    for(var i=0; i < lists?.length; i++) { 
+                                    
+                                        var { office:perOffice, salary: perSalary, startdate: perStartdate, enddate: perEnddate, position: perPosition, division: perDivision, banner: perBanner } = lists[i]
+                                %>
+                                <li class="timeline-sm-item" data-exclusive="<%= perEnddate %>">
+                                    <span class="timeline-sm-date"><%= moment(perStartdate).format('YYYY') %> - <%= (perEnddate == 'present') ? perEnddate :  moment(perEnddate).format('YY') %></span>
+                                    <h5 class="mt-0 mb-1"><%= perPosition %> <%= perSalary %></h5>
+                                    <p><%= [perOffice, perDivision, perBanner].join(', ') %></p>
                                     <div class="text-muted mt-2">
                                         <!-- Description Here! -->
                                     </div>

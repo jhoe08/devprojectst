@@ -259,7 +259,7 @@
 
                         </div>
                         <div class="card-body table-responsive" id="divisionFields">
-                            <table id="organizationalTable" class="table table-striped table-hover">
+                            <table id="organizationalTable" class="table table-striped table-hover hidden">
                                 <thead>
                                     <tr class="text-uppercase">
                                         <th>Abbreviation</th>
@@ -322,7 +322,18 @@
                                                 </div>
                                             </td>
                                         </tr>
-                                        <% } %>
+                                    <% } %>
+
+                                    <% const renderRows = (key, stands, email, type, responsible) => { 
+                                        const data = { key, stands, email, type, responsible }; %>
+                                        <div class="list-group-item nested-<%= key %>">
+                                            <%- type==='section' ? '<i class="icon-sm unicode">∟</i> ' :
+                                                type==='division' ? '<i class="icon-sm far fa-folder-open"></i> ' :
+                                                type==='unit' ? '<i class="icon-sm fas fa-flag"></i>'
+                                                : '<i class="icon-sm far fa-building"></i>' -%>
+                                                <%= key %> <%= stands %>
+                                        </div>
+                                    <% } %>
 
                                         <% if (directors && offices) { %>
                                             <% Object.entries(directors).forEach(([key, director]) => { 
@@ -353,6 +364,72 @@
                                 </tbody>
 
                             </table>
+                            <% if (directors && offices) { %>
+                            <div id="nestedDemo" class="list-group col nested-sortable">
+                                <% Object.entries(directors).forEach(([key, director]) => { 
+                                    const { id: directorOffice, stands, email, responsible, } = director;
+                                %>
+                                <div class="list-group-item nested-<%= key %>">
+                                    
+                                    <div class="form-group form-group-default">
+                                        <label>Directors</label>
+                                        <input id="Name" type="text" class="form-control" placeholder="Fill Name" value="<%= stands %>">
+                                    </div>
+                                    <div class="list-group nested-sortable">
+                                        <% Object.entries(offices).forEach(([divKey, division]) => { 
+                                            const { id: divisionOffice, stands, email, responsible, parent_executive_office, parent_division } = division;
+                                            if (directorOffice === parent_executive_office && parent_division === 1) { %>
+                                                <div class="list-group-item nested-<%= divKey %> nested-sortable">
+                                                    <div class="form-group form-group-default">
+                                                        <label>Divisions</label>
+                                                        <input id="Name" type="text" class="form-control" placeholder="Fill Name" value="<%= stands %>">
+                                                    </div>
+                                                    <% Object.entries(offices).forEach(([unitKey, unitDivision]) => { 
+                                                            const {id: unitId, stands, email, responsible, parent_division, parent_executive_office } = unitDivision;
+                                                        if (divisionOffice === parent_division) { %>
+                                                            
+                                                        <div class="list-group-item nested-<%= divKey %> nested-sortable">
+                                                            <div class="form-group form-group-default">
+                                                                <label>Units</label>
+                                                                <input id="Name" type="text" class="form-control" placeholder="Fill Name" value="<%= stands %>">
+                                                            </div>
+                                                        </div>
+                                                        <% } %>
+                                                    <% }) %>
+                                                </div>
+                                            <% } %>
+                                        <% })%>
+                                    </div>
+                                </div>
+                                <% }) %>
+                                <!-- <div class="list-group-item nested-1">Item 1.1
+                                    <div class="list-group nested-sortable">
+                                        <div class="list-group-item nested-2">Item 2.1</div>
+                                        <div class="list-group-item nested-2">Item 2.2
+                                            <div class="list-group nested-sortable">
+                                                <div class="list-group-item nested-3">Item 3.1</div>
+                                                <div class="list-group-item nested-3">Item 3.2</div>
+                                                <div class="list-group-item nested-3">Item 3.3</div>
+                                                <div class="list-group-item nested-3">Item 3.4</div>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item nested-2">Item 2.3</div>
+                                        <div class="list-group-item nested-2">Item 2.4</div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item nested-1">Item 1.2</div>
+                                <div class="list-group-item nested-1">Item 1.3</div>
+                                <div class="list-group-item nested-1">Item 1.4
+                                    <div class="list-group nested-sortable">
+                                        <div class="list-group-item nested-2">Item 2.1</div>
+                                        <div class="list-group-item nested-2">Item 2.2</div>
+                                        <div class="list-group-item nested-2">Item 2.3</div>
+                                        <div class="list-group-item nested-2">Item 2.4</div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item nested-1">Item 1.5</div> -->
+                            </div>
+                            <% } %>
                         </div>
                     </div>
                 </div>

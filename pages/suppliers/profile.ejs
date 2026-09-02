@@ -1,5 +1,6 @@
 <%
     const { supplier_code, supplier_name, contact_person, email, phone, address, status } = results
+    const { businessPermit, philgephs, dti, certificateOfRegistration } = results?.supplierDetails || {}
 %>
 <!-- Header Template -->
 <%- include('../../views/header') -%>
@@ -49,6 +50,10 @@
                 <div class="card-box">
                     <h4 class="header-title">Office Address</h4>
                     <p class="mb-3"><%= address %></p>
+                    <p class="mb-3">Business Permit: <%= businessPermit ?? 'Not provided' %></p>
+                    <p class="mb-3">Philgephs: <%= philgephs ?? 'Not provided' %></p>
+                    <p class="mb-3">DTI: <%= dti ?? 'Not provided' %></p>
+                    <p class="mb-3">Certificate of Registration: <%= certificateOfRegistration ?? 'Not provided' %></p>
                 </div> <!-- end card-box-->
         
             </div> <!-- end col-->
@@ -74,12 +79,13 @@
         
                             <h5 class="mb-4 text-uppercase"><i class="mdi mdi-briefcase mr-1"></i>
                                 Quoted Purchase Request</h5>
-
+                                
+                            
         
                         </div>
                         <!-- end timeline content-->
         
-                        <div class="tab-pane" id="settings">
+                        <div class="tab-pane show" id="settings">
                             <form>
                                 <h5 class="mb-3 text-uppercase bg-light p-2"><i class="mdi mdi-account-circle mr-1"></i> Personal Info</h5>
                                 

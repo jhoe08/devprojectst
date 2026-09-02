@@ -13,12 +13,12 @@
 <%- include('header') -%>
   <div class="wrapper" data-template="<%= PROCUREMENT.currentLaw %>">
 
+    <%# include('../views/sidebar') #%>
+    <%- include('../views/ra12009/sidebar') -%>
+
     <div class="main-panel">
         <%- include('../views/main-header') -%>
           <div class="container">
-
-            <%# include('../views/sidebar') #%>
-            <%- include('../views/ra12009/sidebar') -%>
 
             <div class="page-inner">
               <% if (!hideTitle) { %>

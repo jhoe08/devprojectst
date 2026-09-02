@@ -1173,6 +1173,7 @@
     // $('.daterangepicker .calendar-table').hide();
 
 
+
     </script>
 
     <script>
@@ -1196,10 +1197,28 @@
         swapThreshold: 0.65
       });
     }
+
+    const sortableSection = document.querySelectorAll('.nested-sortable');
+    for (let i = 0; i < sortableSection.length; i++) {
+      new Sortable(sortableSection[i], {
+        group: 'nested',
+        animation: 150,
+        fallbackOnBody: true,
+        swapThreshold: 0.65
+      });
+    }
   </script>
   <style>
     #organizationalTable > tbody > tr {
       cursor: move;  /* Change cursor to indicate draggable rows */
+    }
+
+    .nested-sortable {
+      cursor: move;
+      .list-group-item  {
+        cursor: move;
+        flex-direction: column;
+      }
     }
   </style>
 

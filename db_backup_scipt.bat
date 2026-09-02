@@ -17,5 +17,5 @@ REM Dump schema only for the whole database
 REM Dump data only for executive_offices, settings and etc...
 "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe" ^
     -u root -p"1jsQM#7bTmKv*vDBroot" ^
-    --no-create-info procurementtracker executive_offices settings ^
+    --no-create-info procurementtracker departments executive_offices settings employees ^
     > "%BACKUP_DIR%\procurementtracker_data_%TIMESTAMP%.sql"

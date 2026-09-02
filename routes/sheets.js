@@ -46,7 +46,7 @@ router.get('/sheets', async (req, res) => {
 
   const result = await connection?.getSettingByKey('integration_api_key');
   const row = Array.isArray(result) ? result[0] : result;
-  const apiKey = row.value;
+  const apiKey = row?.value;
 
   console.log(apiKey)
 

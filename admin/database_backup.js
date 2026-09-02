@@ -27,9 +27,12 @@ var connection = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: prefix,
+  database: process.env.DB_DATABASE || prefix,
   charset: "utf8mb4",
 });
+// TEST
+prefix = process.env.DB_DATABASE;
+console.log('Database connection: ', {connection: connection.config.database})
 
 connection.connect();
 
@@ -819,7 +822,7 @@ const databaseUtils = {
     return await databaseUtils.amendData('employees', data)
   },
   // STORE
-  postEmployees: async (data) => {
+  postEmployees: async (data) => {   
     try {
       const { employeeid, roles } = JSON.parse(data); // Only parse if data is a string
       console.log({ employeeid, roles });

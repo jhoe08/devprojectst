@@ -199,7 +199,7 @@ const department = {
       stands: "Office of the Regional Executive Director",
       email: "",
       admin: "",
-      responsible: { employeeid: 73001, name: "Dir. Angel C. Enriquez, CESO III" },
+      responsible: { employeeid: 700001, name: "Dir. Angel C. Enriquez, CESO III" },
       acting: "",
     },
     RTDs: {
@@ -207,14 +207,14 @@ const department = {
         stands: "Regional Technical Director for Research and Regulations ",
         email: "",
         admin: "",
-        responsible: { employeeid: 73002, name: "Wilberto O. Castillo" },
+        responsible: { employeeid: 700501, name: "Wilberto O. Castillo" },
         acting: "",
       },
       RTDO: {
         stands: "Regional Technical Director for Operations",
         email: "",
         admin: "",
-        responsible: { employeeid: 73003, name: "Engr. Cirilo N. Namoc" },
+        responsible: { employeeid: 700500, name: "Engr. Cirilo N. Namoc" },
         acting: "",
       }
     },
@@ -294,11 +294,13 @@ const department = {
           stands: "ICT Planning, Policy, and Training Section",
           email: "",
           admin: "",
+          responsible: { employeeid: "115", name: "Jenie F. Evardo" },
         },
         GEOSEC: {
           stands: "Geoinformatics Section",
           email: "",
           admin: "",
+          responsible: { employeeid: "116", name: "Julius M. Galvan" },
         },
         NMTSS: {
           stands: "Network Management and Technical Support Section",
@@ -311,6 +313,7 @@ const department = {
           stands: "Data Privacy and Cybersecurity Section",
           email: "",
           admin: "",
+          responsible: { employeeid: "119", name: "Maricel D. Bautista" },
         },
         SDS: {
           stands: "Systems Development Section",
@@ -323,7 +326,8 @@ const department = {
           stands: "Database Management Section",
           email: "",
           admin: "",
-          acting: "",
+          responsible: { employeeid: "117", name: "Feromel Magalso" },
+          acting: { employeeid: "118", name: "Ian Roy Butron" },
         }
       }
     },
@@ -361,16 +365,19 @@ const department = {
           stands: "Registration/Licensing/Inspection Certification/Accreditation Service Section",
           email: "",
           admin: "",
+          responsible: { employeeid: 75002, name: "Jenie F. Evardo" },
         },
         QCIS: {
           stands: "Quality Control and Inspection Section",
           email: "",
           admin: "",
+          responsible: { employeeid: 75003, name: "Maria L. Dela Cruz" },
         },
         PPADMSEWS: {
           stands: "Plant Pest and Animal Disease Monitoring Surveillance and Early Warning Section",
           email: "",
           admin: "",
+          responsible: { employeeid: 75004, name: "Antonio M. Santos" },
         },
       }
     },
@@ -378,7 +385,7 @@ const department = {
       stands: "Research Division",
       "email": "",
       "admin": "",
-      responsible: { employeeid: 74002, name: "Fabio G. Enriquez" },
+      responsible: { employeeid: 74002, name: "Grace Len C. Dagala" },
       acting: { employeeid: 76002, name: "Fabio G. Enriquez" },
       sections: {
         TPCS: {
@@ -1239,7 +1246,7 @@ app.use(async (req, res, next) => {
       return SESSION_USER?.roles.includes('Guest');
     },
     isSuperAdmin: () => {
-      return SESSION_USER?.roles.includes('SuperAdmin') || SESSION_USER?.roles.includes('Executive');
+      return SESSION_USER?.roles.includes('SuperAdmin') || SESSION_USER?.roles.includes('Executive') || SESSION_USER?.roles.includes('Director') || SESSION_USER?.roles.includes('RTD');
     },
     trimName(fullName) {
       const parts = fullName.trim().split(' ');
