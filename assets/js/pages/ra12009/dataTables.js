@@ -211,31 +211,27 @@ $('.transactionsTables')?.DataTable({
             targets: 1,
             title: 'Particulars'
         },
-        {
+        {   // Testing code for fund source rendering
             render: (data, type, row) => {
+
                 const fund_source = row[12] || '';
 
-                console.log('fund_source:', fund_source)
-
                 const source = JSON.parse(fund_source)
-                // const source = fund_source
+        //         // const source = fund_source
 
                 const sources = source.map(item => item.source);
+                
 
-                // console.log(sources)
 
-                const values = sources[0].split(',').map(v => v.trim()).filter(Boolean);
+                const html = sources
+                    .filter(val => val && val.trim() !== "") // remove empty or whitespace-only
+                    .map(val => {
+                        const [fund, meta] = val.split('::');
+                        const [paps, cls, obj, desc, source] = meta.split(' | ').filter(Boolean);
+                        const badgeClass = source === undefined ? 'info' : 'warning';
 
-                const html = values.map(val => {
-                    // Safely split on " | "
-                    const [fund, meta] = val.split('::')
-                    const [paps, cls, obj, desc, source] = meta.split(' | ').filter(Boolean);
-                    const badgeClass = source === undefined ? 'info' : 'warning';
-
-                    return `<span class="badge badge-${badgeClass}" data-bs-toggle="tooltip" data-bs-original-title="${paps}">${cls} | ${obj} | ${desc}</span>`;
-                }).join(' ');
-
-                // const html = sources
+                        return `<span class="badge badge-${badgeClass}" data-bs-toggle="tooltip" data-bs-original-title="${paps}">${cls} | ${obj} | ${desc}</span>`;
+                    }).join(' ');
 
                 return `
                     <div class="d-flex flex-column text-end">

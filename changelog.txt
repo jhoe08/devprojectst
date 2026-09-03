@@ -1,4 +1,8 @@
+v2.1.2
+- fix* datatables on other transactions updates
+- remove* comments on footer.js
+
 v2.0.3
-- issue** Check issue related to "ConnectRefused" on database
-- system** Removed XAMPP application
-- add** seeders for employees
+- issue* Check issue related to "ConnectRefused" on database
+- system* Removed XAMPP application
+- add* seeders for employees

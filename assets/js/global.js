@@ -120,7 +120,7 @@ const charts = {
         abcs = JSON.parse(abcs)
         quotedAmount = JSON.parse(quotedAmount)
         disburseAmount = JSON.parse(disburseAmount)
-        console.log({ data })
+        // console.log({ data })
 
         var chartData = [
             {

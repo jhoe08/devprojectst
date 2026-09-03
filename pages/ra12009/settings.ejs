@@ -36,8 +36,6 @@
     directors = mappedDirectors
     offices = mappedOffices
 
-    console.log( {mappedDirectors, mappedOffices} )
-
 %>
 
 <div class="row">
@@ -259,111 +257,6 @@
 
                         </div>
                         <div class="card-body table-responsive" id="divisionFields">
-                            <table id="organizationalTable" class="table table-striped table-hover hidden">
-                                <thead>
-                                    <tr class="text-uppercase">
-                                        <th>Abbreviation</th>
-                                        <th>Name</th>
-                                        <th title="Responsible Person">Person</th>
-                                        <th>Email</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr class="text-uppercase">
-                                        <th>Abbreviation</th>
-                                        <th>Name</th>
-                                        <th title="Responsible Person">Person</th>
-                                        <th>Email</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </tfoot>
-                                <tbody>
-                                    <div class="nested-sortable">
-                                    <% const renderRow=(key, stands, email, type, responsible)=> {
-                                        const data = {key, stands, email, type, responsible}
-                                        %>
-                                        <tr class="<%= type %>">
-                                            <td><%- type==='section' ? '<i class="icon-sm unicode">∟</i> ' :
-                                                    type==='division' ? '<i class="icon-sm far fa-folder-open"></i> ' :
-                                                    type==='unit' ? '<i class="icon-sm fas fa-flag"></i>'
-                                                    : '<i class="icon-sm far fa-building"></i>' -%>
-                                                    <%= key %>
-                                            </td>
-                                            <td>
-                                                <%= stands %>
-                                            </td>
-                                            <td>
-                                                <%= responsible?.name || '' %>
-                                            </td>
-                                            <td>
-                                                <%= email %>
-                                            </td>
-                                            <td>
-                                                <div class="form-button-action" data-transid="1">
-                                                    <span data-bs-toggle="tooltip" data-bs-placement="top"
-                                                        title="Edit <%= type.charAt(0).toUpperCase() + type.slice(1) %>">
-                                                        <a class="actionsEdit" data-type="organization"
-                                                            href="#settingsModal"
-                                                            class="btn btn-link btn-primary btn-lg"
-                                                            data-bs-toggle="modal" data-bs-target="#settingsModal"
-                                                            data-modalTitle="Edit <%= type.charAt(0).toUpperCase() + type.slice(1) %>"
-                                                            data-modalBody="<%=JSON.stringify(data)%>">
-                                                            <i class="fa fa-edit"></i>
-                                                        </a>
-                                                    </span>
-                                                    <% if (false) { %>
-                                                        <a href="#delete" class="btn btn-link btn-danger btn-lg"
-                                                            data-bs-toggle="tooltip" data-bs-placement="top"
-                                                            title="Delete <%= type.charAt(0).toUpperCase() + type.slice(1) %>">
-                                                            <i class="fa fa-trash"></i>
-                                                        </a>
-                                                        <% } %>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <% } %>
-
-                                    <% const renderRows = (key, stands, email, type, responsible) => { 
-                                        const data = { key, stands, email, type, responsible }; %>
-                                        <div class="list-group-item nested-<%= key %>">
-                                            <%- type==='section' ? '<i class="icon-sm unicode">∟</i> ' :
-                                                type==='division' ? '<i class="icon-sm far fa-folder-open"></i> ' :
-                                                type==='unit' ? '<i class="icon-sm fas fa-flag"></i>'
-                                                : '<i class="icon-sm far fa-building"></i>' -%>
-                                                <%= key %> <%= stands %>
-                                        </div>
-                                    <% } %>
-
-                                        <% if (directors && offices) { %>
-                                            <% Object.entries(directors).forEach(([key, director]) => { 
-                                                const { id: directorOffice, stands, email, responsible, } = director;
-                                            %>
-                                                <%- renderRow(key, stands, email, 'director', responsible) %>
-
-                                                <% Object.entries(offices).forEach(([divKey, division]) => { 
-                                                    const { id: divisionOffice, stands, email, responsible, parent_executive_office, parent_division } = division;
-                                                    if (directorOffice === parent_executive_office && parent_division === 1) { %>
-                                                        
-                                                        <%- renderRow(divKey, stands, email, 'division', responsible) %>
-
-                                                        <% Object.entries(offices).forEach(([unitKey, unitDivision]) => { 
-                                                            const {id: unitId, stands, email, responsible, parent_division, parent_executive_office } = unitDivision;
-                                                            if (divisionOffice === parent_division) { %>
-                                                                
-                                                                <%- renderRow(unitKey, stands, email, 'section', responsible) %>
-                                                            
-                                                            <% } %>
-                                                        <% }) %>
-                                                    <% } %>
-                                                <% }) %>
-                                            <% }) %>
-                                        <% } %>
-                                    </div>
-
-                                </tbody>
-
-                            </table>
                             <% if (directors && offices) { %>
                             <div id="nestedDemo" class="list-group col nested-sortable">
                                 <% Object.entries(directors).forEach(([key, director]) => { 
@@ -372,6 +265,7 @@
                                 <div class="list-group-item nested-<%= key %>">
                                     
                                     <div class="form-group form-group-default">
+                                        <span class="icon-cursor-move"></span>
                                         <label>Directors</label>
                                         <input id="Name" type="text" class="form-control" placeholder="Fill Name" value="<%= stands %>">
                                     </div>
@@ -381,6 +275,7 @@
                                             if (directorOffice === parent_executive_office && parent_division === 1) { %>
                                                 <div class="list-group-item nested-<%= divKey %> nested-sortable">
                                                     <div class="form-group form-group-default">
+                                                        <span class="icon-cursor-move"></span>
                                                         <label>Divisions</label>
                                                         <input id="Name" type="text" class="form-control" placeholder="Fill Name" value="<%= stands %>">
                                                     </div>
@@ -390,6 +285,7 @@
                                                             
                                                         <div class="list-group-item nested-<%= divKey %> nested-sortable">
                                                             <div class="form-group form-group-default">
+                                                                <span class="icon-cursor-move"></span>
                                                                 <label>Units</label>
                                                                 <input id="Name" type="text" class="form-control" placeholder="Fill Name" value="<%= stands %>">
                                                             </div>

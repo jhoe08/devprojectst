@@ -1,10 +1,47 @@
 .table {
-    .division, .section {
+
+    .division,
+    .section {
         td:first-child {
             i {
                 margin-left: 15px;
             }
         }
     }
-    
+
+}
+
+.nested-sortable {
+    cursor: move;
+
+    /* &:not(:has(> .list-group-item)) {
+        padding: 10px; 
+        border: 1px dashed #ccc;
+    } */
+
+    .form-group-default {
+        position: relative;
+    }
+
+    .list-group-item {
+        cursor: move;
+        flex-direction: column;
+
+        .form-group {
+            margin-left: 30px;
+            overflow: unset;
+
+            .icon-cursor-move {
+                position: absolute;
+                left: -30px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        }
+    }
+}
+
+#organizationalTable>tbody>tr {
+    cursor: move;
+    /* Change cursor to indicate draggable rows */
 }

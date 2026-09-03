@@ -120,7 +120,7 @@ employeeNames: document.getElementById('employeeName'),
     let employeeData = this.jsonData()
     // Extract employee names
     const employeeNames = employeeData.employees.map(employee => employee.employeeName);
-    console.log(employeeNames)
+    // console.log(employeeNames)
   }, 
   getEmployeeData(data, heads) {
     let jsonData = data
