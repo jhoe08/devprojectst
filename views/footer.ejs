@@ -227,10 +227,13 @@
 
       // For all QRCode request
       const qrcodes = document.querySelectorAll('[data-qrcode]')
+      
       if(qrcodes.length > 0){
         qrcodes.forEach(codes=>{
           const qrcode = codes.dataset.qrcode;
           const type = codes.dataset.type;
+
+          console.log({ qrcode, type })
           
           new QRCode(`${qrcode}`, qrcode); 
         })

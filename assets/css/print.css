@@ -54,7 +54,7 @@
             th,
             > thead ,
             tr {
-                border-width: 1px;
+                border: 1px solid #dddddd;
                 padding: 5px;
             }
         }
@@ -126,8 +126,8 @@ table#trackingSheetTable {
     #trackingSheetTable {
         td {
             white-space: pre;
-            color: #fff;
-            visibility: hidden;
+            /* color: #fff;
+            visibility: hidden; */
         }
     }
 }

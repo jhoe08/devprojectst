@@ -2703,7 +2703,7 @@ app.get('/transactions/:id/edit', restrict, async (req, res) => {
     const transactions = await connection.getTransactionById(req.params.id);
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
-        scripts: ['/assets/js/pages/transactions.js'],
+        scripts: ['/assets/js/pages/transactions.js', '/assets/js/pages/purchaseRequests/addFundSource.js'],
         innerContent: '../pages/ra12009/transactions/new',
         title: "Update Transactions",
         description: "",

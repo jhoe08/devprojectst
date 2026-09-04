@@ -52,6 +52,7 @@
                 <% 
                 const transactions = _datatables;
                 const steps = _steps;
+                let fundAllocations;
 
                 let { division:userDivision, section: userSection, position: userPosition } = (!isGuest()) ? SESSION_USER_LOG?.designation : { division:'', section:'', position:'' };
                 userDivision = userDivision?.toLowerCase();
@@ -120,7 +121,7 @@
                     <td data-head="Division"><%= division %></td>
                     <td data-head="PR Date" data-value="<%= moment(pr_date).format('Do MMM YYYY') %>" data-order="<%= moment(pr_date).unix(); %>"><%= date %></td>
                     <td data-head="Budget" data-budget="<%= budget %>" data-typeOf="<%= typeof budget %>" class="align-right"><%= budget %></td>
-                    <td data-head="Fund Sources"><%= fundAllocations %></td>
+                    <td data-head="Fund Sources"><%= fundAllocations || '' %></td>
                     <td data-head="Codes"><%- trans_code -%></td>
                     <td data-head="Banner"><%= banner_program %></td>
                     <td data-head="Classification"><%= pr_classification %></th>

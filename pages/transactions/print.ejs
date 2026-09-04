@@ -20,7 +20,7 @@
                     budget = parseFloat(cleanBudget)
                 %>
                 <div class="wrapper trackingsheet">
-                    <div id="transid-<%=transactions.product_id%>" class="qrcode" data-qrcode="<%=transactions.product_id%>"></div>
+                    <!-- <div id="transid-<%=transactions.product_id%>" class="qrcode hidden" data-qrcode="<%=transactions.product_id%>"></div> -->
                     <div id="<%- trackerid -%>" data-qrcode="<%- trackerid -%>" class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- trackerid -%>"></div>
                     <header class="text-center">
                         <h1><span class="text-uppercase">Tracking Sheet </span><span class="text-lowercase">for</span> <%= budget > 1000000 ? 'Public Bidding' : 'SVP'  %></h1>

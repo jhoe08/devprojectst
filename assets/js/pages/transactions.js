@@ -456,10 +456,11 @@ function createTransaction() {
   }
 
 
-  if (Object.keys(responsibleData).length === 0) {
+  if (responsibleData || Object.keys(responsibleData ?? {}).length === 0) {
     console.error('No responsible data found');
-    requisitioner.closest('.form-group').classList.add('has-error');
-    requisitioner.closest('.form-group').querySelector('.input-icon').classList.add('text-danger');
+    return;
+    // requisitioner.closest('.form-group').classList.add('has-error');
+    // requisitioner.closest('.form-group').querySelector('.input-icon').classList.add('text-danger');
   }
 
   createTransactions?.addEventListener('click', async () => {
@@ -475,13 +476,13 @@ function createTransaction() {
       //   }
       // });
 
-      const charges = Array.from(chargingTo.querySelectorAll(':scope > .row')).map(fund => ({
+      const charges = Array.from(chargingTo.querySelectorAll(':scope .row')).map(fund => ({
         source: fund.querySelector('input[name*="chargedFunds_"]')?.value,
         amount: fund.querySelector('input[name*="chargedAmount_"]')?.value
       }))
 
 
-      // const charge = Object.fromEntries(
+      // const charges = Object.fromEntries(
       //   Array.from(chargingTo.querySelectorAll('.row')).map(fund => {
       //     const inputValue = fund.querySelector('input[name*="chargedFunds_"]').value;
       //     const amountValue = fund.querySelector('input[name*="chargedAmount_"]').value;
@@ -645,7 +646,7 @@ function updateTransaction() {
     let bacUnitValue = bacUnit.value
 
     let charge = []
-    const charges = Array.from(chargingTo.querySelectorAll(':scope > .row')).map(fund => ({
+    const charges = Array.from(chargingTo.querySelectorAll(':scope .row')).map(fund => ({
       source: fund.querySelector('input[name*="chargedFunds_"]')?.value,
       amount: fund.querySelector('input[name*="chargedAmount_"]')?.value
     }))
@@ -666,7 +667,7 @@ function updateTransaction() {
       requisitioner: requisitionerValue,
       // division: divisionValue,
       approved_budget: budgetValue,
-      fund_source: charge,
+      fund_source: charges,
       // banner_program: bannerProgramValue,
       bac_unit: bacUnitValue,
       remarks: {
