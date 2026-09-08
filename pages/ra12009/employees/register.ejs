@@ -54,7 +54,8 @@
     ({ gender: e_gender, civilstatus: e_civilStatus } = JSON.parse(others));
   }
 
-  roles = typeof roles === 'string' ? JSON.parse(roles || '[]') : Array.isArray(roles) ? roles : JSON.parse(roles || '[]');
+  // roles = typeof roles === 'string' ? JSON.parse(roles || '[]') : Array.isArray(roles) ? roles : JSON.parse(roles || '[]');
+  roles = (roles.includes('[') && roles.includes(']')) ? JSON.parse(roles || '[]') : Array.isArray(roles) ? roles : roles;
 
   // Determine mode
   const isRegistrationMode = mode === 'register';
@@ -293,8 +294,8 @@
                         <label class="form-label hidden">Select pages visible</label>
                         <% components.sort((a, b)=> a.localeCompare(b)); %>
                             <div id="componentsList" class="selectgroup selectgroup-pills">
-                                <% if (employeeid || selectedComponents) { var
-                                    selectedValues=JSON.parse(selectedComponents) || []; } %>
+                                <% if (employeeid || selectedComponents) { 
+                                    var selectedValues = (selectedComponents.includes('[') && selectedComponents.includes(']')) ? JSON.parse(selectedComponents) || [] : selectedComponents; } %>
                                     <% components.forEach(function(component) { %>
                                         <label class="selectgroup-item">
                                             <input type="checkbox" name="components" value="<%= component %>"

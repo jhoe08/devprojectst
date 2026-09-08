@@ -69,6 +69,8 @@ body {
 }
 
 .logo-header {
+  justify-content: center;
+
   .logo {
     color: #ffffff;
   }

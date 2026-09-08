@@ -20,7 +20,6 @@ function createFundSourceEntry(data = {}) {
     // Remove handler
     removeBtn.addEventListener('click', () => {
         entry.remove();
-        console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
         // if no entries left, add an empty one to keep UI consistent
         if (fundSourceLists.children.length === 0) createFundSourceEntry();
     });

@@ -165,7 +165,7 @@
       </div>
       <% 
         var totalCount=0; 
-        fund_source=JSON.parse(fund_source); 
+        fund_source=JSON.parse(fund_source || '[]');
         const _hidden=true; %>
 
         <div class="card-body" id="chargingTo" data-transactions="<%= JSON.stringify(transactions) %>">
@@ -175,7 +175,7 @@
               var {source, amount} = funds
               totalCount += parseFloat(amount);
             %>
-            <div id="charging_<%= key %>" class="row" data-id="<%= key %>">
+            <div class="row" data-id="<%= key %>" id="charging_<%= key %>">
               <div class="col-md-12 d-flex">
                 <div class="col-md-1 pe-3">
                   <div class="form-group form-group-default form-group-minus">
@@ -190,24 +190,7 @@
 
               
             </div>
-            <% }) } else if(false) { %>
-              <div class="row hidden" id="charging_0" data-id="0">
-                <div class="col-md-12 d-flex">
-                  <div class="col-md-1 pe-3">
-                    <div class="form-group form-group-default form-group-minus">
-                      <label for="minusButton_0">Rmv</label>
-                      <button id="minusButton_0" class="form-control fas fa-minus-circle"></button>
-                    </div>
-                  </div>
-                  <div class="col-md-11">
-                    <%- include('../../../views/partials/selectFunds') %>
-                  </div>
-                </div>
-              </div>
-            <% } else { %>
-              <div id="fundSourceLists"></div>
-              <%- include('../../../components/templates/fundSource') %>
-            <% } %>
+            <% }) } %>
               <div id="fundSourceLists"></div>
               <%- include('../../../components/templates/fundSource') %>
         </div>

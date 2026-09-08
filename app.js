@@ -1085,10 +1085,18 @@ app.use(async (req, res, next) => {
       getCurrentStageGroup(transaction, currentId) {
         const { STEPS } = res.locals;
         const workflow = STEPS?.getApprovalSteps(transaction);
+        const totalSteps = STEPS?.getTotalSteps(transaction);
         // const workflow = steps;
+
+        console.log({currentId})
+
         if (!workflow) {
           console.error(`Unknown transaction type: ${workflow}`);
           return null;
+        }
+
+        if(currentId >= totalSteps) {
+          return { group: 'completed' };
         }
 
         // Find the current step
@@ -1118,6 +1126,12 @@ app.use(async (req, res, next) => {
           currentStep,
           group: groupName || 'unknown'
         };
+      },
+      isComplete(transaction, currentId) {
+        const { STEPS } = res.locals;
+        const totalSteps = STEPS?.getTotalSteps(transaction);
+
+        return totalSteps > currentId ? true : false;
       }
     },
     UTILS: {
@@ -1366,8 +1380,6 @@ app.use(async (req, res, next) => {
       const { activities } = res.locals
       const activity = activities
         ?.filter(act => act.product_id === transaction_id && act.status === 'pending' && act.assigned_to);
-
-      console.log({ aaaa: activity })
 
       return (activity?.length > 0) ? activity[0].assigned_to : false;
     },
@@ -1801,6 +1813,31 @@ app.get('/market-scope/:id/print', restrict, async (req, res) => {
     res.status(200).send(renderedHtml)
   } catch (error) {
     console.error('Error Viewing Market Scope:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.get('/market-scope/:id/update', restrict, loadAllSuppliers, async (req, res) => {
+  try {
+    const [innerHTML, activities] = await Promise.all([
+      connection.getMarketScopes({ id: req.params.id }),
+      connection.getTransactionActivity()
+    ]);
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
+      {
+        scripts: ['/assets/js/pages/market-scope.js'],
+        styles: ['/assets/css/pages/market-scope.css'],
+        innerContent: '../pages/market-scope/new',
+        title: "Update Market Scoping",
+        results: innerHTML[0],
+        description: "Republic Act No. 12009 — Section 10, IRR, and Project Procurement Management Plan (Principle of Proportionality)",
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error fetching page template:', error);
     res.status(500).send('Internal Server Error');
   }
 })
@@ -2546,6 +2583,7 @@ app.patch('/transactions/update', restrict, async (req, res) => {
     const { set, where } = req.body
     const { username } = res.locals.SESSION_USER
 
+    set.fund_source = JSON.stringify( set.fund_source )
     set.remarks = JSON.stringify({ remarks: set.remarks })
 
     data = { set, where }

@@ -15,12 +15,7 @@ const main = {
     // daUtils.init()
     // const { notifyCustom, fieldsUpdated } = daUtils
 
-    document.querySelectorAll('[readonly]').forEach(input => {
-      const group = input.closest('.form-group');
-      if (group) {
-        group.classList.add('readonly');
-      }
-    });
+    this.markReadonly()
 
 
     const syncButton = document.getElementById('sysncFunds');
@@ -42,11 +37,25 @@ const main = {
       });
     }, 800);
 
+  },
+  markReadonly() {
+    document.querySelectorAll('[readonly]').forEach(input => {
+      const group = input.closest('.form-group');
+      if (group) group.classList.add('readonly');
+    });
   }
 }
 
-// main.init(io())
 
+document.addEventListener('load', () => {
+  // main.markReadonly()
+});
 document.addEventListener('DOMContentLoaded', () => {
   main.init(io());
 });
+
+// const observer = new MutationObserver(() => {
+//   main.markReadonly()
+// })
+
+// observer.observe(document.body, { childList: true, subtree: true })

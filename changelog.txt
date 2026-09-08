@@ -1,3 +1,17 @@
+v2.3.11
+- fix* update issue on the transaction
+- fix* data conversion to JSON on the server
+- update* fund_source from json to text
+- fix* readonly css on transaction fund_source
+- add* center logo on sidebar
+- add* STEPS.isCompleted() to determined if transaction reach it total steps
+- add* completed button when reached total steps
+- fix* getCurrentStageGroup return group
+- fix* markReadonly function 
+- add* links on the social media
+- update* icons on feedActivities
+
+
 v2.2.3
 - fix* undefined fundAllocations 
 - fix* charges on transactions updates

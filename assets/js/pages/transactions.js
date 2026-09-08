@@ -476,7 +476,7 @@ function createTransaction() {
       //   }
       // });
 
-      const charges = Array.from(chargingTo.querySelectorAll(':scope .row')).map(fund => ({
+      const charges = Array.from(chargingTo.querySelectorAll(':scope .fundSource-entry > .row')).map(fund => ({
         source: fund.querySelector('input[name*="chargedFunds_"]')?.value,
         amount: fund.querySelector('input[name*="chargedAmount_"]')?.value
       }))
@@ -646,7 +646,7 @@ function updateTransaction() {
     let bacUnitValue = bacUnit.value
 
     let charge = []
-    const charges = Array.from(chargingTo.querySelectorAll(':scope .row')).map(fund => ({
+    const charges = Array.from(chargingTo.querySelectorAll(':scope .fundSource-entry > .row')).map(fund => ({
       source: fund.querySelector('input[name*="chargedFunds_"]')?.value,
       amount: fund.querySelector('input[name*="chargedAmount_"]')?.value
     }))
@@ -671,8 +671,7 @@ function updateTransaction() {
       // banner_program: bannerProgramValue,
       bac_unit: bacUnitValue,
       remarks: {
-        ...remarksObj,
-        updatedBy: JSON.parse(created_by.value),
+        updatedBy: created_by.value,
         updatedAt: new Date()
       }
     };
@@ -684,7 +683,7 @@ function updateTransaction() {
     if (!requisitioner.classList.contains('updated')) delete data.requisitioner
     // if (!division.classList.contains('updated')) delete data.division
     if (!budget.classList.contains('updated')) delete data.approved_budget
-    if (!fundSource.classList.contains('updated')) delete data.fund_source
+    // if (!fundSource.classList.contains('updated')) delete data.fund_source
     // if (!bannerProgram.classList.contains('updated')) delete data.banner_program
     if (!bacUnit.classList.contains('updated')) delete data.bac_unit
 
@@ -697,6 +696,8 @@ function updateTransaction() {
       },
       body: JSON.stringify(payload)
     };
+
+    console.log({requestOptions})
 
     fetch(apiUrl, requestOptions)
       .then(response => {

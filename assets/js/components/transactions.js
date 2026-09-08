@@ -586,7 +586,8 @@
   }
 
   document.querySelectorAll('.fa-minus-circle').forEach(removeIcon => {
-    const button = removeIcon.closest('button');
+    const button = removeIcon.closest('.row');
+    console.log(removeIcon)
     if (button) {
       button.addEventListener('click', function () {
         const row = this.closest('.row');

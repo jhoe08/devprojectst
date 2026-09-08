@@ -118,28 +118,6 @@ const databaseUtils = {
     })
   }),
   cardsData: () => new Promise((resolve, reject) => {
-    // const query = `
-    //   SELECT 
-    //     '${tables.employee}' AS table_name,
-    //     COUNT(*) AS row_count
-    //   FROM ${prefix}.${tables.employee}
-
-    //   UNION ALL
-
-    //   SELECT 
-    //     '${tables.transaction}' AS table_name,
-    //     COUNT(*) AS row_count,
-    //     SUM(approved_budget) AS total_sum
-    //   FROM ${prefix}.${tables.transaction}
-
-    //   UNION ALL
-
-    //   SELECT 
-    //     '${tables.notification}' AS table_name,
-    //     COUNT(*) AS row_count,
-    //     NULL AS total_sum
-    //   FROM ${prefix}.${tables.notification}
-    // `;
     const query = `
       SELECT 
         '${tables.transaction}' AS table_name,
