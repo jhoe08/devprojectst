@@ -125,6 +125,7 @@
         <% menuItems.forEach(item => {
              if(item.show === false) return;
              if(item.section) { %>
+              <div id="intro-<%= item.section.toLowerCase() %>" class="nav nav-secondary">
                <li class="nav-section <%= item.hidden ? 'hidden' : '' %>">
                  <span class="sidebar-mini-icon"><i class="fa fa-ellipsis-h"></i></span>
                  <h4 class="text-section"><%= item.section %></h4>
@@ -142,6 +143,9 @@
                       </a>
                     </li>
                <% }) } %>
+              <% if(item.section) { %>
+                </div>
+              <% }%>
              <% } else if(item.children) { %>
                <li class="nav-item submenu">
                  <a data-bs-toggle="collapse" href="#<%= item.collapseId %>">

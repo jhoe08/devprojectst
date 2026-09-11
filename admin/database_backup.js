@@ -2,6 +2,7 @@
 let mysql = require('mysql');
 let moment = require('moment')
 const misc = require("./misc")
+const { newResponsiblePersonAtStages } = require("./const/stages")
 const { isValidJSON } = require("./utils");
 
 let prefix = 'procurementtracker'
@@ -32,7 +33,6 @@ var connection = mysql.createConnection({
 });
 // TEST
 prefix = process.env.DB_DATABASE;
-console.log('Database connection: ', {connection: connection.config.database})
 
 connection.connect();
 
@@ -468,7 +468,6 @@ const databaseUtils = {
     try {
       const { transid, code } = JSON.parse(data)
       let rows = await databaseUtils.retrieveData(tables.transaction, 'trans_code', { 'product_id': transid })
-      console.log(rows[0])
       if (rows.length > 0) {
         let codes = rows[0].trans_code;
         if (!codes || codes.length === 0 || typeof codes === 'string') { codes = [codes] }
@@ -576,7 +575,7 @@ const databaseUtils = {
     })
   }),
   getDataById: (table, data) => new Promise((resolve, reject) => {
-    console.log({ table, data })
+    // console.log({ table, data })
     data = JSON.parse(data)
 
 
@@ -584,7 +583,7 @@ const databaseUtils = {
     let value = Object.values(data)
 
     let query = `SELECT * FROM ${prefix}.${table} WHERE ${key}=${value}`
-    console.log(query)
+    // console.log(query)
     connection.query(query, (error, results) => {
       if (error) {
         reject(error)
@@ -782,7 +781,7 @@ const databaseUtils = {
         })
         .join(' AND');
     }
-    console.log('Retrieving Data...', query)
+    // console.log('Retrieving Data...', query)
     connection.query(query, (error, results) => {
       if (error) {
         reject(error)
@@ -800,7 +799,7 @@ const databaseUtils = {
     return await databaseUtils.amendData('employees', data)
   },
   // STORE
-  postEmployees: async (data) => {   
+  postEmployees: async (data) => {
     try {
       const { employeeid, roles } = JSON.parse(data); // Only parse if data is a string
       console.log({ employeeid, roles });
@@ -827,6 +826,31 @@ const databaseUtils = {
 
     return await databaseUtils.retrieveData('notifications')
   },
+  __retrieveNotifications: async (data, locals = {}, sessionUser = {}) => {
+    let results;
+
+    if (data) {
+      data = JSON.parse(data);
+      results = await databaseUtils.retrieveData('notifications', '*', data);
+    } else {
+      results = await databaseUtils.retrieveData('notifications');
+    }
+
+    // Resolve transactions and filter per user role + stage
+    const filtered = await Promise.all(
+      results.map(async notif => {
+                const { meta } = notif 
+        const parsedMeta = JSON.parse(meta)
+        const { nextStep } = parsedMeta || '{"nextStep": null, "prevStep": null}'
+
+        // console.log(nextStep.includes('check_signing'))
+        return null
+      })
+    );
+
+    return filtered.filter(Boolean); // remove nulls
+  },
+
   changeNotificationStatus: async (data) => {
     return await databaseUtils.amendData('notifications', data)
   },
@@ -965,7 +989,7 @@ const databaseUtils = {
     // const { ...data, changed_by } = data 
     const results = await databaseUtils.retrieveData(`${tables.transaction_status}`, '*', { pr_id, previous_status, new_status })
     // const results = await databaseUtils.storeData(`${tables.transaction_status}`, data)
-    console.log({ data, results })
+    // console.log({ data, results })
     return results
   },
   updateTransactionsStatus: async (data) => {
@@ -1079,7 +1103,7 @@ const databaseUtils = {
   },
   postSuppliers: async (data) => {
     console.log('postSuppliers', data)
-       
+
     return await databaseUtils.storeData(tables.suppliers, JSON.stringify(data))
   },
   getTransactionSuppliers: async (data) => {
@@ -1203,17 +1227,18 @@ const databaseUtils = {
       reviewedBy,
       reviewedDate: reviewed_by_date,
       reviewedSignature: reviewed_by_signature,
+      _suppliers,
+      supplier_amount,
     } = data;
 
-    console.log('postMarketScope', data);
     const estimated_budget = parseFloat(rawBudget.replace(/,/g, ""));
 
     const consultations_with_suppliers = JSON.stringify(data.consultations_with_suppliers);
-    const participation_in_summits     = JSON.stringify(data.participation_in_summits);
-    const review_reports               = JSON.stringify(data.review_reports);
-    const review_brochures             = JSON.stringify(data.review_brochures);
-    const price_sourcing               = JSON.stringify(data.price_sourcing);
-    const use_philgeps_data            = JSON.stringify(data.use_philgeps_data);
+    const participation_in_summits = JSON.stringify(data.participation_in_summits);
+    const review_reports = JSON.stringify(data.review_reports);
+    const review_brochures = JSON.stringify(data.review_brochures);
+    const price_sourcing = JSON.stringify(data.price_sourcing);
+    const use_philgeps_data = JSON.stringify(data.use_philgeps_data);
 
     // Safely split names and positions
     const [prepared_by_name = null, prepared_by_position = null] =
@@ -1221,6 +1246,12 @@ const databaseUtils = {
 
     const [reviewed_by_name = null, reviewed_by_position = null] =
       reviewedBy?.split(", ").map((s) => s.trim()) || [];
+
+    const suppliersQoutedAmount = Object.fromEntries(
+      _suppliers.map((sup, i) => [sup, supplier_amount[i]])
+    );
+
+    const parsedSuppliersQoutedAmount = JSON.stringify(suppliersQoutedAmount)
 
     const query = `
       INSERT INTO ${prefix}.market_scoping (
@@ -1245,9 +1276,10 @@ const databaseUtils = {
         reviewed_by_name,
         reviewed_by_position,
         reviewed_by_date,
-        reviewed_by_signature
+        reviewed_by_signature, 
+        meta
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -1273,6 +1305,7 @@ const databaseUtils = {
       reviewed_by_position,
       reviewed_by_date || null,
       reviewed_by_signature || null,
+      parsedSuppliersQoutedAmount
     ];
 
     return new Promise((resolve, reject) => {
@@ -1356,7 +1389,7 @@ const databaseUtils = {
   },
   getPurchaseRequests: async (data) => {
     try {
-      if(data) {
+      if (data) {
         return await databaseUtils.retrieveData('transid', '*', data)
       }
       return await databaseUtils.retrieveData('transid', data)
@@ -1367,7 +1400,7 @@ const databaseUtils = {
   },
   getPurchaseOrders: async (data) => {
     try {
-      if(data) {
+      if (data) {
         return await databaseUtils.retrieveData('purchase_orders', '*', data)
       }
       return await databaseUtils.retrieveData('purchase_orders', data)
@@ -1404,7 +1437,7 @@ const databaseUtils = {
 
   postPurchaseOrderProducts: async (data) => {
     try {
-      
+
       const _keys = Object.keys(data[0]); // column names
       const placeholders = '(' + _keys.map(() => '?').join(', ') + ')';
 
@@ -1437,7 +1470,7 @@ const databaseUtils = {
 
   getPurchaseOrderProducts: async (data) => {
     try {
-      if(data) {
+      if (data) {
         return await databaseUtils.retrieveData('po_products', '*', data)
       }
       return await databaseUtils.retrieveData('po_products', data)
@@ -1446,7 +1479,7 @@ const databaseUtils = {
       throw error; // propagate error to caller
     }
   },
-  
+
   postDisbursementVouchers: async (data) => {
     try {
       const _keys = Object.keys(data); // column names
@@ -1471,10 +1504,10 @@ const databaseUtils = {
       throw error; // propagate error to caller
     }
   },
-  
+
   getDisbursementVouchers: async (data) => {
     try {
-      if(data) {
+      if (data) {
         return await databaseUtils.retrieveData('disbursement_vouchers', '*', data)
       }
       return await databaseUtils.retrieveData('disbursement_vouchers', data)
@@ -1483,7 +1516,7 @@ const databaseUtils = {
       throw error; // propagate error to caller
     }
   },
-  
+
   postDisbursementVouchersActivity: async (data) => {
     try {
       const _keys = Object.keys(data);
@@ -1511,7 +1544,7 @@ const databaseUtils = {
 
   getDisbursementVouchersActivity: async (data) => {
     try {
-      if(data) {
+      if (data) {
         return await databaseUtils.retrieveData('disbursement_voucher_activities', '*', data)
       }
       return await databaseUtils.retrieveData('disbursement_voucher_activities', data)
@@ -1567,8 +1600,16 @@ const databaseUtils = {
         else resolve(results[0]);
       });
     });
-  }
+  },
 
+  // JSON EXTRACTS TESTING
+  // [{ meta: '$.nextStep.stage', as: 'next_stage', table: 'notifications' }]
+  extract_json_text: (column, path) => {
+    const query = `SELECT *,
+      meta->>'$.nextStep.stage' AS next_stage,
+    FROM notifications;`;
+  },
+  // endof TESTING
 }
 
 module.exports = databaseUtils

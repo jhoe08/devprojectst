@@ -192,8 +192,9 @@
 
             // Build options dynamically
             const optionsHtml = SUPPLIERS.map(supplier => {
-                const { supplier_name, supplier_code } = supplier;
-                return `<option value="${supplier_code}" ${supplier_code === selectedSupplier ? "selected" : ""}>${supplier_name}</option>`
+                const { supplier_name, supplier_code, status, archive } = supplier;
+                const isActiveOrArchive = status == 'inactive' || archive == 1
+                return !isActiveOrArchive ? `<option value="${supplier_code}" ${supplier_code === selectedSupplier ? "selected" : ""}>${supplier_name}</option>` : ''
             }).join("");
 
 

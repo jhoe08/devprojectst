@@ -31,7 +31,7 @@ const { v4: uuidv4 } = require('uuid');
 const {
   svp2: CONST_SVP,
   publicBidding2: CONST_PB,
-  responsiblePersonAtStages,
+  newResponsiblePersonAtStages: CONST_STAGES,
   MISC: CONST_MISC } = require('./admin/const')
 
 
@@ -760,6 +760,7 @@ const purchaseOrderRouter = require('./routes/purchaseOrders');
 const disbursementVoucherRouter = require('./routes/disbursementVouchers');
 
 const { styleText } = require('node:util');
+const steps = require('./admin/const/steps');
 app.use('/api', sheetsRouter);
 app.use('/api', employeeRouter);
 app.use('/api', trasactionRouter);
@@ -846,8 +847,10 @@ app.use(async (req, res, next) => {
 
   // console.log(fullname);
 
+  const sessionUser = req.session?.user;
+
   const [notifications, transactions, summaryTransaction, summaryEmployee, activities, summaryMarketScopes, filteredTransactions] = await Promise.all([
-    connection.retrieveNotifications(),
+    connection.retrieveNotifications(null, res.locals, sessionUser),
     // connection.getTransactions(),
     // connection.getPurchaseRequestsSummary(),
     // connection.getEmployeeSummary(),
@@ -867,8 +870,6 @@ app.use(async (req, res, next) => {
   let userPosition = '';
   let availComponents = [];
   let totalTransactions = 0;
-
-  const sessionUser = req.session?.user;
 
   if (sessionUser) {
     const {
@@ -971,7 +972,7 @@ app.use(async (req, res, next) => {
     dafaultTransactionData: CONST_MISC,
     defaultData: _preDefaultData,
     purchaseRequestStatuses,
-    responsiblePersonAtStages,
+    CONST_STAGES,
     path: req.url,
     path2: req.path,
     currentPath: req.path,
@@ -1042,6 +1043,15 @@ app.use(async (req, res, next) => {
     },
     STEPS: {
       //lists: approvalStepsSVP,
+      isResponsibleForCurrentStage: (responsiblePerson, currentStage) => {
+        const stages = CONST_STAGES[responsiblePerson]
+
+        if (!stages || !currentStage) {
+          return false;
+        }
+
+        return stages.includes(currentStage);
+      },
       lists: (transaction) => {
         const { STEPS } = res.locals;
         return STEPS?.getApprovalSteps(transaction);
@@ -1059,9 +1069,10 @@ app.use(async (req, res, next) => {
         return CONST_SVP.length;
       },
       getCurrentProgress: (steps, product_id) => {
-        let current_step = getCurrentStep(steps, product_id)
+        const { STEPS } = res.locals
+        let current_step = STEPS.getCurrentStep(steps, product_id)
         const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
-        const current_step_title = getTitleById(current_step_number)
+        const current_step_title = STEPS.getTitleById(current_step_number)
         return { current_step_title, current_step_number };
       },
       getCurrentStep: (steps, product_id) => {
@@ -1083,19 +1094,20 @@ app.use(async (req, res, next) => {
         return step ? step.steps_title : `(+) Unknown Step (step_id: ${step_id})`;
       },
       getCurrentStageGroup(transaction, currentId) {
+
+        // console.log({ transaction, currentId })
+
         const { STEPS } = res.locals;
         const workflow = STEPS?.getApprovalSteps(transaction);
         const totalSteps = STEPS?.getTotalSteps(transaction);
         // const workflow = steps;
-
-        console.log({currentId})
 
         if (!workflow) {
           console.error(`Unknown transaction type: ${workflow}`);
           return null;
         }
 
-        if(currentId >= totalSteps) {
+        if (currentId >= totalSteps) {
           return { group: 'completed' };
         }
 
@@ -1124,7 +1136,7 @@ app.use(async (req, res, next) => {
 
         return {
           currentStep,
-          group: groupName || 'unknown'
+          group: groupName || 'proposal'
         };
       },
       isComplete(transaction, currentId) {
@@ -1132,6 +1144,17 @@ app.use(async (req, res, next) => {
         const totalSteps = STEPS?.getTotalSteps(transaction);
 
         return totalSteps > currentId ? true : false;
+      },
+      // using the '__' for permanently
+      async __details(product_id, current_step_id) {
+        const { STEPS } = res.locals
+
+        const transaction =  await connection.getTransactionById(product_id)
+        const lists = STEPS?.lists(transaction[0])
+        const prevStep = lists.find(step => step.id === parseInt( current_step_id ));
+        const nextStep = lists.find(step => step.id === parseInt( current_step_id +1 ));
+
+        return { prevStep, nextStep}
       }
     },
     UTILS: {
@@ -1145,6 +1168,10 @@ app.use(async (req, res, next) => {
       toCapitalize,
       isActive,
       getDivisionAndPosition,
+      getTransactionById: async (id) => {
+        const result = await connection.getTransactionById(id)
+        return JSON.stringify(result[0])
+      },
       getEmployeeById: async (id) => {
         const result = await connection.getEmployeeById(id);
         // console.log('Fetching employee by ID:', result);
@@ -1383,9 +1410,6 @@ app.use(async (req, res, next) => {
 
       return (activity?.length > 0) ? activity[0].assigned_to : false;
     },
-    getTransactionMarketScope(id) {
-
-    }
   };
 
   const { SESSION_USER, SESSION_USER_LOG, SUMMARY } = res.locals
@@ -1904,7 +1928,7 @@ app.get('/template2', async function (req, res) {
 
 // Endpoint to get the countNotif value
 app.get('/api/notifications', async (req, res) => {
-  const notifications = await connection.retrieveNotifications()
+  const notifications = await connection.retrieveNotifications(null, res.locals, res.locals.SESSION_USER)
   res.json({ notifications, counts: notifications.length });
 });
 
@@ -2232,12 +2256,11 @@ app.post('/register/new', async (req, res) => {
         message: "New user was registered",
         link: employeeid,
         component: "employees",
-        // created_at: convertDate(new Date())
       };
       await connection.postNotifications(JSON.stringify(notif));
     }
 
-    
+
 
     res.status(200).json({
       message: 'Account is successfully registered',
@@ -2583,7 +2606,7 @@ app.patch('/transactions/update', restrict, async (req, res) => {
     const { set, where } = req.body
     const { username } = res.locals.SESSION_USER
 
-    set.fund_source = JSON.stringify( set.fund_source )
+    set.fund_source = JSON.stringify(set.fund_source)
     set.remarks = JSON.stringify({ remarks: set.remarks })
 
     data = { set, where }
@@ -3651,6 +3674,7 @@ app.get('/calendar', restrict, async function (req, res) {
 // Express route to approve a step
 app.post("/approve", async (req, res) => {
   // const { trans_id: prId, steps_number:stepNumber, updated_by:approverName } = req.body;
+  const { STEPS } = res.locals
   const { product_id, steps_number, updated_by, remarks } = req.body;
   const { username } = res.locals.SESSION_USER
   try {
@@ -3667,20 +3691,13 @@ app.post("/approve", async (req, res) => {
         steps_number,
       }
     }
-    // console.log('data', {data, steps_number})
-    await connection.updateTransactionActivity(JSON.stringify(data))
-    io.emit('retrieveActitivities', product_id);
-    // if(steps_number > 1) {
-    //   await connection.postRemarks(JSON.stringify({
-    //     comment: 'Out of Office', 
-    //     user: username, 
-    //     status: 'success', 
-    //     refid: product_id,
-    //     date: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-    //   }))
-    // }
 
-    // console.log([trans_id, steps_number + 1])
+    const currentStepNumber = parseInt(steps_number, 10)
+    const currentStepTitle = await STEPS?.__details(product_id, currentStepNumber)
+
+    await connection.updateTransactionActivity(JSON.stringify(data))
+    // io.emit('retrieveActitivities', product_id);
+
     await connection.postTransactionActivity(JSON.stringify({
       status: 'pending',
       product_id,
@@ -3689,10 +3706,13 @@ app.post("/approve", async (req, res) => {
       updated_by,
     }))
 
+    console.log({ currentStepTitle })
+
     await connection.postNotifications(JSON.stringify({
       message: remarks,
       link: product_id,
       component: 'transactions',
+      meta: JSON.stringify( currentStepTitle )
     }))
 
     res.json({ success: true, message: "Approval step advanced." });

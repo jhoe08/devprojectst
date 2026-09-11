@@ -95,13 +95,8 @@
 <!-- Intro.js JS -->
 <script src="/introjs/intro.min.js"></script>
 <script>
-  introJs.tour().onafterchange(function (element) {
-    if (element.id === 'navToggle') {
-      element.click(); // auto-open menu when tour reaches this step
-    }
-  });
   document.getElementById('siteTourBtn')?.addEventListener('click', () => {
-    introJs().setOptions({
+    introJs.tour().setOptions({
       steps: [
         { element: document.querySelector('h1'), intro: "Welcome to the Procurement Tracker!", title: "👋 Welcome!" },
         { element: document.querySelector('.sidebar'), intro: "This is sidebar where you can navigate through the sites." },
@@ -113,8 +108,30 @@
     }).start();
   });
 
+  document.getElementById('createMarketScopingBtn')?.addEventListener('click', () => {
+    introJs.tour().setOptions({
+      steps: [
+        { element: document.querySelector('h1'), intro: "This tutorial will guide you step by step.", title: "📝 How to Create a Market Scope" },
+        { element: document.querySelector('div#intro-suppliers'), intro: "Step 1: Navigate to Supplier → Lists", title: "Access the supplier list from the sidebar menu." },
+        { element: document.querySelector('input[type=email]'), intro: "Step 2: Add or Verify Supplier" },
+        { element: document.querySelector('button[type=submit]'), intro: "Step 3: Go to Market Scopes → New" },
+        { element: document.querySelector('button[type=submit]'), intro: "Step 4: Enter Market Scope Information" },
+        { element: document.querySelector('button[type=submit]'), intro: "Step 4: Confirm and Save    " }
+      ],
+      showProgress: true,
+      showStepNumbers: true
+    }).start();
+
+    introJs.tour().onafterchange(function (element) {
+      console.log(element)
+      if (element.attr('href') === '#market-scope') {
+        element.click(); // auto-open menu when tour reaches this step
+      }
+    });
+  });
+
   document.getElementById('createTransactionBtn')?.addEventListener('click', () => {
-    introJs().setOptions({
+    introJs.tour().setOptions({
       steps: [
         { element: document.querySelector('h1'), intro: "This tutorial will guide you step by step.", title: "📝 Tutorial Overview" },
         { element: document.querySelector('[href="#market-scope"]'), intro: "Step 1: Click here to open the navigation menu" },
@@ -125,7 +142,7 @@
       showStepNumbers: true
     }).start();
 
-    introJs().onafterchange(function (element) {
+    introJs.tour().onafterchange(function (element) {
       if (element.attr('href') === '#market-scope') {
         element.click(); // auto-open menu when tour reaches this step
       }

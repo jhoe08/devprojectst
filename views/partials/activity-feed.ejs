@@ -148,7 +148,7 @@
           </time>
           <span class="text">
             <!--span class="badge badge-<%= item.status %> mr-3"><%= (item.step.id == item.stepsDetails?.steps_number) ? item.stepsDetails?.status : '' %></span-->
-            <%= item.step.steps_title %>
+            <%= item.step.steps_title %> <%= `${STEPS.isResponsibleForCurrentStage('RED/RTD', item.step.stage)} ${item.step.stage}` %>
           </span>
         </div>
         <span></span>
