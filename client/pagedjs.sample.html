@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Paged.js Margin Demo</title>
+  <script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"></script>
+  <style>
+    @page {
+      margin: 0.5in; /* top, right, bottom, left */
+      size: 8.5in 13in;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    p {
+      margin: 0.5em 0;
+    }
+    
+    table {
+      font-size: .8em;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+    padding: 8px;
+    }
+
+    [title="Responsible"] {
+      width: 350px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Margin Demo</h1>
+  <table id="trackingSheetTable" class="display text-center" style="width:100%">
+            <thead class="fw-bolder">
+                <tr>
+                    <th rowspan="2">OFFICE/Person Responsible</th>
+                    <th rowspan="2" width="100">NAME</th>
+                    <th rowspan="2" width="100">SIGNATURE</th>
+                    <th colspan="2" width="50">DATE</th>
+                    <th rowspan="2" width="200">REMARKS</th>
+                </tr>
+                <tr>
+                    <th width="80">IN</th>
+                    <th width="80">OUT</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                
+                    
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                1. Regional Agricultural Engineering Division/End-User
+                            </td>
+                            <td title="Name">
+                                E. Gaudicos
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                2. Program Coordinator End-User/Program Coordinator
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                3. Division Chief
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                4. Procurement Section
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                5. Budget Section
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                6. RED/RTD/Division Chief
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                7. BAC/BAC Secretariat
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                8. TWG Concerned
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                9. BAC Secretariat
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                10. Procurement Section
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                11. End-User/Program Coordinator/Div. Chief
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                12. Budget Section
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                13. Accounting Section
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                14. RED/RTD
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                15. General Services Section
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                16. RED/RTD
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                17. General Services Section
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                18. BAC Secretariat
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                19. General Services Section/End-Users/Regional Agricultural Engineering Division
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                20. Regional Agricultural Engineering Division/Inspectors
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                21. End-User
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                22. General Services Section/End-User
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                23. End-User
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                24. Division Chief
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                25. Accounting Section
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                26. Cashiering Unit
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                27. Accounting Section
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                28. RED/RTD/Admin. Chief
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                29. Cashiering Unit
+                            </td>
+                            <td title="Name">
+                                
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        
+
+            </tbody>
+        </table>
+</body>
+</html>

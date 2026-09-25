@@ -796,7 +796,17 @@ const databaseUtils = {
   ///////////////////////////////////////////////////////////////
   // UPDATE
   amendEmployee: async (data) => {
-    return await databaseUtils.amendData('employees', data)
+    data = JSON.parse(data)
+    
+    const { experience, contacts, others } = data.set
+    data.set.experience = JSON.stringify(experience)
+    data.set.contacts = JSON.stringify(contacts)
+    data.set.others = JSON.stringify(others)
+
+    console.log({data})
+    console.log('-------------')
+    
+    return await databaseUtils.amendData('employees', JSON.stringify(data))
   },
   // STORE
   postEmployees: async (data) => {
@@ -1247,9 +1257,9 @@ const databaseUtils = {
     const [reviewed_by_name = null, reviewed_by_position = null] =
       reviewedBy?.split(", ").map((s) => s.trim()) || [];
 
-    const suppliersQoutedAmount = Object.fromEntries(
-      _suppliers.map((sup, i) => [sup, supplier_amount[i]])
-    );
+    const suppliersQoutedAmount = _suppliers ? Object.fromEntries(
+      _suppliers?.map((sup, i) => [sup, supplier_amount[i]])
+    ) : [];
 
     const parsedSuppliersQoutedAmount = JSON.stringify(suppliersQoutedAmount)
 

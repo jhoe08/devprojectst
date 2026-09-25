@@ -1,0 +1,241 @@
+@page {
+    size: 8.5in 13in;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0px 0px 10px;
+    counter-reset: page;
+    background-color: unset !important;
+    color: #000000;
+}
+
+/* encourage tables not to be split awkwardly */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+header {
+    text-align: center;
+    font-size: 85%;
+    margin-bottom: 10px;
+    position: relative;
+    top: -20px;
+}
+
+header *,
+header p {
+    line-height: 1;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th,
+td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    vertical-align: top;
+}
+
+th {
+    background: #f2f2f2;
+    vertical-align: middle;
+}
+
+.main-panel {
+    width: 100%;
+}
+
+.main-panel > .container {
+    padding-top: 50px !important;
+}
+
+section {
+    margin-bottom: 20px;
+
+    &.title {
+        margin-bottom: 40px;
+    }
+
+    h1 {
+        margin-bottom: 0;
+    }
+
+    hr {
+        margin-top: 0
+    }
+}
+
+
+/* :not(.container) .form-section { margin: 0 40px 0;} */
+.form-section strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.w-50 {
+    width: 50%;
+}
+
+.w-41 {
+    width: 41.66666667%;
+}
+
+.w-16 {
+    width: 16.66666667%;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.justify-content-space-between {
+    justify-content: space-between;
+}
+
+.text-uppercase {
+    text-transform: uppercase;
+}
+
+.text-lowercase {
+    text-transform: lowercase;
+}
+
+.text-normal {
+    text-transform: none;
+}
+
+.text-italic {
+    font-style: italic;
+}
+
+.mt-0 {
+    margin-top: 0
+}
+
+.mb-0 {
+    margin-bottom: 0
+}
+
+.fw-normal {
+    font-weight: normal;
+}
+
+.text-center {
+    text-align: center;
+}
+
+#print-area {
+    position: relative;
+}
+
+.top-logo {
+    position: absolute;
+    top: 15px;
+    left: -85px;
+    display: flex;
+    align-items: flex-start;
+}
+
+
+#body-area {
+    padding: 0 30px;
+    position: relative;
+}
+
+.top-logo img {
+    width: 80px;
+    display: none;
+}
+
+.top-logo img.daLogo {
+    width: 120px;
+    position: relative;
+    left: -10px;
+    top: -13px;
+}
+
+.top-series {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+        top: -15px;
+    right: 45px;
+
+    display: flex;
+    align-items: flex-end;
+}
+
+.top-series img {
+    width: 100px;
+}
+
+.top-series .series-number {
+    font-size: 12px;
+    text-align: center;
+}
+
+.top-series .series-number .qrcode {
+    margin-right: 0;
+}
+
+.top-series strong {
+    display: block;
+}
+
+.page-inner {
+    padding: 0 !important;
+}
+
+
+@media print {
+
+    .main-panel, .container, .page-inner  {
+        /* display: none; */
+
+    }
+
+    body, .wrapper, .container {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    header {
+        visibility: hidden;
+        height: 0;
+        overflow: none;
+        display: none !important;
+    }
+
+    body * {
+        /* border: 1px solid red; */
+    }
+
+    /* body * {
+        visibility: hidden;
+        overflow: none;
+        page-break-before: auto;
+        page-break-after: avoid;
+        page-break-inside: avoid;
+        border: 1px solid red;
+    } */
+
+
+    #print-area,
+    #print-area * {
+        visibility: visible !important;
+        overflow: visible !important;
+        display: auto ;
+    }
+
+    /* #print-area {
+        margin-top:70px !important;
+    } */
+
+}

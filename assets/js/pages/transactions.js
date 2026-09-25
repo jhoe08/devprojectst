@@ -444,7 +444,7 @@ function createTransaction() {
   let bacUnit = document.querySelector('#bacUnit')
   let remarks = document.querySelector('#remarks')
   const created_by = document.querySelector('#created_by')
-  const responsibleData = created_by.dataset.responsible ? JSON.parse(created_by.dataset.responsible) : null;
+  const responsibleData = created_by?.dataset.responsible ? JSON.parse(created_by.dataset.responsible) : null;
 
   // console.log({ responsibleData })
 
@@ -456,7 +456,7 @@ function createTransaction() {
   }
 
 
-  if (responsibleData || Object.keys(responsibleData ?? {}).length === 0) {
+  if (Object.keys(responsibleData || [])?.length === 0) {
     console.error('No responsible data found');
     return;
     // requisitioner.closest('.form-group').classList.add('has-error');

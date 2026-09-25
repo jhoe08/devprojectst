@@ -1,0 +1,112 @@
+
+
+
+<%
+    var { product_id: parentId, approved_budget: budget, bid_notice_title, prepared_by } = results[0]
+    var cleanBudget = budget.replace(/,/g, '');
+
+    budget = parseFloat(cleanBudget)
+
+    const { lists, getApprovalSteps } = STEPS
+
+    const { name } = JSON.parse(prepared_by)
+
+    function stripName(fullName) {
+        const parts = fullName.trim().split(/\s+/); // split by spaces
+        if (parts.length < 2) return fullName; // fallback if only one word
+
+        const firstInitial = parts[0].charAt(0).toUpperCase();
+        const lastName = parts[parts.length - 1]; // last word
+        return `${firstInitial}. ${lastName}`;
+    }
+%>
+
+
+<div id="print-area">
+    <div class="top-series">
+        <div class="series-number">
+            <div id="<%- UTILS.generatePRCode(results[0]) -%>" data-qrcode="<%- UTILS.generatePRCode(results[0]) -%>"
+                class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top"
+                data-bs-title="<%- UTILS.generatePRCode(results[0]) -%>"></div>
+            <!-- <%= UTILS.generatePRCode(results[0]) %>
+            <strong>Reference No.</strong> -->
+        </div>
+    </div>
+
+    <header class="hidden">
+        <h5 class="mb-0">Tracking Sheet</h5>
+        <h3 class="mt-0 mb-0 text-uppercase fs-5">for SVP</h3>
+        <h4 class="mt-0 mb-0 fw-normal fs-5">Department of Agriculture - RFO VII</h4>
+    </header>
+
+    <div id="body-area">
+
+        <section class="title">
+            <h1 class="text-center text-uppercase" style="font-size: 1.7em; font-weight: 500; line-height: .8;">Tracking
+                Sheet
+                <br>
+                <small style="font-size: 20px;">
+                    <span class="text-lowercase">for</span>
+                    <%= budget> 200000 ? 'Public Bidding' : 'SVP' %>
+                </small>
+            </h1>
+            <h6 class="text-center text-uppercase" style="font-size: 16px; margin-top: 0; font-weight: 400;">Department
+                of Agriculture - RFO VII</h6>
+        </section>
+        <section class="details">
+            <div class="d-flex justify-content-space-between" >
+                <div class="">Particulars: <u><%- bid_notice_title %></u></div>
+                <div class="">PR #: <u>
+                        <%= UTILS.generatePRCode(results[0]) %>
+                    </u></div>
+                <div class="">ABC <u>
+                        <%= UTILS.peso(budget) %>
+                    </u></div>
+            </div>
+        </section>
+
+
+        <table id="trackingSheetTable" class="display text-center" style="width:100%">
+            <thead class="fw-bolder">
+                <tr>
+                    <th rowspan="2">OFFICE/Person Responsible</th>
+                    <th rowspan="2" width="100">NAME</th>
+                    <th rowspan="2" width="100">SIGNATURE</th>
+                    <th colspan="2" width="50">DATE</th>
+                    <th rowspan="2" width="200">REMARKS</th>
+                </tr>
+                <tr>
+                    <th width="80">IN</th>
+                    <th width="80">OUT</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <% const approvalSteps=lists(results[0]); %>
+                    <% approvalSteps.forEach((steps, index)=>{
+                        index++; %>
+                        <tr>
+                            <td title="Responsible" class="text-start">
+                                <%= `${index}. ${steps.steps_title}` %>
+                            </td>
+                            <td title="Name">
+                                <%= (steps.id==1) ? stripName(name) : '' %>
+                            </td>
+                            <td title="Signature"></td>
+                            <td title="Date In"></td>
+                            <td title="Date Out"></td>
+                            <td title="Remarks" class="text-start lh-1"></td>
+                        </tr>
+                        <% }) %>
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    setTimeout(()=>{
+        window.print()
+    }, 2000)
+    
+</script>

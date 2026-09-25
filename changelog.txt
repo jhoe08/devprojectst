@@ -1,3 +1,18 @@
+v2.6.7
+- modify* updated notifications and notification_reads sql
+- add* cloudflare tunneling www and da7-procurement.com
+- fix* employees json on experience, contact, and others
+- fix* printing page on the transactions
+- update* sidebar grouping on hasChildren menu
+- update* datatables on allocatedFunds at mobile resolution
+- add* headers style on custom-page.ejs
+
+v2.5.4
+- fix* update page on employees
+- fix* supplier section on market scoping
+- fix* datatables on market scoping
+- fix* responsible on create page transaction
+
 v2.4.2
 - modify* table notifications and added meta column
 - add* STEPS.__details() function return prevStep and nextStep

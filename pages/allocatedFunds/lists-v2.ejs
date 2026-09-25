@@ -120,7 +120,7 @@
                             <% filteredCurrent.forEach(list=> { %>
                             <tr>
                                 <% Object.entries(list).forEach(([key, value], index)=> { %>
-                                <td data-index="<%= index %>" class="<%= index == Object.entries(list).length - 1 ? 'text-center' : '' %>">
+                                <td data-label="<%= key %>" data-index="<%= index %>" class="<%= index == Object.entries(list).length - 1 ? 'text-center' : '' %>">
                                     <%- value %>
                                 </td>
                                 <% }); %>
@@ -152,7 +152,7 @@
                             <% filteredContinuing.forEach(list=> { %>
                             <tr>
                                 <% Object.entries(list).forEach(([key, value], index)=> { %>
-                                <td data-index="<%= index %>" class="<%= index == Object.entries(list).length - 1 ? 'text-center' : '' %>">
+                                <td data-label="<%= key %>" data-index="<%= index %>" class="<%= index == Object.entries(list).length - 1 ? 'text-center' : '' %>">
                                     <%- value %>
                                 </td>
                                 <% }); %>
@@ -167,3 +167,58 @@
 </div>
 
 
+<style>
+    .allocatedFunds {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.allocatedFunds th,
+.allocatedFunds td {
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+/* Mobile view: stack into one row */
+@media (max-width: 768px) {
+    
+  .allocatedFunds,
+  /* .allocatedFunds thead, */
+  .allocatedFunds tbody,
+  .allocatedFunds th,
+  .allocatedFunds td,
+  .allocatedFunds tr {
+    display: block;
+    width: 100%;
+  }
+
+  .allocatedFunds thead {
+        display: none;
+    }
+
+.allocatedFunds tr.odd {
+    background-color: var(--bs-table-striped-bg);
+}
+
+  .allocatedFunds tr {
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    padding: 10px !important;
+  }
+
+  .allocatedFunds tbody > tr > td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0px !important;
+  }
+
+  .allocatedFunds td::before {
+    content: attr(data-label); /* use attribute as label */
+    font-weight: bold;
+    margin-right: 10px;
+  }
+
+  td {
+    text-align: right;
+  }
+}
+</style>

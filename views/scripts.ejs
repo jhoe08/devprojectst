@@ -122,19 +122,13 @@
       showStepNumbers: true
     }).start();
 
-    introJs.tour().onafterchange(function (element) {
-      console.log(element)
-      if (element.attr('href') === '#market-scope') {
-        element.click(); // auto-open menu when tour reaches this step
-      }
-    });
   });
 
   document.getElementById('createTransactionBtn')?.addEventListener('click', () => {
     introJs.tour().setOptions({
       steps: [
         { element: document.querySelector('h1'), intro: "This tutorial will guide you step by step.", title: "📝 Tutorial Overview" },
-        { element: document.querySelector('[href="#market-scope"]'), intro: "Step 1: Click here to open the navigation menu" },
+        { element: document.querySelector('#wrapper-market-scope'), intro: "Step 1: Click here to open the navigation menu" },
         { element: document.querySelector('input[type=email]'), intro: "Step 2: Enter your email" },
         { element: document.querySelector('button[type=submit]'), intro: "Step 3: Submit the form" }
       ],
@@ -142,13 +136,26 @@
       showStepNumbers: true
     }).start();
 
-    introJs.tour().onafterchange(function (element) {
-      if (element.attr('href') === '#market-scope') {
-        element.click(); // auto-open menu when tour reaches this step
-      }
-    });
+    // introJs.tour().onafterchange(function (element) {
+    //   if (element.attr('href') === '#market-scope') {
+    //     element.click(); // auto-open menu when tour reaches this step
+    //   }
+    // });
+
+    console.log(introJs.tour())
+    document.getElementById('market-scope')?.classList.toggle('collapse')
+    // document.getElementById('market-scope')?.classList.add('collapsed')
   });
 
+
+  // introJs.tour().setOptions({
+  //   steps: [{
+  //     intro: "Hello world!"
+  //   }, {
+  //     element: document.querySelector('#intro-suppliers'),
+  //     intro: "Click here to login!"
+  //   }]
+  // }).start();
 
 
 </script>

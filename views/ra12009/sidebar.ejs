@@ -147,6 +147,7 @@
                 </div>
               <% }%>
              <% } else if(item.children) { %>
+              <div id="wrapper-<%= item.collapseId %>" class="hasChildren nav nav-secondary">
                <li class="nav-item submenu">
                  <a data-bs-toggle="collapse" href="#<%= item.collapseId %>">
                    <i class="<%= item.icon %>"></i>
@@ -171,6 +172,7 @@
                    </ul>
                  </div>
                </li>
+              </div>
              <% } else { %>
                <li class="nav-item <%= UTILS.isActive(currentPath, item.path) %>">
                  <a href="<%= item.path %>">

@@ -1,0 +1,373 @@
+<script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"></script>
+
+<style>
+    @page {
+        size: 8.5in 13in;
+        /* size: auto; */
+        margin: 0.5in;
+        /* margin: 0mm 0mm 10mm; */
+        
+        /* @bottom-left {
+            content: "Page " counter(page) " of " counter(pages) " | Market Scoping Checklist";
+            margin-left: 10mm;
+        } */
+        
+        /* @bottom-center {
+            content: "Page " counter(page) " of " counter(pages) " | Market Scoping Checklist";
+        }
+        @bottom-right {
+            content: "Page " counter(page) " of " counter(pages) " | Market Scoping Checklist";
+        } */
+    }
+
+    @page :left { margin-left: 0.75in; margin-right: 0.5in; }
+    @page :right { margin-right: 0.75in; margin-left: 0.5in; }
+
+    .pagedjs_page_content {
+        padding: 0.5in !important;
+    }
+
+
+/* First-page background/header for print only.
+Replace 'header-bg.png' with your image path or remove background-image to use color only. */
+/* @page :first {
+    background: url('/client/assets/img/da-background.png') no-repeat left top;
+    background-size: contain;
+    background-position: 10px 10px;
+} */
+
+/* :root {
+    --all-margins: 0.25in !important;
+    
+    --pagedjs-margin-top: var(--all-margins);
+    --pagedjs-margin-bottom: var(--all-margins);
+    --pagedjs-margin-left: var(--all-margins);
+    --pagedjs-margin-right: var(--all-margins);
+
+    break-before: avoid !important;
+  break-after: avoid !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  page-break-before: avoid !important;
+} */
+
+html, body, #print-area, table {
+  break-before: avoid !important;
+  break-after: avoid !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  page-break-before: avoid !important;
+}
+.page-break {
+    page-break-before: always !important;
+}
+
+/* avoid leaving large blank space at bottom of printed page
+- remove the large bottom margin previously set for body (180px)
+- rely on @page bottom margin for footer space */
+body {
+    font-family: Arial, sans-serif;
+    /* margin: 0px 0px 10px; */
+    margin: 0;
+    counter-reset: page;
+    background-color: unset !important;
+}
+
+/* encourage tables not to be split awkwardly */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    page-break-inside: auto;
+}
+
+header {
+    text-align: center;
+    font-size: 85%;
+    margin-bottom: 10px;
+    position: relative;
+    top: -20px;
+}
+
+header *,
+header p {
+    line-height: 1;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th,
+td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    vertical-align: top;
+}
+
+th {
+    background: #f2f2f2;
+}
+
+section {
+    margin-bottom: 20px;
+}
+
+section h1 {
+    /* margin-bottom: 0; */
+}
+
+section hr {
+    margin-top: 0;
+}
+
+/* :not(.container) .form-section { margin: 0 40px 0;} */
+.form-section strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.w-50 {
+    width: 50%;
+}
+
+.w-41 {
+    width: 41.66666667%;
+}
+
+.w-16 {
+    width: 16.66666667%;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.justify-content-space-between {
+    justify-content: space-between;
+}
+
+.text-uppercase {
+    text-transform: uppercase;
+}
+
+.text-lowercase {
+    text-transform: lowercase;
+}
+
+.text-normal {
+    text-transform: none;
+}
+
+.text-italic {
+    font-style: italic;
+}
+
+.mt-0 {
+    margin-top: 0
+}
+
+.mb-0 {
+    margin-bottom: 0
+}
+
+.fw-normal {
+    font-weight: normal;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.top-logo {
+    display: none;
+    visibility: hidden;
+    position: absolute;
+    top: 15px;
+    left: -85px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.top-logo img {
+    width: 80px;
+}
+
+.top-logo img.daLogo {
+    width: 120px;
+    position: relative;
+    left: -10px;
+    top: -13px;
+}
+
+.top-series {
+    position: absolute;
+    top: -15px;
+    right: 0;
+    display: flex;
+    align-items: flex-end;
+}
+
+.top-series img {
+    width: 110px;
+}
+
+.top-series .series-number {
+    font-size: 12px;
+    text-align: center;
+}
+
+.top-series strong {
+    display: block;
+}
+
+.page-inner {
+    padding: 0 !important;
+}
+
+.main-header {
+    min-height: 10px;
+}
+
+.hidden {
+    display: none;
+}
+
+#trackingSheetTable, [data-id="trackingSheetTable"] {
+    font-size: .8em;
+}
+
+[title="Responsible"], .text-start {
+    text-align: left;
+}
+
+@media print {
+    /* #print-area,
+    #print-area *{
+        visibility: visible !important;
+        overflow: visible !important;
+    } */
+
+    .top-logo {
+        display: none;
+    }
+
+}
+</style>
+
+
+<%
+    var { product_id: parentId, approved_budget: budget, bid_notice_title, prepared_by } = results[0]
+    var cleanBudget = budget.replace(/,/g, '');
+
+    budget = parseFloat(cleanBudget)
+
+    const { lists, getApprovalSteps } = STEPS
+
+    const { name } = JSON.parse(prepared_by)
+
+    function stripName(fullName) {
+        const parts = fullName.trim().split(/\s+/); // split by spaces
+        if (parts.length < 2) return fullName; // fallback if only one word
+
+        const firstInitial = parts[0].charAt(0).toUpperCase();
+        const lastName = parts[parts.length - 1]; // last word
+        return `${firstInitial}. ${lastName}`;
+    }
+%>
+
+
+<div id="print-area">
+    <div class="top-logo">
+        <img class="bagoPilipinas" src="/client/assets/img/bagong-pilipinas.png" alt="Bagong Pilipinas">
+        <img class="daLogo" src="/client/assets/img/da-logo-masaganang-ekonomiya.png"
+            alt="Department of Agriculture - Masaganang Agrikultura, Maunlad na Ekonomiya">
+    </div>
+    <div class="top-series">
+        <div class="series-number">
+            <div id="<%- UTILS.generatePRCode(results[0]) -%>" data-qrcode="<%- UTILS.generatePRCode(results[0]) -%>" class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- UTILS.generatePRCode(results[0]) -%>"></div>
+            <!-- <%= UTILS.generatePRCode(results[0]) %>
+            <strong>Reference No.</strong> -->
+        </div>
+    </div>
+
+    <header class="hidden">
+        <h5 class="mb-0">Tracking Sheet</h5>
+        <h3 class="mt-0 mb-0 text-uppercase fs-5">for SVP</h3>
+        <h4 class="mt-0 mb-0 fw-normal fs-5">Department of Agriculture - RFO VII</h4>
+    </header>
+
+    <div id="body-area">
+        
+        <section class="title">
+            <h1 class="text-center text-uppercase" style="font-size: 1.7em; font-weight: 500; line-height: .8;">Tracking Sheet
+                <br>
+                <small style="font-size: 20px;">
+                    <span class="text-lowercase">for</span>
+                    <%= budget > 200000 ? 'Public Bidding' : 'SVP'  %>
+                </small>
+            </h1>
+            <h6 class="text-center text-uppercase" style="font-size: 16px; margin-top: 0; font-weight: 400;">Department of Agriculture - RFO VII</h6>
+        </section>
+        
+        <div class="d-flex justify-content-space-between" style="margin: 50px 0 15px; ">
+            <div class="">Particulars: <u><%- bid_notice_title %></u></div>
+            <div class="">PR #: <u><%= UTILS.generatePRCode(results[0]) %></u></div>
+            <div class="">ABC <u><%= UTILS.peso(budget) %></u></div>
+        </div>
+
+        <table id="trackingSheetTable" class="display text-center" style="width:100%">
+            <thead class="fw-bolder">
+                <tr>
+                    <th rowspan="2">OFFICE/Person Responsible</th>
+                    <th rowspan="2" width="100">NAME</th>
+                    <th rowspan="2" width="100">SIGNATURE</th>
+                    <th colspan="2" width="50">DATE</th>
+                    <th rowspan="2" width="200">REMARKS</th>
+                </tr>
+                <tr>
+                    <th width="80">IN</th>
+                    <th width="80">OUT</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <% const approvalSteps = lists(results[0]); %> 
+                <% approvalSteps.forEach((steps, index) =>{ 
+                    index++; %>
+                    <tr class="<%= `${index==28 ? 'page-break' : ''}`  %>">
+                        <td title="Responsible" class="text-start"><%= `${index}. ${steps.steps_title}` %></td>
+                        <td title="Name"><%= (steps.id == 1) ? stripName(name) : '' %></td>
+                        <td title="Signature"></td>
+                        <td title="Date In"></td>
+                        <td title="Date Out"></td>
+                        <td title="Remarks" class="text-start lh-1"></td>
+                    </tr>
+                <% }) %>
+                
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.PagedPolyfill) {
+        try {
+            if (typeof PagedPolyfill.preview === 'function') {
+                PagedPolyfill.preview(document.querySelector('#print-area'));
+            } else {
+                const p = new PagedPolyfill();
+                if (typeof p.preview === 'function') p.preview(document.querySelector('#print-area'));
+            }
+        } catch (err) {
+            // graceful fallback: log and continue — native print may not support margin boxes
+            console.warn('PagedPolyfill preview failed:', err);
+        }
+    } else {
+        console.warn('PagedPolyfill not loaded');
+    }
+});
+</script>

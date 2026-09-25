@@ -1,0 +1,106 @@
+
+<%
+
+    const transactions = results[0]
+    const { product_id, pr_date, prepared_by } = transactions
+    const requestID = UTILS.addLeadingZeros(product_id)
+    const trackerid = `PR${moment(pr_date).format('YYYYMMDD')}-${requestID}`
+
+    const { lists, getApprovalSteps } = STEPS
+
+    const { name } = JSON.parse(prepared_by)
+
+    function stripName(fullName) {
+        const parts = fullName.trim().split(/\s+/); // split by spaces
+        if (parts.length < 2) return fullName; // fallback if only one word
+
+        const firstInitial = parts[0].charAt(0).toUpperCase();
+        const lastName = parts[parts.length - 1]; // last word
+        return `${firstInitial}. ${lastName}`;
+    }
+%>
+
+<div id="print-area">
+    <%
+        var {approved_budget : budget, } = transactions 
+        var cleanBudget = budget.replace(/,/g, '');
+
+        budget = parseFloat(cleanBudget)
+    %>
+    <div class="wrapper">
+        <!-- <div id="transid-<%=transactions.product_id%>" class="qrcode hidden" data-qrcode="<%=transactions.product_id%>"></div> -->
+        <div id="<%- trackerid -%>" data-qrcode="<%- trackerid -%>" class="qrcode" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- trackerid -%>"></div>
+        <header class="text-center">
+            <h1 class="wrapper"><span class="text-uppercase">Tracking Sheet </span><br><small><span class="text-lowercase">for</span> <%= budget > 1000000 ? 'Public Bidding' : 'SVP'  %></small></h1>
+            <h4>Department of Agriculture - RFO VII</h4>
+            <div class="d-flex flex-row justify-content-between" style="margin-top: 50px;">
+                <div>Particulars: <u><%= transactions.bid_notice_title %></u></div>
+                <div>PR # <u><%- trackerid -%></u></div>
+                <div>ABC <u><%= UTILS.peso(budget) %></u></div>
+            </div>
+        </header>
+        <table id="trackingSheetTable" class="display text-center" style="width:100%">
+            <thead class="fw-bolder">
+                <tr>
+                    <th rowspan="2">OFFICE/Person Responsible</th>
+                    <th rowspan="2" width="100">NAME</th>
+                    <th rowspan="2" width="100">SIGNATURE</th>
+                    <th colspan="2" width="50">DATE</th>
+                    <th rowspan="2" width="200">REMARKS</th>
+                </tr>
+                <tr>
+                    <th width="80">IN</th>
+                    <th width="80">OUT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- <tr>
+                    <td title="Responsible" class="text-start">1. End-User</td>
+                    <td title="Name"><%- stripName(name) -%></td>
+                    <td title="Signature"></td>
+                    <td title="Date In"></td>
+                    <td title="Date Out"></td>
+                    <td title="Remarks" class="text-start lh-1">PR Preparation</td>
+                </tr> -->
+                
+                <% const approvalSteps = lists(transactions); %> 
+                <% approvalSteps.forEach((steps, index) =>{ 
+                    index++; %>
+                    <tr>
+                        <td title="Responsible" class="text-start"><%= `${index}. ${steps.steps_title}` %></td>
+                        <td title="Name"><%= (steps.id == 1) ? stripName(name) : '' %></td>
+                        <td title="Signature"></td>
+                        <td title="Date In"></td>
+                        <td title="Date Out"></td>
+                        <td title="Remarks" class="text-start lh-1"></td>
+                    </tr>
+                <% }) %>
+                
+            </tbody>
+        </table>
+
+        
+    </div>
+</div>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.PagedPolyfill) {
+        try {
+            if (typeof PagedPolyfill.preview === 'function') {
+                PagedPolyfill.preview(document.querySelector('#print-area'));
+            } else {
+                const p = new PagedPolyfill();
+                if (typeof p.preview === 'function') p.preview(document.querySelector('#print-area'));
+            }
+        } catch (err) {
+            // graceful fallback: log and continue — native print may not support margin boxes
+            console.warn('PagedPolyfill preview failed:', err);
+        }
+    } else {
+        console.warn('PagedPolyfill not loaded');
+    }
+});
+</script>

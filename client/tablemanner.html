@@ -1,0 +1,78 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        /* Default table */
+.responsive-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.responsive-table th,
+.responsive-table td {
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+
+/* Mobile view: stack into one row */
+@media (max-width: 768px) {
+  .responsive-table,
+  .responsive-table thead,
+  .responsive-table tbody,
+  .responsive-table th,
+  .responsive-table td,
+  .responsive-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .responsive-table tr {
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    padding: 10px;
+  }
+
+  .responsive-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px;
+  }
+
+  .responsive-table td::before {
+    content: attr(data-label); /* use attribute as label */
+    font-weight: bold;
+    margin-right: 10px;
+  }
+}
+
+    </style>
+</head>
+<body>
+    <table class="responsive-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Title</th>
+      <th>Department</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td data-label="Name">Juan Cruz</td>
+      <td data-label="Title">Ph.D.</td>
+      <td data-label="Department">Procurement</td>
+    </tr>
+    <tr>
+      <td data-label="Name">Maria Santos</td>
+      <td data-label="Title">CPA</td>
+      <td data-label="Department">Finance</td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

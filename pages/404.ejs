@@ -1,10 +1,11 @@
+<% title = title || 'Page Not Found' %>
 <%- include('../views/header') -%>
 <link rel="stylesheet" href="/assets/css/404.css">
     <div class="error-wrapper">
         <div class="error-container">
             <div class="error">
                 <div class="error-title">
-                    Error
+                   <%- title %> 
                 </div>
                 <div class="error-number">
                     404

@@ -231,7 +231,7 @@ export function configMarketScopes() {
       },
       {
         render: function (data, type, row) {
-          const actions = JSON.parse(data);
+          const actions = JSON.parse(data || '[]');
           return `
           <div class="d-flex justify-content-center">
             <span data-bs-toggle="tooltip" aria-label="View Market Scope" data-bs-original-title="View Market Scope">
@@ -251,7 +251,7 @@ export function configMarketScopes() {
             </span>
           </div>
         `;
-        }, targets: 25
+        }, targets: 26
       },
       { targets: [1, 4, -1], visible: true },
       { targets: '_all', visible: false },

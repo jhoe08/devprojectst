@@ -379,9 +379,9 @@
         }
     
         
-        data.experience = JSON.stringify(experience)
-        data.contacts = JSON.stringify(contacts)
-        data.others = JSON.stringify(others)
+        // data.experience = JSON.stringify(experience)
+        // data.contacts = JSON.stringify(contacts)
+        // data.others = JSON.stringify(others)
 
         const employeeID = employeeid.value
         const payload = {set: data, where: {employeeid:employeeID}}

@@ -1820,6 +1820,7 @@ app.get('/market-scope/:id/print', restrict, async (req, res) => {
 
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'custom-page.ejs'),
       {
+        styles: [],
         scripts: ['/assets/js/pages/market-scope.js'],
         innerContent: '../pages/market-scope/print',
         title: "Market Scoping Results",
@@ -2839,7 +2840,7 @@ app.get('/transactions/:id/view', restrict, loadAllEmployees, loadAllActivities,
   }
 })
 
-app.get('/transactions/:id/print', restrict, async (req, res) => {
+app.get('/transactions/:id/__print', restrict, async (req, res) => {
   try {
     const transid = req.params.id;
 
@@ -2863,6 +2864,46 @@ app.get('/transactions/:id/print', restrict, async (req, res) => {
   } catch (error) {
     console.error('Error deleting transaction:', error);
     res.status(404).render('404');
+  }
+})
+
+app.get('/transactions/:id/print', restrict, async (req, res) => {
+  try {
+    const [innerHTML, scopesResults, activities] = await Promise.all([
+      connection.getTransactionById(req.params.id ),
+      connection.getMarketScopesResults({ scoping_id: req.params.id }),
+      connection.getTransactionActivity()
+    ]);
+
+    console.log({ aaaaa: innerHTML[0]})
+
+    if (!innerHTML || innerHTML.length === 0) {
+      return res.status(404).render('404', {
+        title: "",
+      });
+    }
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'custom-page.ejs'),
+      {
+        styles: ['/assets/css/print-transaction.css'],
+        scripts: [],
+        innerContent: '../pages/ra12009/transactions/print-v2',
+        title: `Print Tracking Sheet #${req.params.id}`,
+        description: "",
+        results: { 0: innerHTML[0], 1: scopesResults[0] },
+        // _datatables: tables,
+        _steps: activities.sort((a, b) => b.id - a.id),
+        options: {
+          hideTitle: true,
+          uniqueId: req.params.id
+        },
+        ...res.locals,
+      });
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error Viewing Market Scope:', error);
+    res.status(500).send('Internal Server Error');
   }
 })
 
