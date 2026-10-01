@@ -34,7 +34,13 @@ var connection = mysql.createConnection({
 // TEST
 prefix = process.env.DB_DATABASE;
 
-connection.connect();
+connection.connect(err => {
+  if (err) {
+    console.error('Connection failed:', err.message);
+    return;
+  }
+  console.log('Connected to database.');
+});
 
 function convertDate(date, hours) {
   return moment(date)

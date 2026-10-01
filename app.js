@@ -2042,6 +2042,7 @@ app.post('/login', async (req, res) => {
 
 app.get('/token', async (req, res) => {
   const guestToken = req.query.guest_token;
+  if (!guestToken) return res.redirect('/');
   const guest = {
     token: guestToken,
     created_at: new moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -2056,6 +2057,7 @@ app.get('/token', async (req, res) => {
     }
   }
   console.log('Storing guest token:', guest)
+
   const result = await connection.storeGuestToken(guest)
   if (result) {
     const guestUser = {
@@ -3753,7 +3755,7 @@ app.post("/approve", async (req, res) => {
       message: remarks,
       link: product_id,
       component: 'transactions',
-      meta: JSON.stringify( currentStepTitle )
+      meta: JSON.stringify(currentStepTitle),
     }))
 
     res.json({ success: true, message: "Approval step advanced." });

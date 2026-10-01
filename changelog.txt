@@ -1,3 +1,8 @@
+v2.7.3
+- add* watchdog for realiability of the connection
+- fix* database connection for maintaining connection with the codes
+- update* guestToken code
+
 v2.6.7
 - modify* updated notifications and notification_reads sql
 - add* cloudflare tunneling www and da7-procurement.com

@@ -148,10 +148,10 @@
           </time>
           <span class="text">
             <!--span class="badge badge-<%= item.status %> mr-3"><%= (item.step.id == item.stepsDetails?.steps_number) ? item.stepsDetails?.status : '' %></span-->
-            <%= item.step.steps_title %> <%= `${STEPS.isResponsibleForCurrentStage('RED/RTD', item.step.stage)} ${item.step.stage}` %>
+            <%= item.step.steps_title %> 
           </span>
         </div>
-        <span></span>
+        <span class="hidden"><%= `${STEPS.isResponsibleForCurrentStage('RED/RTD', item.step.stage)} ${item.step.stage}` %></span>
       </div>
       <div class="total-response-time">
         <%= `${days}d ${hours}h ${minutes}m ${seconds}s` %>

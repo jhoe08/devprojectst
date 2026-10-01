@@ -35,6 +35,7 @@
 
 .total-response-time {
   color: #fff;
+  display: none;
 }
 
 #chargingTo { 
