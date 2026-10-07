@@ -2,6 +2,8 @@
 # IT IS HOLDING IMPORTANT DATA THAN YOUR LIFE
 .env
 
+server_watchdog.log
+
 # Don't include module
 node_modules/
 

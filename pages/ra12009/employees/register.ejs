@@ -55,7 +55,30 @@
   }
 
   // roles = typeof roles === 'string' ? JSON.parse(roles || '[]') : Array.isArray(roles) ? roles : JSON.parse(roles || '[]');
-  roles = (roles.includes('[') && roles.includes(']')) ? JSON.parse(roles || '[]') : Array.isArray(roles) ? roles : roles;
+  // roles = (roles?.includes('[') && roles?.includes(']')) ? JSON.parse(roles || '[]') : Array.isArray(roles) ? roles : roles;
+
+
+roles = roles || [];
+
+// If roles is a string that looks like JSON, try parsing
+if (typeof roles === 'string') {
+  try {
+    // normalize: replace single tokens like [End-User] with ["End-User"]
+    if (roles.startsWith('[') && roles.endsWith(']')) {
+      // ensure proper quotes inside
+      roles = roles.replace(/\[([^\]]+)\]/, '["$1"]');
+      roles = JSON.parse(roles);
+    } else {
+      roles = [roles]; // wrap plain string in array
+    }
+  } catch (err) {
+    console.warn('Failed to parse roles:', err.message);
+    roles = [roles]; // fallback
+  }
+} else if (!Array.isArray(roles)) {
+  roles = [roles];
+}
+
 
   // Determine mode
   const isRegistrationMode = mode === 'register';
@@ -295,12 +318,12 @@
                         <% components.sort((a, b)=> a.localeCompare(b)); %>
                             <div id="componentsList" class="selectgroup selectgroup-pills">
                                 <% if (employeeid || selectedComponents) { 
-                                    var selectedValues = (selectedComponents.includes('[') && selectedComponents.includes(']')) ? JSON.parse(selectedComponents) || [] : selectedComponents; } %>
+                                    var selectedValues = (selectedComponents?.includes('[') && selectedComponents?.includes(']')) ? JSON.parse(selectedComponents) || [] : selectedComponents; } %>
                                     <% components.forEach(function(component) { %>
                                         <label class="selectgroup-item">
                                             <input type="checkbox" name="components" value="<%= component %>"
                                                 class="selectgroup-input" <%=(selectedValues &&
-                                                selectedValues.includes(component)) ? 'checked' : '' %>
+                                                selectedValues?.includes(component)) ? 'checked' : '' %>
                                             >
                                             <span class="selectgroup-button">
                                                 <%= component %>
