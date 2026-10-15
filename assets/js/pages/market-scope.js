@@ -174,7 +174,7 @@ const marketScope = {
       const userResponsible = JSON.parse(localUser.dataset.responsible)
 
       preparedBy.value = `${userData.name}, ${userData.position}`
-      reviewedBy.value = userResponsible?.section ? `${userResponsible.section.name}, ${userResponsible.section.position || 'Section Head'}` : userResponsible?.division ? `${userResponsible.division.name}, ${userResponsible.division.position || 'Division Head'}` : 'Dir. Angel C. Enriquez, DA-RFO7'
+      // reviewedBy.value = userResponsible?.section ? `${userResponsible.section.name}, ${userResponsible.section.position || 'Section Head'}` : userResponsible?.division ? `${userResponsible.division.name}, ${userResponsible.division.position || 'Division Head'}` : 'Dir. Angel C. Enriquez, DA-RFO7'
     }
   },
 };

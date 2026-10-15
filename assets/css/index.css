@@ -169,3 +169,7 @@ table.dataTable {
 .swal-text {
   text-align: center;
 }
+
+.main-panel > .container .alert  {
+  margin: 30px 30px 0px;
+}

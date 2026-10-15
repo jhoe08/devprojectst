@@ -46,44 +46,89 @@ const steps = {
         { id: 3, steps_title: "Budget Section", stage: "funding_allocation", period: 1 },
         // Canvassing
         { id: 4, steps_title: "Procurement Unit (PU)", stage: "canvass_preparation", period: 2 },
-        { id: 5, steps_title: "GSS", stage: "canvass_signing", period: 1 },
-        { id: 6, steps_title: "BAC Secretariat", stage: "review_and_posting", period: 4 },
+        { id: 5, steps_title: "GSS (APP Review)", stage: "canvass_signing", period: 1 },
+        { id: 6, steps_title: "BAC Secretariat (Philgeps Posting)", stage: "review_and_posting", period: 4 },
         { id: 7, steps_title: "Procurement Unit (PU)", stage: "distribution_of_canvass", period: 1 },
         { id: 8, steps_title: "Canvassers", stage: "supplier_serving", period: 5 },
         { id: 9, steps_title: "Suppliers/Contractors", stage: "bid_submission", period: 5 },
-        { id: 10, steps_title: "BAC Secretariat", stage: "bid_opening", period: 1 },
+        { id: 10, steps_title: "BAC Secretariat", stage: "bid_opening", period: 1 }, // BAC 1 (Loren) or BAC 2 (Micco)
         { id: 11, steps_title: "Procurement Unit (PU)", stage: "abstract_and_resolution", period: 7 },
         { id: 12, steps_title: "BAC 1 & 2", stage: "bac_signing_and_twg_eval", period: 3 },
         // Awarding
-        { id: 13, steps_title: "BAC Secretariat", stage: "award_segregation", period: 1 },
-        { id: 14, steps_title: "RTD", stage: "noa_and_resolution_approval", period: 1 },
-        { id: 15, steps_title: "Procurement Unit (PU)", stage: "noa_confirmation_and_po_joc", period: 2 },
-        { id: 16, steps_title: "BAC Secretariat", stage: "posting_of_award", period: 1 },
+        { id: 13, steps_title: "BAC Secretariat", stage: "award_segregation", period: 1 }, // BAC 1 (Lydon) or BAC 2 (Micco, ...others)
+        // { id: 14, steps_title: "Procurement Unit (PU)", stage: "noa_preparation", period: 1 },
+        { id: 14, steps_title: "RTD", stage: "noa_and_resolution_approval", period: 1 }, // NOA Signature RTD 
+        { id: 15, steps_title: "Procurement Unit (PU)", stage: "noa_confirmation_and_po_joc", period: 2 }, // and Supplier Confirmation
+        { id: 16, steps_title: "BAC Secretariat", stage: "posting_of_award", period: 1 }, // under ni GS  (Bidding Mars Bac 1 and Joseph  Bac 2)
         // Purchase Order (PO)
-        { id: 17, steps_title: "End-User/Division Chief", stage: "ors_burs_charging", period: 1 },
-        { id: 18, steps_title: "Budget Section", stage: "obligation_numbering", period: 1 },
-        { id: 19, steps_title: "Accounting Section", stage: "po_joc_processing", period: 1 },
-        { id: 20, steps_title: "RTD", stage: "po_joc_approval", period: 1 },
-        { id: 21, steps_title: "GSS", stage: "serving_po_joc", period: 4 },
-        { id: 22, steps_title: "RTD", stage: "ntp_approval", period: 1 },
+        //  { id: 17, steps_title: "Procurement Unit (PU)", stage: "ors_preparation", period: 1 },
+        { id: 17, steps_title: "End-User/Division Chief", stage: "ors_burs_charging", period: 1 }, // ORS and PO Preparations balik sa End-User ORS charging
+        { id: 18, steps_title: "Budget Section", stage: "obligation_numbering", period: 1 }, // for Obligation
+        { id: 19, steps_title: "Accounting Section", stage: "po_joc_processing", period: 1 }, // Processing PO
+        { id: 20, steps_title: "RTD", stage: "po_joc_approval", period: 1 }, // PO Approval
+        { id: 21, steps_title: "GSS", stage: "serving_po_joc", period: 4 }, // Delivery of Items
+        { id: 22, steps_title: "RTD", stage: "ntp_approval", period: 1 }, // For Public to be removed
         // Project Implementation & Inspection
-        { id: 23, steps_title: "BAC Secretariat", stage: "posting_po_joc_ntp", period: 2 },
-        { id: 24, steps_title: "GS/RAED/End-User", stage: "project_implementation", period: "contract_based" },
-        { id: 25, steps_title: "Inspectors", stage: "inspection", period: 3 },
+        { id: 23, steps_title: "BAC Secretariat", stage: "posting_po_joc_ntp", period: 2 }, // For Public to be removed
+        { id: 24, steps_title: "GS/RAED/End-User", stage: "project_implementation", period: "contract_based" }, // For Public to be removed
+        { id: 25, steps_title: "Inspectors", stage: "inspection", period: 3 },  // Inspection and Acceptance
         // Disbursement Voucher (DV)
-        { id: 26, steps_title: "End-Users", stage: "turnover_docs", period: 5 },
+        { id: 26, steps_title: "End-Users", stage: "turnover_docs", period: 5 }, // To be removed
         { id: 27, steps_title: "GS/End-Users", stage: "voucher_preparation", period: 2 },
         { id: 28, steps_title: "End-Users", stage: "voucher_signing", period: 1 },
+        // Additional Final Compilation to GSs
         { id: 29, steps_title: "Accounting Section", stage: "voucher_processing", period: 1 },
-        { id: 30, steps_title: "Division Chief", stage: "voucher_approval", period: 1 },
+        { id: 30, steps_title: "Division Chief", stage: "voucher_approval", period: 1 }, // change to RTD
         // Payments
         { id: 31, steps_title: "Cashiering Unit", stage: "check_preparation", period: 2 },
         { id: 32, steps_title: "Accounting Section", stage: "ada_review", period: 1 },
         { id: 33, steps_title: "RED/RTD/Admin Chief", stage: "check_signing", period: 1 },
         { id: 34, steps_title: "Cashiering Unit", stage: "release_payment", period: 1 }
     ],
+    svp_v3: [
+        // Purchase Request (PR) Preparation
+        { id: 1, steps_title: "End-User/Program Focal", stage: "prepared_by", period: null },
+        { id: 2, steps_title: "RTD", stage: "executive_review", period: null },
+        { id: 3, steps_title: "Budget Section", stage: "funding_allocation", period: 1 },
+        // Canvassing
+        { id: 4, steps_title: "Procurement Unit (PU)", stage: "canvass_preparation", period: 2 },
+        { id: 5, steps_title: "GSS (APP Review)", stage: "canvass_signing", period: 1 },
+        { id: 6, steps_title: "BAC Secretariat (Philgeps Posting)", stage: "review_and_posting", period: 4 },
+        { id: 7, steps_title: "Procurement Unit (PU)", stage: "distribution_of_canvass", period: 1 },
+        { id: 8, steps_title: "Canvassers", stage: "supplier_serving", period: 5 },
+        { id: 9, steps_title: "Suppliers/Contractors", stage: "bid_submission", period: 5 },
+        { id: 10, steps_title: "BAC Secretariat", stage: "bid_opening", period: 1 }, // BAC 1 (Loren) or BAC 2 (Micco)
+        { id: 11, steps_title: "Procurement Unit (PU)", stage: "abstract_and_resolution", period: 7 },
+        { id: 12, steps_title: "BAC 1 & 2", stage: "bac_signing_and_twg_eval", period: 3 },
+        // Awarding
+        { id: 13, steps_title: "BAC Secretariat", stage: "award_segregation", period: 1 }, // BAC 1 (Lydon) or BAC 2 (Micco, ...others)
+        { id: 14, steps_title: "Procurement Unit (PU)", stage: "noa_preparation", period: 1 },
+        { id: 15, steps_title: "RTD", stage: "noa_and_resolution_approval", period: 1 }, // NOA Signature RTD 
+        { id: 16, steps_title: "Procurement Unit (PU)", stage: "noa_confirmation_and_po_joc", period: 2 }, // and Supplier Confirmation
+        { id: 17, steps_title: "BAC Secretariat", stage: "posting_of_award", period: 1 }, // under ni GS  (Bidding Mars Bac 1 and Joseph  Bac 2)
+        // Purchase Order (PO)
+        { id: 18, steps_title: "Procurement Unit (PU)", stage: "ors_preparation", period: 1 },
+        { id: 19, steps_title: "End-User/Division Chief", stage: "ors_burs_charging", period: 1 },
+        { id: 20, steps_title: "Budget Section", stage: "obligation_numbering", period: 1 },
+        { id: 21, steps_title: "Accounting Section", stage: "po_joc_processing", period: 1 },
+        { id: 22, steps_title: "RTD", stage: "po_joc_approval", period: 1 },
+        { id: 23, steps_title: "GSS", stage: "serving_po_joc", period: 4 },
+        { id: 24, steps_title: "Inspectors", stage: "inspection", period: 3 },
+        // Disbursement Voucher (DV)
+        // { id: 28, steps_title: "End-Users", stage: "turnover_docs", period: 5 }, // To be removed
+        { id: 25, steps_title: "GS/End-Users", stage: "voucher_preparation", period: 2 },
+        { id: 26, steps_title: "End-Users", stage: "voucher_signing", period: 1 },
+        { id: 27, steps_title: "GSS", stage: "voucher_compilation", period: 1 },
+        { id: 28, steps_title: "Accounting Section", stage: "voucher_processing", period: 1 },
+        { id: 29, steps_title: "RTD", stage: "voucher_approval", period: 1 }, // change to RTD
+        // Payments
+        { id: 30, steps_title: "Cashiering Unit", stage: "check_preparation", period: 2 },
+        { id: 31, steps_title: "Accounting Section", stage: "ada_review", period: 1 },
+        { id: 32, steps_title: "RED/RTD/Admin Chief", stage: "check_signing", period: 1 },
+        { id: 33, steps_title: "Cashiering Unit", stage: "release_payment", period: 1 }
+    ],
     publicBidding: [
-         // Purchase Request (PR) Preparation
+        // Purchase Request (PR) Preparation
         { id: 1, steps_title: "Regional Agricultural Engineering Division/End-User", stage: "prepared_by" },
         { id: 2, steps_title: "Program Coordinator End-User/Program Coordinator", stage: "pr_preparation" },
         { id: 3, steps_title: "Division Chief", stage: "division_head_approval" },
@@ -124,12 +169,12 @@ const steps = {
         { id: 1, steps_title: "Regional Agricultural Engineering Division/End-User", stage: "prepared_by" },
         { id: 2, steps_title: "Program Coordinator End-User/Program Coordinator", stage: "pr_preparation" },
         { id: 3, steps_title: "Division Chief", stage: "division_head_approval" },
-        { id: 4, steps_title: "Procurement Section", stage: "pr_numbering" }, 
+        { id: 4, steps_title: "Procurement Section", stage: "pr_numbering" },
         { id: 5, steps_title: "Budget Section", stage: "fund_allocation" },
-        { id: 6, steps_title: "RED/RTD/Division Chief", stage: "approval_pr" }, 
-        { id: 7, steps_title: "BAC/BAC Secretariat", stage: "bidding_preparation" }, 
-        { id: 8, steps_title: "TWG Concerned", stage: "evaluation" }, 
-        { id: 9, steps_title: "BAC Secretariat", stage: "bac_resolution" }, 
+        { id: 6, steps_title: "RED/RTD/Division Chief", stage: "approval_pr" },
+        { id: 7, steps_title: "BAC/BAC Secretariat", stage: "bidding_preparation" },
+        { id: 8, steps_title: "TWG Concerned", stage: "evaluation" },
+        { id: 9, steps_title: "BAC Secretariat", stage: "bac_resolution" },
         // Purchase Order (PO) / Contract
         { id: 10, steps_title: "Procurement Section", stage: "po_contract_preparation" },
         { id: 11, steps_title: "End-User/Program Coordinator/Div. Chief", stage: "ors_burs_signing" },
@@ -159,7 +204,7 @@ const steps = {
     // Omnibus, Sworn Statement - kung PO above 200,000
     // ENDOF publicBidding2
     procurementProcess: [
-        
+
     ]
 }
 

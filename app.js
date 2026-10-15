@@ -29,11 +29,15 @@ const MySQLStore = require('express-mysql-session')(session);
 const { v4: uuidv4 } = require('uuid');
 
 const {
-  svp2: CONST_SVP,
+  svp_v3: CONST_SVP,
   publicBidding2: CONST_PB,
   newResponsiblePersonAtStages: CONST_STAGES,
+  MESSAGES: CONST_MESSAGES,
   MISC: CONST_MISC } = require('./admin/const')
 
+// const currentStage = CONST_SVP[0].stage
+
+// console.log({ _ALERT: CONST_MESSAGES[currentStage].initial.text })
 
 // const logger = require('./utils/logger');
 
@@ -947,6 +951,7 @@ app.use(async (req, res, next) => {
   const { divisions } = department
 
   res.locals = {
+    THRESHOLD: 2_000_000, // 2,000,000.00 
     HOST: fullUrl,
     ENVIRONMENT: process.env.NODE_ENV,
     TEST_MODE: process.env.TEST_MODE,
@@ -1057,13 +1062,13 @@ app.use(async (req, res, next) => {
         return STEPS?.getApprovalSteps(transaction);
       },
       getApprovalSteps: (transaction) => {
-        if (Number(transaction?.approved_budget || 0) >= 200_000) {
+        if (Number(transaction?.approved_budget || 0) > res.locals.THRESHOLD) {
           return CONST_PB;
         }
         return CONST_SVP;
       },
       getTotalSteps: (transaction) => {
-        if (Number(transaction.approved_budget) >= 200_000) {
+        if (Number(transaction.approved_budget) < res.locals.THRESHOLD) {
           return CONST_PB.length;
         }
         return CONST_SVP.length;
@@ -1133,6 +1138,8 @@ app.use(async (req, res, next) => {
         const groupName = Object.keys(groups).find(group =>
           groups[group].includes(currentStep.stage)
         );
+
+        console.log(`${groupName} group found for stage: ${currentStep.stage}`);
 
         return {
           currentStep,

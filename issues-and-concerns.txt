@@ -14,7 +14,32 @@ Units per responsibility of the Transactions
 
 
 
+Market Scoping
+- Review/Validated by
+-- *change Input from fixed 
 
+
+
+Transaction Creation
+- Empty Source/Amount
+
+
+PR CODING
+- Division - Section - Series
+Ex. FOD-SAAD-20260-00001
+
+
+***Feat
+- Canvassing Form
+
+
+Alert Message
+- Bid Open Message after Awarding Suppliers     
+- Abstract and Resolution
+-- ORS and PO Preparation
+- BAC Signing and TWG Evaluation
+
+      	
 
 
 

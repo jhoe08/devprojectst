@@ -1,3 +1,5 @@
+const THRESHOLD = 2_000_000; // 2,000,000.00
+
 export const smallValueMessagesOld = {
     1: {
         initial: {
@@ -1638,7 +1640,7 @@ export function initApprovalRouting() {
     const { approved_budget: approvedBudget } = transactionData;
 
     // Decide which message set to use based on the budget threshold
-    const messageSet = parseFloat(approvedBudget) > 200_000
+    const messageSet = parseFloat(approvedBudget) > THRESHOLD
         ? publicBiddingMessages
         : smallValueMessages;
 
@@ -1695,7 +1697,7 @@ export function initApprovalRouting() {
 }
 
 function getMessages(budget, currentStep) {
-    if (parseFloat(budget) > 200_000) {
+    if (parseFloat(budget) > THRESHOLD) {
         return publicBiddingMessages[currentStep].initial.title;
     }
     return smallValueMessages[currentStep].initial.title;
