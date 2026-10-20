@@ -1,9 +1,10 @@
-v2.9.5
+v2.9.6
 - udpate* threshold amount
 - update* svp lists
 - fix* padding on the menu bar
 - add* issues and concerns links
 - update* removed autofill on Market Scope reviewer
+- add* stages to unify alerts and transactions
 
 v2.8.1
 - fix* remove cached on repo

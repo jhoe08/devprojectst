@@ -1073,12 +1073,17 @@ app.use(async (req, res, next) => {
         }
         return CONST_SVP.length;
       },
-      getCurrentProgress: (steps, product_id) => {
+      getCurrentProgress: (steps, product_id, transaction) => {
         const { STEPS } = res.locals
         let current_step = STEPS.getCurrentStep(steps, product_id)
         const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
-        const current_step_title = STEPS.getTitleById(current_step_number)
-        return { current_step_title, current_step_number };
+        const current_step_title = transaction
+          ? STEPS.getTitleByTransaction(transaction, current_step_number)
+          : STEPS.getTitleById(current_step_number);
+        const current_step_stage = transaction
+          ? STEPS.getStageByTransaction(transaction, current_step_number)
+          : null;
+        return { current_step_title, current_step_number, current_step_stage };
       },
       getCurrentStep: (steps, product_id) => {
         const step = steps.find(step => step.product_id === product_id);
@@ -1097,6 +1102,14 @@ app.use(async (req, res, next) => {
         const { STEPS } = res.locals
         const step = STEPS?.getApprovalSteps(transaction).find(step => step.id === step_id);
         return step ? step.steps_title : `(+) Unknown Step (step_id: ${step_id})`;
+      },
+      getStageByTransaction: (transaction, step_id) => {
+        const stepNumber = Number(step_id);
+        if (!Number.isInteger(stepNumber)) return null;
+
+        const { STEPS } = res.locals
+        const step = STEPS?.getApprovalSteps(transaction).find(step => step.id === stepNumber);
+        return step?.stage || null;
       },
       getCurrentStageGroup(transaction, currentId) {
 
@@ -1138,8 +1151,6 @@ app.use(async (req, res, next) => {
         const groupName = Object.keys(groups).find(group =>
           groups[group].includes(currentStep.stage)
         );
-
-        console.log(`${groupName} group found for stage: ${currentStep.stage}`);
 
         return {
           currentStep,
@@ -1192,6 +1203,51 @@ app.use(async (req, res, next) => {
         const requestID = addLeadingZeros(row.product_id)
         return `PR${moment(row.pr_date).format('YYYYMMDD')}-${requestID}`
       },
+
+      generatePRCode_v2(isSTO = false, row, res) {
+        const preparedByEmployeeId = row.prepared_by?.employeeid || '0000';
+        const { division = 'UNKNOWN', section = 'UNKNOWN' } =
+          res.locals.UTILS.getDivisionAndPosition(preparedByEmployeeId) || {};
+
+        if (division === 'UNKNOWN' || section === 'UNKNOWN') {
+          console.warn(`Division or Section not found for employee ID: ${preparedByEmployeeId}`);
+        }
+
+        const year = moment(row.pr_date).format('YY');
+        const paddedId5 = addLeadingZeros(row.product_id, 5);
+        const paddedId4 = addLeadingZeros(row.product_id, 4);
+
+        // Handle STO case first
+        if (isSTO) {
+          if (division === 'FOD' && section === 'LIVESTOCK') {
+            return `FOD-L-STO-${year}-${paddedId5}`;
+          }
+          return `${division}-STO-${year}-${paddedId5}`;
+        }
+
+        // Handle FOD division
+        if (division === 'FOD') {
+          if (section === 'RICE') {
+            return `FOD-RICE-${year}-${paddedId5}`;
+          }
+          if (section === 'LIVESTOCK') {
+            return `FOD-L-${year}-${paddedId5}`;
+          }
+          if (section === 'CORN') {
+            return `FOD-CORN-${year}-${paddedId5}`;
+          }
+          if (section === 'HVCDP') {
+            return `FOD-HVCDP-${year}-${paddedId5}`;
+          }
+          if (section === 'NUPAP') {
+            return `FOD-NU-${year}-${paddedId5}`;
+          }
+        }
+
+        // Default fallback
+        return `PR${moment(row.pr_date).format('MM-DD-YY')}${paddedId4}`;
+      },  
+
       generatePOCode: (pr_id) => {
         const requestID = addLeadingZeros(pr_id, 4)
         return `PO${moment().format('MM-DD-YY')}${requestID}`;

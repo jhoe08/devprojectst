@@ -20,7 +20,7 @@
 
     let current_step = getCurrentStep(steps, product_id)
     current_step_number = current_step?.steps_number
-    current_stage = current_step?.stage
+    current_step_stage = STEPS.getStageByTransaction(transactions, current_step_number || 1)
     current_step_title = getTitleByTransaction(transactions, current_step_number)
 
     const currentHolder = getCurrentHolderOfTransaction(transactions.product_id)
@@ -103,7 +103,7 @@
                       class="alert_confirm btn btn-success btn-round" 
                       data-product-id="<%= transactions.product_id %>" 
                       data-step="<%= current_step_number %>"
-                      data-stage="<%= current_stage %>">
+                      data-stage="<%= current_step_stage %>">
                       <i class="fas fa-check"></i> Approve
                     </button>
 
@@ -113,7 +113,7 @@
                       class="alert_deny btn btn-danger btn-round" 
                       data-product-id="<%= transactions.product_id %>" 
                       data-step="<%= current_step_number %>"
-                      data-stage="<%= current_stage %>">
+                      data-stage="<%= current_step_stage %>">
                       <i class="fas fa-times"></i> Disapprove
                     </button>
                   <% } else { %>
@@ -135,7 +135,8 @@
                     type="button"
                     class="alert_confirm btn btn-success btn-round" 
                     data-product-id="<%= transactions.product_id %>" 
-                    data-step="1">
+                    data-step="1"
+                    data-stage="<%= current_step_stage %>">
                     Publish
                   </button>
                 <% } %>

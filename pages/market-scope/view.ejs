@@ -233,11 +233,12 @@ const percentagePreparedBy = TRANSACTIONS ? (totalRef / TRANSACTIONS.length) * 1
               budget = parseFloat(cleanBudget)
               fund_source = JSON.parse(fund_source)
               
-              const { lists, getCurrentStep, getDetails, getTitleById } = STEPS
+              const { lists, getCurrentStep, getDetails, getTitleById, getStageByTransaction } = STEPS
 
 
               let current_step = getCurrentStep(_steps, product_id)
               const current_step_number = parseInt(current_step?.steps_number, 10) || 1;
+              const current_step_stage = getStageByTransaction(filteredTransactions[i], current_step_number);
               current_step_title = getTitleById(current_step_number)
 
               const requestID = UTILS.addLeadingZeros(product_id)
@@ -283,12 +284,12 @@ const percentagePreparedBy = TRANSACTIONS ? (totalRef / TRANSACTIONS.length) * 1
                   
                   <% if (userDivision=='admin' && userSection=='budget' && current_step_number===3) { %>
                   <span data-bs-toggle="tooltip" title="Approve Fund Availability">
-                    <button data-product-id="<%= product_id %>" type="button" class="btn alert_confirm btn-link btn-success" data-original-title="Remove" id="alert_confirm" data-step="<%= current_step_number %>">
+                    <button data-product-id="<%= product_id %>" type="button" class="btn alert_confirm btn-link btn-success" data-original-title="Remove" id="alert_confirm" data-step="<%= current_step_number %>" data-stage="<%= current_step_stage %>">
                       <i class="fa fa-check"></i>
                     </button>
                   </span>
                   <span data-bs-toggle="tooltip" title="Disapprove Fund Availability">
-                    <button data-product-id="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_deny btn-link btn-danger" data-original-title="Remove"  id="alert_deny" data-step="<%= current_step_number %>">
+                    <button data-product-id="<%= product_id %>" type="button" data-bs-toggle="tooltip" title="" class="btn alert_deny btn-link btn-danger" data-original-title="Remove"  id="alert_deny" data-step="<%= current_step_number %>" data-stage="<%= current_step_stage %>">
                       <i class="fa fa-times"></i>
                     </button>
                   </span>

@@ -1651,6 +1651,7 @@ export function initApprovalRouting() {
         e.preventDefault()
         const productId = $(this).data('product-id')
         const currentStep = $(this).data('step')
+        const currentStage = $(this).data('stage')
         const updatedBy = $('#created_by').val()
 
 
@@ -1662,7 +1663,7 @@ export function initApprovalRouting() {
 
         showConfirmationAlert({
             title: messageSet[currentStep].initial.title,
-            text: messageSet[currentStep].initial.text,
+            text: withCurrentStage(messageSet[currentStep].initial.text, currentStage),
             requestUrl: "/approve",
             requestMethod: "POST",
             requestData: {
@@ -1679,9 +1680,10 @@ export function initApprovalRouting() {
     $(document).on("click", ".alert_deny", function (e) {
         const productId = $(this).data('product-id')
         const currentStep = $(this).data('step')
+        const currentStage = $(this).data('stage')
         showConfirmationAlert({
             title: messageSet[currentStep].denied.title,
-            text: messageSet[currentStep].denied.text,
+            text: withCurrentStage(messageSet[currentStep].denied.text, currentStage),
             requestUrl: "/disapprove",
             requestMethod: "POST",
             requestData: {
@@ -1694,6 +1696,17 @@ export function initApprovalRouting() {
             successText: messageSet[currentStep].confirmedDenied.text,
         })
     })
+}
+
+function withCurrentStage(text, stage) {
+    if (typeof stage !== 'string' || !stage.trim()) return text;
+
+    const stageLabel = stage
+        .split('_')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+
+    return `${text}\n\nCurrent stage: ${stageLabel}.`;
 }
 
 function getMessages(budget, currentStep) {
