@@ -1,0 +1,44 @@
+.trackActivity {
+
+    .brand-wrapper {
+        .brand-text {
+            width: 100%;
+        }
+
+        .brand-text-top {
+            width: 100%;
+
+            label {
+                font-size: 2.15em !important;
+                color: #ffffff !important;
+            }
+
+            .progress {
+
+                &.in-progress {
+
+                }
+
+                &.progress-completed {
+                    background-color: var(--primary-green);
+                }
+            }
+
+            .brand-subtitle {
+                margin-bottom: 0;
+            }
+
+        }
+
+        img {
+            mix-blend-mode: lighten;
+        }
+    }
+
+    .intro-content-wrapper {
+
+        width: 100%;
+    }
+
+
+}

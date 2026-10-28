@@ -1,0 +1,45 @@
+<%
+  // console.log('Results:', results);
+  const transactions = results[0];
+  const { product_id, bid_notice_title, approved_budget, requisitioner } = results[0] || {};
+  const trackerid = UTILS.generatePRCode(results[0] ?? 0)
+  const progressBar = UTILS.progressBar(results[0] ?? 0)
+
+  const steps = results[2];
+  const remarks = results[3]
+%>
+
+<div class="brand-wrapper d-flex align-items-center">
+  <div class="brand-text d-flex align-items-center">
+    <div id="<%- trackerid -%>" data-qrcode="<%- trackerid -%>" class="qrcode brand-img" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<%- trackerid -%>"></div>
+    <div class="brand-text-top">
+      <%- progressBar %>
+      <p class="brand-subtitle">Requisitioner: <%= requisitioner || 'Default Requisitioner' %></p>
+      
+    </div>
+  </div>
+</div>
+<div class="intro-content-wrapper">
+
+  <div class="card recent-activity-card" data-current-activity="14">
+    <div class="card-header">
+      <div class="card-head-row card-tools-still-right">
+        <div class="card-title">Recent Activity</div>
+        <div class="card-tools">
+          <button id="refreshActivity" class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card"
+            data-transid="55" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Refresh">
+            <span class="fa fa-sync-alt"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <%- include('../../views/partials/activity-feed', {transactions, remarks, steps}) %>
+    </div>
+  </div>
+
+
+</div>
+<div class="intro-section-footer">
+
+</div>

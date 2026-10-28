@@ -5,6 +5,7 @@ set "URL=http://localhost:4000/"
 REM Replace with your actual restart command
 set "FALLBACK=node app.js"
 set "LOGFILE=%~dp0server_watchdog.log"
+set "BRANCH=workflow"
 
 REM Run from the script's folder (change if your app lives elsewhere)
 cd /d "%~dp0"

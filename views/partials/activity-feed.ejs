@@ -6,7 +6,7 @@
   let feedItems = [];
 
   // Prepare remarks feed items
-  for (let i = 0; i < remarks.length; i++) {
+  for (let i = 0; i < remarks?.length; i++) {
     const remark = remarks[i];
     if (!remark) continue;
 
@@ -31,10 +31,10 @@
 
   // Prepare reversedSteps feed items
   approval_steps.forEach(function(step) {
-    if (step.id != 1 && steps.length > 0) {
+    if (step.id != 1 && steps?.length > 0) {
       const step_id = step.id;
       const current = steps[0]?.steps_number;
-      const max = STEPS.lists.length;
+      const max = STEPS.lists?.length;
       const count_steps = [];
       for (let i = current + 1; i <= max; i++) {
         count_steps.push(i);
@@ -81,7 +81,7 @@
     if (item.experience) {
       try {
         const { lists } = JSON.parse(item.experience);
-        if (Array.isArray(lists) && lists.length > 0) {
+        if (Array.isArray(lists) && lists?.length > 0) {
           const {
             office = '',
             division: div = '',
@@ -165,8 +165,8 @@
   <div class="d-flex">
     <span class="user fs-3 mr-3"><i class="icon icon-direction"></i></span>
     <div class="ms-3">
-      <time class="date" datetime="<%- moment(transactions.pr_date).format(format) %>">
-        <%- moment(transactions.pr_date).format(format) %>
+      <time class="date" datetime="<%- moment(transactions?.pr_date).format(format) %>">
+        <%- moment(transactions?.pr_date).format(format) %>
       </time>
       <span class="text">
         <span class="badge badge-black mr-3">Out</span>

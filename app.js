@@ -1167,12 +1167,12 @@ app.use(async (req, res, next) => {
       async __details(product_id, current_step_id) {
         const { STEPS } = res.locals
 
-        const transaction =  await connection.getTransactionById(product_id)
+        const transaction = await connection.getTransactionById(product_id)
         const lists = STEPS?.lists(transaction[0])
-        const prevStep = lists.find(step => step.id === parseInt( current_step_id ));
-        const nextStep = lists.find(step => step.id === parseInt( current_step_id +1 ));
+        const prevStep = lists.find(step => step.id === parseInt(current_step_id));
+        const nextStep = lists.find(step => step.id === parseInt(current_step_id + 1));
 
-        return { prevStep, nextStep}
+        return { prevStep, nextStep }
       }
     },
     UTILS: {
@@ -1246,7 +1246,7 @@ app.use(async (req, res, next) => {
 
         // Default fallback
         return `PR${moment(row.pr_date).format('MM-DD-YY')}${paddedId4}`;
-      },  
+      },
 
       generatePOCode: (pr_id) => {
         const requestID = addLeadingZeros(pr_id, 4)
@@ -1311,12 +1311,14 @@ app.use(async (req, res, next) => {
         if (current_step_number > 0) {
           const progress = Number((current_step_number / getTotalSteps(row)) * 100).toFixed(2);
 
-          var html = `<div class="progress progress-sm sasdsads" style="height: 5px;"><div class="progress-bar" style="width: ${progress}%" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="${current_step_title}"></div></div>`
+          const progressCheck = (progress >= 100) ? 'progress-completed' : 'in-progress';
 
-          return (progress > 0) ? `${row.bid_notice_title} ${html}` : '';
+          var html = `<label>${row.bid_notice_title}</label><div class="progress progress-sm ${progressCheck}" style="height: 5px;"><div class="progress-bar" style="width: ${progress}%" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="${current_step_title}"></div></div>`
+
+          return (progress > 0) ? `${html}` : '';
         }
 
-        return `Unknown for Classic`;
+        return `<label>Unknown for Classic</label>`;
       },
       addColumnActions(page, scope) {
         if (!page) {
@@ -1929,6 +1931,33 @@ app.get('/market-scope/:id/update', restrict, loadAllSuppliers, async (req, res)
     res.status(500).send('Internal Server Error');
   }
 })
+
+app.patch('/market-scope/:id/delete', restrict, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    
+    // Update the archive column to true (soft delete)
+    // const [affectedRows] = await connection.query(
+    //   'UPDATE transid SET archive = ? WHERE id = ?',
+    //   [true, id] asd
+    // );
+
+    const [affectedRows] = await connection.archive('market-scoping', id)
+
+    console.log('sagbot', {affectedRows})
+
+    if (affectedRows === 0) {
+      return res.status(404).json({ error: 'Transaction not found' });
+    } // asdasdasd
+
+    res.status(200).json({ message: `Transaction ${id} archived successfully` });
+  } catch (error) {
+    console.error('Error archiving transaction:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 app.post('/api/market-scope', restrict, async (req, res) => {
   try {
@@ -2935,12 +2964,12 @@ app.get('/transactions/:id/__print', restrict, async (req, res) => {
 app.get('/transactions/:id/print', restrict, async (req, res) => {
   try {
     const [innerHTML, scopesResults, activities] = await Promise.all([
-      connection.getTransactionById(req.params.id ),
+      connection.getTransactionById(req.params.id),
       connection.getMarketScopesResults({ scoping_id: req.params.id }),
       connection.getTransactionActivity()
     ]);
 
-    console.log({ aaaaa: innerHTML[0]})
+    console.log({ aaaaa: innerHTML[0] })
 
     if (!innerHTML || innerHTML.length === 0) {
       return res.status(404).render('404', {
@@ -3932,7 +3961,7 @@ app.route('/api/documents/:id')
   });
 
 app.route('/api/qrcode/:id')
-  .all(restrict)
+  // .all(restrict)
   .get(async (req, res) => {
     const { id } = req.params
 
@@ -4093,7 +4122,7 @@ app.get('/charts/distributions', (req, res) => {
   });
 });
 
-app.get('/purchaseOrders', loadAllActivities, async (req, res) => {
+app.get('/purchaseOrders', restrict, loadAllActivities, async (req, res) => {
   try {
 
     const [transactions, activities] = await Promise.all([
@@ -4204,7 +4233,7 @@ app.get('/purchaseOrders/:id/view', loadAllSuppliers, async (req, res) => {
     const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'page.ejs'),
       {
         scripts: ['/assets/js/pages/purchaseOrders/addProduct.js'], // look for assets/js/misc.js
-        styles: [],
+        styles: ['/assets/css/pages/purchaseOrders.css'],
         innerContent: '../pages/purchaseOrders/view',
         title: `Purchase Order - ${product_id}`,
         results: [purchaseOrders, getSupplierWinner, filterSupplier, purchaseRequest, sortPurchaseRequestActivities, purchaseOrderProducts],
@@ -4594,6 +4623,97 @@ app.delete('/:path/:id', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/trackActivity', loadAllActivities, async (req, res) => {
+  try {
+    let innerHTML = [];
+    let activities = [];
+    let remarks = [];
+    let huhusalan = [];
+    let transid = 0;
+
+
+    if (req?.query) {
+      const { prnumber, trackActivity } = req.query;
+      const getTransactionDetails = await connection.getTransactionByQRCode(prnumber);
+      transid = getTransactionDetails[0]?.product_id || 0;
+
+
+      // console.log('Fetching activity for QR code ID:', req.query);
+      [innerHTML, huhunsalan, remarks, activities] = await Promise.all([
+        connection.getTransactionByQRCode(prnumber),
+        connection.getTransactionActivity(),
+        connection.getRemarksByRefid(transid),
+        connection.getTransactionActivityId(JSON.stringify({ product_id: transid })),
+      ]);
+    }
+
+    // console.log({ transid, huhunsalan })
+
+    const renderedHtml = await ejs.renderFile(path.join(__dirname, 'views', 'fullwidth-col-2.ejs'),
+      {
+        styles: ['/assets/css/login.css', '/assets/css/pages/trackActivity.css'],
+        scripts: ['/assets/js/pages/trackActivity.js'],
+        innerContent: ['../pages/activities/index', '../pages/activities/form'],
+        title: "Recent Activities",
+        description: "",
+        results: { 0: innerHTML[0], 1: activities, 2: huhunsalan[0], 3: remarks[0] },
+        options: {
+          hideTitle: true,
+          uniqueId: req.params.id
+        },
+        ...res.locals,
+      });
+
+    // Rendered HTML
+    res.status(200).send(renderedHtml)
+  } catch (error) {
+    console.error('Error Viewing Market Scope:', error);
+    res.status(500).send('Internal Server Error');
+  }
+})
+
+app.post('/trackActivity', async (req, res) => {
+  try {
+    const { prnumber } = req.body;
+
+    console.log('Fetching activity for PR number:', prnumber);
+    if (!prnumber) {
+      return res.status(400).json({ error: 'PR number is required' });
+    }
+
+    const [innerHTML, activities] = await Promise.all([
+      connection.getTransactionByQRCode(prnumber),
+      connection.getTransactionActivity()
+    ]);
+
+    if (!innerHTML || innerHTML.length === 0) {
+      return res.status(404).render('404', { title: 'Page Not Found' });
+    }
+
+    const renderedHtml = await ejs.renderFile(
+      path.join(__dirname, 'views', 'fullwidth-col-2.ejs'),
+      {
+        styles: ['/assets/css/login.css', '/assets/css/pages/trackActivity.css'],
+        scripts: ['/assets/js/pages/trackActivity.js'],
+        innerContent: ['../pages/activities/index', '../pages/activities/form'],
+        title: "Recent Activities",
+        description: "",
+        results: { 0: innerHTML[0], 1: activities },
+        options: {
+          hideTitle: true,
+          uniqueId: prnumber
+        },
+        ...res.locals,
+      }
+    );
+
+    res.status(200).send(renderedHtml);
+  } catch (error) {
+    console.error('Error Viewing Market Scope:', error);
+    res.status(500).send('Internal Server Error');
   }
 });
 
