@@ -39,10 +39,10 @@ function createProductEntry(data = {}) {
 }
 
 // Add initial entry if none exist
-if (productList.children?.length === 0) createProductEntry();
+if (productList?.children?.length === 0) createProductEntry();
 
 // Add button
-addProductBtn.addEventListener('click', () => {
+addProductBtn?.addEventListener('click', () => {
     const newEntry = createProductEntry();
     // focus the name input for quick typing
     newEntry.querySelector('.product').focus();
@@ -61,7 +61,7 @@ function collectProducts() {
 }
 
   // Form submit: serialize products into hidden input, validate required fields
-purchaseOrderForm.addEventListener('submit', function(e) {
+purchaseOrderForm?.addEventListener('submit', function(e) {
     // e.preventDefault()  
     const purchase_request_id = purchaseOrderForm.querySelector('#purchase_request_id')
     const supplier_code = purchaseOrderForm.querySelector('#supplier_code')

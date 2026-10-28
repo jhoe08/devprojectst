@@ -1,62 +1,70 @@
+v2.10.6
+- updated* Cloudflared updated to latest
+- removed* readonly attribute from preparedby and reviewedby fields
+- added* alert notifications as for testing currently under way
+- updated* sidebar on the new supplier page
+- added* conditional ? before the . as it will check first before executing the function and causing error (underway)
+- updated* changelog details into <Verb>: <Short description>
+
 v2.9.6
-- udpate* threshold amount
-- update* svp lists
-- fix* padding on the menu bar
-- add* issues and concerns links
-- update* removed autofill on Market Scope reviewer
-- add* stages to unify alerts and transactions
+- udpated* threshold amount
+- updated* svp lists
+- fixed* padding on the menu bar
+- added* issues and concerns links
+- updated* removed autofill on Market Scope reviewer
+- added* stages to unify alerts and transactions
 
 v2.8.1
-- fix* remove cached on repo
+- fixed* remove cached on repo
 
 v2.7.3
-- add* watchdog for realiability of the connection
-- fix* database connection for maintaining connection with the codes
-- update* guestToken code
+- added* watchdog for realiability of the connection
+- fixed* database connection for maintaining connection with the codes
+- updated* guestToken code
 
 v2.6.7
-- modify* updated notifications and notification_reads sql
-- add* cloudflare tunneling www and da7-procurement.com
-- fix* employees json on experience, contact, and others
-- fix* printing page on the transactions
-- update* sidebar grouping on hasChildren menu
-- update* datatables on allocatedFunds at mobile resolution
-- add* headers style on custom-page.ejs
+- updated* updated notifications and notification_reads sql
+- added* cloudflare tunneling www and da7-procurement.com
+- fixed* employees json on experience, contact, and others
+- fixed* printing page on the transactions
+- updated* sidebar grouping on hasChildren menu
+- updated* datatables on allocatedFunds at mobile resolution
+- added* headers style on custom-page.ejs
 
 v2.5.4
-- fix* update page on employees
-- fix* supplier section on market scoping
-- fix* datatables on market scoping
-- fix* responsible on create page transaction
+- fixed* update page on employees
+- fixed* supplier section on market scoping
+- fixed* datatables on market scoping
+- fixed* responsible on create page transaction
 
 v2.4.2
-- modify* table notifications and added meta column
-- add* STEPS.__details() function return prevStep and nextStep
+- updated* table notifications and added meta column
+- added* STEPS.__details() function return prevStep and nextStep
 
 v2.3.11
-- fix* update issue on the transaction
-- fix* data conversion to JSON on the server
-- modify* fund_source db datatype from json to text
-- fix* readonly css on transaction fund_source
-- add* center logo on sidebar
-- add* STEPS.isCompleted() to determined if transaction reach it total steps
-- add* completed button when reached total steps
-- fix* getCurrentStageGroup return group
-- fix* markReadonly function 
-- add* links on the social media
-- modify* icons on feedActivities
+- fixed* update issue on the transaction
+- fixed* data conversion to JSON on the server
+- updated* fund_source db datatype from json to text
+- fixed* readonly css on transaction fund_source
+- added* center logo on sidebar
+- added* STEPS.isCompleted() to determined if transaction reach it total steps
+- added* completed button when reached total steps
+- fixed* getCurrentStageGroup return group
+- fixed* markReadonly function 
+- added* links on the social media
+- updated* icons on feedActivities
 
 
 v2.2.3
-- fix* undefined fundAllocations 
-- fix* charges on transactions updates
-- fix* qrcode on transactions print
+- fixed* undefined fundAllocations 
+- fixed* charges on transactions updates
+- fixed* qrcode on transactions print
 
 v2.1.2
-- fix* datatables on other transactions updates
-- remove* comments on footer.js
+- fixed* datatables on other transactions updates
+- removed* comments on footer.js
 
 v2.0.3
-- issue* Check issue related to "ConnectRefused" on database
+- fixed* Check issue related to "ConnectRefused" on database
 - system* Removed XAMPP application
-- add* seeders for employees
+- added* seeders for employees

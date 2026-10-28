@@ -1,6 +1,6 @@
 {
     "name": "justprojects",
-    "version": "0.2.1",
+    "version": "2.9.6",
     "description": "A just project list for dev",
     "main": "app.js",
     "scripts": {

@@ -43,16 +43,16 @@
     console.log('/purchaseOrders/view', purchaseOrderProducts)
 
 %>
-  <div class="row row-card-no-pd mt--2">
+  <div class="purchaseOrders row row-card-no-pd mt--2">
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
       <div class="card">
         <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
+          <div class="card-column">
+            <div class="d-flex justify-content-between">
               <h5><b>Purchase Order #</b></h5>
-              <p class="text-muted"><%= moment(created_at).format('MMM DD, YYYY') %></p>
+              <h3 class="text-info fw-bold"><%= po_number %></h3>
             </div>
-            <h3 class="text-info fw-bold"><%= po_number %></h3>
+            <p class="text-muted"><%= moment(created_at).format('MMM DD, YYYY') %></p>
           </div>
           <div class="separator-dashed mt-0"></div>
           <div class="d-flex justify-content-between mt-2">
@@ -64,7 +64,7 @@
     </div>
     <div class="col-12 col-sm-6 col-md-6 col-xl-6">
       <div class="card">
-        <div class="card-body">
+        <div class="card-body card-column">
           <div class="d-flex justify-content-between">
             <div>
               <h5><b><%= bid_notice_title %></b></h5>

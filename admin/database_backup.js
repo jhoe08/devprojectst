@@ -307,6 +307,11 @@ const databaseUtils = {
     });
   }),
   getTransactionByQRCode: async (params) => {
+    if (typeof params !== 'string' || !params.includes('-')) {
+      // fallback: return empty transaction
+      return [];
+    }
+
     const data = params.split('-')
     let id = Number(data[1])
     let date = moment(data[0], 'MM/DD/YYYY').format('YYYYMMDD')
@@ -803,15 +808,15 @@ const databaseUtils = {
   // UPDATE
   amendEmployee: async (data) => {
     data = JSON.parse(data)
-    
+
     const { experience, contacts, others } = data.set
     data.set.experience = JSON.stringify(experience)
     data.set.contacts = JSON.stringify(contacts)
     data.set.others = JSON.stringify(others)
 
-    console.log({data})
+    console.log({ data })
     console.log('-------------')
-    
+
     return await databaseUtils.amendData('employees', JSON.stringify(data))
   },
   // STORE
@@ -855,7 +860,7 @@ const databaseUtils = {
     // Resolve transactions and filter per user role + stage
     const filtered = await Promise.all(
       results.map(async notif => {
-                const { meta } = notif 
+        const { meta } = notif
         const parsedMeta = JSON.parse(meta)
         const { nextStep } = parsedMeta || '{"nextStep": null, "prevStep": null}'
 
@@ -1616,6 +1621,21 @@ const databaseUtils = {
         else resolve(results[0]);
       });
     });
+  },
+
+  archiveMarketScopes: async(id) => {
+    
+    const query = `UPDATE ${prefix}.market_scope
+                   SET meta = JSON_SET(meta, '$.archive', 1)
+                   WHERE id = ?`
+    
+    return new Promise((resolve, reject) => {
+      connection.query(query, [id], (error, results) => {
+        if (error) reject(error);
+        else resolve(results[0]);
+      });
+    });
+  
   },
 
   // JSON EXTRACTS TESTING

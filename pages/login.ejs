@@ -1,5 +1,6 @@
 <!-- Header Template -->
 <%- include('../views/header') -%>
+
 <link rel="stylesheet" href="./assets/css/login.css">
 <div class="container-fluid">
     <div class="row">
@@ -52,6 +53,9 @@
               <a href="#!" class="forgot-password-link">Password?</a>
             </div>
           </form>
+          <div class="form-group mt-3 text-center hidden">
+            <a href="/trackActivity">Track Activity</a>
+          </div>
           <div class="form-group mt-3 text-center">
             <a href="/token?guest_token=<%= guestToken || '' %>" class="btn btn-outline-primary" onclick="submitGuestToken()">
               Continue as Guest
